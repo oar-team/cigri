@@ -1,3 +1,4 @@
+
 Hypotheses cote cluster:
 - acces a une grappe en temps que user non privilegie (user cigri)
 - pas d'acces direct aux noeuds, passage par le qsub local obligatoire
