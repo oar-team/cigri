@@ -33,18 +33,25 @@ foreach my $i (keys(%nbRemainedJobs)){
 	my @propertiesClusterName = iolibCigri::get_MJobs_Properties($base, $i);
 	foreach my $j (@propertiesClusterName){
 		my $number = 0 ;
-		if ($nbRemainedJobs{$i} <= $nbFreeNodes{$j}){
-			$number = $nbRemainedJobs{$i};
-		}else{
-			$number = $nbFreeNodes{$j};
+		if (defined($nbFreeNodes{$j})){
+		    if ($nbRemainedJobs{$i} <= scalar(@{$nbFreeNodes{$j}})){
+			    $number = $nbRemainedJobs{$i};
+		    }else{
+		    	    $number = scalar(@{$nbFreeNodes{$j}});
+		    }
 		}
 		if ($number > 0){
-			iolibCigri::add_job_to_launch($base,$i,$j,$number);
-			print("[Scheduler] add toLaunch job : $i; cluster : $j; number : $number\n");
-			$nbFreeNodes{$j} -= $number;
+			my $nodeTmp;
+            for (my $k=0; $k < $number; $k++){
+                $nodeTmp = pop(@{$nbFreeNodes{$j}});
+                print("[Scheduler] add toLaunch MJob : $i; node : $nodeTmp\n");
+                iolibCigri::add_job_to_launch($base,$i,$nodeTmp);
+            }
 			$nbRemainedJobs{$i} -= $number;
 		}
 	}
 }
 
+print "[SCHEDULER] End of scheduler FIFO\n";
 iolibCigri::disconnect($base);
+exit(0);
