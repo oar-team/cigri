@@ -78,6 +78,7 @@ print(Dumper(%cmdResult));
 		iolibCigri::set_job_state($base,$jobId,"Error");
 		#
 		iolibCigri::insert_new_error($base,"RUNNER_SUBMIT",$jobId,$cmdResult{STDERR});
+		iolibCigri::resubmit_job($base,$jobId);
 		#
 	}else{
 		my @strTmp = split(/\n/, $cmdResult{STDOUT});
@@ -96,8 +97,8 @@ print(Dumper(%cmdResult));
 			iolibCigri::set_job_state($base, $jobId, "Error");
 			iolibCigri::set_job_message($base, $jobId, "can t determine the remoteJobId");
 			#
-			iolibCigri::resubmit_job($base,$jobId);
 			iolibCigri::insert_new_error($base,"JOBID_PARSE","$jobId","There is a mistake, the job $jobId state = ERROR, bad remote batch id");
+			iolibCigri::resubmit_job($base,$jobId);
 			#
 
 		}
