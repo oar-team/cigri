@@ -46,8 +46,7 @@ my $base = iolibCigri::connect();
 
 # launch a command and monitor it
 # arg1 --> command name
-sub launch_command($)
-{
+sub launch_command($){
     my $command = shift;
     print "Launching command : [$command]\n";
     system $command;
