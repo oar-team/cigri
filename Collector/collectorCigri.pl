@@ -23,10 +23,8 @@ use Data::Dumper;
 
 my $base = iolibCigri::connect();
 
-print "[SCHEDULER] Begining of scheduler FIFO\n";
 
-my %nbFreeNodes = iolibCigri::get_nb_freeNodes($base);
-my %nbRemainedJobs = iolibCigri::get_nb_remained_jobs($base);
+my %jobsToCollectPerCluster = iolibCigri::get_tocollect_jobs($base);
 
 foreach my $i (keys(%nbRemainedJobs)){
 	my @propertiesClusterName = iolibCigri::get_MJobs_Properties($base, $i);

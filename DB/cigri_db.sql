@@ -84,6 +84,7 @@ jobParam VARCHAR( 255 ) ,
 jobNodeId INT UNSIGNED NOT NULL ,
 jobBatchId INT UNSIGNED ,
 jobRetCode INT ,
+jobCollected ENUM('YES','NO') DEFAULT 'NO' NOT NULL ,
 jobTSub DATETIME ,
 jobTStart DATETIME ,
 jobTStop DATETIME ,
@@ -152,5 +153,16 @@ jobsToSubmitNumber INT NOT NULL ,
 PRIMARY KEY (jobsToSubmitMJobsId,jobsToSubmitClusterName)
 );
 
+DROP TABLE IF EXISTS users;
+CREATE TABLE IF NOT EXISTS users (
+usersGridName VARCHAR( 50 ) NOT NULL ,
+userClusterName VARCHAR( 100 ) NOT NULL ,
+userLogin VARCHAR( 50 ) NOT NULL ,
+PRIMARY KEY (usersGridName,userClusterName)
+);
+
 INSERT INTO clusters (clusterName,clusterAdmin,clusterBatch) VALUES ("pawnee", "", "OAR");
 #INSERT INTO clusters (clusterName,clusterAdmin,clusterBatch) VALUES ("i4", "", "PBS");
+
+INSERT INTO users (usersGridName,userClusterName,userLogin) VALUES ("capitn", "pawnee", "capitn");
+
