@@ -9,7 +9,7 @@ CC=gcc-2.95
 CFLAGS=-g -O2 -I/usr/lib/ocaml/3.06 
 
 all: $(ALLOBJS)
-	$(OCAMLOPT) -o $(EXEC)  $(OCAMLFLAGS) $(ALLOBJS)
+	$(OCAMLOPT) -o $(EXEC) unix.cmxa $(OCAMLFLAGS) $(ALLOBJS)
 
 sched_equit.cmx: mysql.cmxa mysql.cmi
 mysql.cmx: mysql.cmi
