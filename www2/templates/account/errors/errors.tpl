@@ -11,6 +11,7 @@
 			<th>Error&nbsp;#</a></th>
 			<th>Error date</a></th>
 			<th>Error state</a></th>
+			<th>Return Code</a></th>
 			<th>MultiJob&nbsp;name</a></th>
 			<th>JobName</a></th>
 		</tr>
@@ -27,6 +28,7 @@
 				<td align="center"><a href="account.php?submenu=errors&id={$secondkey[0]}&option={if $secondkey[2] eq 'FIXED'}fixeddetails{else}tofixdetails{/if}">{$secondkey[0]}</a></td>
 				<td align="center">{$secondkey[1]}</td>
 				<td align="center">{$secondkey[2]}</td>
+				<td align="center">{$secondkey[5]}</td>
 				<td align="center">{$secondkey[3]}</td>
 				<td align="center">{$secondkey[4]}</td>
 			</tr>

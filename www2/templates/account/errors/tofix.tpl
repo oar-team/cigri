@@ -17,6 +17,7 @@
 			<th><a href="{$itemsorderby[1]}">Error date{$itemsorderimgs[1]}</a></th>
 			<th><a href="{$itemsorderby[2]}">MultiJob&nbsp;name{$itemsorderimgs[2]}</a></th>
 			<th><a href="{$itemsorderby[3]}">Job Name{$itemsorderimgs[3]}</a></th>
+			<th><a href="{$itemsorderby[4]}">Return Code{$itemsorderimgs[4]}</a></th>
 		</tr>
 		{foreach from=$eventarray item=secondkey}
 			{* check parity *}
@@ -33,6 +34,7 @@
 				<td align="center">{$secondkey[1]}</td>
 				<td align="center">{$secondkey[2]}</td>
 				<td align="center">{$secondkey[3]}</td>
+				<td align="center">{$secondkey[4]}</td>
 			</tr>
 		{/foreach}
 		</table>

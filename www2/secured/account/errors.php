@@ -34,7 +34,7 @@ switch ($option) {
 		// New query with page limits
 		$query = <<<EOF
 SELECT
-	e.eventId, e.eventDate, e.eventState,mj.MJobsName, j.jobName
+	e.eventId, e.eventDate, e.eventState,mj.MJobsName, j.jobName,j.jobRetCode
 FROM
 	multipleJobs mj, jobs j, events e
 WHERE
@@ -73,6 +73,7 @@ EOF;
 		$selectnames[] = "e.eventDate";
 		$selectnames[] = "mj.MJobsName";
 		$selectnames[] = "j.jobName";
+		$selectnames[] = "j.jobRetCode";
 		cigri_order_by($_GET,$selectnames,'account.php',$orderby,$orderarray,$orderimgs,$smarty,"../");
 		$query = <<<EOF
 SELECT
@@ -96,7 +97,7 @@ EOF;
 		// New query with page limits
 		$query = <<<EOF
 SELECT
-	e.eventId, e.eventDate, mj.MJobsName, j.jobName
+	e.eventId, e.eventDate, mj.MJobsName, j.jobName,j.jobRetCode
 FROM
 	multipleJobs mj, jobs j, events e
 WHERE
@@ -184,6 +185,7 @@ EOF;
 		$selectnames[] = "e.eventDate";
 		$selectnames[] = "mj.MJobsName";
 		$selectnames[] = "j.jobName";
+		$selectnames[] = "j.jobRetCode";
 		cigri_order_by($_GET,$selectnames,'account.php',$orderby,$orderarray,$orderimgs,$smarty,"../");
 		$query = <<<EOF
 SELECT
@@ -205,7 +207,7 @@ EOF;
 
 		$query = <<<EOF
 SELECT
-	e.eventId, e.eventDate, mj.MJobsName, j.jobName
+	e.eventId, e.eventDate, mj.MJobsName, j.jobName,j.jobRetCode
 FROM
 	jobs j,multipleJobs mj,events e
 WHERE

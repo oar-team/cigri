@@ -18,6 +18,10 @@
 			<td align="center" class="evenrow">{$eventarray.errorType}</td>
 		</tr>
 		<tr>
+			<td align="center" class="oddrow"><b>Return&nbsp;Code</b></td>
+			<td align="center" class="evenrow">{$eventarray.jobRetCode}</td>
+		</tr>
+		<tr>
 			<td align="center" class="oddrow"><b>Error&nbsp;Date</b></td>
 			<td align="center" class="evenrow">{$eventarray.errorDate}</td>
 		</tr>
