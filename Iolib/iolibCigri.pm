@@ -70,7 +70,7 @@ sub emptyTemporaryTables($){
 sub add_mjobs($$) {
 	my ($dbh, $JDLfile) = @_;
 
-	#$dbh->do("LOCK TABLES multipleJobs WRITE, parameters WRITE");
+	$dbh->do("LOCK TABLES multipleJobs WRITE, parameters WRITE, properties WRITE");
 	my $lusr= getpwuid($<);
 
 	my $sth = $dbh->prepare("SELECT MAX(MJobsId)+1 FROM multipleJobs");
@@ -104,7 +104,15 @@ sub add_mjobs($$) {
 			while (<FILE>){
 				chomp;
 				if ($_ ne ""){
-					$dbh->do("INSERT INTO parameters (parametersMJobsId,parametersParam) VALUES ($id,\'$_\')");
+					eval{
+						$dbh->do("INSERT INTO parameters (parametersMJobsId,parametersParam) VALUES ($id,\'$_\')");
+					};
+					if ($@){
+						warn("Duplicate parameters\n");
+						warn("$@");
+						$dbh->do("DELETE FROM parameters WHERE parametersMJobsId = $id");
+						return -4;
+					}
 				}
 			}
 			close(FILE);
@@ -138,7 +146,7 @@ sub add_mjobs($$) {
 	$dbh->do("INSERT INTO multipleJobs (MJobsId,MJobsUser,MJobsJDL,MJobsTSub)
 			VALUES ($id,\"$lusr\",\"$jdl\",\"$time\")");
 
-	#$dbh->do("UNLOCK TABLES");
+	$dbh->do("UNLOCK TABLES");
 	return $id;
 }
 
