@@ -1,4 +1,4 @@
-#!/usr/bin/perl -I ../ConfLib -I ../Iolib -I ../JDLLib
+#!/usr/bin/perl
 
 # Tool to query the grid for a submission
 
@@ -9,9 +9,10 @@ use Data::Dumper;
 use Sys::Hostname;
 use Getopt::Std;
 BEGIN {
-	my $scriptPath = readlink($0);
+	my ($scriptPathTmp) = $0 =~ m!(.*/*)!s;
+	my ($scriptPath) = readlink($scriptPathTmp);
 	if (!defined($scriptPath)){
-		$scriptPath = $0;
+		$scriptPath = $scriptPathTmp;
 	}
 	# Relative path of the package
 	my @relativePathTemp = split(/\//, $scriptPath);

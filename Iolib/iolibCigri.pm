@@ -5,9 +5,10 @@ use Data::Dumper;
 use DBI;
 #use strict;
 BEGIN {
-	my $scriptPath = readlink($0);
+	my ($scriptPathTmp) = $0 =~ m!(.*/*)!s;
+	my ($scriptPath) = readlink($scriptPathTmp);
 	if (!defined($scriptPath)){
-		$scriptPath = $0;
+		$scriptPath = $scriptPathTmp;
 	}
 	# Relative path of the package
 	my @relativePathTemp = split(/\//, $scriptPath);
