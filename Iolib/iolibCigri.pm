@@ -22,10 +22,12 @@ BEGIN {
     unshift(@INC, $relativePath."ConfLib");
     unshift(@INC, $relativePath."JDLLib");
     unshift(@INC, $relativePath."Colombo");
+    unshift(@INC, $relativePath."Mailer");
 }
 use JDLParserCigri;
 use ConfLibCigri qw(init_conf get_conf is_conf);
 use colomboCigri;
+use mailer;
 
 # Connect to the database and give the ref
 sub connect() {
@@ -1037,6 +1039,10 @@ sub set_frag_specific_MJob($$){
         set_job_state($dbh, $ref[0], "Event");
         colomboCigri::add_new_job_event($dbh,$ref[0],"FRAG","");
     }
+
+    # notify admin by email
+    mailer::sendMail("Frag MJob $MJobId","");
+
     $sth->finish();
 }
 

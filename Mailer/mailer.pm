@@ -36,11 +36,14 @@ sub sendMail($$){
     my $pid=fork;
     if ($pid == 0){
         ConfLibCigri::init_conf();
+        close(STDOUT);
+        close(STDERR);
+        close(STDIN);
         my $smtpServer = ConfLibCigri::get_conf("MAIL_SMTP_SERVER");
         my $mailSenderAddress = ConfLibCigri::get_conf("MAIL_SENDER");
         my $mailRecipientAddress = ConfLibCigri::get_conf("MAIL_RECIPIENT");
 
-        print("[MAILER] I send a mail to $mailRecipientAddress with the sender $mailSenderAddress on the server $smtpServer\n");
+        #print("[MAILER] I send a mail to $mailRecipientAddress with the sender $mailSenderAddress on the server $smtpServer\n");
 
         my $smtp = Net::SMTP->new($smtpServer, Timeout => 240);
         if (!defined($smtp)){
@@ -50,7 +53,7 @@ sub sendMail($$){
             open(FILE, ">> /tmp/ERROR_CIGRI_mailer.log");
             my $str = "Can t send an email to $mailRecipientAddress from $mailSenderAddress; Object : $object ;; Body : $body";
             print(FILE "[$year-$mon-$mday $hour:$min:$sec] $str\n");
-            print("[ERROR MAILER] $str\n");
+            #print("[ERROR MAILER] $str\n");
             close(FILE);
         }else{
             $smtp->mail($mailSenderAddress);
@@ -59,8 +62,9 @@ sub sendMail($$){
             $smtp->datasend("Subject: $object\n");
             $smtp->datasend($body);
             $smtp->quit;
-            print("Mailer OK\n");
+            #print("Mailer OK\n");
         }
+        exit(0);
     }
 }
 
