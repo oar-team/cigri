@@ -10,15 +10,18 @@ use iolibCigri;
 
 my $base = iolibCigri::connect();
 
+print(${iolibCigri::get_current_scheduler($base)}{schedulerId}."\n");
+
+
 # print iolibCigri::add_job($base,1,1,"ls");
 
-my $id = iolibCigri::add_job($base,1,1,"ls");
-print "$id\n";
+#my $id = iolibCigri::add_job($base,1,1,"ls");
+#print "$id\n";
 
-print iolibCigri::frag_job($base,$id)."\n";
+#print iolibCigri::frag_job($base,$id)."\n";
 
-print  Dumper(iolibCigri::get_job_host($base,"4"));
-print  Dumper(iolibCigri::get_host_job($base,'icluster14'));
+#print  Dumper(iolibCigri::get_job_host($base,"4"));
+#print  Dumper(iolibCigri::get_host_job($base,'icluster14'));
 #print Dumper(iolibCigri::list_nodes($base));
 #print Dumper(iolibCigri::get_node_info($base,"Wichita"));
 #print Dumper(iolibCigri::list_current_jobs($base));

@@ -471,14 +471,14 @@ sub get_cluster_job_toLaunch($$$) {
         if (colomboCigri::is_cluster_active($dbh,$clusterName,$MJobtoSubmit[0]) != 0){
             $dbh->do("UNLOCK TABLES");
             warn("[Iolib] Erreur de choix du scheduler, le cluster est blackliste\n");
-            colomboCigri::add_new_scheduler_event($dbh,get_current_scheduler($dbh),"CLUSTER_BLACKLISTED"," Erreur de choix du scheduler, le cluster $clusterName est blackliste");
+            colomboCigri::add_new_scheduler_event($dbh,${get_current_scheduler($dbh)}{schedulerId},"CLUSTER_BLACKLISTED"," Erreur de choix du scheduler, le cluster $clusterName est blackliste");
             return(1);
         }
 
         # if (colomboCigri::is_node_active($dbh,$MJobtoSubmit[1],$MJobtoSubmit[0]) != 0){
             # $dbh->do("UNLOCK TABLES");
             # warn("[Iolib] Erreur de choix du scheduler, le noeud $MJobtoSubmit[1] est blackliste\n");
-            # colomboCigri::add_new_scheduler_event($dbh,get_current_scheduler($dbh),"NODE_BLACKLISTED"," Erreur de choix du scheduler, le noeud  est $MJobtoSubmit[1] blackliste");
+            # colomboCigri::add_new_scheduler_event($dbh,${get_current_scheduler($dbh)}{schedulerId},"NODE_BLACKLISTED"," Erreur de choix du scheduler, le noeud  est $MJobtoSubmit[1] blackliste");
             # return(1);
         # }
 
@@ -495,7 +495,7 @@ sub get_cluster_job_toLaunch($$$) {
         if (!defined($parameter)){
             $dbh->do("UNLOCK TABLES");
             warn("[Iolib] Erreur de choix du scheduler pour le nb de parametres\n");
-            colomboCigri::add_new_scheduler_event($dbh,get_current_scheduler($dbh),"NB_PARAMS"," Erreur de choix du scheduler pour le nb de parametres");
+            colomboCigri::add_new_scheduler_event($dbh,${get_current_scheduler($dbh)}{schedulerId},"NB_PARAMS"," Erreur de choix du scheduler pour le nb de parametres");
             return(1);
         }
 
@@ -504,7 +504,7 @@ sub get_cluster_job_toLaunch($$$) {
         #if ($nbRes < 1){
         #    $dbh->do("UNLOCK TABLES");
         #    warn("[Iolib] Erreur de choix du scheduler pour le noeud\n");
-        #    colomboCigri::add_new_scheduler_event($dbh,get_current_scheduler($dbh),"NB_NODES","Erreur de choix du scheduler pour le noeud. Le noeud est BUSY");
+        #    colomboCigri::add_new_scheduler_event($dbh,${get_current_scheduler($dbh)}{schedulerId},"NB_NODES","Erreur de choix du scheduler pour le noeud. Le noeud est BUSY");
         #    return(1);
         #}
 
