@@ -151,7 +151,7 @@ sub get_date() {
 # arg3 --> clusterName
 # arg4 --> username
 # arg5 --> jobFile
-# arg6 --> nodeName
+# arg6 --> blacklisted nodes
 # return jobBatchId
 sub submitJob($$$$$$) {
     my $dbh = shift;
@@ -159,7 +159,7 @@ sub submitJob($$$$$$) {
     my $cluster = shift;
     my $user = shift;
     my $jobFile = shift;
-    my $node = shift;
+    my $blackNodes = shift;
 
     my $weight = iolibCigri::get_cluster_default_weight($cigriDB,$cluster);
     $dbh->do("LOCK TABLE jobs WRITE");
@@ -174,7 +174,17 @@ sub submitJob($$$$$$) {
     }
     my $time = get_date();
 
-    $dbh->do("INSERT INTO jobs (idJob,jobType,infoType,state,user,nbNodes,weight,command,submissionTime,maxTime,queueName,launchingDirectory,properties) VALUES ($id,\"PASSIVE\",\"\",\"Waiting\",\"$user\",1,$weight,\"~$user/$jobFile\",\"$time\",\"01:00:00\",\"besteffort\",\"~$user\",\"(p.hostname = \\\"$node\\\" ) AND p.besteffort = \\\"YES\\\"\")");
+    my $propertyString;
+    foreach my $i (@$blackNodes){
+        $propertyString .= " p.hostname != \\\"$i\\\" AND";
+    }
+    if (defined($propertyString)){
+        $propertyString =~ s/^(.+)AND$/$1/g;
+        $propertyString = "(".$propertyString.") AND ";
+    }
+    $propertyString .= "p.besteffort = \\\"YES\\\"";
+    print("Property String = $propertyString\n");
+    $dbh->do("INSERT INTO jobs (idJob,jobType,infoType,state,user,nbNodes,weight,command,submissionTime,maxTime,queueName,launchingDirectory,properties) VALUES ($id,\"PASSIVE\",\"\",\"Waiting\",\"$user\",1,$weight,\"~$user/$jobFile\",\"$time\",\"01:00:00\",\"besteffort\",\"~$user\",\"$propertyString\")");
 
     $dbh->do("UNLOCK TABLES");
 

@@ -386,6 +386,28 @@ sub get_node_cluster($$){
     return $resulArray[0];
 }
 
+#give the nodeId of the given node name
+# arg1 --> database ref
+# arg2 --> nodeName
+# arg3 --> clusterName
+# return the nodeId
+# sub get_nodeID($$$){
+    # my $dbh = shift;
+    # my $nodeName = shift;
+    # my $clusterName = shift;
+#
+    # my $sth = $dbh->prepare("SELECT nodeId
+                             # FROM nodes
+                             # WHERE nodeName = \"$nodeName\"
+                                # AND nodeClusterName = \"$clusterName\"
+                            # ");
+    # $sth->execute();
+    # my @resulArray = $sth->fetchrow_array();
+    # $sth->finish();
+#
+    # return $resulArray[0];
+# }
+
 # give the job attribute
 # arg1 --> database ref
 # arg2 --> clusterName
@@ -393,12 +415,10 @@ sub get_node_cluster($$){
 sub get_launching_job($$) {
     my $dbh = shift;
     my $clusterName = shift;
-    my $sth = $dbh->prepare("SELECT jobId,jobParam,nodeName,propertiesJobCmd,nodeClusterName,clusterBatch,userLogin,nodeId
-                            FROM jobs,nodes,clusters,multipleJobs,properties,users
+    my $sth = $dbh->prepare("SELECT jobId,jobParam,propertiesJobCmd,jobClusterName,clusterBatch,userLogin,MJobsId
+                            FROM jobs,clusters,multipleJobs,properties,users
                             WHERE jobState=\"toLaunch\"
-                                AND jobNodeId = nodeId
-                                AND nodeClusterName = \"$clusterName\"
-                                AND nodeClusterName = clusterName
+                                AND clusterName = \"$clusterName\"
                                 AND MJobsId = jobMJobsId
                                 AND propertiesClusterName = clusterName
                                 And propertiesMJobsId = MJobsId
@@ -414,12 +434,11 @@ sub get_launching_job($$) {
     my %result = (
         'id'            => $ref[0],
         'param'         => $ref[1],
-        'nodeName'      => $ref[2],
-        'cmd'           => $ref[3],
-        'clusterName'   => $ref[4],
-        'batch'         => $ref[5],
-        'user'          => $ref[6],
-        'nodeId'        => $ref[7]
+        'cmd'           => $ref[2],
+        'clusterName'   => $ref[3],
+        'batch'         => $ref[4],
+        'user'          => $ref[5],
+        'mjobid'        => $ref[6]
     );
 
     return %result;
@@ -436,11 +455,11 @@ sub get_cluster_job_toLaunch($$$) {
     my $job = shift;
 
     $dbh->do("LOCK TABLES jobs WRITE, jobsToSubmit WRITE, nodes WRITE, parameters WRITE, clusters WRITE, multipleJobs WRITE, properties WRITE, users WRITE, clusterBlackList WRITE, nodeBlackList WRITE, events WRITE");
-    my $sth = $dbh->prepare("SELECT jobsToSubmitMJobsId, jobsToSubmitNodeId
-                            FROM jobsToSubmit, nodes
-                            WHERE nodeId = jobsToSubmitNodeId
-                            AND nodeClusterName = \"$clusterName\"
-                            LIMIT 1
+    my $sth = $dbh->prepare("SELECT jobsToSubmitMJobsId
+                             FROM jobsToSubmit
+                             WHERE jobsToSubmitClusterName = \"$clusterName\"
+                                 AND jobsToSubmitNumber > 0
+                             LIMIT 1
                             ");
     $sth->execute();
     my @MJobtoSubmit = $sth->fetchrow_array();
@@ -455,12 +474,12 @@ sub get_cluster_job_toLaunch($$$) {
             return(1);
         }
 
-        if (colomboCigri::is_node_active($dbh,$MJobtoSubmit[1],$MJobtoSubmit[0]) != 0){
-            $dbh->do("UNLOCK TABLES");
-            warn("[Iolib] Erreur de choix du scheduler, le noeud $MJobtoSubmit[1] est blackliste\n");
-            colomboCigri::add_new_scheduler_event($dbh,get_current_scheduler($dbh),"NODE_BLACKLISTED"," Erreur de choix du scheduler, le noeud  est $MJobtoSubmit[1] blackliste");
-            return(1);
-        }
+        # if (colomboCigri::is_node_active($dbh,$MJobtoSubmit[1],$MJobtoSubmit[0]) != 0){
+            # $dbh->do("UNLOCK TABLES");
+            # warn("[Iolib] Erreur de choix du scheduler, le noeud $MJobtoSubmit[1] est blackliste\n");
+            # colomboCigri::add_new_scheduler_event($dbh,get_current_scheduler($dbh),"NODE_BLACKLISTED"," Erreur de choix du scheduler, le noeud  est $MJobtoSubmit[1] blackliste");
+            # return(1);
+        # }
 
         # get parameter for this MJob on this cluster
         $sth = $dbh->prepare("SELECT parametersParam,parametersName
@@ -480,13 +499,13 @@ sub get_cluster_job_toLaunch($$$) {
         }
 
         #check if the node is FREE
-        my $nbRes = $dbh->do("SELECT * FROM nodes WHERE nodeId = $MJobtoSubmit[1] AND nodeState = \"FREE\"");
-        if ($nbRes < 1){
-            $dbh->do("UNLOCK TABLES");
-            warn("[Iolib] Erreur de choix du scheduler pour le noeud\n");
-            colomboCigri::add_new_scheduler_event($dbh,get_current_scheduler($dbh),"NB_NODES","Erreur de choix du scheduler pour le noeud. Le noeud est BUSY");
-            return(1);
-        }
+        #my $nbRes = $dbh->do("SELECT * FROM nodes WHERE nodeId = $MJobtoSubmit[1] AND nodeState = \"FREE\"");
+        #if ($nbRes < 1){
+        #    $dbh->do("UNLOCK TABLES");
+        #    warn("[Iolib] Erreur de choix du scheduler pour le noeud\n");
+        #    colomboCigri::add_new_scheduler_event($dbh,get_current_scheduler($dbh),"NB_NODES","Erreur de choix du scheduler pour le noeud. Le noeud est BUSY");
+        #    return(1);
+        #}
 
         #add jobs in jobs table
         my $time = get_date();
@@ -499,8 +518,10 @@ sub get_cluster_job_toLaunch($$$) {
             $id = 1;
         }
 
-        $dbh->do("INSERT INTO jobs (jobId,jobState,jobMJobsId,jobParam,jobName,jobNodeId,jobTSub)
-        VALUES ($id,\"toLaunch\",$MJobtoSubmit[0],\"$$parameter{parametersParam}\",\"$$parameter{parametersName}\",$MJobtoSubmit[1],\"$time\")");
+        begin_transaction($dbh);
+
+        $dbh->do("INSERT INTO jobs (jobId,jobState,jobMJobsId,jobParam,jobName,jobClusterName,jobTSub)
+        VALUES ($id,\"toLaunch\",$MJobtoSubmit[0],\"$$parameter{parametersParam}\",\"$$parameter{parametersName}\",\"$clusterName\",\"$time\")");
 
         # delete used param
         $dbh->do("DELETE FROM parameters
@@ -509,14 +530,16 @@ sub get_cluster_job_toLaunch($$$) {
                  ");
 
         # delete used entry in jobToSubmit
-        $dbh->do("DELETE FROM jobsToSubmit
-                  WHERE  jobsToSubmitMJobsId = $MJobtoSubmit[0]
-                  AND jobsToSubmitNodeId = $MJobtoSubmit[1]
-                  LIMIT 1
+        my $newNumber = $MJobtoSubmit[1] - 1;
+        $dbh->do("UPDATE jobsToSubmit SET jobsToSubmitNumber = $newNumber
+                    WHERE jobsToSubmitMJobsId = $MJobtoSubmit[0]
+                          AND jobsToSubmitClusterName = \"$clusterName\"
                  ");
 
         # set to BUSY used nodes
-        $dbh->do("UPDATE nodes SET nodeState = \"BUSY\" WHERE nodeId = $MJobtoSubmit[1]");
+        #$dbh->do("UPDATE nodes SET nodeState = \"BUSY\" WHERE nodeId = $MJobtoSubmit[1]");
+
+        commit_transaction($dbh);
     }
 
     my %jobTmp = get_launching_job($dbh,$clusterName);
@@ -576,12 +599,13 @@ sub set_job_batch_id($$$){
 # return a hashtable of array refs : ${${$resul{pawnee}}[0]}{batchJobId} --> give the first batchId for the cluster pawnee
 sub get_job_to_update_state($){
     my $dbh = shift;
-    my $sth = $dbh->prepare("    SELECT jobBatchId,nodeClusterName,jobId,userLogin,MJobsId
-                                FROM jobs,nodes,multipleJobs,clusters,users
-                                WHERE (jobState = \"Running\" or jobState = \"RemoteWaiting\") and jobNodeId = nodeId
-                                and MJobsId = jobMJobsId and clusterName = nodeClusterName
-                                and MJobsUser = userGridName and clusterName = userClusterName
-                                ");
+    my $sth = $dbh->prepare("SELECT jobBatchId,jobClusterName,jobId,userLogin,MJobsId
+                             FROM jobs,multipleJobs,users
+                             WHERE (jobState = \"Running\" or jobState = \"RemoteWaiting\")
+                                and MJobsId = jobMJobsId
+                                and MJobsUser = userGridName
+                                and jobClusterName = userClusterName
+                            ");
     $sth->execute();
 
     my %resul;
@@ -603,42 +627,44 @@ sub get_job_to_update_state($){
 
 # update the number of free nodes which have a remote waiting job on
 # arg1 --> database ref
-sub check_remote_waiting_jobs($){
-    my $dbh = shift;
-
-    my $sth = $dbh->prepare("select jobNodeId from jobs where jobState = \"RemoteWaiting\"");
-    $sth->execute();
-
-    my $remoteWaitingJobs ;
-    my %tmp;
-    while (my @ref = $sth->fetchrow_array()) {
-        $tmp{$ref[0]} = 1;
-    }
-    $sth->finish();
-
-    foreach my $i (keys(%tmp)){
-        $remoteWaitingJobs .= " nodeId = $i or";
-    }
-    if (defined($remoteWaitingJobs)){
-        $remoteWaitingJobs =~ s/^(.+)or$/$1/g;
-        $dbh->do("UPDATE nodes SET nodeState = \"BUSY\" WHERE $remoteWaitingJobs");
-    }
-}
+# sub check_remote_waiting_jobs($){
+    # my $dbh = shift;
+#
+    # my $sth = $dbh->prepare("select jobNodeId from jobs where jobState = \"RemoteWaiting\"");
+    # $sth->execute();
+#
+    # my $remoteWaitingJobs ;
+    # my %tmp;
+    # while (my @ref = $sth->fetchrow_array()) {
+        # $tmp{$ref[0]} = 1;
+    # }
+    # $sth->finish();
+#
+    # foreach my $i (keys(%tmp)){
+        # $remoteWaitingJobs .= " nodeId = $i or";
+    # }
+    # if (defined($remoteWaitingJobs)){
+        # $remoteWaitingJobs =~ s/^(.+)or$/$1/g;
+        # $dbh->do("UPDATE nodes SET nodeState = \"BUSY\" WHERE $remoteWaitingJobs");
+    # }
+# }
 
 # get the number of free nodes for each cluster
 # arg1 --> database ref
 sub get_nb_freeNodes($){
     my $dbh = shift;
 
-    my $sth = $dbh->prepare("   SELECT nodeClusterName, nodeId
+    my $sth = $dbh->prepare("   SELECT nodeClusterName,count(*)
                                 FROM nodes
-                                WHERE nodeState = \"FREE\"");
+                                WHERE nodeState = \"FREE\"
+                                GROUP BY nodeClusterName");
     $sth->execute();
 
     my %result;
     while (my @ref = $sth->fetchrow_array()) {
-        push(@{$result{$ref[0]}}, $ref[1]);
+        $result{$ref[0]} = $ref[1];
     }
+
     $sth->finish();
 
     return %result;
@@ -693,13 +719,15 @@ sub get_MJobs_Properties($$){
 # Add a job to launch
 # arg1 --> database ref
 # arg2 --> MJobsId of the job
-# arg3 --> nodeId where to launch
-sub add_job_to_launch($$$){
+# arg3 --> cluster name
+# arg4 --> number of jobs to submit
+sub add_job_to_launch($$$$){
     my $dbh = shift;
     my $MJobsId = shift;
-    my $nodeId = shift;
+    my $clusterName = shift;
+    my $nbJobs = shift;
 
-    $dbh->do("INSERT INTO jobsToSubmit (jobsToSubmitMJobsId,jobsToSubmitNodeId) VALUES ($MJobsId,$nodeId)");
+    $dbh->do("INSERT INTO jobsToSubmit (jobsToSubmitMJobsId,jobsToSubmitClusterName,jobsToSubmitNumber) VALUES ($MJobsId,\"$clusterName\",$nbJobs)");
 }
 
 # check and set the end of each MJob in the IN_TREATMENT state
@@ -761,15 +789,19 @@ sub check_end_MJobs($){
 # arg3 --> begin date
 # arg4 --> end date
 # arg5 --> return code
-sub update_att_job($$$$$){
+# arg6 --> clusterName
+# arg7 --> nodeName
+sub update_att_job($$$$$$$){
     my $dbh = shift;
     my $id = shift;
     my $beginDate = shift;
     my $endDate = shift;
     my $retCode = shift;
+    my $clusterName = shift;
+    my $nodeName = shift;
 
-    $dbh->do("    UPDATE jobs SET jobTStart = \"$beginDate\", jobTStop = \"$endDate\", jobRetCode = $retCode
-                WHERE jobId = $id");
+    $dbh->do("UPDATE jobs SET jobTStart = \"$beginDate\", jobTStop = \"$endDate\", jobRetCode = $retCode, jobNodeName = \"$nodeName\"
+              WHERE jobId = $id");
 }
 
 # return Mjobs to collect
@@ -805,15 +837,14 @@ sub get_tocollect_MJobs($$){
 sub get_tocollect_MJob_files($$){
     my $dbh = shift;
     my $MJobId = shift;
-    my $sth = $dbh->prepare("    SELECT nodeClusterName, userLogin, jobBatchId, clusterBatch, jobId, userGridName, jobName
-                                FROM jobs, nodes, multipleJobs, users, clusters
+    my $sth = $dbh->prepare("   SELECT jobClusterName, userLogin, jobBatchId, clusterBatch, jobId, userGridName, jobName
+                                FROM jobs, multipleJobs, users, clusters
                                 WHERE jobMJobsId = $MJobId
-                                AND jobNodeId = nodeId
                                 AND jobMJobsId = MJobsId
                                 AND MJobsUser = userGridName
                                 AND jobState = \"Terminated\"
                                 AND jobCollectedJobId = 0
-                                AND clusterName = nodeClusterName
+                                AND clusterName = jobClusterName
                                 AND userClusterName = clusterName
                                 ORDER BY clusterName
                             ");
@@ -968,14 +999,13 @@ sub get_tofrag_MJobs($){
 sub get_tofrag_jobs($){
     my $dbh = shift;
     my $sth = $dbh->prepare("    SELECT jobId, jobBatchId, clusterName, clusterBatch, userLogin, eventId
-                                FROM fragLog, events, jobs, users, nodes, clusters, multipleJobs
+                                FROM fragLog, events, jobs, users, clusters, multipleJobs
                                 WHERE fragLogEventId = eventId
                                 AND eventState = \"ToFIX\"
                                 AND eventClass = \"JOB\"
                                 AND eventType = \"FRAG\"
                                 AND eventJobId = jobId
-                                AND jobNodeId = nodeId
-                                AND nodeClusterName = clusterName
+                                AND jobClusterName = clusterName
                                 AND clusterName = userClusterName
                                 AND MJobsUser = userGridName
                                 AND jobMJobsId = MJobsId

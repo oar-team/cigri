@@ -65,7 +65,9 @@ jobState ENUM('toLaunch', 'Running', 'RemoteWaiting', 'Terminated', 'Event') NOT
 jobMJobsId INT UNSIGNED ,
 jobParam VARCHAR( 255 ) ,
 jobName VARCHAR( 255 ) ,
-jobNodeId INT UNSIGNED NOT NULL ,
+jobClusterName VARCHAR( 100 ) NOT NULL ,
+#jobNodeId INT UNSIGNED ,
+jobNodeName VARCHAR( 100 ) ,
 jobBatchId INT UNSIGNED ,
 jobRetCode INT ,
 jobCollectedJobId INT DEFAULT 0 NOT NULL ,
@@ -121,7 +123,9 @@ PRIMARY KEY (propertiesClusterName,propertiesMJobsId)
 DROP TABLE IF EXISTS jobsToSubmit;
 CREATE TABLE IF NOT EXISTS jobsToSubmit (
 jobsToSubmitMJobsId INT UNSIGNED NOT NULL ,
-jobsToSubmitNodeId INT UNSIGNED NOT NULL
+jobsToSubmitClusterName VARCHAR( 100 ) NOT NULL ,
+jobsToSubmitNumber INT UNSIGNED NOT NULL ,
+PRIMARY KEY (jobsToSubmitMJobsId,jobsToSubmitClusterName)
 )TYPE = InnoDB;
 
 DROP TABLE IF EXISTS users;

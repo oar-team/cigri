@@ -6,26 +6,27 @@ use strict;
 use Data::Dumper;
 use IO::Socket::INET;
 BEGIN {
-	my ($scriptPathTmp) = $0 =~ m!(.*/*)!s;
-	my ($scriptPath) = readlink($scriptPathTmp);
-	if (!defined($scriptPath)){
-		$scriptPath = $scriptPathTmp;
-	}
-	# Relative path of the package
-	my @relativePathTemp = split(/\//, $scriptPath);
-	my $relativePath = "";
-	for (my $i = 0; $i < $#relativePathTemp; $i++){
-		$relativePath = $relativePath.$relativePathTemp[$i]."/";
-	}
-	$relativePath = $relativePath."../";
-	# configure the path to reach the lib directory
-	unshift(@INC, $relativePath."lib");
-	unshift(@INC, $relativePath."Net");
-	unshift(@INC, $relativePath."Iolib");
-	unshift(@INC, $relativePath."Colombo");
+    my ($scriptPathTmp) = $0 =~ m!(.*/*)!s;
+    my ($scriptPath) = readlink($scriptPathTmp);
+    if (!defined($scriptPath)){
+        $scriptPath = $scriptPathTmp;
+    }
+    # Relative path of the package
+    my @relativePathTemp = split(/\//, $scriptPath);
+    my $relativePath = "";
+    for (my $i = 0; $i < $#relativePathTemp; $i++){
+        $relativePath = $relativePath.$relativePathTemp[$i]."/";
+    }
+    $relativePath = $relativePath."../";
+    # configure the path to reach the lib directory
+    unshift(@INC, $relativePath."lib");
+    unshift(@INC, $relativePath."Net");
+    unshift(@INC, $relativePath."Iolib");
+    unshift(@INC, $relativePath."Colombo");
     unshift(@INC, $relativePath."ClusterQuery");
 }
 use iolibCigri;
+use colomboCigri;
 #use SSHcmdClient;
 use SSHcmd;
 use NetCommon;
@@ -43,7 +44,7 @@ foreach my $j (keys(%clusterNames)){
     if ($pid == 0){
         $base = iolibCigri::connect() ;
         while (iolibCigri::get_cluster_job_toLaunch($base,$j,\%job) == 0){
-            print("[Runner] Launch the job $job{id} on the node $job{nodeId}\n");
+            print("[Runner] Launch the job $job{id} on the cluster $job{clusterName}\n");
             print(Dumper(%job));
 
             my $jobId = $job{id};
@@ -54,12 +55,13 @@ foreach my $j (keys(%clusterNames)){
             print("[RUNNER] The job $jobId is in treatment...\n");
 
             # command to launch on the frontal of the cluster
-            my @cmdSSH = (	"echo \\#\\!/bin/sh > ~/$tmpRemoteFile;",
-					        "echo \"echo \\\"BEGIN_DATE=\\\"\\`date +\%Y-\%m-\%d\\ \%H:\%M:\%S\\` >> $resultFile\" >> ~/$tmpRemoteFile;",
+            my @cmdSSH = (  "echo \\#\\!/bin/sh > ~/$tmpRemoteFile;",
+                            "echo \"echo \\\"BEGIN_DATE=\\\"\\`date +\%Y-\%m-\%d\\ \%H:\%M:\%S\\` >> $resultFile\" >> ~/$tmpRemoteFile;",
                             "echo $job{cmd} $job{param} >> ~/$tmpRemoteFile;",
                             "echo CODE=\\\$? >> ~/$tmpRemoteFile;",
                             "echo \"echo \\\"END_DATE=\\\"\\`date +\%Y-\%m-\%d\\ \%H:\%M:\%S\\` >> $resultFile\" >> ~/$tmpRemoteFile;",
                             "echo \"echo \\\"RET_CODE=\\\$CODE\\\" >> $resultFile\" >> ~/$tmpRemoteFile;",
+                            "echo \"echo \\\"NODE=\\\"\\`cat \\\$OAR_FILE_NODES\\` >> $resultFile\" >> ~/$tmpRemoteFile;",
                             "echo \"echo \\\"FINISH=1\\\" >> $resultFile\" >> ~/$tmpRemoteFile;",
                             "echo rm ~$job{user}/$tmpRemoteFile >> ~/$tmpRemoteFile;",
                             "chmod +x ~/$tmpRemoteFile ;",
@@ -82,7 +84,8 @@ foreach my $j (keys(%clusterNames)){
                 }
                 exit(66);
             }else{
-                my $retCode = jobSubmit::jobSubmit($job{clusterName},$job{nodeName},$job{user},$tmpRemoteFile);
+                my @blackNodes = colomboCigri::get_blacklisted_nodes($base,$job{mjobid},$job{clusterName});
+                my $retCode = jobSubmit::jobSubmit($job{clusterName},\@blackNodes,$job{user},$tmpRemoteFile);
                 if ($retCode < 0){
                     if ($retCode == -2){
                         print("[RUNNER] There is a mistake, the job $jobId state = ERROR, bad remote batch id\n");

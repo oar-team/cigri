@@ -54,25 +54,25 @@ foreach my $i (@MjobsToCollect){
     foreach my $j (@jobs){
         my %cmdResult;
 
-        if ((colomboCigri::is_cluster_active($base,"$$j{nodeClusterName}",$i) > 0) || (colomboCigri::is_collect_active($base,$i,"$$j{nodeClusterName}") > 0)){
+        if ((colomboCigri::is_cluster_active($base,"$$j{jobClusterName}",$i) > 0) || (colomboCigri::is_collect_active($base,$i,"$$j{jobClusterName}") > 0)){
                 # le code qui delete un caractere : \x8
-                #print("[COLLECTOR] the cluster $$j{nodeClusterName} is blacklisted : ");
+                #print("[COLLECTOR] the cluster $$j{jobClusterName} is blacklisted : ");
             print("*");
             next;
         }
         print("\n");
 
         # clean the repository on the remote cluster
-        if (!defined($clusterVisited{$$j{nodeClusterName}})){
+        if (!defined($clusterVisited{$$j{jobClusterName}})){
             my $cmd = "if [ -d ~cigri/results_tmp ]; then rm -rf ~cigri/results_tmp/* ; else mkdir ~cigri/results_tmp ; fi";
-            %cmdResult = SSHcmd::submitCmd($$j{nodeClusterName}, $cmd);
+            %cmdResult = SSHcmd::submitCmd($$j{jobClusterName}, $cmd);
             if ($cmdResult{STDERR} ne ""){
-                if (NetCommon::checkSshError($base,$$j{nodeClusterName},$cmdResult{STDERR}) != 1){
-                    colomboCigri::add_new_cluster_event($base,$$j{nodeClusterName},0,"COLLECTOR","There is an error in the collector : SSHcmd::submitCmd($$j{nodeClusterName}, $cmd) -- $cmdResult{STDERR}");
+                if (NetCommon::checkSshError($base,$$j{jobClusterName},$cmdResult{STDERR}) != 1){
+                    colomboCigri::add_new_cluster_event($base,$$j{jobClusterName},0,"COLLECTOR","There is an error in the collector : SSHcmd::submitCmd($$j{jobClusterName}, $cmd) -- $cmdResult{STDERR}");
                 }
                 iolibCigri::commit_transaction($base);
                 iolibCigri::begin_transaction($base);
-                print("[COLLECTOR] ERROR --> SSHcmd::submitCmd($$j{nodeClusterName}, $cmd)  -- $cmdResult{STDERR} \n");
+                print("[COLLECTOR] ERROR --> SSHcmd::submitCmd($$j{jobClusterName}, $cmd)  -- $cmdResult{STDERR} \n");
                 next;
             }
         }
@@ -89,18 +89,18 @@ foreach my $i (@MjobsToCollect){
                 my $cmd = "";
                 if ("$hashfileToDownload{$k}" ne ""){
                     $cmd = "test ! -e ~$$j{userLogin}/$hashfileToDownload{$k} && test -e ~$$j{userLogin}/$k && sudo -u $$j{userLogin} mv ~$$j{userLogin}/$k ~$$j{userLogin}/$hashfileToDownload{$k} ; test -e ~$$j{userLogin}/$hashfileToDownload{$k} && tar rf ~cigri/results_tmp/$i.tar -C ~$$j{userLogin} $hashfileToDownload{$k} && echo nimportequoi";
-                    print("[COLLECTOR] tar rf ~cigri/results_tmp/$i.tar -C ~$$j{userLogin} $hashfileToDownload{$k}  -- on $$j{nodeClusterName}\n");
+                    print("[COLLECTOR] tar rf ~cigri/results_tmp/$i.tar -C ~$$j{userLogin} $hashfileToDownload{$k}  -- on $$j{jobClusterName}\n");
                 }else{
                     $cmd = "test -e ~$$j{userLogin}/$k && tar rf ~cigri/results_tmp/$i.tar -C ~$$j{userLogin} $k && echo nimportequoi";
-                    print("[COLLECTOR] tar rf ~cigri/results_tmp/$i.tar -C ~$$j{userLogin} $k  -- on $$j{nodeClusterName}\n");
+                    print("[COLLECTOR] tar rf ~cigri/results_tmp/$i.tar -C ~$$j{userLogin} $k  -- on $$j{jobClusterName}\n");
                 }
-                %cmdResult = SSHcmd::submitCmd($$j{nodeClusterName}, $cmd);
+                %cmdResult = SSHcmd::submitCmd($$j{jobClusterName}, $cmd);
                 #print(Dumper(%cmdResult));
                 if ($cmdResult{STDERR} ne ""){
                     warn("ERREUR -- $cmdResult{STDERR}\n");
 
-                    if (NetCommon::checkSshError($base,$$j{nodeClusterName},$cmdResult{STDERR}) != 1){
-                        colomboCigri::add_new_cluster_event($base,$$j{nodeClusterName},$i,"COLLECTOR","There is a tar  error in the collector : SSHcmd::submitCmd($$j{nodeClusterName}, $cmd) -- $cmdResult{STDERR}");
+                    if (NetCommon::checkSshError($base,$$j{jobClusterName},$cmdResult{STDERR}) != 1){
+                        colomboCigri::add_new_cluster_event($base,$$j{jobClusterName},$i,"COLLECTOR","There is a tar  error in the collector : SSHcmd::submitCmd($$j{jobClusterName}, $cmd) -- $cmdResult{STDERR}");
                     }
                     iolibCigri::commit_transaction($base);
                     iolibCigri::begin_transaction($base);
@@ -114,7 +114,7 @@ foreach my $i (@MjobsToCollect){
                     #    }else{
                     #        $cmdErase = "tar --delete -f ~cigri/results_tmp/$i.tar $l";
                     #    }
-                    #    %cmdResult = SSHcmd::submitCmd($$j{nodeClusterName}, $cmdErase);
+                    #    %cmdResult = SSHcmd::submitCmd($$j{jobClusterName}, $cmdErase);
                     #    if ($cmdResult{STDERR} ne ""){
                     #        # A traiter
                     #        warn("Can t delete $l in ~cigri/results_tmp/$i.tar\n");
@@ -134,7 +134,7 @@ foreach my $i (@MjobsToCollect){
 
         if (($error == 0) && ($#jobTaredTmp >= 0)){
             $collectedJobs{$$j{jobId}} = $j;
-            $clusterVisited{$$j{nodeClusterName}} = 1;
+            $clusterVisited{$$j{jobClusterName}} = 1;
         }else{
             push(@errorJobs, $j);
         }
@@ -186,7 +186,7 @@ foreach my $i (@MjobsToCollect){
                 warn("Error scp exit_code=$?\n");
             }else{
                 foreach my $k (keys(%collectedJobs)){
-                    if("${$collectedJobs{$k}}{nodeClusterName}" eq "$j"){
+                    if("${$collectedJobs{$k}}{jobClusterName}" eq "$j"){
                         print("set collectedJobId de $k = $resColl[1]\n");
                         iolibCigri::set_job_collectedJobId($base,$k,$resColl[1]);
                         $jobToRemove{$k} = $collectedJobs{$k};
@@ -202,8 +202,8 @@ foreach my $i (@MjobsToCollect){
     foreach my $l (keys(%jobToRemove)){
         my %cmdResult;
         my $j = $jobToRemove{$l};
-        if (colomboCigri::is_cluster_active($base,"$$j{nodeClusterName}",0) > 0){
-            #print("[COLLECTOR] the cluster $$j{nodeClusterName} is blacklisted\n");
+        if (colomboCigri::is_cluster_active($base,"$$j{jobClusterName}",0) > 0){
+            #print("[COLLECTOR] the cluster $$j{jobClusterName} is blacklisted\n");
             print("*");
             next;
         }
@@ -214,16 +214,16 @@ foreach my $i (@MjobsToCollect){
             my $cmd = "";
             if ("$hashfileToDownload{$k}" ne ""){
                 $cmd = "sudo -u $$j{userLogin} test -e ~$$j{userLogin}/$hashfileToDownload{$k} && sudo -u $$j{userLogin} rm -rf ~$$j{userLogin}/$hashfileToDownload{$k}";
-                print("[COLLECTOR] rm file ~$$j{userLogin}/$hashfileToDownload{$k} on cluster $$j{nodeClusterName}\n");
+                print("[COLLECTOR] rm file ~$$j{userLogin}/$hashfileToDownload{$k} on cluster $$j{jobClusterName}\n");
             }else{
                 $cmd = "sudo -u $$j{userLogin} test -e ~$$j{userLogin}/$k && sudo -u $$j{userLogin} rm -rf ~$$j{userLogin}/$k";
-                print("[COLLECTOR] rm file ~$$j{userLogin}/$k on cluster $$j{nodeClusterName}\n");
+                print("[COLLECTOR] rm file ~$$j{userLogin}/$k on cluster $$j{jobClusterName}\n");
             }
-            %cmdResult = SSHcmd::submitCmd($$j{nodeClusterName}, $cmd);
+            %cmdResult = SSHcmd::submitCmd($$j{jobClusterName}, $cmd);
             if ($cmdResult{STDERR} ne ""){
                 warn("ERROR -- $cmdResult{STDERR}\n");
-                if (NetCommon::checkSshError($base,$$j{nodeClusterName},$cmdResult{STDERR}) != 1){
-                    colomboCigri::add_new_cluster_event($base,$$j{nodeClusterName},0,"COLLECTOR","There is a RM error in the collector : SSHcmd::submitCmd($$j{nodeClusterName}, $cmd) -- $cmdResult{STDERR}");
+                if (NetCommon::checkSshError($base,$$j{jobClusterName},$cmdResult{STDERR}) != 1){
+                    colomboCigri::add_new_cluster_event($base,$$j{jobClusterName},0,"COLLECTOR","There is a RM error in the collector : SSHcmd::submitCmd($$j{jobClusterName}, $cmd) -- $cmdResult{STDERR}");
                 }
             }
         }

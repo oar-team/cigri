@@ -2,23 +2,23 @@ package jobSubmit;
 
 use Data::Dumper;
 BEGIN {
-	my ($scriptPathTmp) = $0 =~ m!(.*/*)!s;
-	my ($scriptPath) = readlink($scriptPathTmp);
-	if (!defined($scriptPath)){
-		$scriptPath = $scriptPathTmp;
-	}
-	# Relative path of the package
-	my @relativePathTemp = split(/\//, $scriptPath);
-	my $relativePath = "";
-	for (my $i = 0; $i < $#relativePathTemp; $i++){
-		$relativePath = $relativePath.$relativePathTemp[$i]."/";
-	}
-	$relativePath = $relativePath."../";
-	# configure the path to reach the lib directory
-	unshift(@INC, $relativePath."lib");
-	unshift(@INC, $relativePath."Iolib");
-	unshift(@INC, $relativePath."Net");
-	unshift(@INC, $relativePath."Colombo");
+    my ($scriptPathTmp) = $0 =~ m!(.*/*)!s;
+    my ($scriptPath) = readlink($scriptPathTmp);
+    if (!defined($scriptPath)){
+        $scriptPath = $scriptPathTmp;
+    }
+    # Relative path of the package
+    my @relativePathTemp = split(/\//, $scriptPath);
+    my $relativePath = "";
+    for (my $i = 0; $i < $#relativePathTemp; $i++){
+        $relativePath = $relativePath.$relativePathTemp[$i]."/";
+    }
+    $relativePath = $relativePath."../";
+    # configure the path to reach the lib directory
+    unshift(@INC, $relativePath."lib");
+    unshift(@INC, $relativePath."Iolib");
+    unshift(@INC, $relativePath."Net");
+    unshift(@INC, $relativePath."Colombo");
     unshift(@INC, $relativePath."ClusterQuery");
 }
 use iolibCigri;
@@ -36,13 +36,13 @@ my %submitCmd = ('PBS' => \&pbssubmit,
                   'OAR_mysql' => \&oarsubmitMysql);
 
 #arg1 --> cluster name
-#arg2 --> node name
+#arg2 --> blacklisted nodes
 #arg3 --> user
 #arg4 --> jobFile to submit
 #return jobBatchId or -1 or -2 if something wrong happens
 sub jobSubmit($$$$){
     my $cluster = shift;
-    my $nodeName = shift;
+    my $blackNodes = shift;
     my $user = shift;
     my $jobFile = shift;
 
@@ -51,7 +51,7 @@ sub jobSubmit($$$$){
     my %result ;
     my $retCode = -1;
     if (defined($cluster) && defined($clusterProperties{$cluster})){
-        $retCode = &{$submitCmd{$clusterProperties{$cluster}}}($base,$cluster,$nodeName,$user,$jobFile);
+        $retCode = &{$submitCmd{$clusterProperties{$cluster}}}($base,$cluster,$blackNodes,$user,$jobFile);
     }
     iolibCigri::disconnect($base);
     return($retCode);
@@ -74,13 +74,13 @@ sub endJobSubmissions($){
 
 #arg1 --> db ref
 #arg2 --> cluster name
-#arg3 --> node name
+#arg3 --> black nodes
 #arg4 --> user
 #arg5 --> jobFile to submit
 sub pbssubmit($$$$$){
     my $dbh = shift;
     my $cluster = shift;
-    my $node = shift;
+    my $blackNodes = shift;
     my $user = shift;
     my $jobFile = shift;
 
@@ -90,7 +90,7 @@ sub pbssubmit($$$$$){
 
 #arg1 --> db ref
 #arg2 --> cluster name
-#arg3 --> node name
+#arg3 --> blacklisted nodes
 #arg4 --> user
 #arg5 --> jobFile to submit
 #return jodBatchId or
@@ -99,14 +99,25 @@ sub pbssubmit($$$$$){
 sub oarsubmit($$$$$){
     my $dbh = shift;
     my $cluster = shift;
-    my $node = shift;
+    my $blackNodes = shift;
     my $user = shift;
     my $jobFile = shift;
 
     print("$cluster --> OAR\n");
     my $weight = iolibCigri::get_cluster_default_weight($dbh,$cluster);
     #my %cmdResult = SSHcmdClient::submitCmd($cluster,"cd ~$user; sudo -u $user oarsub -l nodes=1,weight=$weight -q besteffort ~$user/$jobFile");
-    my %cmdResult = SSHcmd::submitCmd($cluster,"cd ~$user; sudo -u $user oarsub -l nodes=1,weight=$weight -p \"hostname = '\\''$node'\\''\" -q besteffort ~$user/$jobFile");
+
+    my $propertyString;
+    foreach my $i (@$blackNodes){
+        $propertyString .= " hostname != '\\'$i\\'' AND";
+    }
+    if (defined($propertyString)){
+        $propertyString =~ s/^(.+)AND$/$1/g;
+    }else{
+        $propertyString = "";
+    }
+    print("Property String = $propertyString\n");
+    my %cmdResult = SSHcmd::submitCmd($cluster,"cd ~$user; sudo -u $user oarsub -l nodes=1,weight=$weight -p \"$propertyString\" -q besteffort ~$user/$jobFile");
     print(Dumper(%cmdResult));
     if ($cmdResult{STDERR} ne ""){
         # test if this is a ssh error
@@ -127,14 +138,14 @@ sub oarsubmit($$$$$){
 
 #arg1 --> db ref
 #arg2 --> cluster name
-#arg3 --> node name
+#arg3 --> blacklisted nodes
 #arg4 --> user
 #arg5 --> jobFile to submit
 #return jodBatchId or -1 for an error
 sub oarsubmitMysql($$$$$){
     my $dbh = shift;
     my $cluster = shift;
-    my $node = shift;
+    my $blackNodes = shift;
     my $user = shift;
     my $jobFile = shift;
 
@@ -143,7 +154,7 @@ sub oarsubmitMysql($$$$$){
     if (!defined($OARdb)){
         return(-1);
     }
-    my $jobBatchId = OARiolib::submitJob($OARdb,$dbh,$cluster,$user,$jobFile,$node);
+    my $jobBatchId = OARiolib::submitJob($OARdb,$dbh,$cluster,$user,$jobFile,$blackNodes);
     OARiolib::disconnect($dbh);
 
     # Notify OAR
