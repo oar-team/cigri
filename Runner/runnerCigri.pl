@@ -45,7 +45,8 @@ foreach my $j (keys(%clusterNames)){
             print(Dumper(%job));
 
             my $jobId = $job{id};
-            my $tmpRemoteFile = "cigri.tmp.$jobId";
+            #my $tmpRemoteFile = "cigri.tmp.$jobId";
+            my $tmpRemoteFile = iolibCigri::get_cigri_remote_script_name($jobId);
             my $resultFile = "~/".iolibCigri::get_cigri_remote_file_name($jobId);
 
             print("[RUNNER] The job $jobId is in treatment...\n");
@@ -79,7 +80,7 @@ foreach my $j (keys(%clusterNames)){
                 }
                 exit(66);
             }else{
-                my $retCode = jobSubmit::jobSubmit($job{clusterName},$job{user},$tmpRemoteFile);
+                my $retCode = jobSubmit::jobSubmit($job{clusterName},$job{nodeName},$job{user},$tmpRemoteFile);
                 if ($retCode < 0){
                     if ($retCode == -2){
                         print("[RUNNER] There is a mistake, the job $jobId state = ERROR, bad remote batch id\n");
@@ -92,6 +93,9 @@ foreach my $j (keys(%clusterNames)){
                     iolibCigri::set_job_state($base,$jobId,"Running");
                 }
             }
+        }
+        if (jobSubmit::endJobSubmissions($j) != 0){
+            exit(66);
         }
         exit(0);
     }

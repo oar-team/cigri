@@ -58,6 +58,13 @@ sub get_cigri_remote_file_name($){
     return("cigri.$jobId.log");
 }
 
+# get the name of the remote script which is executed
+# arg1 --> grid job id
+sub get_cigri_remote_script_name($){
+    my $jobId = shift;
+    return("cigri.tmp.$jobId");
+}
+
 # give the date in with the right pattern
 sub get_date() {
     my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime;

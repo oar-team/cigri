@@ -66,6 +66,7 @@ foreach my $i (keys(%jobRunningHash)){
 		if (!defined($jobState{${$j}{batchJobId}})){
 			# Check the result file on the cluster
 			my $remoteFile = iolibCigri::get_cigri_remote_file_name(${$j}{jobId});
+            my $tmpRemoteScript = iolibCigri::get_cigri_remote_script_name(${$j}{jobId});
 			print("[Updator] Check the job ${$j}{jobId} \n");
 			my %cmdResult = SSHcmdClient::submitCmd($i,"sudo -u ${$j}{user} cat ~${$j}{user}/$remoteFile");
 			if ($cmdResult{STDERR} ne ""){
@@ -110,9 +111,7 @@ foreach my $i (keys(%jobRunningHash)){
 				}
 			}
 
-            #Penser a supprimer le cigri...log et le OAR..stdout/stderr meme si ils n existent pas (faire test)
-
-			my %cmdResultRm = SSHcmdClient::submitCmd($i,"sudo -u ${$j}{user} rm ~${$j}{user}/$remoteFile");
+			my %cmdResultRm = SSHcmdClient::submitCmd($i,"sudo -u ${$j}{user} rm -f ~${$j}{user}/$remoteFile ~${$j}{user}/tmpRemoteScript");
             # test if this is a ssh error
             if ($cmdResultRm{STDERR} ne ""){
                 NetCommon::checkSshError($base,$i,$cmdResultRm{STDERR}) ;

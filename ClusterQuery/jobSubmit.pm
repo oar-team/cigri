@@ -36,11 +36,13 @@ my %submitCmd = ('PBS' => \&pbssubmit,
                   'OAR_mysql' => \&oarsubmitMysql);
 
 #arg1 --> cluster name
-#arg2 --> user
-#arg3 --> jobFile to submit
+#arg2 --> node name
+#arg3 --> user
+#arg4 --> jobFile to submit
 #return jobBatchId or -1 or -2 if something wrong happens
-sub jobSubmit($$$){
+sub jobSubmit($$$$){
     my $cluster = shift;
+    my $nodeName = shift;
     my $user = shift;
     my $jobFile = shift;
 
@@ -49,19 +51,36 @@ sub jobSubmit($$$){
     my %result ;
     my $retCode = -1;
     if (defined($cluster) && defined($clusterProperties{$cluster})){
-        $retCode = &{$submitCmd{$clusterProperties{$cluster}}}($base,$cluster,$user,$jobFile);
+        $retCode = &{$submitCmd{$clusterProperties{$cluster}}}($base,$cluster,$nodeName,$user,$jobFile);
     }
     iolibCigri::disconnect($base);
     return($retCode);
 }
 
+my %clusterToNotify;
+
+#arg1 --> cluster name
+# return 0 if Ok
+sub endJobSubmissions($){
+    my $cluster = shift;
+
+    my $retCode = 0;
+    if (defined($clusterToNotify{$cluster})){
+        $retCode = oarNotify::notify($cluster,"Qsub");
+    }
+
+    return($retCode);
+}
+
 #arg1 --> db ref
 #arg2 --> cluster name
-#arg3 --> user
-#arg4 --> jobFile to submit
-sub pbssubmit($$$$){
+#arg3 --> node name
+#arg4 --> user
+#arg5 --> jobFile to submit
+sub pbssubmit($$$$$){
     my $dbh = shift;
     my $cluster = shift;
+    my $node = shift;
     my $user = shift;
     my $jobFile = shift;
 
@@ -71,21 +90,23 @@ sub pbssubmit($$$$){
 
 #arg1 --> db ref
 #arg2 --> cluster name
-#arg3 --> user
-#arg4 --> jobFile to submit
+#arg3 --> node name
+#arg4 --> user
+#arg5 --> jobFile to submit
 #return jodBatchId or
 #   -1 : for a command execution error
 #   -2 : for a jobId parse error
-sub oarsubmit($$$$){
+sub oarsubmit($$$$$){
     my $dbh = shift;
     my $cluster = shift;
+    my $node = shift;
     my $user = shift;
     my $jobFile = shift;
 
     print("$cluster --> OAR\n");
     my $weight = iolibCigri::get_cluster_default_weight($dbh,$cluster);
     #my %cmdResult = SSHcmdClient::submitCmd($cluster,"cd ~$user; sudo -u $user oarsub -l nodes=1,weight=$weight -q besteffort ~$user/$jobFile");
-    my %cmdResult = SSHcmd::submitCmd($cluster,"cd ~$user; sudo -u $user oarsub -l nodes=1,weight=$weight -q besteffort ~$user/$jobFile");
+    my %cmdResult = SSHcmd::submitCmd($cluster,"cd ~$user; sudo -u $user oarsub -l nodes=1,weight=$weight -p \"hostname = '\\''$node'\\''\" -q besteffort ~$user/$jobFile");
     print(Dumper(%cmdResult));
     if ($cmdResult{STDERR} ne ""){
         # test if this is a ssh error
@@ -106,12 +127,14 @@ sub oarsubmit($$$$){
 
 #arg1 --> db ref
 #arg2 --> cluster name
-#arg3 --> user
-#arg4 --> jobFile to submit
+#arg3 --> node name
+#arg4 --> user
+#arg5 --> jobFile to submit
 #return jodBatchId or -1 for an error
-sub oarsubmitMysql($$$$){
+sub oarsubmitMysql($$$$$){
     my $dbh = shift;
     my $cluster = shift;
+    my $node = shift;
     my $user = shift;
     my $jobFile = shift;
 
@@ -120,13 +143,11 @@ sub oarsubmitMysql($$$$){
     if (!defined($OARdb)){
         return(-1);
     }
-    my $jobBatchId = OARiolib::submitJob($OARdb,$dbh,$cluster,$user,$jobFile);
+    my $jobBatchId = OARiolib::submitJob($OARdb,$dbh,$cluster,$user,$jobFile,$node);
     OARiolib::disconnect($dbh);
-    my $retCode = oarNotify::notify($cluster,"Qsub");
 
-    if ($retCode != 0){
-        return(-1);
-    }
+    # Notify OAR
+    $clusterToNotify{$cluster} = 1;
 
     return($jobBatchId);
 }

@@ -151,7 +151,7 @@ sub submitCmd($$){
 		my $fd0 = $sshConnections{$clusterName}->[0];
 		my $fd1 = $sshConnections{$clusterName}->[1];
 		my $fd2 = $sshConnections{$clusterName}->[2];
-
+#print("----------- /bin/sh -c '$command' ----------\n");
 		if (!(print($fd0 "/bin/sh -c '$command'; echo ; echo $endLineTag\n"))){
 			# can t write on the channel --> error
 			$ERRORStr = "$sshErrorPrefix can t send command\n";
