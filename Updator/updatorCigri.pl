@@ -35,10 +35,6 @@ $|=1;
 
 my $base = iolibCigri::connect();
 
-my %qstatCmd = (        'PBS' => 'qstat -f',
-                                        'OAR' => 'oarstat -f',
-                                        'OAR_mysql' => 'oarstat -f');
-
 # update database
 iolibCigri::disable_all_nodes($base);
 # Get cluster names
