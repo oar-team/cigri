@@ -81,7 +81,4 @@ if ($idJob == -1){
     exit(2);
 }
 
-# notify admin by email
-mailer::sendMail("New MJob $idJob from user ".getpwuid($<),"Insert new MJob $idJob.\nJDL:\n$JDLfile");
-
 exit 0;

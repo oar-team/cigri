@@ -42,10 +42,10 @@ foreach my $i (@MJobsToFrag){
     #Frag it jobs
     iolibCigri::set_frag_specific_MJob($base,$i);
 
-    iolibCigri::disconnect($base);
+    #iolibCigri::disconnect($base);
     # notify admin by email
     mailer::sendMail("Frag MJob $i","");
-    $base = iolibCigri::connect() ;
+    #$base = iolibCigri::connect() ;
 
     #change state
     #iolibCigri::set_MJobState_fragged($base,$i);

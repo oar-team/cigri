@@ -62,9 +62,11 @@ sub launch_command($){
     return $exit_value;
 }
 
+my $base = iolibCigri::connect();
+
 # launch a scheduler or blacklist it
 sub scheduler(){
-    my $base = iolibCigri::connect();
+    #my $base = iolibCigri::connect();
     iolibCigri::update_current_scheduler($base);
     my $sched = iolibCigri::get_current_scheduler($base);
     #return launch_command($scheduler_command);
@@ -75,7 +77,7 @@ sub scheduler(){
                 colomboCigri::add_new_scheduler_event($base,$$sched{schedulerId},"EXIT_VALUE","bad exit value $exitValue for $path$$sched{schedulerFile}");
             }
             #print("---------------->".${iolibCigri::get_current_scheduler($base)}{schedulerFile}."\n");
-            iolibCigri::disconnect($base);
+            #iolibCigri::disconnect($base);
             return $exitValue;
         }else{
             print("Bad scheduler file\n");
@@ -84,7 +86,7 @@ sub scheduler(){
     }else{
         print("NO SCHEDULER TO LAUNCH :-(\n");
     }
-    iolibCigri::disconnect($base);
+    #iolibCigri::disconnect($base);
 }
 
 # launch the runner command

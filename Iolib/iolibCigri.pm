@@ -39,7 +39,7 @@ sub connect() {
     my $user = ConfLibCigri::get_conf("database_username");
     my $pwd = ConfLibCigri::get_conf("database_userpassword");
 
-    return(DBI->connect("DBI:mysql:database=$name;host=$host", $user, $pwd,    {'RaiseError' => 1}));
+    return(DBI->connect("DBI:mysql:database=$name;host=$host", $user, $pwd,    {'RaiseError' => 1,'InactiveDestroy' => 1}));
 }
 
 # Disconnect from the database referenced by arg1
@@ -202,7 +202,7 @@ sub add_mjobs($$) {
 
     $dbh->do("UNLOCK TABLES");
     # notify admin by email
-    #mailer::sendMail("New MJob $id from user $lusr","Insert new MJob $id.\nJDL:\n$jdl");
+    mailer::sendMail("New MJob $id from user $lusr","Insert new MJob $id.\nJDL:\n$jdl");
 
     return $id;
 }
