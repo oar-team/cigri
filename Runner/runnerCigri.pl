@@ -61,7 +61,7 @@ foreach my $j (keys(%clusterNames)){
                             "echo CODE=\\\$? >> ~/$tmpRemoteFile;",
                             "echo \"echo \\\"END_DATE=\\\"\\`date +\%Y-\%m-\%d\\ \%H:\%M:\%S\\` >> $resultFile\" >> ~/$tmpRemoteFile;",
                             "echo \"echo \\\"RET_CODE=\\\$CODE\\\" >> $resultFile\" >> ~/$tmpRemoteFile;",
-                            "echo \"echo \\\"NODE=\\\"\\`cat \\\$OAR_FILE_NODES\\` >> $resultFile\" >> ~/$tmpRemoteFile;",
+                            "echo \"echo \\\"NODE=\\\"\\`cat \\\$OAR_FILE_NODES | head -1\\` >> $resultFile\" >> ~/$tmpRemoteFile;",
                             "echo \"echo \\\"FINISH=1\\\" >> $resultFile\" >> ~/$tmpRemoteFile;",
                             "echo rm ~$job{user}/$tmpRemoteFile >> ~/$tmpRemoteFile;",
                             "chmod +x ~/$tmpRemoteFile ;",

@@ -424,6 +424,7 @@ sub get_launching_job($$) {
                                 And propertiesMJobsId = MJobsId
                                 AND MJobsUser = userGridName
                                 AND userClusterName = clusterName
+                                AND jobClusterName = clusterName
                                 LIMIT 1
                             ");
     $sth->execute();
@@ -531,7 +532,7 @@ sub get_cluster_job_toLaunch($$$) {
 
         # delete used entry in jobToSubmit
         my $newNumber = $MJobtoSubmit[1] - 1;
-        print("$newNumber\n");
+        #print("$newNumber\n");
         $dbh->do("UPDATE jobsToSubmit SET jobsToSubmitNumber = $newNumber
                     WHERE jobsToSubmitMJobsId = $MJobtoSubmit[0]
                           AND jobsToSubmitClusterName = \"$clusterName\"
