@@ -11,6 +11,7 @@
 			<th><a href="{$itemsorderby[1]}">MultiJob&nbsp;name{$itemsorderimgs[1]}</a></th>
 			<th><a href="{$itemsorderby[2]}">Submission&nbsp;date{$itemsorderimgs[2]}</a></th>
 			<th><a href="{$itemsorderby[3]}">State{$itemsorderimgs[3]}</a></th>
+			<th></th>
 		</tr>
 		{foreach from=$eventarray item=secondkey}
 			{* check parity *}
@@ -26,6 +27,7 @@
 				<td align="center">{$secondkey[1]}</td>
 				<td align="center">{$secondkey[2]}</td>
 				<td align="center">{$secondkey[3]}</td>
+				<td align="center"><a href="account.php?submenu=stats&option=details&id={$secondkey[0]}">Statistics</a></td>
 			</tr>
 		{/foreach}
 		</table>
