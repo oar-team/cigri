@@ -48,11 +48,6 @@ foreach my $i (keys(%clusterNames)){
 	iolibCigri::disable_all_cluster_nodes($base, $i);
 
 	# Don t bloc ERROR reading
-
-#$rin = '';
-#vec($rin,fileno(READER),1) = 1;
-#$res = select($rin, undef, undef, $internaltimeout);
-
 	my $pbsnodesStr = join("",<READER>);
 
 	if (! defined(<ERROR>)){
@@ -124,10 +119,44 @@ foreach my $i (keys(%jobRunningHash)){
 	foreach my $j (@{$jobRunningHash{$i}}){
 		# Verify if the job is still running on the cluster $i
 		if (!defined($jobState{${$j}{batchJobId}})){
-			print("\t\tJob ${$j}{jobId} Terminated\n");
-			iolibCigri::set_job_state($base, ${$j}{jobId}, "Terminated");
-			# Increment MJobsNbCompletedJobs
-			#iolibCigri::inc_MJobsNbCompletedJobs($base,${$j}{jobId});
+			# Check the result file on the cluster
+			my $remoteFile = "~${$j}{user}/cigri.${$j}{jobId}.log";
+			#; sudo -u ${$j}{user} rm $remoteFile
+			Net::SSH::sshopen3($i, *WRITER, *READER, *ERROR, "cat $remoteFile") || die "[UPDATOR] ssh ERROR : $!";
+			close(WRITER);
+			if (defined(<ERROR>)){
+				while(<ERROR>){
+					print("\t[UPDATOR_STDERR]$_");
+				}
+				close(ERROR);
+			}else{
+				my %fileVars;
+				while (<READER>){
+					print "$_\n";
+					if ($_ =~ m/\s*(.+)\s*=\s*(.+)\s*/m){
+						$fileVars{$1} = $2;
+					}
+				}
+				close(READER);
+				print(Dumper(%fileVars));
+				if ($fileVars{FINISH} == 1){
+					iolibCigri::update_att_job($base,${$j}{jobId},$fileVars{BEGIN_DATE},$fileVars{END_DATE},$fileVars{RET_CODE});
+					if ($fileVars{RET_CODE} == 0){
+						print("\t\tJob ${$j}{jobId} Terminated\n");
+						iolibCigri::set_job_state($base, ${$j}{jobId}, "Terminated");
+					}else{
+						print("\t\tJob ${$j}{jobId} Error\n");
+						# mettre a jour egalement la base des erreurs
+						iolibCigri::set_job_state($base, ${$j}{jobId}, "Error");
+					}
+				}else{
+					# je job a ete kille par le batch scheduler
+					# soit il etait trop long(erreur), soit un autre job a pris sa place(on remet le parametre dans la file)
+				}
+
+			}
+
+
 		}else{
 			#verify if the job is waiting
 			if ($jobState{${$j}{batchJobId}} eq "W"){
@@ -141,7 +170,6 @@ foreach my $i (keys(%jobRunningHash)){
 
 iolibCigri::check_end_MJobs($base);
 
-#iolibCigri::pre_schedule($base);
 iolibCigri::update_nb_freeNodes($base);
 
 iolibCigri::disconnect($base);

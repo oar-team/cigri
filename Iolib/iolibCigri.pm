@@ -3,7 +3,7 @@ require Exporter;
 
 use Data::Dumper;
 use DBI;
-#use strict;
+use strict;
 BEGIN {
 	my ($scriptPathTmp) = $0 =~ m!(.*/*)!s;
 	my ($scriptPath) = readlink($scriptPathTmp);
@@ -152,15 +152,12 @@ sub get_cluster_names_batch($)
 	my $sth = $dbh->prepare("SELECT clusterName,clusterBatch FROM clusters");
 	$sth->execute();
 
-	my @resulHash;
-
+	my %resulHash;
 	while (my @ref = $sth->fetchrow_array()) {
 		$resulHash{$ref[0]} = $ref[1];
 	}
-
 	$sth->finish();
 
-	#return @resulArray;
 	return %resulHash;
 }
 
@@ -285,34 +282,6 @@ sub get_node_cluster($$){
 	return $resulArray[0];
 }
 
-# FIFO scheduler scpecific code
-#sub select_sched_FIFO($){
-#	my $dbh = shift;
-#	my $sth = $dbh->prepare("SELECT potentialJobNodeMJobsId,potentialJobNodeNodeId,parametersParam
-#								FROM potentialJobNode,parameters
-#								WHERE potentialJobNodeMJobsId = parametersMJobsId LIMIT 0,1");
-#	$sth->execute();
-#
-#	my @resulArray = $sth->fetchrow_array();
-#	$sth->finish();
-#
-#	if (defined($resulArray[1])){
-#		$dbh->do("UPDATE nodes SET nodeState = \"BUSY\" WHERE nodeId = $resulArray[1]");
-#		$dbh->do("DELETE FROM parameters WHERE parametersMJobsId = $resulArray[0]
-#											AND parametersParam = \"$resulArray[2]\" LIMIT 1");
-#		my $time = get_date();
-#		my $cluster = get_node_cluster($dbh, $resulArray[1]);
-#		my $JDLtmp = get_MJobs_JDL($dbh, $resulArray[0]);
-#		print("[IOLIB] Parse mistake with the MJobs $resulArray[0]\n") if (JDLParserCigri::init_jdl($JDLtmp) == -1);
-#
-#		$dbh->do("INSERT INTO jobs (jobState,jobMJobsId,jobParam,jobNodeId,jobTSub)
-#					VALUES (\"toLaunch\",$resulArray[0],\"$resulArray[2]\",$resulArray[1],\"$time\")");
-#		return 0;
-#	}else{
-#		return 1;
-#	}
-#}
-
 # give the jobs to launch
 # arg1 --> database ref
 # return an array of hashtables
@@ -380,9 +349,10 @@ sub set_job_batch_id($$$){
 # return a hashtable of array refs : ${${$resul{pawnee}}[0]}{batchJobId} --> give the first batchId for the cluster pawnee
 sub get_job_to_update_state($){
 	my $dbh = shift;
-	my $sth = $dbh->prepare("	SELECT jobBatchId,nodeClusterName,jobId
-								FROM jobs,nodes
-								WHERE (jobState = \"Running\" or jobState = \"RemoteWaiting\") and jobNodeId = nodeId");
+	my $sth = $dbh->prepare("	SELECT jobBatchId,nodeClusterName,jobId,MJobsUser
+								FROM jobs,nodes,multipleJobs
+								WHERE (jobState = \"Running\" or jobState = \"RemoteWaiting\") and jobNodeId = nodeId
+								and MJobsId = jobMJobsId");
 	$sth->execute();
 
 	my %resul;
@@ -390,7 +360,8 @@ sub get_job_to_update_state($){
 	while (my @ref = $sth->fetchrow_array()) {
 		my $tmp = {
 					"jobId" => $ref[2],
-					"batchJobId" => $ref[0]
+					"batchJobId" => $ref[0],
+					"user" => $ref[3]
 		};
 		push(@{$resul{$ref[1]}},$tmp);
 	}
@@ -627,11 +598,11 @@ sub check_end_MJobs($){
 	my @MJobs = get_IN_TREATMENT_MJobs($dbh);
 
 	foreach my $i (@MJobs){
-		$sth = $dbh->prepare("	SELECT jobMJobsId, count( * )
-								FROM jobs
-								WHERE jobMJobsId = $i
-								AND jobState != \"Terminated\"
-								GROUP BY jobMJobsId
+		my $sth = $dbh->prepare("	SELECT jobMJobsId, count( * )
+									FROM jobs
+									WHERE jobMJobsId = $i
+									AND jobState != \"Terminated\"
+									GROUP BY jobMJobsId
 								");
 		$sth->execute();
 		my @MJobIdTmp = $sth->fetchrow_array();
@@ -652,5 +623,23 @@ sub check_end_MJobs($){
 			}
 		}
 	}
+}
+
+# update job attribute
+# arg1 -->database ref
+# arg2 --> jobId
+# arg3 --> begin date
+# arg4 --> end date
+# arg5 --> return code
+sub update_att_job($$$$$){
+	my $dbh = shift;
+	my $id = shift;
+	my $beginDate = shift;
+	my $endDate = shift;
+	my $retCode = shift;
+
+	#print("query = UPDATE jobs SET jobTStart = \"$beginDate\", jobTStop = \"$endDate\", jobRetCode = $retCode WHERE jobId = $id\n");
+	$dbh->do("	UPDATE jobs SET jobTStart = \"$beginDate\", jobTStop = \"$endDate\", jobRetCode = $retCode
+				WHERE jobId = $id");
 }
 

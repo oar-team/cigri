@@ -88,6 +88,7 @@ my $jobtype;
 my $jobinfo;
 
 my $tmpRemoteFile ;
+my $resultFile ;
 
 select(STDOUT);
 $| = 1;
@@ -95,6 +96,8 @@ $| = 1;
 foreach my $i (@jobList){
 	$jobId = $$i{id};
 	$tmpRemoteFile = "cigri.tmp.$jobId";
+	$resultFile = "cigri.$jobId.log";
+
 	print("[RUNNER] The job $jobId is in treatment...\n");
 
 	#iolibCigri::set_job_state($base,$jobId,"Launching");
@@ -103,7 +106,12 @@ foreach my $i (@jobList){
 
 	if ($$i{batch} eq "OAR"){
 		@cmdSSH = (	"echo \\#\\!/bin/sh > ~/$tmpRemoteFile;",
+					"echo \"echo \\\"BEGIN_DATE=\\\"\\`date +\%Y-\%m-\%d\\ \%H:\%M:\%S\\` >> ~/$resultFile\" >> ~/$tmpRemoteFile;",
 					"echo $$i{cmd} $$i{param} >> ~/$tmpRemoteFile;",
+					"echo CODE=\\\$? >> ~/$tmpRemoteFile;",
+					"echo \"echo \\\"END_DATE=\\\"\\`date +\%Y-\%m-\%d\\ \%H:\%M:\%S\\` >> ~/$resultFile\" >> ~/$tmpRemoteFile;",
+					"echo \"echo \\\"RET_CODE=\\\$CODE\\\" >> ~/$resultFile\" >> ~/$tmpRemoteFile;",
+					"echo \"echo \\\"FINISH=1\\\" >> ~/$resultFile\" >> ~/$tmpRemoteFile;",
 					"echo rm ~$$i{user}/$tmpRemoteFile >> ~/$tmpRemoteFile;",
 					"chmod +x ~/$tmpRemoteFile ;",
 					"cd ~$$i{user} ;",
