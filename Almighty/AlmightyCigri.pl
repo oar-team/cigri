@@ -44,7 +44,7 @@ if (is_conf("CIGRI_SERVER_PORT")){
 }
 my $servermaxconnect=10;
 
-my $internaltimeout = 2;
+my $internaltimeout = 3;
 # age of the christ at death time
 my $schedulertimeout = 33;
 my $lastscheduler;
@@ -208,7 +208,7 @@ while (1){
 		# RUNNER
 		elsif($state eq "Runner"){
 			runner();
-			$state="Time update";
+			$state="Qget";
 			last SWITCH;
 		}
 

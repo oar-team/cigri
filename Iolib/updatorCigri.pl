@@ -115,6 +115,7 @@ foreach my $i (keys(%jobRunningHash)){
 				print("\t[UPDATOR_STDERR] $cmdResult2{STDERR}");
 				# Can t read the file
 				iolibCigri::set_job_state($base, ${$j}{jobId}, "Killed");
+				iolibCigri::set_job_message($base, ${$j}{jobId}, "Can t check the remote file <$remoteFile> : $cmdResult2{STDERR}");
 				iolibCigri::resubmit_job($base,${$j}{jobId});
 			}else{
 				my @strTmp = split(/\n/, $cmdResult2{STDOUT});
@@ -132,8 +133,8 @@ foreach my $i (keys(%jobRunningHash)){
 						iolibCigri::set_job_state($base, ${$j}{jobId}, "Terminated");
 					}else{
 						print("\t\tJob ${$j}{jobId} Error\n");
-						# mettre a jour egalement la base des erreurs
 						iolibCigri::set_job_state($base, ${$j}{jobId}, "Error");
+						iolibCigri::insert_new_error($base,"USER_SOFTWARE",${$j}{jobId},"RET_CODE=$fileVars{RET_CODE}");
 					}
 				}else{
 					# le job a ete kille par le batch scheduler
@@ -141,6 +142,7 @@ foreach my $i (keys(%jobRunningHash)){
 					print("\t[UPDATOR_ERROR] Can't find the FINISH TAG for the job${$j}{jobId}\n");
 					print("\t[UPDATOR_ERROR] cat $remoteFile ==> $cmdResult2{STDOUT}\n");
 					iolibCigri::set_job_state($base, ${$j}{jobId}, "Killed");
+					iolibCigri::set_job_message($base, ${$j}{jobId}, "Can t find the FINISH TAG in the cigri remote file <$remoteFile> : $cmdResult2{STDOUT}");
 					iolibCigri::resubmit_job($base,${$j}{jobId});
 				}
 			}

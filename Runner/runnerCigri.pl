@@ -75,6 +75,7 @@ print(Dumper(%cmdResult));
 	if ($cmdResult{STDERR} ne ""){
 		print("[RUNNER_STDERR] $cmdResult{STDERR}");
 		iolibCigri::set_job_state($base,$jobId,"Error");
+		iolibCigri::insert_new_error($base,"RUNNER_SUBMIT",$jobId,$cmdResult{STDERR});
 	}elsif ($cmdResult{STDOUT} ne ""){
 		my @strTmp = split(/\n/, $cmdResult{STDOUT});
 		my $configured = 0;

@@ -20,7 +20,7 @@ CONNECT cigri;
 DROP TABLE IF EXISTS errors;
 CREATE TABLE IF NOT EXISTS errors (
 errorId INT UNSIGNED NOT NULL,
-errorType ENUM('SYSTEM','TOO_FAST','TOO_SLOW','CHECKED','CLUSTER') NOT NULL ,
+errorType ENUM('SYSTEM','TOO_FAST','TOO_SLOW','CHECKED','CLUSTER','USER_SOFTWARE','RUNNER_SUBMIT') NOT NULL ,
 errorState ENUM('ToFIX','FIXED') DEFAULT 'ToFIX'NOT NULL ,
 errorJobId BIGINT UNSIGNED ,
 errorDate DATETIME NOT NULL ,
@@ -64,7 +64,8 @@ CREATE TABLE IF NOT EXISTS jobs (
 jobId BIGINT UNSIGNED NOT NULL AUTO_INCREMENT ,
 #jobType VARCHAR( 100 ) ,
 #jobJDL MEDIUMBLOB ,
-jobState ENUM('toLaunch', 'Waiting', 'Running', 'RemoteWaiting', 'Terminated', 'Error', 'Killed') NOT NULL ,
+jobState ENUM('toLaunch', 'Running', 'RemoteWaiting', 'Terminated', 'Error', 'Killed') NOT NULL ,
+jobMessage VARCHAR( 255 ) ,
 #jobUser VARCHAR( 50 ) NOT NULL ,
 jobMJobsId INT UNSIGNED ,
 #jobCmd VARCHAR( 255 ) ,
@@ -75,7 +76,7 @@ jobRetCode INT ,
 jobTSub DATETIME ,
 jobTStart DATETIME ,
 jobTStop DATETIME ,
-jobTStat VARCHAR( 100 ) ,
+#jobTStat VARCHAR( 100 ) ,
 PRIMARY KEY (jobId)
 );
 
@@ -92,7 +93,7 @@ MJobsUser VARCHAR( 50 ) NOT NULL ,
 MJobsTSub DATETIME ,
 MJobsTStart DATETIME ,
 MJobsTStop DATETIME ,
-MJOBSMessage VARCHAR( 255 ) ,
+#MJOBSMessage VARCHAR( 255 ) ,
 PRIMARY KEY (MJobsId)
 );
 

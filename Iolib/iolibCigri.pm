@@ -653,3 +653,46 @@ sub resubmit_job($$){
 				WHERE jobId = $jobId
 			");
 }
+
+# Insert a field in the error table
+# arg1 --> database ref
+# arg2 --> error Type
+# arg3 --> job id which generate this error
+# arg4 --> message, describe the error
+sub insert_new_error($$$$){
+	my ($dbh, $errorType, $errorJobId, $errorMessage) = @_;
+
+	$errorMessage = substr($errorMessage, 0, 250);
+
+	my $sth = $dbh->prepare("SELECT MAX(errorId)+1 FROM errors");
+	$sth->execute();
+	my $ref = $sth->fetchrow_hashref();
+	my @tmp = values(%$ref);
+	my $id = $tmp[0];
+	$sth->finish();
+	if($id eq "") {
+		$id = 1;
+	}
+
+	my $time = get_date();
+
+	$dbh->do("INSERT INTO errors (errorId,errorType,errorState,errorJobId,errorDate,errorMessage)
+			VALUES ($id,\"$errorType\",\"ToFIX\",\"$errorJobId\",\"$time\",\"$errorMessage\")");
+
+	return $id;
+}
+
+# set the message of a job
+# arg1 --> database ref
+# arg2 --> jobId
+# arg3 --> message to insert in the database
+sub set_job_message($$$) {
+	my $dbh = shift;
+	my $idJob = shift;
+	my $message = shift;
+	$message = substr($message, 0, 250);
+	my $sth = $dbh->prepare("UPDATE jobs SET jobMessage = \"$message\"
+								WHERE jobId =\"$idJob\"");
+	$sth->execute();
+	$sth->finish();
+}
