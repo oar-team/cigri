@@ -65,7 +65,7 @@ foreach my $i (@MjobsToCollect){
 			if ($error == 0){
 				print("[COLLECTOR] tar rf ~cigri/results/$i.tar -C ~$$j{userLogin} $k  -- on $$j{nodeClusterName}\n");
 				%cmdResult = SSHcmd::submitCmd($$j{nodeClusterName}, "test -e ~$$j{userLogin}/$k && tar rf ~cigri/results/$i.tar -C ~$$j{userLogin} $k && echo nimportequoi");
-				print(Dumper(%cmdResult));
+				#print(Dumper(%cmdResult));
 				if ($cmdResult{STDERR} ne ""){
 					warn("ERREUR --> SSHcmd::submitCmd($$j{nodeClusterName}, \"tar rf ~cigri/results/$i.tar -C ~$$j{userLogin} $k\") -- $cmdResult{STDERR}\n");
 					foreach my $l (@jobTaredTmp){

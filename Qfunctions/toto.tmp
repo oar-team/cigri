@@ -1,7 +1,7 @@
 DEFAULT{
 
 	name = doodoo;
-	nbJobs = 5;
+#	nbJobs = 50;
 	paramFile = param.tmp;
 #	resultFile = result.tmp;
 }

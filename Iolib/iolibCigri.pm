@@ -145,11 +145,15 @@ sub add_mjobs($$) {
 				open(FILE, $JDLParserCigri::clusterConf{DEFAULT}{paramFile});
 				while (<FILE>){
 					chomp;
-					if ($_ ne ""){
+					my @commentaire;
+					($_, @commentaire) = split("#", $_,2);
+					#if ($_ ne ""){
+					if (not /^\s*$/){
 						my $paramName;
 						my @tmp;
 						($paramName, @tmp) = split (' ', $_, 2);
 						eval{
+							print("Insert ($id,\'$_\',\'$paramName\')\n");
 							$dbh->do("INSERT INTO parameters (parametersMJobsId,parametersParam,parametersName) VALUES ($id,\'$_\',\'$paramName\')");
 						};
 						if ($@){
