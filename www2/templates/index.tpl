@@ -24,7 +24,7 @@
 		<li><b>Bioimage : </b><a href="http://bioimage.ujf-grenoble.fr/">http://bioimage.ujf-grenoble.fr
 	    </a>
 		</li>
-		<li><b>Tomte : </b><a href="http://www-chimie.ujf-grenoble.fr/">http://www-chimie.ujf-grenoble.fr/
+		<li><b>Tomte : </b><a href="http://cecic.cermav.cnrs.fr/">http://cecic.cermav.cnrs.fr/
 	    </a><br>
 		administrateur : Sebastien Morin <a href="mailto:%20sebastien.morin@ujf-grenoble.fr">sebastien.morin@ujf-grenoble.fr</a>
 		</li>
