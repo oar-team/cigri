@@ -183,6 +183,9 @@ sub add_mjobs($$) {
     commit_transaction($dbh);
 
     $dbh->do("UNLOCK TABLES");
+    # notify admin by email
+    mailer::sendMail("New MJob $id from user $lusr","Insert new MJob $id.\nJDL:\n$jdl");
+
     return $id;
 }
 
@@ -761,6 +764,8 @@ sub check_end_MJobs($){
                 print("[Iolib] set to Terminated state the MJob $i\n");
                 $dbh->do("    UPDATE multipleJobs SET MJobsState = \"TERMINATED\"
                             WHERE MJobsId = $i");
+                # notify admin by email
+                mailer::sendMail("End MJob $i ","[Iolib] set to Terminated state the MJob $i");
             }
         }
     }
