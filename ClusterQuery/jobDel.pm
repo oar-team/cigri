@@ -53,6 +53,19 @@ sub jobDel($$$){
     return($retCode);
 }
 
+my %clusterToNotify;
+
+# If necessary, notify clusters
+# return 0 if Ok
+sub endJobDel(){
+    foreach my $i (keys(%clusterToNotify)){
+        print("JobDel : Notify the cluster $i\n");
+        oarNotify::notify($i,"Qdel");
+    }
+
+    return(0);
+}
+
 #arg1 --> db ref
 #arg2 --> cluster name
 #arg3 --> user
@@ -108,7 +121,8 @@ sub oardelMysql($$$$){
     }
     OARiolib::fragRemoteJob($OARdb,$jobBatchId);
     OARiolib::disconnect($dbh);
-    my $retCode = oarNotify::notify($cluster,"Qdel");
+
+    $clusterToNotify{$cluster} = 1;
 
     return($retCode);
 }

@@ -65,4 +65,6 @@ foreach my $i (@jobsToFrag){
 	}
 }
 
+jobDel::endJobDel();
+
 iolibCigri::disconnect($base);
