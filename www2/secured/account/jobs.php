@@ -644,6 +644,7 @@ FROM
 	parameters p, multipleJobs mj
 WHERE
 	p.parametersName IN ($paramids)
+	AND p.parametersMJobsId = '{$jobid}'
 	AND p.parametersMJobsId = mj.MJobsId
 	AND mj.MJobsUser = '$login'
 EOF;
@@ -697,6 +698,7 @@ FROM
 	parameters p, multipleJobs mj
 WHERE
 	p.parametersName IN ($paramids)
+	AND p.parametersMJobsId = '{$jobid}'
 	AND p.parametersMJobsId = mj.MJobsId
 	AND mj.MJobsUser = '$login'
 EOF;
