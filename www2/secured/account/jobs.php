@@ -31,7 +31,7 @@
 if ($_SESSION['auth']) {
 switch ($option) {
 // {{{ All jobs
-// {{{ Properties
+// {{{ Propertiies
 	case "jobs":
 		// if no order is specified, set to default
 		if (!isset($_GET['orderby'])) {
@@ -598,6 +598,11 @@ EOF;
 
 // }}}
 
+        default:
+		// Unknown option -> error
+		$smarty->assign('contenttemplate','error.tpl');
+		break;
+								
 }
 }
 	mysql_close($link);

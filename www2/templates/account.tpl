@@ -7,7 +7,8 @@
 		<tr><td colspan="2">&nbsp;</td></tr>
 
 		<tr><td colspan="2" class="menutitleclass">Statistics</td></tr>
-		<tr><td></td><td><a href="account.php?submenu=stats">Details</a></td></tr>
+		<tr><td></td><td><a href="account.php?submenu=stats&option=mj">MultiJob statistics</a></td></tr>
+		<tr><td></td><td><a href="account.php?submenu=stats&option=jobs">All jobs</a></td></tr>
 		<tr><td colspan="2">&nbsp;</td></tr>
 	
 		<tr><td colspan="2" class="menutitleclass">Errors</td></tr>
