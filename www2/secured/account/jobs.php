@@ -92,6 +92,45 @@ EOF;
 				$jobid = $_GET['id'];
 				$query = <<<EOF
 SELECT
+	COUNT(*)
+FROM
+	jobs
+WHERE
+	jobMJobsId = '{$jobid}'
+	AND (jobState = 'Running' OR jobState = 'toLaunch' OR jobState = 'RemoteWaiting')
+EOF;
+                                list($res,$nb) = sqlquery($query,$link);
+				$nbrunning = $res[0][0];
+				$smarty->assign("nbrunning",$nbrunning);
+				unset($res);
+				$query = <<<EOF
+SELECT
+	COUNT(*)
+FROM
+	jobs
+WHERE
+	jobMJobsId = '{$jobid}'
+	AND jobState = 'Terminated'
+EOF;
+                                list($res,$nb) = sqlquery($query,$link);
+				$nbexecuted = $res[0][0];
+				$smarty->assign("nbexecuted",$nbexecuted);
+				unset($res);
+				$query = <<<EOF
+SELECT
+	COUNT(*)
+FROM
+	parameters
+WHERE
+	parametersMJobsId = '{$jobid}'
+EOF;
+                                list($res,$nb) = sqlquery($query,$link);
+				$nbwaiting = $res[0][0];
+				$smarty->assign("nbwaiting",$nbwaiting);
+				unset($res);
+				
+				$query = <<<EOF
+SELECT
 	MJobsState
 FROM
 	multipleJobs
@@ -177,6 +216,31 @@ EOF;
 					$_GET['sort'] = "DESC";
 				}
 				$jobid = $_GET['id'];
+				$query = <<<EOF
+SELECT
+	COUNT(*)
+FROM
+	jobs
+WHERE
+	jobMJobsId = '{$jobid}'
+	AND (jobState = 'Running' OR jobState = 'toLaunch' OR jobState = 'RemoteWaiting')
+EOF;
+                                list($res,$nb) = sqlquery($query,$link);
+				$nbrunning = $res[0][0];
+				$smarty->assign("nbrunning",$nbrunning);
+				unset($res);
+				$query = <<<EOF
+SELECT
+	COUNT(*)
+FROM
+	parameters
+WHERE
+	parametersMJobsId = '{$jobid}'
+EOF;
+                                list($res,$nb) = sqlquery($query,$link);
+				$nbwaiting = $res[0][0];
+				$smarty->assign("nbwaiting",$nbwaiting);
+				unset($res);
 				$query = <<<EOF
 SELECT
 	MJobsState
@@ -325,6 +389,32 @@ EOF;
 					$_GET['sort'] = "DESC";
 				}
 				$jobid = $_GET['id'];
+				$query = <<<EOF
+SELECT
+	COUNT(*)
+FROM
+	jobs
+WHERE
+	jobMJobsId = '{$jobid}'
+	AND jobState = 'Terminated'
+EOF;
+                                list($res,$nb) = sqlquery($query,$link);
+				$nbexecuted = $res[0][0];
+				$smarty->assign("nbexecuted",$nbexecuted);
+				unset($res);
+				$query = <<<EOF
+SELECT
+	COUNT(*)
+FROM
+	parameters
+WHERE
+	parametersMJobsId = '{$jobid}'
+EOF;
+                                list($res,$nb) = sqlquery($query,$link);
+				$nbwaiting = $res[0][0];
+				$smarty->assign("nbwaiting",$nbwaiting);
+				unset($res);
+				
 				$selectnames[] = "jobId";
 				$selectnames[] = "jobName";
 				$selectnames[] = "jobTSub";
@@ -396,6 +486,32 @@ EOF;
 					$_GET['sort'] = "DESC";
 				}
 				$jobid = $_GET['id'];
+				$query = <<<EOF
+SELECT
+	COUNT(*)
+FROM
+	jobs
+WHERE
+	jobMJobsId = '{$jobid}'
+	AND (jobState = 'Running' OR jobState = 'toLaunch' OR jobState = 'RemoteWaiting')
+EOF;
+                                list($res,$nb) = sqlquery($query,$link);
+				$nbrunning = $res[0][0];
+				$smarty->assign("nbrunning",$nbrunning);
+				unset($res);
+				$query = <<<EOF
+SELECT
+	COUNT(*)
+FROM
+	jobs
+WHERE
+	jobMJobsId = '{$jobid}'
+	AND jobState = 'Terminated'
+EOF;
+                                list($res,$nb) = sqlquery($query,$link);
+				$nbexecuted = $res[0][0];
+				$smarty->assign("nbexecuted",$nbexecuted);
+				unset($res);
 				$selectnames[] = "parametersParam";
 				$selectnames[] = "parametersName";
 				$selectnames[] = "parametersPriority";

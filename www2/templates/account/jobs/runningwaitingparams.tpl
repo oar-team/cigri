@@ -3,9 +3,9 @@
 	<h5>MultiJob #{$jobid} - Running</h5>
 	<table border="0">
 	<tr>
-		<td><a href="account.php?submenu=jobs&option=runningparams&id={$jobid}">Running Jobs</a></td>
+		<td>{if $nbrunning > 0}<a href="account.php?submenu=jobs&option=runningparams&id={$jobid}">Running Jobs</a>{else}Running Jobs{/if}</td>
 		<td>&nbsp;-&nbsp;</td>
-		<td><a href="account.php?submenu=jobs&option=executedparams&id={$jobid}">Executed Jobs</a></td>
+		<td>{if $nbexecuted > 0}<a href="account.php?submenu=jobs&option=executedparams&id={$jobid}">Executed Jobs</a>{else}Executed Jobs{/if}</td>
 		<td>&nbsp;-&nbsp;</td>
 		<td style="font-weight: bold;">Waiting Parameters</td>
 		</tr>
