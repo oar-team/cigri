@@ -8,6 +8,8 @@ let agrege f transforme start = List.fold_left (bicompose f id transforme) start
 
 let concatene transforme = agrege (^) transforme ""
 
+let debug = ref false
+
 type mjob_t = {
   mjobId : int;
   mjobUser : string;
@@ -25,21 +27,48 @@ let printMJob m =
 type cluster_t = {
   clusterName : string;
   clusterNodes : int;
+  clusterWaitingJobs : int;
+  clusterTotalNodes : int;
 }
 
 let printCluster c = 
-  Printf.printf "Cluster %s : %d libres\n" c.clusterName c.clusterNodes
+  Printf.printf "Cluster %s : %d libres sur %d, %d waiting\n" 
+    c.clusterName c.clusterNodes c.clusterTotalNodes c.clusterWaitingJobs
 
 type assign_t = {
   assignId : int;
   assignCluster : string;
-  assignNb : int;
+  mutable assignNb : int;
 }
+
+let printAssign a = 
+  Printf.printf "[SCHEDULER] Assigning %d jobs of mjob %d on %s\n" a.assignNb a.assignId a.assignCluster
+  
+
+let empty_assign = [] 
+let add_assign l x = 
+  let rec find p = function 
+      [] -> raise Not_found
+    | y::ys when p y x -> y 
+    | y::ys -> find p ys in 
+
+    
+    try let a = find (fun e f -> (e.assignId, e.assignCluster) = (f.assignId, f.assignCluster)) l in 
+      if (!debug) then 
+	Printf.printf "[SCHED-DEBUG] Adding %d to mJob %d on %s (already %d)\n" 
+	  x.assignNb x.assignId x.assignCluster a.assignNb;
+      a.assignNb <- a.assignNb + x.assignNb; l
+    with Not_found -> 
+      ( if (!debug) then 
+	  Printf.printf "[SCHED-DEBUG] Setting %d to mJob %d on %s\n"
+	    x.assignNb x.assignId x.assignCluster;
+	x::l )
+
 
 (* Le scheduler *)
 
-let schedule mjobs clusters = 
-  let repart mjobs buffer cluster = 
+let schedule flood_param mjobs clusters = 
+  let repart calc_avail mjobs assigns cluster = 
     let possibleJobs = 
       List.sort (cmp (fun mj -> mj.mjobLeftJobs)) 
 	(List.filter (fun mjob -> List.mem cluster.clusterName mjob.mjobClusters) mjobs) in 
@@ -50,11 +79,18 @@ let schedule mjobs clusters =
 	    if nb = 0 then 
 	      aux n (l - 1) buf mjs 
 	    else ( mj.mjobLeftJobs <- mj.mjobLeftJobs - nb; 
-		   aux (n - nb) (l - 1) 
-		     ({assignId = mj.mjobId; assignCluster = cluster.clusterName; assignNb = nb}::buf) mjs) in 
-      aux cluster.clusterNodes (List.length possibleJobs) buffer possibleJobs in 
+		   let nxt_assign = add_assign buf {assignId = mj.mjobId; 
+						    assignCluster = cluster.clusterName; 
+						    assignNb = nb} in
+		     aux (n - nb) (l - 1) nxt_assign mjs ) in 
+      aux (calc_avail cluster) (List.length possibleJobs) assigns possibleJobs in 
     
-    List.fold_left (repart mjobs) [] clusters
+  let first_pass = List.fold_left (repart (fun c -> c.clusterNodes - c.clusterWaitingJobs) mjobs) 
+		     empty_assign clusters in 
+(*    first_pass *)
+    List.fold_left (repart (fun c -> flood_param * c.clusterTotalNodes / 100) mjobs) first_pass clusters 
+
+    
       
 (* Les fonctions d'accès à la base de données *)
 
@@ -72,42 +108,62 @@ let getInfoMjobs dbd =
                              GROUP BY parametersMJobsId
                              ORDER BY parametersMJobsId DESC" in
   let getOneInfo a = 
-    let id = Mysql.int2ml (get_option a.(0)) in
+    let id = Mysql.not_null Mysql.int2ml a.(0) in
     let res_User_TSub = execQuery dbd 
 			  (Printf.sprintf "SELECT MJobsUser, MJobsTSub FROM multipleJobs WHERE MJobsId = %d" id) in
     let res_ClName = execQuery dbd 
 		       (Printf.sprintf "SELECT propertiesClusterName FROM properties 
                                         WHERE propertiesMJobsId = %d" id) in
-    let list_ClName = Mysql.map res_ClName 
-			(fun a -> get_option a.(0))  in
+    let list_ClName = Mysql.map res_ClName (fun a -> Mysql.not_null Mysql.str2ml a.(0)) in
 
     let res_BlackList = execQuery dbd 
 			  (Printf.sprintf "SELECT clusterBlackListClusterName FROM clusterBlackList, events
                                            WHERE (clusterBlackListMJobsID = %d OR clusterBlackListMJobsID = 0)
                                              AND (clusterBlackListEventId = eventId AND eventState = \'ToFIX\')" id) in 
-    let list_BlackList = Mysql.map res_BlackList
-			   (fun a -> get_option a.(0))  in
+    let list_BlackList = Mysql.map res_BlackList (fun a -> Mysql.not_null Mysql.str2ml a.(0)) in
 
     let array_user_tsub = get_option (Mysql.fetch res_User_TSub) in
+
       { mjobId = id;
 	mjobUser = get_option (array_user_tsub.(0));
-	mjobTsub = Mysql.datetime2ml (get_option (array_user_tsub.(1)));
-	mjobLeftJobs = Mysql.int2ml (get_option a.(1));
+	mjobTsub = Mysql.not_null Mysql.datetime2ml array_user_tsub.(1);
+	mjobLeftJobs = Mysql.not_null Mysql.int2ml a.(1);
 	mjobClusters = List.filter (fun c -> not (List.mem c list_BlackList)) list_ClName; } in  
     
     Mysql.map resMJobs getOneInfo
 
-let getFreeNodes dbd = 
+let getClusterInfo dbd = 
   let resFreeNodes = execQuery dbd "SELECT nodeClusterName,count(*)
                                 FROM nodes
                                 WHERE nodeState = \"FREE\"
                                 GROUP BY nodeClusterName" in
-    Mysql.map resFreeNodes 
-      (fun a -> { clusterName = get_option a.(0);
-		  clusterNodes = Mysql.int2ml (get_option a.(1)) }) 
-	 
+  let resTotalNodes =  execQuery dbd "SELECT nodeClusterName,count(*)
+                                FROM nodes
+                                GROUP BY nodeClusterName" in
+  let resWaitingJobs = execQuery dbd "SELECT jobClusterName, count(*)
+                                        FROM jobs 
+                                        WHERE jobState = \"RemoteWaiting\"
+                                        GROUP BY jobClusterName" in 
+  let waitingList = 
+    Mysql.map resWaitingJobs 
+      (fun a -> (Mysql.not_null Mysql.str2ml a.(0), Mysql.not_null Mysql.int2ml a.(1))) in 
+
+  let freeList = 
+    Mysql.map resFreeNodes
+      (fun a -> (Mysql.not_null Mysql.str2ml a.(0), Mysql.not_null Mysql.int2ml a.(1))) in 
+
+    Mysql.map resTotalNodes
+      (fun a -> 
+	 let cl_name = Mysql.not_null Mysql.str2ml a.(0) in
+	 let nb_waiting = try List.assoc cl_name waitingList with Not_found -> 0 in 
+	 let nb_free = try List.assoc cl_name freeList with Not_found -> 0 in 
+	   { clusterName = cl_name;
+	     clusterTotalNodes = Mysql.not_null Mysql.int2ml a.(1);
+	     clusterNodes = nb_free;
+	     clusterWaitingJobs = nb_waiting; }) 
+      
 let makeAssign dbd a = 
-  Printf.printf "[SCHEDULER] Assigning %d jobs of mjob %d on %s\n" a.assignNb a.assignId a.assignCluster;
+  printAssign a;
   ignore (execQuery dbd 
 	    (Printf.sprintf "INSERT INTO jobsToSubmit (jobsToSubmitMJobsId,
                                                jobsToSubmitClusterName,
@@ -122,22 +178,29 @@ open Options
 
 (* Version qui aurait pu marcher si Nico ne mettait pas des / de m...
    sans les protéger par des guillemets *)
+
+type options = {
+  conn : Mysql.db;
+  flood : int;
+}
 		  
 let read_conf file = 
   let opf = create_options_file file in 
   let db_host = define_option opf ["database_host"] "" string_option "localhost"
   and db_name = define_option opf ["database_name"] "" string_option "truc"
   and db_username = define_option opf ["database_username"] "" string_option ""
-  and db_userpassword = define_option opf ["database_userpassword"] "" string_option "" in 
+  and db_userpassword = define_option opf ["database_userpassword"] "" string_option "" 
+  and flood_parameter = define_option opf ["flood_parameter"] "" int_option 20 in 
   let convert = function 
       "" -> None
     | s -> Some s in 
     load opf; 
-    { Mysql.dbhost = convert (!! db_host); 
-      Mysql.dbname = convert (!! db_name);
-      Mysql.dbport = None;
-      Mysql.dbpwd = convert (!! db_userpassword);
-      Mysql.dbuser = convert (!! db_username) } 
+    { conn = { Mysql.dbhost = convert (!! db_host); 
+	       Mysql.dbname = convert (!! db_name);
+	       Mysql.dbport = None;
+	       Mysql.dbpwd = convert (!! db_userpassword);
+	       Mysql.dbuser = convert (!! db_username) };
+      flood = !! flood_parameter; }
 
 
 
@@ -200,27 +263,34 @@ let read_conf file =
 let main = 
   print_endline "[SCHEDULER] Begining of scheduler EQUIT";
   let istest = ref false in 
+  let nop = ref false in 
     Arg.parse ["-test", Arg.Set istest, "Test Mode : uses a test database";
-	       "-conf_file", Arg.String (fun s -> conf_file := s), "Set conf_file; default = "^(!conf_file)]
+	       "-conf_file", Arg.String (fun s -> conf_file := s), "Set conf_file; default = "^(!conf_file); 
+	       "-n", Arg.Set nop, "Don't actually do anything -- just print out";
+	       "-d", Arg.Set debug, "Print debug information abou the scheduler"]
       ignore "sched_equitCigri [option]";
-    let connector = if !istest 
-    then { Mysql.dbhost = Some "pawnee"; 
-	   Mysql.dbname = Some "cigriSched"; 
-	   Mysql.dbport = None;
-	   Mysql.dbpwd = Some "cigriSched"; 
-	   Mysql.dbuser = Some "cigriSched" }
+    let opts = if !istest 
+    then { conn = { Mysql.dbhost = Some "pawnee"; 
+		    Mysql.dbname = Some "cigriSched"; 
+		    Mysql.dbport = None;
+		    Mysql.dbpwd = Some "cigriSched"; 
+		    Mysql.dbuser = Some "cigriSched" };
+	   flood = 50; }
     else read_conf !conf_file in 
     let conv = function Some s -> s | None -> "''" in
       Printf.printf "Connecting to database %s on %s@%s\n" 
-	(conv connector.Mysql.dbname) 
-	(conv connector.Mysql.dbuser)
-	(conv connector.Mysql.dbhost);
-      let dbd = Mysql.connect connector in 
-      let mjobs = getInfoMjobs dbd and nodes = getFreeNodes dbd in 
+	(conv opts.conn.Mysql.dbname) 
+	(conv opts.conn.Mysql.dbuser)
+	(conv opts.conn.Mysql.dbhost);
+      flush stdout;
+      let dbd = Mysql.connect opts.conn in 
+      let mjobs = getInfoMjobs dbd and clusterInfo = getClusterInfo dbd in 
 	List.iter printMJob mjobs; 
 	print_newline(); 
-	List.iter printCluster nodes;
-	let sched = schedule mjobs nodes in 
-	  List.iter (makeAssign dbd) sched; 
+	List.iter printCluster clusterInfo;
+	let sched = schedule opts.flood mjobs clusterInfo in 
+	  if !nop then 
+	    List.iter printAssign sched
+	  else List.iter (makeAssign dbd) sched; 
 	  print_endline "[SCHEDULER] End of scheduler EQUIT";;
 
