@@ -706,6 +706,30 @@ sub get_nb_remained_jobs($){
     return %result;
 }
 
+# get the global weight of remote waiting jobs
+# arg1 --> database ref
+sub get_cluster_remoteWaiting_job_weight($){
+    my $dbh = shift;
+
+    my $sth = $dbh->prepare("SELECT jobClusterName,SUM(propertiesJobWeight)
+                             FROM jobs,properties
+                             WHERE jobState = \"RemoteWaiting\"
+                                AND jobMJobsId = propertiesMJobsId
+                             GROUP BY jobClusterName
+                            ");
+    $sth->execute();
+
+    my %result;
+    while (my @ref = $sth->fetchrow_array()) {
+        if ($ref[1] ne "NULL"){
+            $result{$ref[0]} = $ref[1];
+        }
+    }
+    $sth->finish();
+
+    return %result;
+}
+
 # get MJobs properties
 # arg1 --> database ref
 # arg2 --> MJobsId

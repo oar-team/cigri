@@ -31,6 +31,7 @@ print "[SCHEDULER] Begining of scheduler FIFO\n";
 
 my %nbFreeNodes = iolibCigri::get_nb_freeNodes($base);
 my %nbRemainedJobs = iolibCigri::get_nb_remained_jobs($base);
+my %nbRemoteWaitingJobWeight = iolibCigri::get_cluster_remoteWaiting_job_weight($base);
 
 #print(Dumper(%nbFreeNodes));
 
@@ -42,6 +43,18 @@ foreach my $i (keys(%nbRemainedJobs)){
             my $k = 0;
             while (($k <= $#{$nbFreeNodes{$j}}) && ($number < $nbRemainedJobs{$i})){
                 #print(Dumper(@{$nbFreeNodes{$j}})."\n---------------------------------------------------\n");
+                #check if there are remote waiting jobs
+                #print("$i: nbRemoteWaitingJobWeight = $nbRemoteWaitingJobWeight{$j} --> ${${$nbFreeNodes{$j}}[$k]}[1] \n");
+                if ((defined($nbRemoteWaitingJobWeight{$j})) && ($nbRemoteWaitingJobWeight{$j} > 0)){
+                    if (${${$nbFreeNodes{$j}}[$k]}[1] <= $nbRemoteWaitingJobWeight{$j}){
+                        $nbRemoteWaitingJobWeight{$j} = $nbRemoteWaitingJobWeight{$j} - ${${$nbFreeNodes{$j}}[$k]}[1];
+                        ${${$nbFreeNodes{$j}}[$k]}[1] = 0;
+                    }else{
+                        ${${$nbFreeNodes{$j}}[$k]}[1] = ${${$nbFreeNodes{$j}}[$k]}[1] - $nbRemoteWaitingJobWeight{$j};
+                        $nbRemoteWaitingJobWeight{$j} = 0;
+                    }
+                }
+                
                 if (${${$nbFreeNodes{$j}}[$k]}[1] >= $propertiesClusterName{$j}){
                     $number += ${${$nbFreeNodes{$j}}[$k]}[1] / $propertiesClusterName{$j};
                     if ($number > $nbRemainedJobs{$i}){
