@@ -688,9 +688,9 @@ sub check_end_MJobs($){
 		my $sth = $dbh->prepare("	SELECT jobMJobsId, count( * )
 									FROM jobs
 									WHERE jobMJobsId = $i
-									AND jobState != \"Terminated\"
-									AND jobState != \"Killed\"
-									AND jobState != \"Error\"
+									AND (	jobState = \"Running\"
+											OR jobState = \"toLaunch\"
+											OR jobState = \"RemoteWaiting\")
 									GROUP BY jobMJobsId
 								");
 		$sth->execute();

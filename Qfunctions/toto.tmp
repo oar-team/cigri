@@ -1,7 +1,7 @@
 DEFAULT{
 
-	name = fgythjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjhhhh ;
-	nbJobs = 10;
+	name = essais_grand1 ;
+	nbJobs = 100000;
 #	paramFile = param.tmp;
 #	resultFile = result.tmp;
 }
