@@ -21,7 +21,7 @@ DROP TABLE IF EXISTS errors;
 CREATE TABLE IF NOT EXISTS errors (
 errorId INT UNSIGNED NOT NULL AUTO_INCREMENT ,
 errorType ENUM('USER_SOFTWARE','RUNNER_SUBMIT','JOBID_PARSE') NOT NULL ,
-errorState ENUM('ToFIX','FIXED') DEFAULT 'ToFIX'NOT NULL ,
+errorState ENUM('ToFIX','FIXED') DEFAULT 'ToFIX' NOT NULL ,
 errorJobId BIGINT UNSIGNED ,
 errorDate DATETIME NOT NULL ,
 errorMessage VARCHAR( 255 ) ,
@@ -31,17 +31,28 @@ PRIMARY KEY (errorId)
 DROP TABLE IF EXISTS clusterErrors;
 CREATE TABLE IF NOT EXISTS clusterErrors (
 clusterErrorId INT UNSIGNED NOT NULL AUTO_INCREMENT ,
-clusterErrorType ENUM('QSTAT_CMD','PBSNODES_CMD','PBSNODES_PARSE','SCHEDULER') NOT NULL ,
-clusterErrorState ENUM('ToFIX','FIXED') DEFAULT 'ToFIX'NOT NULL ,
-clusterErrorClusterId BIGINT UNSIGNED ,
+clusterErrorType ENUM('QSTAT_CMD','PBSNODES_CMD','PBSNODES_PARSE') NOT NULL ,
+clusterErrorState ENUM('ToFIX','FIXED') DEFAULT 'ToFIX' NOT NULL ,
+clusterErrorClusterName VARCHAR( 100 ) NOT NULL ,
 clusterErrorDate DATETIME NOT NULL ,
 clusterErrorMessage VARCHAR( 255 ) ,
 PRIMARY KEY (clusterErrorId)
 );
 
+DROP TABLE IF EXISTS schedulerErrors;
+CREATE TABLE IF NOT EXISTS schedulerErrors (
+schedulerErrorId INT UNSIGNED NOT NULL AUTO_INCREMENT ,
+schedulerErrorType ENUM('NB_PARAMS','NB_NODES') NOT NULL ,
+schedulerErrorState ENUM('ToFIX','FIXED') DEFAULT 'ToFIX' NOT NULL ,
+schedulerErrorDate DATETIME NOT NULL ,
+schedulerErrorMessage VARCHAR( 255 ) ,
+PRIMARY KEY (schedulerErrorId)
+);
+
 DROP TABLE IF EXISTS clusters;
 CREATE TABLE IF NOT EXISTS clusters (
 clusterName VARCHAR( 100 ) NOT NULL ,
+clusterState ENUM('Alive','Dead') DEFAULT 'Alive' NOT NULL ,
 clusterAdmin VARCHAR( 100 ) NOT NULL ,
 clusterBatch ENUM('PBS','OAR') NOT NULL ,
 #nbFreeNodes INT UNSIGNED NOT NULL DEFAULT 0 ,

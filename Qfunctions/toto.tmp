@@ -1,6 +1,6 @@
 DEFAULT{
 
-	nbJobs = 6;
+	nbJobs = 1000;
 #	paramFile = param.tmp;
 }
 #i4{
@@ -11,8 +11,8 @@ pawnee{
 	execFile = /users/huron/capitn/test.sh ;
 	execTime =1;
 }
-#tomte.ujf-grenoble.fr{
-#	execFile = /home/nis/capitn/test.sh ;
-#	execTime = 12;
-#}
+tomte.ujf-grenoble.fr{
+	execFile = /home/nis/capitn/test.sh ;
+	execTime = 12;
+}
 
