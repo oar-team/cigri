@@ -2,7 +2,12 @@ let cmp critere x y = Pervasives.compare (critere x) (critere y)
 let get_option = function
     Some x -> x
   | None -> failwith "get_option"		
-      
+let bicompose f g h x y = f (g x) (h y)
+let id = fun x -> x
+let agrege f transforme start = List.fold_left (bicompose f id transforme) start      
+
+let concatene transforme = agrege (^) transforme ""
+
 type mjob_t = {
   mjobId : int;
   mjobUser : string;
@@ -13,10 +18,17 @@ type mjob_t = {
 }
 
 
+let printMJob m = 
+  Printf.printf "MJob %d: %s, reste %d, sur %s\n"
+    m.mjobId m.mjobUser m.mjobLeftJobs (concatene id m.mjobClusters)
+
 type cluster_t = {
   clusterName : string;
   clusterNodes : int;
 }
+
+let printCluster c = 
+  Printf.printf "Cluster %s : %d libres\n" c.clusterName c.clusterNodes
 
 type assign_t = {
   assignId : int;
@@ -106,7 +118,11 @@ let main =
 	   Mysql.dbpwd = Some "cigri"; 
 	   Mysql.dbuser = Some "cigri" } in
     let dbd = Mysql.connect connector in 
-    let sched = schedule (getInfoMjobs dbd) (getFreeNodes dbd) in 
+    let mjobs = getInfoMjobs dbd and nodes = getFreeNodes dbd in 
+      List.iter printMJob mjobs; 
+      print_newline(); 
+      List.iter printCluster nodes;
+    let sched = schedule mjobs nodes in 
       List.iter (makeAssign dbd) sched; 
       print_endline "[SCHEDULER] End of scheduler EQUIT";;
 
