@@ -47,6 +47,13 @@ sub disconnect($) {
 	$dbh->disconnect();
 }
 
+# get the name of the remote file which contains grid informations
+# arg1 --> grid job id
+sub get_cigri_remote_file_name($){
+	my $jobId = shift;
+	return "cigri.$jobId.log"
+}
+
 # give the date in with the right pattern
 sub get_date() {
 	my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime;
@@ -398,7 +405,9 @@ sub update_nb_freeNodes($){
 	$sth = $dbh->prepare("	SELECT nodeClusterName, COUNT(*)
 							FROM nodes,jobs
 							WHERE nodeId = jobNodeId
-							AND jobState = \"RemoteWaiting\"
+							AND ( jobState = \"RemoteWaiting\"
+								OR jobState = \"toLaunch\"
+								OR jobState = \"Running\")
 							GROUP BY nodeClusterName");
 	$sth->execute();
 
@@ -543,6 +552,7 @@ sub create_toLaunch_jobs($){
 
 		if (scalar(@parametersTmp) != $i->{jobsToSubmitNumber}){
 			warn("[Iolib] Erreur de choix du scheduler pour le nb de parametres\n");
+			insert_new_clusterError($dbh,"SCHEDULER","$i->{jobsToSubmitClusterName}"," Erreur de choix du scheduler pour le nb de parametres");
 			return 1;
 		}
 
@@ -562,6 +572,7 @@ sub create_toLaunch_jobs($){
 
 		if (scalar(@nodesTmp) != $i->{jobsToSubmitNumber}){
 			warn("[Iolib] Erreur de choix du scheduler pour le nb de noeuds\n");
+			insert_new_clusterError($dbh,"SCHEDULER","$i->{jobsToSubmitClusterName}","Erreur de choix du scheduler pour le nb de noeuds");
 			return 1;
 		}
 
@@ -672,22 +683,38 @@ sub insert_new_error($$$$){
 
 	$errorMessage = substr($errorMessage, 0, 250);
 
-	my $sth = $dbh->prepare("SELECT MAX(errorId)+1 FROM errors");
-	$sth->execute();
-	my $ref = $sth->fetchrow_hashref();
-	my @tmp = values(%$ref);
-	my $id = $tmp[0];
-	$sth->finish();
-	if($id eq "") {
-		$id = 1;
-	}
+	#my $sth = $dbh->prepare("SELECT MAX(errorId)+1 FROM errors");
+	#$sth->execute();
+	#my $ref = $sth->fetchrow_hashref();
+	#my @tmp = values(%$ref);
+	#my $id = $tmp[0];
+	#$sth->finish();
+	#if($id eq "") {
+	#	$id = 1;
+	#}
 
 	my $time = get_date();
 
-	$dbh->do("INSERT INTO errors (errorId,errorType,errorState,errorJobId,errorDate,errorMessage)
-			VALUES ($id,\"$errorType\",\"ToFIX\",\"$errorJobId\",\"$time\",\"$errorMessage\")");
+	$dbh->do("INSERT INTO errors (errorType,errorState,errorJobId,errorDate,errorMessage)
+			VALUES (\"$errorType\",\"ToFIX\",\"$errorJobId\",\"$time\",\"$errorMessage\")");
 
-	return $id;
+	#return $id;
+}
+
+# Insert a field in the clusterError table
+# arg1 --> database ref
+# arg2 --> error Type
+# arg3 --> cluster id which generate this error
+# arg4 --> message, describe the error
+sub insert_new_clusterError($$$$){
+	my ($dbh, $errorType, $errorClusterId, $errorMessage) = @_;
+
+	$errorMessage = substr($errorMessage, 0, 250);
+
+	my $time = get_date();
+
+	$dbh->do("INSERT INTO clusterErrors (clusterErrorType,clusterErrorState,clusterErrorClusterId,clusterErrorDate,clusterErrorMessage)
+			VALUES (\"$errorType\",\"ToFIX\",\"$errorClusterId\",\"$time\",\"$errorMessage\")");
 }
 
 # set the message of a job

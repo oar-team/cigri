@@ -19,13 +19,24 @@ CONNECT cigri;
 
 DROP TABLE IF EXISTS errors;
 CREATE TABLE IF NOT EXISTS errors (
-errorId INT UNSIGNED NOT NULL,
-errorType ENUM('SYSTEM','TOO_FAST','TOO_SLOW','CHECKED','CLUSTER','USER_SOFTWARE','RUNNER_SUBMIT') NOT NULL ,
+errorId INT UNSIGNED NOT NULL AUTO_INCREMENT ,
+errorType ENUM('USER_SOFTWARE','RUNNER_SUBMIT','JOBID_PARSE') NOT NULL ,
 errorState ENUM('ToFIX','FIXED') DEFAULT 'ToFIX'NOT NULL ,
 errorJobId BIGINT UNSIGNED ,
 errorDate DATETIME NOT NULL ,
 errorMessage VARCHAR( 255 ) ,
 PRIMARY KEY (errorId)
+);
+
+DROP TABLE IF EXISTS clusterErrors;
+CREATE TABLE IF NOT EXISTS clusterErrors (
+clusterErrorId INT UNSIGNED NOT NULL AUTO_INCREMENT ,
+clusterErrorType ENUM('QSTAT_CMD','PBSNODES_CMD','PBSNODES_PARSE','SCHEDULER') NOT NULL ,
+clusterErrorState ENUM('ToFIX','FIXED') DEFAULT 'ToFIX'NOT NULL ,
+clusterErrorClusterId BIGINT UNSIGNED ,
+clusterErrorDate DATETIME NOT NULL ,
+clusterErrorMessage VARCHAR( 255 ) ,
+PRIMARY KEY (clusterErrorId)
 );
 
 DROP TABLE IF EXISTS clusters;
@@ -52,23 +63,12 @@ PRIMARY KEY (nodeId),
 INDEX nom (nodeName,nodeClusterName)
 );
 
-#DROP TABLE IF EXISTS jobTypes;
-#CREATE TABLE IF NOT EXISTS jobTypes (
-#jobTypeName VARCHAR( 100 ) NOT NULL ,
-#jobTypeJDL MEDIUMBLOB NOT NULL,
-#PRIMARY KEY (jobTypeName)
-#);
-
 DROP TABLE IF EXISTS jobs;
 CREATE TABLE IF NOT EXISTS jobs (
 jobId BIGINT UNSIGNED NOT NULL AUTO_INCREMENT ,
-#jobType VARCHAR( 100 ) ,
-#jobJDL MEDIUMBLOB ,
 jobState ENUM('toLaunch', 'Running', 'RemoteWaiting', 'Terminated', 'Error', 'Killed') NOT NULL ,
 jobMessage VARCHAR( 255 ) ,
-#jobUser VARCHAR( 50 ) NOT NULL ,
 jobMJobsId INT UNSIGNED ,
-#jobCmd VARCHAR( 255 ) ,
 jobParam VARCHAR( 255 ) ,
 jobNodeId INT UNSIGNED NOT NULL ,
 jobBatchId INT UNSIGNED ,
@@ -83,13 +83,9 @@ PRIMARY KEY (jobId)
 DROP TABLE IF EXISTS multipleJobs;
 CREATE TABLE IF NOT EXISTS multipleJobs (
 MJobsId INT UNSIGNED NOT NULL ,
-#MJobsType VARCHAR( 100 ) ,
 MJobsJDL MEDIUMBLOB ,
-#MJobsParamFile MEDIUMBLOB ,
 MJobsState ENUM('IN_TREATMENT','ERROR','TERMINATED') NOT NULL DEFAULT 'IN_TREATMENT' ,
 MJobsUser VARCHAR( 50 ) NOT NULL ,
-#MJobsNbTotalJobs BIGINT NOT NULL ,
-#MJobsNbCompletedJobs BIGINT DEFAULT 0 ,
 MJobsTSub DATETIME ,
 MJobsTStart DATETIME ,
 MJobsTStop DATETIME ,
@@ -102,13 +98,6 @@ PRIMARY KEY (MJobsId)
 #jobNodeJobId BIGINT UNSIGNED NOT NULL ,
 #jobNodeNodeId INT UNSIGNED NOT NULL ,
 #PRIMARY KEY (jobNodeJobId, jobNodeNodeId)
-#);
-
-DROP TABLE IF EXISTS potentialJobNode;
-#CREATE TABLE IF NOT EXISTS potentialJobNode (
-#potentialJobNodeMJobsId INT UNSIGNED NOT NULL ,
-#potentialJobNodeNodeId INT UNSIGNED NOT NULL ,
-#PRIMARY KEY (potentialJobNodeMJobsId, potentialJobNodeNodeId)
 #);
 
 DROP TABLE IF EXISTS parameters;

@@ -50,17 +50,18 @@ $| = 1;
 foreach my $i (@jobList){
 	$jobId = $$i{id};
 	$tmpRemoteFile = "cigri.tmp.$jobId";
-	$resultFile = "cigri.$jobId.log";
+	#$resultFile = "cigri.$jobId.log";
+	$resultFile = "~/".iolibCigri::get_cigri_remote_file_name($jobId);
 
 	print("[RUNNER] The job $jobId is in treatment...\n");
 
 	my @cmdSSH = (	"echo \\#\\!/bin/sh > ~/$tmpRemoteFile;",
-					"echo \"echo \\\"BEGIN_DATE=\\\"\\`date +\%Y-\%m-\%d\\ \%H:\%M:\%S\\` >> ~/$resultFile\" >> ~/$tmpRemoteFile;",
+					"echo \"echo \\\"BEGIN_DATE=\\\"\\`date +\%Y-\%m-\%d\\ \%H:\%M:\%S\\` >> $resultFile\" >> ~/$tmpRemoteFile;",
 					"echo $$i{cmd} $$i{param} >> ~/$tmpRemoteFile;",
 					"echo CODE=\\\$? >> ~/$tmpRemoteFile;",
-					"echo \"echo \\\"END_DATE=\\\"\\`date +\%Y-\%m-\%d\\ \%H:\%M:\%S\\` >> ~/$resultFile\" >> ~/$tmpRemoteFile;",
-					"echo \"echo \\\"RET_CODE=\\\$CODE\\\" >> ~/$resultFile\" >> ~/$tmpRemoteFile;",
-					"echo \"echo \\\"FINISH=1\\\" >> ~/$resultFile\" >> ~/$tmpRemoteFile;",
+					"echo \"echo \\\"END_DATE=\\\"\\`date +\%Y-\%m-\%d\\ \%H:\%M:\%S\\` >> $resultFile\" >> ~/$tmpRemoteFile;",
+					"echo \"echo \\\"RET_CODE=\\\$CODE\\\" >> $resultFile\" >> ~/$tmpRemoteFile;",
+					"echo \"echo \\\"FINISH=1\\\" >> $resultFile\" >> ~/$tmpRemoteFile;",
 					"echo rm ~$$i{user}/$tmpRemoteFile >> ~/$tmpRemoteFile;",
 					"chmod +x ~/$tmpRemoteFile ;",
 					"cd ~$$i{user} ;",
@@ -90,9 +91,11 @@ print(Dumper(%cmdResult));
 			iolibCigri::set_job_state($base,$jobId,"Running");
 		}else{
 			print("[RUNNER] There is a mistake, the job $jobId state is unchanged, bad remote batch id\n");
+			iolibCigri::insert_new_error($base,"JOBID_PARSE","$jobId","There is a mistake, the job $jobId state is unchanged, bad remote batch id");
 		}
 	}else{
 		print("[RUNNER] There is a mistake, the job $jobId state is unchanged\n");
+		iolibCigri::insert_new_error($base,"JOBID_PARSE","$jobId","There is a mistake, the job $jobId state is unchanged, no STDERR no STDOUT");
 	}
 }
 iolibCigri::disconnect($base);

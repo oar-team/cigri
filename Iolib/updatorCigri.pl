@@ -72,11 +72,13 @@ foreach my $i (keys(%clusterNames)){
 				iolibCigri::set_cluster_node_state($base, $i, $name, $state);
 			}else{
 				print("[UPDATOR] There is an error in the pbsnodes command parse, node=$name;state=$state\n");
+				iolibCigri::insert_new_clusterError($base,"PBSNODES_PARSE","$i","There is an error in the pbsnodes command parse, node=$name;state=$state");
 			}
 		}
 	}else{
 		print("[UPDATOR_ERROR] There is an error in the execution of the pbsnodes command via SSH \n--> I disable all nodes of the cluster $i \n");
 		print("[UPDATOR_ERROR] $cmdResult{STDERR}\n");
+		iolibCigri::insert_new_clusterError($base,"PBSNODES_CMD","$i","There is an error in the execution of the pbsnodes command via SSH-->I disable all nodes of the cluster $i;$cmdResult{STDERR}");
 	}
 }
 
@@ -91,6 +93,7 @@ foreach my $i (keys(%jobRunningHash)){
 	my %jobState = ();
 	if ($cmdResult{STDERR} ne ""){
 		print("\t[UPDATOR_ERROR] $cmdResult{STDERR}\n");
+		iolibCigri::insert_new_clusterError($base,"QSTAT_CMD","$i","$cmdResult{STDERR}");
 	}else{
 		my $qstatStr = $cmdResult{STDOUT};
 		chomp($qstatStr);
@@ -104,12 +107,14 @@ foreach my $i (keys(%jobRunningHash)){
 	}
 	foreach my $j (@{$jobRunningHash{$i}}){
 		# Verify if the job is still running on the cluster $i
-		if (!defined($jobState{${$j}{batchJobId}})){
+		if ((!defined($jobState{${$j}{batchJobId}})) and ($cmdResult{STDERR} eq "")){
 			# Check the result file on the cluster
-			my $remoteFile = "~${$j}{user}/cigri.${$j}{jobId}.log";
+			#my $remoteFile = "~${$j}{user}/cigri.${$j}{jobId}.log";
+			my $remoteFile = iolibCigri::get_cigri_remote_file_name(${$j}{jobId});
 			#; sudo -u ${$j}{user} rm $remoteFile
 			print("[Updator] Check the job ${$j}{jobId} \n");
-			my %cmdResult2 = SSHcmd::submitCmd($i,"cat $remoteFile");
+			#my %cmdResult2 = SSHcmd::submitCmd($i,"cat $remoteFile");
+			my %cmdResult2 = SSHcmd::submitCmd($i,"sudo -u ${$j}{user} cat ~${$j}{user}/$remoteFile");
 			if ($cmdResult2{STDERR} ne ""){
 				print("\t[UPDATOR_ERROR] Can't check the remote file\n");
 				print("\t[UPDATOR_STDERR] $cmdResult2{STDERR}");
@@ -139,7 +144,7 @@ foreach my $i (keys(%jobRunningHash)){
 				}else{
 					# le job a ete kille par le batch scheduler
 					# soit il etait trop long(erreur), soit un autre job a pris sa place(on remet le parametre dans la file)
-					print("\t[UPDATOR_ERROR] Can't find the FINISH TAG for the job${$j}{jobId}\n");
+					print("\t[UPDATOR_ERROR] Can't find the FINISH TAG for the job ${$j}{jobId}\n");
 					print("\t[UPDATOR_ERROR] cat $remoteFile ==> $cmdResult2{STDOUT}\n");
 					iolibCigri::set_job_state($base, ${$j}{jobId}, "Killed");
 					iolibCigri::set_job_message($base, ${$j}{jobId}, "Can t find the FINISH TAG in the cigri remote file <$remoteFile> : $cmdResult2{STDOUT}");
@@ -148,10 +153,12 @@ foreach my $i (keys(%jobRunningHash)){
 			}
 		}else{
 			#verify if the job is waiting
-			if ($jobState{${$j}{batchJobId}} eq "W"){
-				iolibCigri::set_job_state($base, ${$j}{jobId}, "RemoteWaiting");
-			}else{
-				iolibCigri::set_job_state($base, ${$j}{jobId}, "Running");
+			if (defined($jobState{${$j}{batchJobId}})){
+				if ($jobState{${$j}{batchJobId}} eq "W"){
+					iolibCigri::set_job_state($base, ${$j}{jobId}, "RemoteWaiting");
+				}else{
+					iolibCigri::set_job_state($base, ${$j}{jobId}, "Running");
+				}
 			}
 		}
 	}
