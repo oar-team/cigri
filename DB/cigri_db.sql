@@ -38,7 +38,7 @@ DROP TABLE IF EXISTS clusters;
 CREATE TABLE IF NOT EXISTS clusters (
 clusterName VARCHAR( 100 ) NOT NULL ,
 clusterAdmin VARCHAR( 100 ) NOT NULL ,
-clusterBatch ENUM('PBS','OAR','OAR1') DEFAULT 'OAR' NOT NULL ,
+clusterBatch ENUM('PBS','OAR','OAR_mysql') DEFAULT 'OAR' NOT NULL ,
 clusterAlias VARCHAR( 20 ) ,
 PRIMARY KEY (clusterName)
 )TYPE = InnoDB;
