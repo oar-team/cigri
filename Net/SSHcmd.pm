@@ -148,7 +148,7 @@ sub submitCmd($$){
 					$READERStr .= $tmpStr."\n";
 				}
 				if ($res <= 0) {
-					$ERRORStr = "[SSHcmd] Reader too long...\n";
+					$ERRORStr = "[SSHcmd] Reader too long, timeout = $timeout ...\n";
 					$closeConnection = 1;
 				}
 			}

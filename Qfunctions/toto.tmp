@@ -11,12 +11,11 @@ DEFAULT{
 #}
 pawnee{
 	execFile = /users/huron/capitn/test.sh ;
-	execTime =1;
 }
-#tomte.ujf-grenoble.fr{
-#	execFile = /home/nis/capitn/test.sh ;
-#	execTime = 12;
-#}
+tomte.ujf-grenoble.fr{
+	execFile = /home/nis/capitn/test.sh ;
+	execTime = 12;
+}
 #bioimage.ujf-grenoble.fr{
 #	execFile = /home/nis/capit/test.sh ;
 #	execTime = 12;
