@@ -1084,3 +1084,8 @@ sub rollback_transaction($){
 	my $dbh = shift;
 	$dbh->rollback;
 }
+
+#sub lock_collector($){
+#	my $dbh = shift;
+#	$dbh->do("LO");
+#}

@@ -179,6 +179,7 @@ currentSchedulerId INT UNSIGNED NOT NULL ,
 PRIMARY KEY (currentSchedulerId)
 )TYPE = InnoDB;
 
+
 INSERT INTO clusters (clusterName,clusterAdmin,clusterBatch) VALUES ("pawnee", "", "OAR");
 #INSERT INTO clusters (clusterName,clusterAdmin,clusterBatch) VALUES ("i4", "", "PBS");
 
