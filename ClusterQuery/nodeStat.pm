@@ -80,6 +80,7 @@ sub oarnodes($$){
             my $currentWeight;
             my $maxWeight;
             my $besteffort;
+            my $state;
             my $lineTmp;
             my $key;
             # parse pbsnodes command
@@ -96,10 +97,15 @@ sub oarnodes($$){
                 }elsif ($lineTmp =~ /properties =/){
                     $lineTmp =~ /^.+besteffort=(YES|NO).*$/;
                     $besteffort = $1;
+                }elsif ($lineTmp =~ /state =/){
+                    ($key, $state) = split("=", $lineTmp);
+                    # I drop spaces
+                    $state =~ s/\s//g;
                 }
+
             }
-            if (defined($name) && defined($maxWeight) && defined($currentWeight) && defined($besteffort)){
-                if ($besteffort eq "YES"){
+            if (defined($name) && defined($maxWeight) && defined($currentWeight) && defined($besteffort) && defined($state)){
+                if (($besteffort eq "YES") && (($state eq "job") || ($state eq "free"))){
                     # Databse update
                     iolibCigri::set_cluster_node_free_weight($dbh, $cluster, $name, $maxWeight-$currentWeight);
                 }
