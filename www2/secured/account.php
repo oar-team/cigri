@@ -41,6 +41,11 @@ EOF;
 			if (crypt($_POST['pass'],17) == $res[0][0]) {
 				$_SESSION['auth'] = true;
 				$_SESSION['login'] = $_POST['login'];
+				if ($templog == 'admin') {
+					$_SESSION['adminauth'] = true;
+					header("Location: ../admin/index.php");
+					exit;
+				}
 			}
 			else {
 				$_SESSION['auth'] = false;

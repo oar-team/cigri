@@ -67,6 +67,9 @@ mysql_close($link);
 if (isset($_GET['submenu'])) {
 	if ($_GET['submenu'] == 'logout') {
 		$_SESSION['adminauth'] = false;
+		$_SESSION['auth'] = false;
+		header("Location: ../secured/account.php");
+		exit;
 	}
 }
 
