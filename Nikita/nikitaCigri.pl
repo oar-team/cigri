@@ -25,6 +25,7 @@ BEGIN {
 }
 use iolibCigri;
 use SSHcmdClient;
+use NetCommon;
 
 # List of pbsnodes commands
 my %qdelCommand = ( 'PBS' => 'qdel',
@@ -58,7 +59,10 @@ foreach my $i (@jobsToFrag){
 		my %cmdResult = SSHcmdClient::submitCmd($$i{clusterName},"sudo -u $$i{userLogin} $qdelCommand{$$i{clusterBatch}} $$i{jobBatchId}");
 		print(Dumper(%cmdResult));
 		if ($cmdResult{STDERR} ne ""){
-			print("ERREUR A TRAITER\n");
+			# test if this is a ssh error
+            if (NetCommon::checkSshError($base,$$i{clusterName},$cmdResult{STDERR}) != 1){
+                print("ERREUR A TRAITER\n");
+            }
 		}else{
 			print("OK\n");
 			#change state
