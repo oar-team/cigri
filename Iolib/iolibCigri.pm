@@ -250,6 +250,7 @@ sub pre_schedule($){
 				$query .= "nodeClusterName = \'$j\' or ";
 			}
 		}
+		#remove last or of the query
 		$query =~ /(.*)\sor\s/;
 		$query = $1.")";
 

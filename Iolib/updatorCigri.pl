@@ -32,6 +32,10 @@ foreach my $i (keys(%clusterNames)){
 
 	# Don t bloc ERROR reading
 
+#$rin = '';
+#vec($rin,fileno(READER),1) = 1;
+#$res = select($rin, undef, undef, $internaltimeout);
+
 	my $pbsnodesStr = join("",<READER>);
 
 	if (! defined(<ERROR>)){
