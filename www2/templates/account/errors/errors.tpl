@@ -1,16 +1,18 @@
 <table border="0" cellpadding="10" cellspacing="0" width="100%">
 <tr><td align="center">
+	<table border="0"><tr><td><a href="account.php?submenu=errors&option=fixed">Fixed errors</a></td><td>&nbsp;-&nbsp;</td><td><a href="account.php?submenu=errors&option=tofix">Errors to fix</a></td></tr></table>
+	<p></p>
 	{if $nbitems neq 0}
-		<h5>{$action} successful on {$updates} errors out of {$nbitems}</h5>
-		<p>{$nbitems} selected errors shown below for information</p>
+		<p style="font-weight: bold;">Last {$nbitems} errors</p>
 		{* parity var *}
 		{assign var="even" value=true}
 		<table border="0" cellpadding="5" cellspacing="3">
 		<tr class="titlerow">
-			<th>Error&nbsp;#</th>
-			<th>Error date</th>
-			<th>MultiJob&nbsp;name</th>
-			<th>Job Name</th>
+			<th>Error&nbsp;#</a></th>
+			<th>Error date</a></th>
+			<th>Error state</a></th>
+			<th>MultiJob&nbsp;name</a></th>
+			<th>JobName</a></th>
 		</tr>
 		{foreach from=$eventarray item=secondkey}
 			{* check parity *}
@@ -22,18 +24,17 @@
 				{assign var="trclass" value="oddrow"}
 			{/if}
 			<tr class="{$trclass}">
-				<td align="center">{$secondkey[0]}</td>
+				<td align="center"><a href="account.php?submenu=errors&id={$secondkey[0]}&option={if $secondkey[2] eq 'FIXED'}fixeddetails{else}tofixdetails{/if}">{$secondkey[0]}</a></td>
 				<td align="center">{$secondkey[1]}</td>
 				<td align="center">{$secondkey[2]}</td>
 				<td align="center">{$secondkey[3]}</td>
+				<td align="center">{$secondkey[4]}</td>
 			</tr>
 		{/foreach}
 		</table>
-		<p><a href="account.php?submenu=errors&option=tofix">Back to Errors to fix</a></p>
 
 	{else}
-		<p>Please select an error to fix.</p>
-		<p><a href="account.php?submenu=errors&option=tofix">Back to Errors to fix</a></p>
+		<p>No error for {$login}</p>
 	{/if}
 </td></tr>
 </table>

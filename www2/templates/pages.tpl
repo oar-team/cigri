@@ -35,8 +35,6 @@
 		                <input type="hidden" name="{$hiddenkey}" value="{$hiddenvalue}">
 		        {/if}
 			{/foreach}
-			<input type="hidden" name="step" value="{$step}">
-			<input type="hidden" name="page" value="0">
 			Page <input name="page" value="{$page}" size="4"> / {$maxpages} with <input name="step" value="{$step}" size="3"> items per page <input type="submit" value="Update">
 			</form>
 		</td>
@@ -52,6 +50,7 @@
 			<input type="hidden" name="page" value="{$nextpage}">
 			<input type="submit" value=">"></td>
 			</form>
+		</td>
 	 	<td>
 			<form method="get" action="{$formdest}">
 			{* set hidden items *}

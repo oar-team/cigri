@@ -11,7 +11,7 @@
 		<table border="0" cellpadding="5" cellspacing="3">
 		<tr class="titlerow">
 			<th>Error&nbsp;#</th>
-			<th>Submission date</th>
+			<th>Error date</th>
 			<th>MultiJob&nbsp;name</th>
 			<th>Job Name</th>
 		</tr>
@@ -40,7 +40,8 @@
 
 	{else}
 		<p>Please select an error to fix.</p>
-		<p><a href="account.php?submenu=errors&option=tofix">Back to Errors to fix</a></p>
 	{/if}
+	<p>&nbsp;</p>
+	<p><a href="account.php?submenu=errors&option=tofix">Back to Errors to fix</a></p>
 </td></tr>
 </table>

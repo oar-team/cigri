@@ -7,7 +7,7 @@
 	// We check the 'option' value
 	// default value if not set: "fixed"
 	if (!isset($_GET['option'])) {
-		$option = "fixed";
+		$option = "errors";
 	}
 	else {
 		$option = $_GET['option'];
@@ -28,11 +28,43 @@
 	}
 
 if ($_SESSION['auth']) {
-switch ($option) {	
+switch ($option) {
+// {{{ Errors
+	case "errors":
+		// New query with page limits
+		$query = <<<EOF
+SELECT
+	e.eventId, e.eventDate, e.eventState,mj.MJobsName, j.jobName
+FROM
+	multipleJobs mj, jobs j, events e
+WHERE
+	mj.MJobsUser = '$login'
+	AND j.jobMJobsId = mj.MJobsId
+	AND e.eventJobId = j.jobId
+	AND e.eventType = 'UPDATOR_RET_CODE_ERROR'
+ORDER BY
+	e.eventDate DESC
+LIMIT 0,20
+EOF;
+		list($res,$nb) = sqlquery($query,$link);
+
+		// display parameters
+		$smarty->assign('contenttemplate',"account/errors/errors.tpl");
+		for($i = 0; $i < $nb;$i++) {
+			$res[$i][1] = htmlentities($res[$i][1]) ;
+			$res[$i][2] = htmlentities($res[$i][2]) ;
+			$res[$i][3] = htmlentities($res[$i][3]) ;
+			$res[$i][4] = htmlentities($res[$i][4]) ;
+		}
+		$smarty->assign('nbitems',$nb);
+		$smarty->assign('eventarray',$res);
+		break;
+// }}}
+
 // {{{ FIXED errors
 	case "fixed":
 		$selectnames[] = "e.eventId";
-		$selectnames[] = "j.jobTSub";
+		$selectnames[] = "e.eventDate";
 		$selectnames[] = "mj.MJobsName";
 		$selectnames[] = "j.jobName";
 		cigri_order_by($_GET,$selectnames,'account.php',$orderby,$orderarray,$orderimgs,$smarty,"../");
@@ -58,7 +90,7 @@ EOF;
 		// New query with page limits
 		$query = <<<EOF
 SELECT
-	e.eventId, j.jobTSub, mj.MJobsName, j.jobName
+	e.eventId, e.eventDate, mj.MJobsName, j.jobName
 FROM
 	multipleJobs mj, jobs j, events e
 WHERE
@@ -138,7 +170,7 @@ EOF;
 // {{{ TO FIX errors
 	case "tofix":
 		$selectnames[] = "e.eventId";
-		$selectnames[] = "j.jobTSub";
+		$selectnames[] = "e.eventDate";
 		$selectnames[] = "mj.MJobsName";
 		$selectnames[] = "j.jobName";
 		cigri_order_by($_GET,$selectnames,'account.php',$orderby,$orderarray,$orderimgs,$smarty,"../");
@@ -162,7 +194,7 @@ EOF;
 
 		$query = <<<EOF
 SELECT
-	e.eventId, j.jobTSub, mj.MJobsName, j.jobName
+	e.eventId, e.eventDate, mj.MJobsName, j.jobName
 FROM
 	jobs j,multipleJobs mj,events e
 WHERE
@@ -279,7 +311,7 @@ EOF;
 					$eventids = implode(",",$errorstofix);
 					$query = <<<EOF
 SELECT
-	e.eventId, j.jobTSub, mj.MJobsName, j.jobName, mj.MJobsId, j.jobParam
+	e.eventId, e.eventDate, mj.MJobsName, j.jobName, mj.MJobsId, j.jobParam
 FROM
 	jobs j,multipleJobs mj,events e
 WHERE
@@ -338,7 +370,7 @@ EOF;
 					$eventids = implode(",",$errorstofix);
 					$query = <<<EOF
 SELECT
-	e.eventId, j.jobTSub, mj.MJobsName, j.jobName
+	e.eventId, e.eventDate, mj.MJobsName, j.jobName
 FROM
 	jobs j,multipleJobs mj,events e
 WHERE

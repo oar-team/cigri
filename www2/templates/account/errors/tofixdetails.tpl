@@ -1,6 +1,5 @@
 <table border="0" cellpadding="10" cellspacing="0" width="100%">
 <tr><td align="center">
-	<table border="0"><tr><td><h5><a href="account.php?submenu=errors&option=fixed">Fixed errors</a></h5></td><td><h3>&nbsp;-&nbsp;</h3></td><td><h5><a href="account.php?submenu=errors&option=tofix">Errors to fix</a></h5></td></tr></table>
 	{if $nb neq 0}
 		<table border="0" cellpadding="5" cellspacing="3" width="80%">
 		<tr class="titlerow">

@@ -1,6 +1,7 @@
 <table border="0" cellpadding="10" cellspacing="0" width="100%">
 <tr><td align="center">
-	<table border="0"><tr><td><h3>Fixed errors</h3></td><td><h3>&nbsp;-&nbsp;</h3></td><td><h5><a href="account.php?submenu=errors&option=tofix">Errors to fix</a></h5></td></tr></table>
+	<table border="0"><tr><td style="font-weight: bold;">Fixed errors</td><td>&nbsp;-&nbsp;</td><td><a href="account.php?submenu=errors&option=tofix">Errors to fix</a></td></tr></table>
+	<p></p>
 	{if $nbitems neq 0}
 		Fixed errors {$minindex} - {$maxindex} out of {$nbitems}
 		{* parity var *}
@@ -9,7 +10,7 @@
 		<table border="0" cellpadding="5" cellspacing="3">
 		<tr class="titlerow">
 			<th><a href="{$itemsorderby[0]}">Error&nbsp;#{$itemsorderimgs[0]}</a></th>
-			<th><a href="{$itemsorderby[1]}">Submission date{$itemsorderimgs[1]}</a></th>
+			<th><a href="{$itemsorderby[1]}">Error date{$itemsorderimgs[1]}</a></th>
 			<th><a href="{$itemsorderby[2]}">MultiJob&nbsp;name{$itemsorderimgs[2]}</a></th>
 			<th><a href="{$itemsorderby[3]}">JobName{$itemsorderimgs[3]}</a></th>
 		</tr>
