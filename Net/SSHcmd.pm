@@ -1,5 +1,8 @@
 package SSHcmd;
 
+#this module enable to connect and execute a command via SSH
+#the user must have right keys to log automatically on the remote host
+
 #use strict;
 #use warnings;
 use Data::Dumper;
@@ -9,7 +12,7 @@ our (@ISA,@EXPORT,@EXPORT_OK);
 @ISA = qw(Exporter);
 @EXPORT_OK = qw(submitCmd);
 
-# line to print after a ssh command. With that we can know the end of the comman;
+# line to print after a ssh command. With that we can know the end of the command
 my $endLineTag = "lacommandeestterminee";
 
 my %sshConnections;

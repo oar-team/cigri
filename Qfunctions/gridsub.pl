@@ -73,19 +73,4 @@ if ($idJob == -1){
 	exit(2);
 }
 
-#Signal Almigthy
-#my $socket = IO::Socket::INET->new(PeerAddr => $remote_host,
-#									PeerPort => $remote_port,
-#									Proto => "tcp",
-#									Type  => SOCK_STREAM)
-#			or die "Couldn't connect executor $remote_host:$remote_port\n";
-
-#my $cmd_executor = "gridsub\n";
-#my $cmd_executor = "[DEBUG] ddddddddd\n";
-#print $socket $cmd_executor;
-
-#my $answer=<$socket>;
-
-#print "Almigthy answers : $answer\n";
-
 exit 0;

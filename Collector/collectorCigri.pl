@@ -24,11 +24,15 @@ use Data::Dumper;
 use SSHcmd;
 
 my $base = iolibCigri::connect();
+# connection to the database for the lock
 my $baseLock = iolibCigri::connect();
+# only one instance of the collector
 iolibCigri::lock_collector($baseLock);
 
+# id of MJobs to collect
 my @MjobsToCollect;
 
+# if an argument --> a MJob id
 if ($ARGV[0] =~ /^\d+$/ ){
 	push(@MjobsToCollect, $ARGV[0]);
 }else{
@@ -42,12 +46,12 @@ foreach my $i (@MjobsToCollect){
 	my @jobs = iolibCigri::get_tocollect_MJob_files($base,$i);
 	my %clusterVisited;
 	my %collectedJobs;
-#	my %MjobsInError;
 	my @errorJobs;
 
 	foreach my $j (@jobs){
 		my %cmdResult;
 
+		# clean the repository on the remote cluster
 		if (!defined($clusterVisited{$$j{nodeClusterName}})){
 			%cmdResult = SSHcmd::submitCmd($$j{nodeClusterName}, "if [ -d ~cigri/results ]; then rm -rf ~cigri/results/* ; else mkdir ~cigri/results ; fi");
 			if ($cmdResult{STDERR} ne ""){
@@ -56,21 +60,32 @@ foreach my $i (@MjobsToCollect){
 			}
 		}
 
+		# make the tar on remote cluster
 		undef(%cmdResult);
 		my $error = 0;
-		my @fileToDownload = get_file_names($j);
+		my %hashfileToDownload = get_file_names($j);
+		my @fileToDownload = keys(%hashfileToDownload);
 		my $k;
 		my @jobTaredTmp;
 		while((($k = pop(@fileToDownload)) ne "") and ($error == 0)){
 			if ($error == 0){
-				print("[COLLECTOR] tar rf ~cigri/results/$i.tar -C ~$$j{userLogin} $k  -- on $$j{nodeClusterName}\n");
-				%cmdResult = SSHcmd::submitCmd($$j{nodeClusterName}, "test -e ~$$j{userLogin}/$k && tar rf ~cigri/results/$i.tar -C ~$$j{userLogin} $k && echo nimportequoi");
+				if ("$hashfileToDownload{$k}" ne ""){
+					print("[COLLECTOR] tar rf ~cigri/results/$i.tar -C ~$$j{userLogin} $hashfileToDownload{$k}  -- on $$j{nodeClusterName}\n");
+					%cmdResult = SSHcmd::submitCmd($$j{nodeClusterName}, "test ! -e ~$$j{userLogin}/$hashfileToDownload{$k} && test -e ~$$j{userLogin}/$k && sudo -u $$j{userLogin} mv ~$$j{userLogin}/$k ~$$j{userLogin}/$hashfileToDownload{$k} && tar rf ~cigri/results/$i.tar -C ~$$j{userLogin} $hashfileToDownload{$k} && echo nimportequoi");
+				}else{
+					print("[COLLECTOR] tar rf ~cigri/results/$i.tar -C ~$$j{userLogin} $k  -- on $$j{nodeClusterName}\n");
+					%cmdResult = SSHcmd::submitCmd($$j{nodeClusterName}, "test -e ~$$j{userLogin}/$k && tar rf ~cigri/results/$i.tar -C ~$$j{userLogin} $k && echo nimportequoi");
+				}
 				#print(Dumper(%cmdResult));
 				if ($cmdResult{STDERR} ne ""){
-					warn("ERREUR --> SSHcmd::submitCmd($$j{nodeClusterName}, \"tar rf ~cigri/results/$i.tar -C ~$$j{userLogin} $k\") -- $cmdResult{STDERR}\n");
+					warn("ERREUR -- $cmdResult{STDERR}\n");
 					foreach my $l (@jobTaredTmp){
 						undef(%cmdResult);
-						%cmdResult = SSHcmd::submitCmd($$j{nodeClusterName}, "tar --delete -f ~cigri/results/$i.tar $l");
+						if ("$hashfileToDownload{$l}" ne ""){
+							%cmdResult = SSHcmd::submitCmd($$j{nodeClusterName}, "tar --delete -f ~cigri/results/$i.tar $hashfileToDownload{$l}");
+						}else{
+							%cmdResult = SSHcmd::submitCmd($$j{nodeClusterName}, "tar --delete -f ~cigri/results/$i.tar $l");
+						}
 						if ($cmdResult{STDERR} ne ""){
 							warn("Can t delete $l in ~cigri/results/$i.tar\n");
 						}
@@ -79,6 +94,8 @@ foreach my $i (@MjobsToCollect){
 				}else{
 					if ($cmdResult{STDOUT} ne "\n"){
 						push(@jobTaredTmp, $k);
+					}else{
+						print("Can t collect this : the file does not exist or i can t rename the file\n");
 					}
 				}
 			}
@@ -92,12 +109,14 @@ foreach my $i (@MjobsToCollect){
 		}
 	}
 
+	# feedback for jobs which we can t collect
 	foreach my $j (@errorJobs){
 		iolibCigri::set_job_collectedJobId($base,$$j{jobId},-1);
 	}
 
 	my $userGridName = ${$jobs[0]}{userGridName};
 
+	# copy the tar on the grid server
 	foreach my $j (keys(%clusterVisited)){
 		my @resColl = iolibCigri::create_new_collector($base,$j,$i);
 		print("mkdir -p ~cigri/results/$userGridName/$i \n");
@@ -127,15 +146,22 @@ foreach my $i (@MjobsToCollect){
 		}
 	}
 
+	# remove collected files
 	foreach my $l (keys(%collectedJobs)){
 		my %cmdResult;
 		my $j = $collectedJobs{$l};
-		my @fileToDownload = get_file_names($j);
+		my %hashfileToDownload = get_file_names($j);
+		my @fileToDownload = keys(%hashfileToDownload);
 		foreach my $k (@fileToDownload){
-			print("[COLLECTOR] rm file ~$$j{userLogin}/$k on cluster $$j{nodeClusterName}\n");
-			%cmdResult = SSHcmd::submitCmd($$j{nodeClusterName}, "sudo -u $$j{userLogin} test -e ~$$j{userLogin}/$k && sudo -u $$j{userLogin} rm -rf ~$$j{userLogin}/$k");
+			if ("$hashfileToDownload{$k}" ne ""){
+				print("[COLLECTOR] rm file ~$$j{userLogin}/$hashfileToDownload{$k} on cluster $$j{nodeClusterName}\n");
+				%cmdResult = SSHcmd::submitCmd($$j{nodeClusterName}, "sudo -u $$j{userLogin} test -e ~$$j{userLogin}/$hashfileToDownload{$k} && sudo -u $$j{userLogin} rm -rf ~$$j{userLogin}/$hashfileToDownload{$k}");
+			}else{
+				print("[COLLECTOR] rm file ~$$j{userLogin}/$k on cluster $$j{nodeClusterName}\n");
+				%cmdResult = SSHcmd::submitCmd($$j{nodeClusterName}, "sudo -u $$j{userLogin} test -e ~$$j{userLogin}/$k && sudo -u $$j{userLogin} rm -rf ~$$j{userLogin}/$k");
+			}
 			if ($cmdResult{STDERR} ne ""){
-				warn("ERROR --> SSHcmd::submitCmd($$j{nodeClusterName}, sudo -u $$j{userLogin} rm -rf ~$$j{userLogin}/$k\n");
+				warn("ERROR -- $cmdResult{STDERR}\n");
 			}
 		}
 	}
@@ -145,14 +171,20 @@ foreach my $i (@MjobsToCollect){
 iolibCigri::unlock_collector($baseLock);
 iolibCigri::disconnect($base);
 
+# get files to collect for a job
+# arg1 --> struct of the job
 sub get_file_names($){
 	my $j = shift;
-	my @result ;
-	push(@result, "OAR.cigri.tmp.$$j{jobId}.$$j{jobBatchId}.stdout");
-	push(@result, "OAR.cigri.tmp.$$j{jobId}.$$j{jobBatchId}.stderr");
+	my %result ;
 	if($$j{jobName} ne ""){
-		push(@result, $$j{jobName});
+		$result{"OAR.cigri.tmp.$$j{jobId}.$$j{jobBatchId}.stdout"} = "$$j{jobName}.$$j{jobId}.stdout";
+		$result{"OAR.cigri.tmp.$$j{jobId}.$$j{jobBatchId}.stderr"} = "$$j{jobName}.$$j{jobId}.stderr";
+		$result{"$$j{jobName}"} = "";
+	}else{
+		$result{"OAR.cigri.tmp.$$j{jobId}.$$j{jobBatchId}.stdout"} = "";
+		$result{"OAR.cigri.tmp.$$j{jobId}.$$j{jobBatchId}.stderr"} = "";
 	}
 
-	return @result;
+	return %result;
 }
+

@@ -112,36 +112,6 @@ sub add_mjobs($$) {
 	my $Params ="";
 	if (JDLParserCigri::init_jdl($jdl) == 0){
 		if (defined($JDLParserCigri::clusterConf{DEFAULT}{paramFile}) && (-r $JDLParserCigri::clusterConf{DEFAULT}{paramFile})){
-#			if (defined($JDLParserCigri::clusterConf{DEFAULT}{resultFile}) && (-r $JDLParserCigri::clusterConf{DEFAULT}{resultFile})){
-#				open(FILEparam, $JDLParserCigri::clusterConf{DEFAULT}{paramFile});
-#				open(FILEresult, $JDLParserCigri::clusterConf{DEFAULT}{resultFile});
-#				my $result;
-#				while (<FILEparam>){
-#					chomp;
-#					$result = <FILEresult>;
-#					chomp($result);
-#					if ($_ ne ""){
-#						if ($result ne ""){
-#							eval{
-#								$dbh->do("INSERT INTO parameters (parametersMJobsId,parametersParam,parametersResultFile) VALUES ($id,\'$_\',\'$result\')");
-#							};
-#							if ($@){
-#								warn("Duplicate parameters\n");
-#								warn("$@");
-#								#$dbh->do("DELETE FROM parameters WHERE parametersMJobsId = $id");
-#								rollback_transaction($dbh);
-#								return -6;
-#							}
-#						}else{
-#							warn("Bad resultFile\n");
-#							rollback_transaction($dbh);
-#							return -5
-#						}
-#					}
-#				}
-#				close(FILEparam);
-#				close(FILEresult);
-#			}else{
 				open(FILE, $JDLParserCigri::clusterConf{DEFAULT}{paramFile});
 				while (<FILE>){
 					chomp;
@@ -166,7 +136,6 @@ sub add_mjobs($$) {
 					}
 				}
 				close(FILE);
-#			}
 		}elsif (defined($JDLParserCigri::clusterConf{DEFAULT}{nbJobs})){
 			for (my $k=0; $k<$JDLParserCigri::clusterConf{DEFAULT}{nbJobs}; $k++) {
 				$dbh->do("INSERT INTO parameters (parametersMJobsId,parametersParam) VALUES ($id,\'$k\')");
@@ -754,7 +723,6 @@ sub update_att_job($$$$$){
 	my $endDate = shift;
 	my $retCode = shift;
 
-	#print("query = UPDATE jobs SET jobTStart = \"$beginDate\", jobTStop = \"$endDate\", jobRetCode = $retCode WHERE jobId = $id\n");
 	$dbh->do("	UPDATE jobs SET jobTStart = \"$beginDate\", jobTStop = \"$endDate\", jobRetCode = $retCode
 				WHERE jobId = $id");
 }
@@ -779,25 +747,11 @@ sub resubmit_job($$){
 # arg4 --> message, describe the error
 sub insert_new_error($$$$){
 	my ($dbh, $errorType, $errorJobId, $errorMessage) = @_;
-
 	$errorMessage = substr($errorMessage, 0, 250);
-
-	#my $sth = $dbh->prepare("SELECT MAX(errorId)+1 FROM errors");
-	#$sth->execute();
-	#my $ref = $sth->fetchrow_hashref();
-	#my @tmp = values(%$ref);
-	#my $id = $tmp[0];
-	#$sth->finish();
-	#if($id eq "") {
-	#	$id = 1;
-	#}
-
 	my $time = get_date();
 
 	$dbh->do("INSERT INTO errors (errorType,errorState,errorJobId,errorDate,errorMessage)
 			VALUES (\"$errorType\",\"ToFIX\",\"$errorJobId\",\"$time\",\"$errorMessage\")");
-
-	#return $id;
 }
 
 # Insert a field in the clusterError table
@@ -1040,7 +994,7 @@ sub get_current_scheduler($){
 
 }
 
-# set the currentSZcheduler table
+# set the current scheduler table
 # arg1 --> database ref
 sub update_current_scheduler($){
 	my $dbh = shift;

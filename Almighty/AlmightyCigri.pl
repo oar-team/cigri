@@ -26,6 +26,7 @@ use iolibCigri;
 # Init the request to the cigri.conf file
 init_conf();
 
+# number of seconds between two updates
 my $timeout = 5;
 
 my $path;
@@ -35,11 +36,13 @@ if (is_conf("installPath")){
 	die("You must have a cigri.conf script with a valid installPath tag\n");
 }
 
+#set paths of executables
 my $runner_command = $path."runnerCigri.pl";
 my $updator_command = $path."updatorCigri.pl";
 
 my $base = iolibCigri::connect();
 
+# launch a command and monitor it
 # arg1 --> command name
 sub launch_command($)
 {
@@ -58,6 +61,7 @@ sub launch_command($)
 	return $exit_value;
 }
 
+# launch a scheduler or blacklist it
 sub scheduler(){
 	iolibCigri::update_current_scheduler($base);
 	my $sched = iolibCigri::get_current_scheduler($base);
@@ -74,15 +78,17 @@ sub scheduler(){
 	}
 }
 
-sub runner()
-{
+# launch the runner command
+sub runner(){
 	return launch_command($runner_command);
 }
 
+# launch updator command
 sub updator(){
 	return launch_command($updator_command);
 }
 
+# core of the AlmightyCigri
 while (1){
 	updator();
 	scheduler();

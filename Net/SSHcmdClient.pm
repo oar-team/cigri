@@ -5,6 +5,8 @@ use warnings;
 use IO::Socket::INET;
 use Data::Dumper;
 
+# this module is an interface to connect with the SSHcmdServer
+
 BEGIN {
 	my ($scriptPathTmp) = $0 =~ m!(.*/*)!s;
 	my ($scriptPath) = readlink($scriptPathTmp);
@@ -69,8 +71,6 @@ sub submitCmd($$){
 		}elsif ("$_" eq "<SSHserverTagSTDERR>"){
 			$result = 2;
 		}
-
-#		print("$_");
 	}
 
 #	print("\n".Dumper(%cmdResult));

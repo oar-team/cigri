@@ -62,6 +62,7 @@ foreach my $i (keys(%clusterNames)){
 			my $state;
 			my $lineTmp;
 			my $key;
+			# parse pbsnodes command
 			while ((! defined($state)) && ($#lines >= 0)){
 				$lineTmp = shift(@lines);
 				if ($lineTmp =~ /state =/){
@@ -112,11 +113,8 @@ foreach my $i (keys(%jobRunningHash)){
 		# Verify if the job is still running on the cluster $i
 		if ((!defined($jobState{${$j}{batchJobId}})) and ($cmdResult{STDERR} eq "")){
 			# Check the result file on the cluster
-			#my $remoteFile = "~${$j}{user}/cigri.${$j}{jobId}.log";
 			my $remoteFile = iolibCigri::get_cigri_remote_file_name(${$j}{jobId});
-			#; sudo -u ${$j}{user} rm $remoteFile
 			print("[Updator] Check the job ${$j}{jobId} \n");
-			#my %cmdResult2 = SSHcmdClient::submitCmd($i,"cat $remoteFile");
 			my %cmdResult2 = SSHcmdClient::submitCmd($i,"sudo -u ${$j}{user} cat ~${$j}{user}/$remoteFile");
 			if ($cmdResult2{STDERR} ne ""){
 				print("\t[UPDATOR_ERROR] Can't check the remote file\n");
@@ -135,6 +133,7 @@ foreach my $i (keys(%jobRunningHash)){
 				}
 				print(Dumper(%fileVars));
 				if (defined($fileVars{FINISH})){
+					# the job is finished
 					iolibCigri::update_att_job($base,${$j}{jobId},$fileVars{BEGIN_DATE},$fileVars{END_DATE},$fileVars{RET_CODE});
 					if ($fileVars{RET_CODE} == 0){
 						print("\t\tJob ${$j}{jobId} Terminated\n");
@@ -145,8 +144,8 @@ foreach my $i (keys(%jobRunningHash)){
 						iolibCigri::insert_new_error($base,"USER_SOFTWARE",${$j}{jobId},"RET_CODE=$fileVars{RET_CODE}");
 					}
 				}else{
-					# le job a ete kille par le batch scheduler
-					# soit il etait trop long(erreur), soit un autre job a pris sa place(on remet le parametre dans la file)
+					# the was killed by the batch scheduler of the cluster
+					# maybe it was too long, or an other job had to pass
 					print("\t[UPDATOR_ERROR] Can't find the FINISH TAG for the job ${$j}{jobId}\n");
 					print("\t[UPDATOR_ERROR] cat $remoteFile ==> $cmdResult2{STDOUT}\n");
 					iolibCigri::set_job_state($base, ${$j}{jobId}, "Killed");
@@ -168,11 +167,13 @@ foreach my $i (keys(%jobRunningHash)){
 	}
 }
 
+#update the state of MJobs
 iolibCigri::check_end_MJobs($base);
 
 #check errors in the database
 iolibCigri::analyse_error($base);
 
+#update database for the scheduler
 iolibCigri::update_nb_freeNodes($base);
 
 iolibCigri::disconnect($base);

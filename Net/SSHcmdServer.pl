@@ -1,5 +1,7 @@
 #!/usr/bin/perl
 
+#this server keeps SSH connections always active and answers requests of SSHcmdClient
+
 use strict;
 use warnings;
 use Data::Dumper;
@@ -25,17 +27,18 @@ BEGIN {
 use ConfLibCigri qw(init_conf dump_conf get_conf is_conf);
 use SSHcmd;
 
-my $markerTag = "<SSHserverTag>";
-
 ConfLibCigri::init_conf();
 my $sshServerPort = ConfLibCigri::get_conf("SSH_SERVER_PORT") if ConfLibCigri::is_conf("SSH_SERVER_PORT") or die("Can't get value of the SSH_SERVER_PORT tag in cigri.conf\n");
 
-my $server = IO::Socket::INET->new(	LocalPort=> $sshServerPort,
+my $server = IO::Socket::INET->new(	LocalHost => "127.0.0.1",
+									LocalPort => $sshServerPort,
+									PeerHost => "127.0.0.1",
 									Type => SOCK_STREAM,
 									Reuse => 1,
 									Listen => 10)
 					or die "ARG.... Can't open server socket\n";
-
+# listen opened socket and execute the query
+# arg1 --> timeout for the reader
 sub qget($){
 	my $readerTimeout = shift;
 	my $answer;
@@ -43,14 +46,8 @@ sub qget($){
 	my $res;
 	my $carac;
 
+	#accept connection
 	my $client=$server->accept();
-	my $remoteHost = $client->peerhost();
-	print("Connected host = $remoteHost\n");
-	if ("$remoteHost" ne "127.0.0.1"){
-		print("BAD PEER HOST\n");
-		close($client);
-		return 1;
-	}
 	vec($rin,fileno($client),1) = 1;
 	$res = select($rin, undef, undef, $readerTimeout);
 	$carac="A";
@@ -62,8 +59,10 @@ sub qget($){
 		}
 	}
 	print("$answer\n");
+	# the request must be like : <submitCmd> cmd <\submitCmd>
 	$answer =~ m/^(<\w+>)\s([\w\-\.]+)\s(.+)\s(<\\\w+>)$/;
 	if (("$1" eq "<submitCmd>") && ("$4" eq "<\\submitCmd>")){
+		# execute query
 		my %cmdResult = SSHcmd::submitCmd("$2","$3");
 		print(Dumper(%cmdResult));
 		print $client "<SSHserverTagSTDOUT>\n";
