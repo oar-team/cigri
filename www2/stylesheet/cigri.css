@@ -1,0 +1,147 @@
+/* the html specification below forces vertical scrollbar display in non-IE browser
+   even for short documents. Not very clean, but effective... */
+html {
+	height: 101%;
+}
+body {
+	font-family: Sans-Serif;
+	background-color: #bbbbbb;
+	font-size: 9pt;
+	color: #000000;
+}
+h1 {
+	font-family: Sans-Serif;
+	font-weight: bold;
+	font-style: normal;
+	font-size: 18pt;
+}
+h2 {
+	font-family: Sans-Serif;
+	font-weight: bold;
+	font-style: normal;
+	font-size: 14pt;
+}
+h3 {
+	font-family: Sans-Serif;
+	font-weight: bold;
+	font-style: normal;
+	font-size: 13pt;
+}
+h4 {
+	font-family: Sans-Serif;
+	font-weight: bold;
+	font-style: normal;
+	font-size: 12pt;
+}
+h5 {
+	font-family: Sans-Serif;
+	font-weight: bold;
+	font-style: normal;
+	font-size: 10pt;
+}
+a:link {
+	color: #00a;
+	text-decoration: underline;
+}
+a:visited {
+	color: #00a;
+	text-decoration: underline;
+}
+.smallclass {
+	font-family: Sans-Serif;
+	font-size: 8pt;
+}
+.menutitleclass {
+	font-family: Sans-Serif;
+	font-weight: bold;
+	font-size: 13pt;
+}
+.menuclass1 {
+	font-family: Sans-Serif;
+	text-decoration: none;
+	font-weight: bold;
+	font-size: 9pt;
+}
+.menuclass1:link {
+	font-family: Sans-Serif;
+	text-decoration: none;
+	font-weight: bold;
+	font-size: 9pt;
+}
+.menuclass1:visited {
+	font-family: Sans-Serif;
+	text-decoration: none;
+	font-weight: bold;
+	font-size: 9pt;
+}
+.menuclass1:hover {
+	font-family: Sans-Serif;
+	text-decoration: underline;
+	font-weight: bold;
+	font-size: 9pt;
+}
+.menuclass2 {
+	font-family: Sans-Serif;
+	text-decoration: none;
+	color: #000000;
+	font-size: 8pt;
+}
+.menuclass2:link {
+	font-family: Sans-Serif;
+	text-decoration: none;
+	color: #000000;
+	font-size: 8pt;
+}
+.menuclass2:visited {
+	font-family: Sans-Serif;
+	text-decoration: none;
+	color: #000000;
+	font-size: 8pt;
+}
+.menuclass2:hover {
+	font-family: Sans-Serif;
+	text-decoration: underline;
+	background-color: #FFFFFF;
+	color: #000000;
+	font-size: 8pt;
+}
+/*********************************************************************************/
+.evenrow {
+	font-family: Sans-Serif;
+	background-color: #FFCC88;
+	color: #000000;
+	font-size: 9pt;
+}
+.oddrow {
+	font-family: Sans-Serif;
+	background-color: #DDAA66;
+	color: #000000;
+	font-size: 9pt;
+}
+.titlerow {
+	font-family: Sans-Serif;
+	background-color: #AA2200;
+	color: #FFFFFF;
+	font-size: 10pt;
+}
+.titlerow a:link {
+	font-family: Sans-Serif;
+	background-color: #AA2200;
+	color: #FFFFFF;
+	font-size: 10pt;
+	text-decoration: none;
+}
+.titlerow a:visited {
+	font-family: Sans-Serif;
+	background-color: #AA2200;
+	color: #FFFFFF;
+	font-size: 10pt;
+	text-decoration: none;
+}
+.titlerow a:hover {
+	font-family: Sans-Serif;
+	background-color: #AA2200;
+	color: #FFFFFF;
+	font-size: 10pt;
+	text-decoration: underline;
+}

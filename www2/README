@@ -1,0 +1,114 @@
+                         CIGRI WEB INTERFACE
+                         IMPLEMENTATION NOTES
+
+This text files aims at explaining what is done and how it is done.
+
+The template toolkit used is Smarty, a rather powerful template
+engine which allows a real good separation between PHP code and HTML presentation.
+
+Note: in this document, root directory means HTTP server root directory
+
+On templates
+---------------
+All templates used in this project can be found in the "/templates" directory
+
+Main:
+The main page structure is coded in "/templates/main.tpl"
+It includes:
+	* the page header "/templates/header.tpl"
+	* the menu "/templates/menu.tpl"
+	* A dynamic template included through the "$contenttemplate" variable
+	* the page footer "/templates/footer.tpl"
+
+All variables required by these templates are feed through PHP code.
+
+Contents:
+Content templates are located in "/templates" and its subdirectories
+The main templates (ie index.tpl, stats.tpl, account.tpl) are stored
+in "/templates"
+"/templates/stats" directory contains templates for "Statistics" pages
+"/templates/account" directory and subdirectories contain templates
+for "My Account" pages
+
+Miscellaneous:
+"pages.tpl" template, which can be found in "/templates", displays the pages
+browsing interface for large data arrays.
+Required vars for "pages.tpl" are set through cigri_set_page_params() PHP function
+in "/outputfunctions.inc".
+
+"/templates/error.tpl" is called and displayed as a content template when
+a bad argument is sent to a PHP script
+
+Current implementation
+----------------------
+ * Main template
+ ---------------
+All pages display the "main.tpl" template and must therefore set a few datas.
+
+Page title is set by $pagetitle smarty var and used in main.tpl
+Header text is set by $headername and used in header.tpl
+Footer is currently static and requires no additional data
+
+     Menu display
+     ~~~~~~~~~~~~
+Menu display requires two steps.
+First, datas must be registered through cigri_register_menu_item() function
+located in "/outputfunctions.inc"
+This function fills the $menu array which is required by "menu.tpl" and
+registers the current menu item for each level in $currentarray.
+The mechanism is currently rather dumb but should allow easy future improvements.
+
+Second, "MENU" smarty var is set as a copy of $menu PHP var and
+"CURRENTARRAY" var is set as a copy of $currentarray.
+As MENU is accessed through a simple foreach call in menu.tpl,
+item registration order is important.
+
+
+ * Content templates and PHP code
+ --------------------------------
+PHP code is divided in 3 main scripts:
+index.php, stats.php and account.php
+(for historical reasons, account.php is located in "/secured")
+These 3 files aim at setting all dynamic datas for the main template.
+
+Once they have done all the header, page title, menu and footer stuff, they
+redirect to the right content-handling code.
+This is done by including the php code used to generate dynamic content
+(Note that $contenttemplate smarty var is not set yet in the main script).
+Actually, the mechanism is quite simple. The main PHP script (ie index.php,
+stats.php or account.php) uses PHP code modularity. Once it has
+detected a submenu or option called by the user, it includes a subscript
+whose goal is to handle this specific submenu or option.
+
+For instance, if the user wants to see the fixed errors recorded for his account,
+the account.php includes the "/secured/account/errors.php" that will
+do the right queries on the database and display the right smarty template by
+setting $contenttemplate smarty var to the appropriate value
+("/templates/account/errors/fixed.tpl" in our example).
+
+This mechanism allows us to reproduct the site hierarchical structure in our
+PHP code and smarty templates, and to efficiently separate coding from
+HTML design.
+
+
+ * Database interface
+ --------------------
+MySQL Database is accessed almost directly
+2 functions are included in "/dbfunctions.inc" for db connection and
+SELECT queries.
+
+ * Sessions handling
+ ------------------- 
+Sessions are required for "My account" section authentication
+The whole authentication process is made in the first lines of "account.php"
+If no session datas are available, or if the user identification failed,
+account.php will display the login content ("/templates/account/login.tpl")
+and set Session authentication var to false.
+
+Otherwise, il will display the "My account" pages.
+
+Users registration is made through the admin pages located at "/cigri/"
+These pages are protected by .htaccess mechanism
+
+
+
