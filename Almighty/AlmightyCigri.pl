@@ -44,7 +44,7 @@ if (is_conf("CIGRI_SERVER_PORT")){
 }
 my $servermaxconnect=10;
 
-my $internaltimeout = 0;
+my $internaltimeout = 2;
 # age of the christ at death time
 my $schedulertimeout = 33;
 my $lastscheduler;

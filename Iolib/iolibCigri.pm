@@ -161,14 +161,11 @@ sub get_cluster_names_batch($)
 	return %resulHash;
 }
 
-# set NODE_STATE to BUSY for all nodes of the specified cluster
+# set NODE_STATE to BUSY for all nodes
 # arg1 --> database ref
-# arg2 --> cluster name
-sub disable_all_cluster_nodes($$){
+sub disable_all_nodes($){
 	my $dbh = shift;
-	my $clusterName = shift;
-	$dbh->do("UPDATE nodes SET nodeState = \'BUSY\'
-					WHERE nodeClusterName = \"$clusterName\"");
+	$dbh->do("UPDATE nodes SET nodeState = \'BUSY\'");
 }
 
 # tests if the node exists in the database
@@ -602,6 +599,7 @@ sub check_end_MJobs($){
 									FROM jobs
 									WHERE jobMJobsId = $i
 									AND jobState != \"Terminated\"
+									AND jobState != \"Killed\"
 									GROUP BY jobMJobsId
 								");
 		$sth->execute();

@@ -2,9 +2,7 @@
 
 # Tool to update NODE_STATE in the database
 
-#use strict;
-#no strict 'refs';
-use IPC::Open3;
+#use IPC::Open3;
 use Data::Dumper;
 BEGIN {
 	my ($scriptPathTmp) = $0 =~ m!(.*/*)!s;
@@ -25,13 +23,10 @@ BEGIN {
 	unshift(@INC, $relativePath."Net");
 }
 use iolibCigri;
-use Net::SSH;
+use SSHcmd;
 
 select(STDOUT);
 $|=1;
-
-# line to print after a ssh command. With that we can know the end of the comman;
-my $endLineTag = "lacommandeestterminee";
 
 # List of pbsnodes commands
 my %pbsCommand = ( 	'PBS' => 'pbsnodes -a',
@@ -45,95 +40,22 @@ my $base = iolibCigri::connect();
 
 # Get cluster names
 my %clusterNames = iolibCigri::get_cluster_names_batch($base);
-
-my %sshConnections;
-my $fileHandleId = 0;
-
-#Connect and set ssh filehansles
-# arg1 --> destination connection
-sub initSSHConnection($){
-	my $server = shift;
-	my $i = $fileHandleId;
-	$fileHandleId++;
-	my $j = $fileHandleId;
-	$fileHandleId++;
-	my $k = $fileHandleId;
-	$fileHandleId++;
-	open3( $i, $j, $k, "ssh -T $server");
-	$sshConnections{$server} = [ $i, $j, $k];
-
-	#init connection
-	print($i "/bin/sh -c \"echo $endLineTag\"\n");
-	do {
-		$_ = <$j>;
-		chomp;
-		#print($_."\n");
-	} until("$_" eq "$endLineTag");
-	print("[Updator] SSH connection to $server is established\n");
-}
-
-# submit a command to the given cluster
-# arg1 --> clusterName
-# arg2 --> command
-sub submitCmd($$){
-	my $clusterName = shift;
-	my $command = shift;
-	if (!defined($sshConnections{$clusterName})){
-		initSSHConnection($clusterName);
-	}
-	my $fd0 = $sshConnections{$clusterName}->[0];
-	my $fd1 = $sshConnections{$clusterName}->[1];
-	my $fd2 = $sshConnections{$clusterName}->[2];
-
-	print($fd0 "$command ; echo $endLineTag\n");
-
-	my $READERStr = "";
-	$_ = "";
-	while ("$_" ne "$endLineTag") {
-		$READERStr .= $_."\n";
-		$_ = <$fd1>;
-		chomp($_);
-	};
-	$READERStr = substr($READERStr,1);
-
-	#Test error filehandle
-	my $ERRORStr = "";
-	my $rin = '';
-	my $timeout = 0.25;
-	vec($rin,fileno($fd2),1) = 1;
-	my $res = select($rin, undef, undef, $timeout);
-	while ($res > 0) {
-		$_ = <$fd2>;
-		$ERRORStr .= $_."\n";
-		$rin = '';
-		vec($rin,fileno($fd2),1) = 1;
-		$res = select($rin, undef, undef, $timeout);
-	}
-
-	my %result = (
-		'STDOUT' => $READERStr,
-		'STDERR' => $ERRORStr
-	);
-
-	return %result;
-}
+# update database
+iolibCigri::disable_all_nodes($base);
 
 # Exec through ssh : pbsnodes command
 foreach my $i (keys(%clusterNames)){
 	print("[UPDATOR] Query free nodes on $i which has a batch-scheduler of the type : $clusterNames{$i}\n");
-#	Net::SSH::sshopen3($i, *WRITER, *READER, *ERROR, $pbsCommand{$clusterNames{$i}}) || die "[UPDATOR] ssh ERROR : $!";
-	my %cmdResult = submitCmd($i,"$pbsCommand{$clusterNames{$i}}");
 
+	my %cmdResult = SSHcmd::submitCmd($i,"$pbsCommand{$clusterNames{$i}}");
+
+#	print(Dumper(%cmdResult));
+#	exit 0;
 	my $pbsnodesStr = $cmdResult{STDOUT};
-	# update database
-	iolibCigri::disable_all_cluster_nodes($base, $i);
-
-	#print($pbsnodesStr);
 
 	if ($cmdResult{STDERR} eq ""){
 		chomp($pbsnodesStr);
 		my @nodesStrs = split(/^\s*\n/m,$pbsnodesStr);
-		#print(Dumper(@nodesStrs));
 		foreach my $nodeStr (@nodesStrs){
 			my @lines = split(/\n/, $nodeStr);
 			my $name = shift(@lines);
@@ -152,9 +74,9 @@ foreach my $i (keys(%clusterNames)){
 			if (defined($name) && defined($state)){
 				# Databse update
 				iolibCigri::set_cluster_node_state($base, $i, $name, $state);
-				#print("$name --> $state\n");
 			}else{
 				print("[UPDATOR] There is an error in the pbsnodes command parse, node=$name;state=$state\n");
+				#print("[UPDATOR_DEBUGpbsnodes] $pbsnodesStr\n");
 			}
 		}
 	}else{
@@ -169,7 +91,7 @@ print("[UPDATOR] Verify if Running jobs are still running:\n");
 # Exec qstat cmd for all clusters which have a running job
 foreach my $i (keys(%jobRunningHash)){
 	print("\tcluster = $i\n");
-	my %cmdResult = submitCmd($i,"$qstatCmd{$clusterNames{$i}}");
+	my %cmdResult = SSHcmd::submitCmd($i,"$qstatCmd{$clusterNames{$i}}");
 	my $errorFlag = 0;
 	my %jobState = ();
 	if ($cmdResult{STDERR} ne ""){
@@ -180,8 +102,8 @@ foreach my $i (keys(%jobRunningHash)){
 		my @jobsStrs = split(/^s*\n/m,$qstatStr);
 		# for each job section, record its state
 		foreach my $jobStr (@jobsStrs){
-			#print("--> $jobStr\n");
 			$jobStr =~ /Job Id: (\d+).*job_state = (.).*/s;
+			#print("[UPDATOR_DEBUG] $jobStr\n");
 			$jobState{$1} = $2;
 		}
 	}
@@ -192,11 +114,10 @@ foreach my $i (keys(%jobRunningHash)){
 			my $remoteFile = "~${$j}{user}/cigri.${$j}{jobId}.log";
 			#; sudo -u ${$j}{user} rm $remoteFile
 			print("[Updator] Check the job ${$j}{jobId} \n");
-			#Net::SSH::sshopen3($i, *WRITER, *READER, *ERROR, "cat $remoteFile") || die "[UPDATOR] ssh ERROR : $!";
-			my %cmdResult2 = submitCmd($i,"cat $remoteFile");
+			my %cmdResult2 = SSHcmd::submitCmd($i,"cat $remoteFile");
 			if ($cmdResult2{STDERR} ne ""){
 				print("\t[UPDATOR_ERROR] Can't check the remote file\n");
-					print("\t[UPDATOR_STDERR] $cmdResult2{STDERR}");
+				print("\t[UPDATOR_STDERR] $cmdResult2{STDERR}");
 				# Can t read the file
 				iolibCigri::set_job_state($base, ${$j}{jobId}, "Killed");
 				iolibCigri::resubmit_job($base,${$j}{jobId});
@@ -209,7 +130,7 @@ foreach my $i (keys(%jobRunningHash)){
 					}
 				}
 				print(Dumper(%fileVars));
-				if ($fileVars{FINISH} == 1){
+				if (defined($fileVars{FINISH})){
 					iolibCigri::update_att_job($base,${$j}{jobId},$fileVars{BEGIN_DATE},$fileVars{END_DATE},$fileVars{RET_CODE});
 					if ($fileVars{RET_CODE} == 0){
 						print("\t\tJob ${$j}{jobId} Terminated\n");
@@ -222,6 +143,8 @@ foreach my $i (keys(%jobRunningHash)){
 				}else{
 					# le job a ete kille par le batch scheduler
 					# soit il etait trop long(erreur), soit un autre job a pris sa place(on remet le parametre dans la file)
+					print("\t[UPDATOR_ERROR] Can't find the FINISH TAG for the job${$j}{jobId}\n");
+					print("\t[UPDATOR_ERROR] cat $remoteFile ==> $cmdResult2{STDOUT}\n");
 					iolibCigri::set_job_state($base, ${$j}{jobId}, "Killed");
 					iolibCigri::resubmit_job($base,${$j}{jobId});
 				}
