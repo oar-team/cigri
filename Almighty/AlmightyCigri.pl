@@ -70,7 +70,11 @@ sub scheduler(){
 	#return launch_command($scheduler_command);
 	if (defined($$sched{schedulerFile})){
 		if ( -x $path.$$sched{schedulerFile} ){
-			return launch_command($path.$$sched{schedulerFile});
+			my $exitValue = launch_command($path.$$sched{schedulerFile});
+            if ($exitValue != 0){
+                colomboCigri::add_new_scheduler_event($base,$$sched{schedulerId},"EXIT_VALUE","bad exit value $exitValue for $path.$$sched{schedulerFile}");
+            }
+            return $exitValue;
 		}else{
 			print("Bad scheduler file\n");
 			#iolibCigri::insert_new_schedulerError($base,"FILE","Can t find the file $$sched{schedulerFile}");

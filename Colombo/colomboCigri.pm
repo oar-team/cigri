@@ -440,7 +440,9 @@ sub check_events($){
 	$sth = $dbh->prepare("	SELECT eventId, eventSchedulerId
 							FROM events
 							WHERE eventState = \"ToFIX\"
-								AND eventType = \"ALMIGHTY_FILE\"
+								AND (eventType = \"ALMIGHTY_FILE\"
+                                    OR eventType = \"EXIT_VALUE\"
+                                )
 							");
 	$sth->execute();
 
