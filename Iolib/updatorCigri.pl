@@ -36,10 +36,13 @@ my %qstatCmd = ( 	'PBS' => 'qstat -f',
 
 my $base = iolibCigri::connect();
 
-# Get cluster names
-my %clusterNames = iolibCigri::get_cluster_names_batch($base);
+#check errors in the database
+iolibCigri::analyse_error($base);
+
 # update database
 iolibCigri::disable_all_nodes($base);
+# Get cluster names
+my %clusterNames = iolibCigri::get_cluster_names_batch($base);
 
 # Exec through ssh : pbsnodes command
 foreach my $i (keys(%clusterNames)){
