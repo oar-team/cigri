@@ -329,7 +329,7 @@ sub check_events($){
 	$sth->finish();
 
 	#search tofix event relative to a cluster error ("UPDATOR_PBSNODES_PARSE","UPDATOR_QSTAT_CMD","UPDATOR_PBSNODES_CMD","SSH","COLLECTOR")
-	$sth = $dbh->prepare("	SELECT eventId, eventClusterName
+	$sth = $dbh->prepare("	SELECT eventId, eventClusterName, eventMessage
 							FROM events
 							WHERE eventState = \"ToFIX\"
 								AND (eventType = \"UPDATOR_PBSNODES_PARSE\"
@@ -355,13 +355,13 @@ sub check_events($){
 						VALUES ($id,\"$ref[1]\",$ref[0])");
 
             # notify admin by email
-            mailer::sendMail("clusterBlackList = $ref[1] for all MJobs; eventId = $ref[0]","");
+            mailer::sendMail("clusterBlackList = $ref[1] for all MJobs; eventId = $ref[0]","$ref[2]");
 		}
 	}
 	$sth->finish();
 
 	# JOB error ----> blacklist a cluster for a MJob
-	$sth = $dbh->prepare("	SELECT eventId, nodeClusterName, jobMJobsId
+	$sth = $dbh->prepare("	SELECT eventId, nodeClusterName, jobMJobsId, eventMessage
 							FROM events, jobs, nodes
 							WHERE eventState = \"ToFIX\"
 								AND (eventType = \"UPDATOR_RET_CODE_ERROR\"
@@ -388,7 +388,7 @@ sub check_events($){
 						VALUES ($id,\"$ref[1]\",$ref[2],$ref[0])");
 
             # notify admin by email
-            mailer::sendMail("clusterBlackList = $ref[1] for the MJob $ref[2]; eventId = $ref[0]","");
+            mailer::sendMail("clusterBlackList = $ref[1] for the MJob $ref[2]; eventId = $ref[0]","$ref[3]");
 		}
 	}
 	$sth->finish();
@@ -426,7 +426,7 @@ sub check_events($){
 	}
 	$sth->finish();
 
-	$sth = $dbh->prepare("	SELECT eventId, eventSchedulerId
+	$sth = $dbh->prepare("	SELECT eventId, eventSchedulerId, eventMessage
 							FROM events
 							WHERE eventState = \"ToFIX\"
 								AND (eventType = \"ALMIGHTY_FILE\"
@@ -450,7 +450,7 @@ sub check_events($){
 						VALUES ($id,$ref[1],$ref[0])");
 
             # notify admin by email
-            mailer::sendMail("schedulerBlackList = $ref[1]; eventId = $ref[0]","");
+            mailer::sendMail("schedulerBlackList = $ref[1]; eventId = $ref[0]","$ref[2]");
         }
 	}
 	$sth->finish();

@@ -33,18 +33,21 @@ sub sendMail($$){
     my $object = shift;
     my $body = shift;
 
-    ConfLibCigri::init_conf();
-    my $smtpServer = ConfLibCigri::get_conf("MAIL_SMTP_SERVER");
-    my $mailSenderAddress = ConfLibCigri::get_conf("MAIL_SENDER");
-    my $mailRecipientAddress = ConfLibCigri::get_conf("MAIL_RECIPIENT");
+    my $pid=fork;
+    if ($pid == 0){
+        ConfLibCigri::init_conf();
+        my $smtpServer = ConfLibCigri::get_conf("MAIL_SMTP_SERVER");
+        my $mailSenderAddress = ConfLibCigri::get_conf("MAIL_SENDER");
+        my $mailRecipientAddress = ConfLibCigri::get_conf("MAIL_RECIPIENT");
 
-    my $smtp = Net::SMTP->new($smtpServer, Timeout => 30);
-    $smtp->mail($mailSenderAddress);
-    $smtp->to($mailRecipientAddress);
-    $smtp->data();
-    $smtp->datasend("Subject: $object\n");
-    $smtp->datasend($body);
-    $smtp->quit;
+        my $smtp = Net::SMTP->new($smtpServer, Timeout => 30);
+        $smtp->mail($mailSenderAddress);
+        $smtp->to($mailRecipientAddress);
+        $smtp->data();
+        $smtp->datasend("Subject: $object\n");
+        $smtp->datasend($body);
+        $smtp->quit;
+    }
 }
 
 return 1;
