@@ -4,11 +4,10 @@ Hypotheses cote cluster:
 - pas de modif profonde du systeme de batch
 - pas de modif profonde du comportement du cluster (job best effort)
 Hypotheses cote CIGRI:
-- pool de job parametrique, tolerant aux pannes
+- pool de jobs parametriques, tolerant aux pannes
 
 Solution 1:
 - Proposition:
-pas de
 
 Solution 2:
 - Proposition:
@@ -16,9 +15,19 @@ cigri accede aux noeuds du cluster via le qsub local, mais les jobs lances sont 
 Ce wrapper est charge de detecter si le cluster se charge et de stopper le travail en cours le cas echeant.
 La fonction de detection est fournie sous forme de module.
 La fonction de stoppage tue simplement tous les processus du user cigri sur le noeud concerne
-- Pro:
+- Pros:
 on ne touche pas au scheduler.
 les jobs cigri sont geres (monitores) normalement dans le batch scheduler
-- Con:
+- Cons:
+Le scheduling est perturbe par les jobs, temps que ceux-ci ne se sont pas auto-detruits, le scheduler ne peut pas faire son boulot.
+Un fonction de detection peut etre facilement developpee dans le cas de scheduling simple (fifo par ex), mais tres difficilement dans des cas complexes.
+
 
 Solution 3:
+- Proposition:
+Idem solution 2 sauf que le wrapper (le meta-job) retourne imediatement, laissant les jobs reels (best effort) s'executer en tache de fond. Tout job best effort est stoppe immediatement au lancement d'un job normal, via le prolog.
+- Pros: 
+le scheduling n'est pas perturbe
+- Cons
+le systeme de batch ne suit pas les jobs best effort, cela doit donc etre realise pas un autre module. Necessite de maintenir une correlation forte entre le nombre de job executable (obtenu via le qstat local) et le nombre de job best effort s'executant deja, avec control des ressources strict afin de ne pas provoquer une utilisation double d'une ressource:
+une fois qu'une serie de job best effort est lancee, comment s'assurer qu'une deuxieme serie ne s'executera que sur des noeuds nouvellement disponibles, et pas sur des noeuds deja utilises par la premiere serie.
