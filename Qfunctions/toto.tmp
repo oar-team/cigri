@@ -1,0 +1,15 @@
+DEFAULT{
+
+	titi= toto;
+#	nbJobs = 5;
+	paramFile = param.tmp;
+}
+#i4{
+#	execFile = toto;
+#	execTime = 34;
+#}
+pawnee{
+	execFile = /users/huron/capitn/test.sh ;
+	execTime =1;
+}
+
