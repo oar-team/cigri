@@ -18,7 +18,7 @@ my $fileHandleId = 0;
 #don t crash print or syswrite command on a process closed
 $SIG{'PIPE'} = 'IGNORE';
 
-#Connect and set ssh filehansles
+#Connect and set ssh filehandles
 # arg1 --> destination connection
 sub initSSHConnection($){
 	my $server = shift;
@@ -30,18 +30,21 @@ sub initSSHConnection($){
 	$fileHandleId++;
 
 	my $timeout = 20;
+
 	my $READERStr = "";
 	my $ERRORStr = "";
 	my $closeConnection = 0;
 
 	open3( $i, $j, $k, "ssh -T $server");
+
 	$sshConnections{$server} = [ $i, $j, $k];
 	#init connection
 
 	if (!(print($i "/bin/sh -c \"echo ; echo $endLineTag\"\n"))){
+		#can t write data on the channel --> error
 		$closeConnection = 1;
 	}else{
-		# clear bad lines
+		# clear bad lines in the beginning of the ssh session
 		my $rin = '';
 		my $res = 1;
 		my $tmpStr = "";
@@ -96,6 +99,7 @@ sub submitCmd($$){
 	my $ERRORStr = "";
 	my $closeConnection = 0;
 	if (!defined($sshConnections{$clusterName})){
+		# we must established a new connection
 		my $resultTmp = initSSHConnection($clusterName);
 		if ($resultTmp == 1){
 			$ERRORStr = "[SSHcmd] Can t connect to $clusterName ...\n";
@@ -105,11 +109,13 @@ sub submitCmd($$){
 		print("[SSHcmd] I use an existing connection\n");
 	}
 	if ($closeConnection == 0){
+		# get connection filehandle to manage it
 		my $fd0 = $sshConnections{$clusterName}->[0];
 		my $fd1 = $sshConnections{$clusterName}->[1];
 		my $fd2 = $sshConnections{$clusterName}->[2];
 
 		if (!(print($fd0 "/bin/sh -c '$command'; echo ; echo $endLineTag\n"))){
+			# can t write on the channel --> error
 			$ERRORStr = "[SSHcmd] can t send command\n";
 			$closeConnection = 1;
 		}else{

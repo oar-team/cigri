@@ -2,7 +2,6 @@
 
 # Tool to update NODE_STATE in the database
 
-#use IPC::Open3;
 use Data::Dumper;
 BEGIN {
 	my ($scriptPathTmp) = $0 =~ m!(.*/*)!s;
@@ -35,17 +34,6 @@ my %pbsCommand = ( 	'PBS' => 'pbsnodes -a',
 my %qstatCmd = ( 	'PBS' => 'qstat -f',
 					'OAR' => 'qstat.pl -f' );
 
-#my %toto;
-#my %toto2;
-#while(1){
-#	%toto = SSHcmd::submitCmd("tomte","/bin/sh -c \"hostname; uname -a\"");
-#	print(Dumper(%toto));
-#	%toto2 = SSHcmd::submitCmd("pawnee","/bin/sh -c \"hostname; uname -a\"");
-#	print(Dumper(%toto2));
-#	sleep 1;
-#}
-#exit 0;
-
 my $base = iolibCigri::connect();
 
 # Get cluster names
@@ -59,8 +47,6 @@ foreach my $i (keys(%clusterNames)){
 
 	my %cmdResult = SSHcmd::submitCmd($i,"$pbsCommand{$clusterNames{$i}}");
 
-#	print(Dumper(%cmdResult));
-#	exit 0;
 	my $pbsnodesStr = $cmdResult{STDOUT};
 
 	if ($cmdResult{STDERR} eq ""){
@@ -86,7 +72,6 @@ foreach my $i (keys(%clusterNames)){
 				iolibCigri::set_cluster_node_state($base, $i, $name, $state);
 			}else{
 				print("[UPDATOR] There is an error in the pbsnodes command parse, node=$name;state=$state\n");
-				#print("[UPDATOR_DEBUGpbsnodes] $pbsnodesStr\n");
 			}
 		}
 	}else{

@@ -29,52 +29,6 @@ my %qsubCommand = ( 'PBS' => 'qsub',
 
 my $base = iolibCigri::connect() ;
 
-#sub forkSSH ($$$$){
-#	my $cluster = shift;
-#	my $jobId = shift;
-#	my $batch = shift;
-#	my $cmdref = shift;
-#	my @cmd = @$cmdref;
-#	my $pid = 0;
-#
-#	$pid = fork();
-##	if($pid eq "undef"){
-##		$pid = -1;
-#	}
-#	if($pid != 0){
-#		#father
-#		$SIG{CHLD} = "IGNORE";
-#		return $pid;
-#	}else{
-#		#child
-#		select(STDOUT);
-#		$| = 1;
-#		print("[RUNNER] I launch the job $jobId on the cluster $cluster\n");
-#		Net::SSH::sshopen3($cluster, *WRITER, *READER, *ERROR, @cmd) || die "[RUNNER] ssh ERROR : $!";
-#		close(WRITER);
-#		if (defined(<ERROR>)){
-#			while(<ERROR>){
-#				print("[RUNNER_STDERR]$_");
-#			}
-#			close(ERROR);
-#			iolibCigri::set_job_state($base,$jobId,"Error");
-#		}elsif (defined(<READER>)){
-#			while (<READER>){
-#				if (($batch eq "OAR") and ($_ =~ /\s*IdJob\s=\s(\d+)/)){
-#					iolibCigri::set_job_batch_id($base,$jobId,$1);
-#				}
-#				print("[RUNNER_STDOUT] $_");
-#			}
-#			close(READER);
-#			iolibCigri::set_job_state($base,$jobId,"Running");
-#		}else{
-#			print("[RUNNER] There is a mistake, the job $jobId state is unchanged\n");
-#		}
-#		exit 0;
-#	}
-#	return $pid;
-#}
-
 # treate the scheduler output in the jobsToSubmit table
 if (iolibCigri::create_toLaunch_jobs($base) == 1){
 	warn("[Runner] Error when i create_toLaunch_jobs\n");
@@ -99,8 +53,6 @@ foreach my $i (@jobList){
 	$resultFile = "cigri.$jobId.log";
 
 	print("[RUNNER] The job $jobId is in treatment...\n");
-
-	#iolibCigri::set_job_state($base,$jobId,"Launching");
 
 	my @cmdSSH = (	"echo \\#\\!/bin/sh > ~/$tmpRemoteFile;",
 					"echo \"echo \\\"BEGIN_DATE=\\\"\\`date +\%Y-\%m-\%d\\ \%H:\%M:\%S\\` >> ~/$resultFile\" >> ~/$tmpRemoteFile;",

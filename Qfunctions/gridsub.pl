@@ -9,6 +9,7 @@ use Data::Dumper;
 use Sys::Hostname;
 use Getopt::Std;
 BEGIN {
+	#update module path for our modules
 	my ($scriptPathTmp) = $0 =~ m!(.*/*)!s;
 	my ($scriptPath) = readlink($scriptPathTmp);
 	if (!defined($scriptPath)){
@@ -55,7 +56,7 @@ foreach my $key (keys(%opts)){
 		$JDLfile = $opts{$key};
 		print("JDL file = $JDLfile\n");
 	}else{
-		print(STDERR "Warning !!! option -$key not yet implemented\n");
+		print(STDERR "Warning !!! option -$key not implemented\n");
 	}
 }
 
