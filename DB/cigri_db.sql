@@ -84,7 +84,7 @@ jobParam VARCHAR( 255 ) ,
 jobNodeId INT UNSIGNED NOT NULL ,
 jobBatchId INT UNSIGNED ,
 jobRetCode INT ,
-jobCollectorId INT DEFAULT 0 NOT NULL ,
+jobCollectedJobId INT DEFAULT 0 NOT NULL ,
 jobTSub DATETIME ,
 jobTStart DATETIME ,
 jobTStop DATETIME ,
@@ -161,11 +161,19 @@ userLogin VARCHAR( 50 ) NOT NULL ,
 PRIMARY KEY (userGridName,userClusterName)
 );
 
-DROP TABLE IF EXISTS collector;
-CREATE TABLE IF NOT EXISTS collector (
-collectorId INT NOT NULL ,
-collectorFileName VARCHAR( 100 ) NOT NULL ,
-PRIMARY KEY (collectorId)
+#DROP TABLE IF EXISTS collector;
+#CREATE TABLE IF NOT EXISTS collector (
+#collectorId INT NOT NULL ,
+#collectorFileName VARCHAR( 100 ) NOT NULL ,
+#PRIMARY KEY (collectorId)
+#);
+
+DROP TABLE IF EXISTS collectedJobs;
+CREATE TABLE IF NOT EXISTS collectedJobs (
+collectedJobsMJobsId INT UNSIGNED NOT NULL ,
+collectedJobsId INT NOT NULL ,
+collectedJobsFileName VARCHAR( 100 ) NOT NULL ,
+PRIMARY KEY (collectedJobsMJobsId,collectedJobsId)
 );
 
 INSERT INTO clusters (clusterName,clusterAdmin,clusterBatch) VALUES ("pawnee", "", "OAR");

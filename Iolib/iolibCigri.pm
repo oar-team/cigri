@@ -25,6 +25,8 @@ BEGIN {
 use JDLParserCigri;
 use ConfLibCigri qw(init_conf get_conf is_conf);
 
+my $collectLimit = 2;
+
 # Connect to the database and give the ref
 sub connect() {
 	# Connect to the database.
@@ -871,35 +873,56 @@ sub is_cluster_down($$){
 	return $ref[0];
 }
 
-# return jobs to collect
+# return Mjobs to collect
 # arg1 --> database ref
-# return --> a hashtable (clusterName --> a hashtable (MJobsId --> an array (jobBatchId)))
-sub get_tocollect_filesTmp($){
+# return --> an array of MJobs
+sub get_tocollect_MJobs($){
 	my $dbh = shift;
-	my $sth = $dbh->prepare("	SELECT nodeClusterName, jobMJobsId, jobBatchId
-								FROM jobs, nodes
+	my $sth = $dbh->prepare("	SELECT jobMJobsId, COUNT( * )
+								FROM jobs
 								WHERE jobState = \"Terminated\"
-								AND jobCollected = \"NO\"
-								AND jobNodeId = nodeId
+								AND jobCollectedJobId = 0
+								GROUP BY jobMJobsId
 							");
 	$sth->execute();
-	my %result;
-	my %clusterResult;
+	my @result;
 
 	while (my @ref = $sth->fetchrow_array()) {
-		if (not defined($result{$ref[0]})){
-			my %initHash;
-			$result{$ref[0]} = \%initHash;
+		if ($ref[1] >= $collectLimit){
+			push(@result, $ref[0]);
 		}
-		if (not defined(${$result{$ref[0]}}{$ref[1]})){
-			my @initArray;
-			${$result{$ref[0]}}{$ref[1]} = \@initArray;
-		}
-		push(@{${$result{$ref[0]}}{$ref[1]}}, $ref[2]);
 	}
 
 	$sth->finish();
-	return %result;
+	return @result;
+}
+
+# return infos of a specified MJob
+# arg1 --> database ref
+# arg2 --> MJobId
+# return --> an array of jobs with their properties
+sub get_tocollect_MJob_files($$){
+	my $dbh = shift;
+	my $MJobId = shift;
+	my $sth = $dbh->prepare("	SELECT nodeClusterName, userLogin, jobBatchId, clusterBatch, jobId, userGridName
+								FROM jobs, nodes, multipleJobs, users, clusters
+								WHERE jobMJobsId = $MJobId
+								AND jobNodeId = nodeId
+								AND jobMJobsId = MJobsId
+								AND MJobsUser = userGridName
+								AND jobState = \"Terminated\"
+								AND jobCollectedJobId = 0
+								AND clusterName = nodeClusterName
+							");
+	$sth->execute();
+	my @result;
+
+	while (my $ref = $sth->fetchrow_hashref()) {
+		push(@result, $ref);
+	}
+
+	$sth->finish();
+	return @result;
 }
 
 # return jobs to collect
@@ -930,11 +953,13 @@ sub get_tocollect_files($){
 # add a new collector entry
 # arg1 --> database ref
 # arg2 --> cluster name
-sub create_new_collector($$) {
+# arg3 --> MJobId
+sub create_new_collector($$$) {
 	my $dbh = shift;
 	my $cluster = shift;
+	my $MJob = shift;
 
-	my $sth = $dbh->prepare("SELECT MAX(collectorId)+1 FROM collector");
+	my $sth = $dbh->prepare("SELECT MAX(collectedJobsId)+1 FROM collectedJobs WHERE collectedJobsMJobsId = $MJob");
 	$sth->execute();
 	my $ref = $sth->fetchrow_hashref();
 	my @tmp = values(%$ref);
@@ -945,21 +970,21 @@ sub create_new_collector($$) {
 	}
 
 	my $fileName = "$id.$cluster";
-	$dbh->do("INSERT INTO collector (collectorId,collectorFileName)
-				VALUES (\"$id\",\"$fileName\")");
-	my @res = ($id,$fileName);
+	$dbh->do("INSERT INTO collectedJobs (collectedJobsMJobsId,collectedJobsId,collectedJobsFileName)
+				VALUES (\"$MJob\",\"$id\",\"$fileName\")");
+	my @res = ($MJob,$id,$fileName);
 	return @res;
 }
 
 # set the collectedId cell of a job
 # arg1 --> database ref
 # arg2 --> jobId
-# arg3 --> collectorId
-sub set_job_collectedId($$$){
+# arg3 --> collectedJobId
+sub set_job_collectedJobId($$$){
 	my $dbh = shift;
 	my $jobId = shift;
-	my $collectorId = shift;
+	my $collectedJobId = shift;
 
-	$dbh->do("UPDATE jobs SET jobCollectorId = $collectorId where jobId = $jobId");
+	$dbh->do("UPDATE jobs SET jobCollectedJobId = $collectedJobId where jobId = $jobId");
 }
 
