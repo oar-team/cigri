@@ -514,3 +514,74 @@ sub update_nb_freeNodes($){
 					VALUES (\"$i\",$tmpNumber)");
 	}
 }
+
+# get the number of free nodes for each cluster
+# arg1 --> database ref
+sub get_nb_freeNodes($){
+	my $dbh = shift;
+
+	my $sth = $dbh->prepare("	SELECT clusterFreeNodesClusterName, clusterFreeNodesNumber
+								FROM clusterFreeNodes");
+	$sth->execute();
+
+	my %result;
+	while (my @ref = $sth->fetchrow_array()) {
+		$result{$ref[0]} = $ref[1];
+	}
+	$sth->finish();
+
+	return %result;
+}
+
+# get the number of remained jobs for MJobs
+# arg1 --> database ref
+sub get_nb_remained_jobs($){
+	my $dbh = shift;
+
+	my $sth = $dbh->prepare("	SELECT  multipleJobsRemainedMJobsId, multipleJobsRemainedNumber
+								FROM multipleJobsRemained");
+	$sth->execute();
+
+	my %result;
+	while (my @ref = $sth->fetchrow_array()) {
+		$result{$ref[0]} = $ref[1];
+	}
+	$sth->finish();
+
+	return %result;
+}
+
+# get MJobs properties
+# arg1 --> database ref
+# arg2 --> MJobsId
+sub get_MJobs_Properties($$){
+	my $dbh = shift;
+	my $id = shift;
+
+	my $sth = $dbh->prepare("	SELECT   propertiesClusterName
+								FROM properties
+								WHERE propertiesMJobsId = $id");
+	$sth->execute();
+
+	my @result;
+	while (my @ref = $sth->fetchrow_array()) {
+		push(@result, $ref[0]);
+	}
+	$sth->finish();
+
+	return @result;
+}
+
+# Add a job to launch
+# arg1 --> database ref
+# arg2 --> MJobsId of the job
+# arg3 --> clustername where to launch
+# arg4 --> number of jobs
+sub add_job_to_launch($$$$){
+	my $dbh = shift;
+	my $MJobsId = shift;
+	my $clusterName = shift;
+	my $number = shift;
+
+	$dbh->do("INSERT INTO jobsToSubmit (jobsToSubmitMJobsId,jobsToSubmitClusterName,jobsToSubmitNumber) VALUES ($MJobsId,\"$clusterName\",$number)");
+}
