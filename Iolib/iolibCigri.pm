@@ -68,6 +68,7 @@ sub add_mjobs($$) {
 		return(-1);
 	}
 
+	# copy params in the database
 	my $nbJobs = 0;
 	my $Params ="";
 	if (JDLParserCigri::init_jdl($jdl) == 0){
@@ -87,6 +88,21 @@ sub add_mjobs($$) {
 		}else{
 			print("[iolib] I can't read the param file $JDLParserCigri::clusterConf{DEFAULT}{paramFile} or the nbJobs variable\n");
 			return -1;
+		}
+		# Update the properties table
+		my @clusters = keys(%JDLParserCigri::clusterConf);
+		if ($#clusters > 0){
+			foreach my $j (@clusters){
+				if ($j ne "DEFAULT"){
+					if (defined($JDLParserCigri::clusterConf{$j}{execFile})){
+						$dbh->do("INSERT INTO properties (clusterName,MJobsId,executable) VALUES (\"$j\",$id,\"$JDLParserCigri::clusterConf{$j}{execFile}\")");
+					}else{
+						return -3;
+					}
+				}
+			}
+		}else{
+			return -2;
 		}
 	}else{
 		return -1;
