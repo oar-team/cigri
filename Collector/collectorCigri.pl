@@ -21,7 +21,7 @@ BEGIN {
 }
 use iolibCigri;
 use Data::Dumper;
-use SSHcmd;
+use SSHcmdClient;
 
 my $base = iolibCigri::connect();
 my $baseLock = iolibCigri::connect();
@@ -49,10 +49,10 @@ foreach my $i (@MjobsToCollect){
 		my %cmdResult;
 
 		if (!defined($clusterVisited{$$j{nodeClusterName}})){
-			%cmdResult = SSHcmd::submitCmd($$j{nodeClusterName}, "if [ -d ~cigri/results ]; then rm -rf ~cigri/results/* ; else mkdir ~cigri/results ; fi");
+			%cmdResult = SSHcmdClient::submitCmd($$j{nodeClusterName}, "if [ -d ~cigri/results ]; then rm -rf ~cigri/results/* ; else mkdir ~cigri/results ; fi");
 			if ($cmdResult{STDERR} ne ""){
 				iolibCigri::rollback_transaction($base);
-				die("[COLLECTOR] DIE --> SSHcmd::submitCmd($$j{nodeClusterName}, \"if [ -d ~cigri/results ]; then rm -rf ~cigri/results/* ; else mkdir ~cigri/results ; fi\") -- $cmdResult{STDERR} \n");
+				die("[COLLECTOR] DIE --> SSHcmdClient::submitCmd($$j{nodeClusterName}, \"if [ -d ~cigri/results ]; then rm -rf ~cigri/results/* ; else mkdir ~cigri/results ; fi\") -- $cmdResult{STDERR} \n");
 			}
 		}
 
@@ -64,12 +64,12 @@ foreach my $i (@MjobsToCollect){
 		while((($k = pop(@fileToDownload)) ne "") and ($error == 0)){
 			if ($error == 0){
 				print("[COLLECTOR] tar rf ~cigri/results/$i.tar -C ~$$j{userLogin} $k  -- on $$j{nodeClusterName}\n");
-				%cmdResult = SSHcmd::submitCmd($$j{nodeClusterName}, "tar rf ~cigri/results/$i.tar -C ~$$j{userLogin} $k");
+				%cmdResult = SSHcmdClient::submitCmd($$j{nodeClusterName}, "tar rf ~cigri/results/$i.tar -C ~$$j{userLogin} $k");
 				if ($cmdResult{STDERR} ne ""){
-					warn("ERREUR --> SSHcmd::submitCmd($$j{nodeClusterName}, \"tar rf ~cigri/results/$i.tar -C ~$$j{userLogin} $k\") -- $cmdResult{STDERR}\n");
+					warn("ERREUR --> SSHcmdClient::submitCmd($$j{nodeClusterName}, \"tar rf ~cigri/results/$i.tar -C ~$$j{userLogin} $k\") -- $cmdResult{STDERR}\n");
 					foreach my $l (@jobTaredTmp){
 						undef(%cmdResult);
-						%cmdResult = SSHcmd::submitCmd($$j{nodeClusterName}, "tar --delete -f ~cigri/results/$i.tar $l");
+						%cmdResult = SSHcmdClient::submitCmd($$j{nodeClusterName}, "tar --delete -f ~cigri/results/$i.tar $l");
 						if ($cmdResult{STDERR} ne ""){
 							warn("Can t delete $l in ~cigri/results/$i.tar\n");
 						}
@@ -104,9 +104,9 @@ foreach my $i (@MjobsToCollect){
 			die("DIE exit_code=$?\n");
 		}
 
-		my %cmdResult = SSHcmd::submitCmd($j, "gzip ~cigri/results/$i.tar");
+		my %cmdResult = SSHcmdClient::submitCmd($j, "gzip ~cigri/results/$i.tar");
 		if ($cmdResult{STDERR} ne ""){
-			warn("ERREUR --> SSHcmd::submitCmd($j, \"gzip ~cigri/results/$i.tar\") -- $cmdResult{STDERR}\n");
+			warn("ERREUR --> SSHcmdClient::submitCmd($j, \"gzip ~cigri/results/$i.tar\") -- $cmdResult{STDERR}\n");
 		}else{
 			print("scp -q $j:~cigri/results/$i.tar.gz ~cigri/results/$userGridName/$i/$resColl[2].tar.gz \n");
 			system("scp -q $j:~cigri/results/$i.tar.gz ~cigri/results/$userGridName/$i/$resColl[2].tar.gz");
@@ -130,9 +130,9 @@ foreach my $i (@MjobsToCollect){
 		my @fileToDownload = get_file_names($j);
 		foreach my $k (@fileToDownload){
 			print("[COLLECTOR] rm file ~$$j{userLogin}/$k on cluster $$j{nodeClusterName}\n");
-			%cmdResult = SSHcmd::submitCmd($$j{nodeClusterName}, "sudo -u $$j{userLogin} rm -f ~$$j{userLogin}/$k");
+			%cmdResult = SSHcmdClient::submitCmd($$j{nodeClusterName}, "sudo -u $$j{userLogin} rm -f ~$$j{userLogin}/$k");
 			if ($cmdResult{STDERR} ne ""){
-				warn("ERROR --> SSHcmd::submitCmd($$j{nodeClusterName}, sudo -u $$j{userLogin} rm -f ~$$j{userLogin}/$k\n");
+				warn("ERROR --> SSHcmdClient::submitCmd($$j{nodeClusterName}, sudo -u $$j{userLogin} rm -f ~$$j{userLogin}/$k\n");
 			}
 		}
 	}

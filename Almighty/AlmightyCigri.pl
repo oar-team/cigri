@@ -87,5 +87,6 @@ while (1){
 	updator();
 	scheduler();
 	runner();
+	print("I make a pause of $timeout seconds :-)\n");
 	sleep($timeout);
 }

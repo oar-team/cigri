@@ -22,7 +22,7 @@ BEGIN {
 	unshift(@INC, $relativePath."Net");
 }
 use iolibCigri;
-use SSHcmd;
+use SSHcmdClient;
 
 select(STDOUT);
 $|=1;
@@ -48,7 +48,7 @@ my %clusterNames = iolibCigri::get_cluster_names_batch($base);
 foreach my $i (keys(%clusterNames)){
 	print("[UPDATOR] Query free nodes on $i which has a batch-scheduler of the type : $clusterNames{$i}\n");
 
-	my %cmdResult = SSHcmd::submitCmd($i,"$pbsCommand{$clusterNames{$i}}");
+	my %cmdResult = SSHcmdClient::submitCmd($i,"$pbsCommand{$clusterNames{$i}}");
 
 	my $pbsnodesStr = $cmdResult{STDOUT};
 
@@ -91,7 +91,7 @@ print("[UPDATOR] Verify if Running jobs are still running:\n");
 # Exec qstat cmd for all clusters which have a running job
 foreach my $i (keys(%jobRunningHash)){
 	print("\tcluster = $i\n");
-	my %cmdResult = SSHcmd::submitCmd($i,"$qstatCmd{$clusterNames{$i}}");
+	my %cmdResult = SSHcmdClient::submitCmd($i,"$qstatCmd{$clusterNames{$i}}");
 	my $errorFlag = 0;
 	my %jobState = ();
 	if ($cmdResult{STDERR} ne ""){
@@ -116,8 +116,8 @@ foreach my $i (keys(%jobRunningHash)){
 			my $remoteFile = iolibCigri::get_cigri_remote_file_name(${$j}{jobId});
 			#; sudo -u ${$j}{user} rm $remoteFile
 			print("[Updator] Check the job ${$j}{jobId} \n");
-			#my %cmdResult2 = SSHcmd::submitCmd($i,"cat $remoteFile");
-			my %cmdResult2 = SSHcmd::submitCmd($i,"sudo -u ${$j}{user} cat ~${$j}{user}/$remoteFile");
+			#my %cmdResult2 = SSHcmdClient::submitCmd($i,"cat $remoteFile");
+			my %cmdResult2 = SSHcmdClient::submitCmd($i,"sudo -u ${$j}{user} cat ~${$j}{user}/$remoteFile");
 			if ($cmdResult2{STDERR} ne ""){
 				print("\t[UPDATOR_ERROR] Can't check the remote file\n");
 				print("\t[UPDATOR_STDERR] $cmdResult2{STDERR}");
@@ -154,7 +154,7 @@ foreach my $i (keys(%jobRunningHash)){
 					iolibCigri::resubmit_job($base,${$j}{jobId});
 				}
 			}
-			SSHcmd::submitCmd($i,"sudo -u ${$j}{user} rm ~${$j}{user}/$remoteFile");
+			SSHcmdClient::submitCmd($i,"sudo -u ${$j}{user} rm ~${$j}{user}/$remoteFile");
 		}else{
 			#verify if the job is waiting
 			if (defined($jobState{${$j}{batchJobId}})){

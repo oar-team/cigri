@@ -21,7 +21,7 @@ BEGIN {
 	unshift(@INC, $relativePath."Iolib");
 }
 use iolibCigri;
-use SSHcmd;
+use SSHcmdClient;
 
 # List of pbsnodes commands
 my %qsubCommand = ( 'PBS' => 'qsub',
@@ -73,7 +73,7 @@ if (not defined($blackCluster{$$i{clusterName}})){
 	);
 
 	my $cmdString = join(" ", @cmdSSH);
-	my %cmdResult = SSHcmd::submitCmd($$i{clusterName},$cmdString);
+	my %cmdResult = SSHcmdClient::submitCmd($$i{clusterName},$cmdString);
 print(Dumper(%cmdResult));
 	if ($cmdResult{STDERR} ne ""){
 		print("[RUNNER_STDERR] $cmdResult{STDERR}");

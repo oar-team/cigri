@@ -165,7 +165,7 @@ collectedJobsFileName VARCHAR( 100 ) NOT NULL ,
 PRIMARY KEY (collectedJobsMJobsId,collectedJobsId)
 )TYPE = InnoDB;
 
-DROP TABLE IF EXISTS schedulers;
+#DROP TABLE IF EXISTS schedulers;
 CREATE TABLE IF NOT EXISTS schedulers (
 schedulerId INT UNSIGNED NOT NULL AUTO_INCREMENT ,
 schedulerFile VARCHAR( 255 ) NOT NULL ,
