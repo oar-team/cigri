@@ -36,6 +36,7 @@ sub usage(){
     print(STDERR "usage: griddel.pl [-m -j] id \n");
     print(STDERR "\t -m for a multiplejob id \n");
     print(STDERR "\t -j for a job id \n");
+    print(STDERR "\t -r resubmit parameters of the specified job id \n");
     exit 1;
 }
 
@@ -45,7 +46,7 @@ sub usage(){
 
 # Options on arg command line
 my %opts;
-Getopt::Std::getopts('m:j:', \%opts);
+Getopt::Std::getopts('m:j:r:', \%opts);
 
 my $MJobId = undef;
 my $jobId = undef;
@@ -62,6 +63,10 @@ if (defined($opts{"m"})){
     iolibCigri::set_job_state($base, $jobId, "Event");
     colomboCigri::add_new_job_event($base,$jobId,"FRAG","user frag event");
     print("Delete the job $jobId\n");
+}elsif(defined($opts{"r"})){
+    $jobId = $opts{"r"};
+    colomboCigri::resubmit_job($base,$jobId);
+    print("Parameters of job $jobId is resubmitted\n");
 }else{
     usage();
 }
