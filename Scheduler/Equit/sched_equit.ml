@@ -69,18 +69,27 @@ let getInfoMjobs dbd =
                                         FROM multipleJobsRemained" in 
   let getOneInfo a = 
     let id = Mysql.int2ml (get_option a.(0)) in
-    let res1 = execQuery dbd 
+    let res_User_TSub = execQuery dbd 
 		 (Printf.sprintf "SELECT MJobsUser, MJobsTSub FROM multipleJobs WHERE MJobsId = %d" id) in
-    let res2 = execQuery dbd 
-		 (Printf.sprintf "SELECT propertiesClusterName FROM properties 
-                                        WHERE propertiesMJobsId = %d " id) in
-    let array1 = get_option (Mysql.fetch res1) in
+    let res_ClName = execQuery dbd 
+		       (Printf.sprintf "SELECT propertiesClusterName FROM properties 
+                                        WHERE propertiesMJobsId = %d" id) in
+    let list_ClName = Mysql.map res_ClName 
+			(fun a -> get_option a.(0))  in
+
+    let res_BlackList = execQuery dbd 
+			  (Printf.sprintf "SELECT clusterBlackListClusterName FROM clusterBlackList, events
+                                           WHERE (clusterBlackListMJobsID = %d OR clusterBlackListMJobsID = 0)
+                                             AND (clusterBlackListEventId = eventId AND eventState = ToFIX)" id) in 
+    let list_BlackList = Mysql.map res_BlackList
+			   (fun a -> get_option a.(0))  in
+
+    let array1 = get_option (Mysql.fetch res_User_TSub) in
       { mjobId = id;
 	mjobUser = get_option (array1.(0));
 	mjobTsub = Mysql.datetime2ml (get_option (array1.(1)));
 	mjobLeftJobs = Mysql.int2ml (get_option a.(1));
-	mjobClusters = Mysql.map res2 
-			 (fun a -> get_option a.(0)); } in
+	mjobClusters = List.filter (fun c -> List.mem c list_BlackList) list_ClName; } in  
     
     Mysql.map resMJobs getOneInfo
 
