@@ -117,7 +117,7 @@ sub oarsubmit($$$$$){
         $propertyString = "";
     }
     print("Property String = $propertyString\n");
-    my %cmdResult = SSHcmd::submitCmd($cluster,"cd ~$user; sudo -u $user oarsub -l nodes=1,weight=$weight -p \"$propertyString\" -q besteffort ~$user/$jobFile");
+    my %cmdResult = SSHcmd::submitCmd($cluster,"cd ~$user; sudo -u $user oarsub -l nodes=1,weight=$weight,walltime=5 -p \"$propertyString\" -q besteffort ~$user/$jobFile");
     print(Dumper(%cmdResult));
     if ($cmdResult{STDERR} ne ""){
         # test if this is a ssh error
