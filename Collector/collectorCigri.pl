@@ -117,6 +117,7 @@ foreach my $i (@MjobsToCollect){
 	my $userGridName = ${$jobs[0]}{userGridName};
 
 	# copy the tar on the grid server
+	my %jobToRemove;
 	foreach my $j (keys(%clusterVisited)){
 		my @resColl = iolibCigri::create_new_collector($base,$j,$i);
 		print("mkdir -p ~cigri/results/$userGridName/$i \n");
@@ -140,6 +141,7 @@ foreach my $i (@MjobsToCollect){
 					if("${$collectedJobs{$k}}{nodeClusterName}" eq "$j"){
 						print("set collectedJobId de $k = $resColl[1]\n");
 						iolibCigri::set_job_collectedJobId($base,$k,$resColl[1]);
+						$jobToRemove{$k} = $collectedJobs{$k};
 					}
 				}
 			}
@@ -147,9 +149,9 @@ foreach my $i (@MjobsToCollect){
 	}
 
 	# remove collected files
-	foreach my $l (keys(%collectedJobs)){
+	foreach my $l (keys(%jobToRemove)){
 		my %cmdResult;
-		my $j = $collectedJobs{$l};
+		my $j = $jobToRemove{$l};
 		my %hashfileToDownload = get_file_names($j);
 		my @fileToDownload = keys(%hashfileToDownload);
 		foreach my $k (@fileToDownload){
