@@ -40,7 +40,8 @@ foreach my $i (@MjobsToCollect){
 	my @jobs = iolibCigri::get_tocollect_MJob_files($base,$i);
 	my %clusterVisited;
 	my %collectedJobs;
-	my %MjobsInError;
+#	my %MjobsInError;
+	my @errorJobs;
 
 	foreach my $j (@jobs){
 		my %cmdResult;
@@ -81,7 +82,13 @@ foreach my $i (@MjobsToCollect){
 		if ($error == 0){
 			$collectedJobs{$$j{jobId}} = $j;
 			$clusterVisited{$$j{nodeClusterName}} = 1;
+		}else{
+			push(@errorJobs, $j);
 		}
+	}
+
+	foreach my $j (@errorJobs){
+		iolibCigri::set_job_collectedJobId($base,$$j{jobId},-1);
 	}
 
 	my $userGridName = ${$jobs[0]}{userGridName};
