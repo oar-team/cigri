@@ -32,7 +32,9 @@ let schedule mjobs clusters =
 	(List.filter (fun mjob -> List.mem cluster.clusterName mjob.mjobClusters) mjobs) in 
     let rec aux n l buf = function 
 	[] -> buf
-      | mj::mjs -> let nb = Pervasives.min mj.mjobLeftJobs (n / l) in 
+      | mj::mjs -> 
+      	if n = 0 then buf 
+	else let nb = Pervasives.min mj.mjobLeftJobs (n / l) in 
 	  aux (n - nb) (l - 1) 
 	    ({assignId = mj.mjobId; assignCluster = cluster.clusterName; assignNb = nb}::buf) mjs in 
       aux cluster.clusterNodes (List.length possibleJobs) buffer possibleJobs in 
@@ -43,7 +45,7 @@ let execQuery dbd q =
   let res = Mysql.exec dbd q in 
     match Mysql.errmsg dbd with 
 	None -> res
-      | Some s -> (Printf.eprintf "[SCHEDULER][SQL] : %s\n" s; failwith "execQuery")
+      | Some s -> (Printf.printf "[SCHEDULER][SQLERROR] : %s\n" s; failwith "execQuery")
 	  
 let getInfoMjobs dbd = 
   let resMJobs = execQuery dbd "SELECT multipleJobsRemainedMJobsId, multipleJobsRemainedNumber 
@@ -74,6 +76,7 @@ let getFreeNodes dbd =
 		  clusterNodes = Mysql.int2ml (get_option a.(1)) }) 
 	 
 let makeAssign dbd a = 
+  Printf.printf "[SCHEDULER] Assigning %d jobs of mjob %d on %s\n" a.assignNb a.assignId a.assignCluster;
   ignore (execQuery dbd 
 	    (Printf.sprintf "INSERT INTO jobsToSubmit (jobsToSubmitMJobsId,
                                                jobsToSubmitClusterName,
@@ -84,11 +87,11 @@ let makeAssign dbd a =
     
 let _ = 
   print_endline "[SCHEDULER] Begining of scheduler EQUIT";
-  let dbd = Mysql.connect { Mysql.dbhost = Some "pawnee"; 
-			    Mysql.dbname = Some "cigriSched"; 
+  let dbd = Mysql.connect { Mysql.dbhost = Some "localhost"; 
+			    Mysql.dbname = Some "cigri"; 
 			    Mysql.dbport = None;
-			    Mysql.dbpwd = Some "cigriSched"; 
-			    Mysql.dbuser = Some "cigriSched" } in
+			    Mysql.dbpwd = Some "cigri"; 
+			    Mysql.dbuser = Some "cigri" } in
   let sched = schedule (getInfoMjobs dbd) (getFreeNodes dbd) in 
     List.iter (makeAssign dbd) sched; 
     print_endline "[SCHEDULER] End of scheduler EQUIT";;
