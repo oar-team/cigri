@@ -27,6 +27,7 @@ BEGIN {
 }
 use ConfLibCigri qw(init_conf dump_conf get_conf is_conf);
 
+
 require Exporter;
 our (@ISA,@EXPORT,@EXPORT_OK);
 @ISA = qw(Exporter);
@@ -34,6 +35,7 @@ our (@ISA,@EXPORT,@EXPORT_OK);
 
 ConfLibCigri::init_conf();
 my $sshServerPort = ConfLibCigri::get_conf("SSH_SERVER_PORT") if ConfLibCigri::is_conf("SSH_SERVER_PORT") or die("Can't get value of the SSH_SERVER_PORT tag in cigri.conf\n");
+
 
 # submit a command to the given cluster
 # arg1 --> clusterName
