@@ -99,7 +99,7 @@ foreach my $i (keys(%jobRunningHash)){
 		# for each job section, record its state
 		foreach my $jobStr (@jobsStrs){
 			#print("--> $jobStr\n");
-			$jobStr =~ /Job Id: (\d+).*job_state = (\w).*/s;
+			$jobStr =~ /Job Id: (\d+).*job_state = (.).*/s;
 			$jobState{$1} = $2;
 		}
 		close(READER);
@@ -110,12 +110,18 @@ foreach my $i (keys(%jobRunningHash)){
 			print("\t\tJob ${$j}{jobId} Terminated\n");
 			iolibCigri::set_job_state($base, ${$j}{jobId}, "Terminated");
 			# Increment MJobsNbCompletedJobs
-			iolibCigri::inc_MJobsNbCompletedJobs($base,${$j}{jobId});
+			#iolibCigri::inc_MJobsNbCompletedJobs($base,${$j}{jobId});
+		}else{
+			#verify if the job is waiting
+			if ($jobState{${$j}{batchJobId}} eq "W"){
+				iolibCigri::set_job_state($base, ${$j}{jobId}, "RemoteWainting");
+			}
 		}
 	}
 }
 
-iolibCigri::pre_schedule($base);
+#iolibCigri::pre_schedule($base);
+iolibCigri::update_nb_freeNodes($base);
 
 iolibCigri::disconnect($base);
 

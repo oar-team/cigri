@@ -64,10 +64,10 @@ CREATE TABLE IF NOT EXISTS jobs (
 jobId BIGINT UNSIGNED NOT NULL AUTO_INCREMENT ,
 #jobType VARCHAR( 100 ) ,
 #jobJDL MEDIUMBLOB ,
-jobState ENUM('toLaunch', 'Waiting', 'Running','Terminated', 'Error') NOT NULL ,
+jobState ENUM('toLaunch', 'Waiting', 'Running', 'RemoteWainting', 'Terminated', 'Error') NOT NULL ,
 #jobUser VARCHAR( 50 ) NOT NULL ,
 jobMJobsId INT UNSIGNED ,
-jobCmd VARCHAR( 255 ) ,
+#jobCmd VARCHAR( 255 ) ,
 jobParam TEXT ,
 jobNodeId INT UNSIGNED NOT NULL ,
 jobBatchId INT UNSIGNED ,
@@ -87,8 +87,8 @@ MJobsJDL MEDIUMBLOB ,
 #MJobsParamFile MEDIUMBLOB ,
 MJobsState ENUM('IN_TREATMENT','ERROR','TERMINATED') NOT NULL DEFAULT 'IN_TREATMENT' ,
 MJobsUser VARCHAR( 50 ) NOT NULL ,
-MJobsNbTotalJobs BIGINT NOT NULL ,
-MJobsNbCompletedJobs BIGINT DEFAULT 0 ,
+#MJobsNbTotalJobs BIGINT NOT NULL ,
+#MJobsNbCompletedJobs BIGINT DEFAULT 0 ,
 MJobsTSub DATETIME ,
 MJobsTStart DATETIME ,
 MJobsTStop DATETIME ,
@@ -104,11 +104,11 @@ PRIMARY KEY (MJobsId)
 #);
 
 DROP TABLE IF EXISTS potentialJobNode;
-CREATE TABLE IF NOT EXISTS potentialJobNode (
-potentialJobNodeMJobsId INT UNSIGNED NOT NULL ,
-potentialJobNodeNodeId INT UNSIGNED NOT NULL ,
-PRIMARY KEY (potentialJobNodeMJobsId, potentialJobNodeNodeId)
-);
+#CREATE TABLE IF NOT EXISTS potentialJobNode (
+#potentialJobNodeMJobsId INT UNSIGNED NOT NULL ,
+#potentialJobNodeNodeId INT UNSIGNED NOT NULL ,
+#PRIMARY KEY (potentialJobNodeMJobsId, potentialJobNodeNodeId)
+#);
 
 DROP TABLE IF EXISTS parameters;
 CREATE TABLE IF NOT EXISTS parameters (
@@ -122,9 +122,31 @@ DROP TABLE IF EXISTS properties;
 CREATE TABLE IF NOT EXISTS properties (
 propertiesClusterName VARCHAR( 100 ) NOT NULL ,
 propertiesMJobsId INT UNSIGNED NOT NULL ,
-propertiesExecutable VARCHAR( 255 ) NOT NULL ,
+propertiesJobCmd VARCHAR( 255 ) NOT NULL ,
 propertiesErrorChecker VARCHAR( 255 ) ,
 PRIMARY KEY (propertiesClusterName,propertiesMJobsId)
+);
+
+DROP TABLE IF EXISTS clusterFreeNodes;
+CREATE TABLE IF NOT EXISTS clusterFreeNodes (
+clusterFreeNodesClusterName VARCHAR( 100 ) NOT NULL ,
+clusterFreeNodesNumber INT UNSIGNED NOT NULL ,
+PRIMARY KEY (clusterFreeNodesClusterName)
+);
+
+DROP TABLE IF EXISTS multipleJobsRemained;
+CREATE TABLE IF NOT EXISTS multipleJobsRemained (
+multipleJobsRemainedMJobsId INT UNSIGNED NOT NULL ,
+multipleJobsRemainedNumber INT NOT NULL ,
+PRIMARY KEY (multipleJobsRemainedMJobsId)
+);
+
+DROP TABLE IF EXISTS jobsToSubmit;
+CREATE TABLE IF NOT EXISTS jobsToSubmit (
+jobsToSubmitMJobsId INT UNSIGNED NOT NULL ,
+jobsToSubmitClusterName VARCHAR( 100 ) NOT NULL ,
+jobsToSubmitNumber INT NOT NULL ,
+PRIMARY KEY (jobsToSubmitMJobsId,jobsToSubmitClusterName)
 );
 
 INSERT INTO clusters (clusterName,clusterAdmin,clusterBatch) VALUES ("pawnee", "", "OAR");

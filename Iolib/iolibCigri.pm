@@ -69,7 +69,7 @@ sub add_mjobs($$) {
 	}
 
 	# copy params in the database
-	my $nbJobs = 0;
+	#my $nbJobs = 0;
 	my $Params ="";
 	if (JDLParserCigri::init_jdl($jdl) == 0){
 		if (defined($JDLParserCigri::clusterConf{DEFAULT}{paramFile}) && (-r $JDLParserCigri::clusterConf{DEFAULT}{paramFile})){
@@ -79,12 +79,15 @@ sub add_mjobs($$) {
 				chomp;
 				if ($_ ne ""){
 					$dbh->do("INSERT INTO parameters (parametersMJobsId,parametersParam) VALUES ($id,\'$_\')");
-					$nbJobs++;
+					#$nbJobs++;
 				}
 			}
 			close(FILE);
 		}elsif (defined($JDLParserCigri::clusterConf{DEFAULT}{nbJobs})){
-			$nbJobs = $JDLParserCigri::clusterConf{DEFAULT}{nbJobs};
+			#$nbJobs = $JDLParserCigri::clusterConf{DEFAULT}{nbJobs};
+			for (my $k=0; $k<$JDLParserCigri::clusterConf{DEFAULT}{nbJobs}; $k++) {
+				$dbh->do("INSERT INTO parameters (parametersMJobsId,parametersParam) VALUES ($id,\'$k\')");
+			}
 		}else{
 			print("[iolib] I can't read the param file $JDLParserCigri::clusterConf{DEFAULT}{paramFile} or the nbJobs variable\n");
 			return -1;
@@ -95,7 +98,7 @@ sub add_mjobs($$) {
 			foreach my $j (@clusters){
 				if ($j ne "DEFAULT"){
 					if (defined($JDLParserCigri::clusterConf{$j}{execFile})){
-						$dbh->do("INSERT INTO properties (propertiesClusterName,propertiesMJobsId,propertiesExecutable) VALUES (\"$j\",$id,\"$JDLParserCigri::clusterConf{$j}{execFile}\")");
+						$dbh->do("INSERT INTO properties (propertiesClusterName,propertiesMJobsId,propertiesJobCmd) VALUES (\"$j\",$id,\"$JDLParserCigri::clusterConf{$j}{execFile}\")");
 					}else{
 						return -3;
 					}
@@ -108,8 +111,8 @@ sub add_mjobs($$) {
 		return -1;
 	}
 
-	$dbh->do("INSERT INTO multipleJobs (MJobsId,MJobsUser,MJobsJDL,MJobsNbTotalJobs,MJobsTSub)
-			VALUES ($id,\"$lusr\",\"$jdl\",$nbJobs,\"$time\")");
+	$dbh->do("INSERT INTO multipleJobs (MJobsId,MJobsUser,MJobsJDL,MJobsTSub)
+			VALUES ($id,\"$lusr\",\"$jdl\",\"$time\")");
 
 	#$dbh->do("UNLOCK TABLES");
 	return $id;
@@ -250,30 +253,30 @@ sub get_MJobs_JDL($$){
 # Determine which nodes can launch which jobs
 # and set up the potentialJobNode table
 # arg1 --> database ref
-sub pre_schedule($){
-	my $dbh = shift;
-	$dbh->do("TRUNCATE TABLE potentialJobNode");
-
-	my @MJobsId = get_IN_TREATMENT_MJobs($dbh);
-	foreach my $i (@MJobsId){
-		my $JDLtmp = get_MJobs_JDL($dbh, $i);
-		print("[IOLIB] Parse mistake with the MJobs $i\n") if (JDLParserCigri::init_jdl($JDLtmp) == -1);
-		my $query = "select nodeId,MJobsId from nodes, multipleJobs where MJobsId = $i and nodeState = \'FREE\' and (";
-		my @clusters = keys(%JDLParserCigri::clusterConf);
-		next if ($#clusters <= 0);
-		foreach my $j (@clusters){
-			if ($j ne "DEFAULT"){
-				$query .= "nodeClusterName = \'$j\' or ";
-			}
-		}
-		#remove last or of the query
-		$query =~ /(.*)\sor\s/;
-		$query = $1.")";
-
-		$dbh->do("INSERT INTO potentialJobNode (potentialJobNodeNodeId, potentialJobNodeMJobsId)
-					$query");
-	}
-}
+#sub pre_schedule($){
+#	my $dbh = shift;
+#	$dbh->do("TRUNCATE TABLE potentialJobNode");
+#
+#	my @MJobsId = get_IN_TREATMENT_MJobs($dbh);
+#	foreach my $i (@MJobsId){
+#		my $JDLtmp = get_MJobs_JDL($dbh, $i);
+#		print("[IOLIB] Parse mistake with the MJobs $i\n") if (JDLParserCigri::init_jdl($JDLtmp) == -1);
+#		my $query = "select nodeId,MJobsId from nodes, multipleJobs where MJobsId = $i and nodeState = \'FREE\' and (";
+#		my @clusters = keys(%JDLParserCigri::clusterConf);
+#		next if ($#clusters <= 0);
+#		foreach my $j (@clusters){
+#			if ($j ne "DEFAULT"){
+#				$query .= "nodeClusterName = \'$j\' or ";
+#			}
+#		}
+#		#remove last or of the query
+#		$query =~ /(.*)\sor\s/;
+#		$query = $1.")";
+#
+#		$dbh->do("INSERT INTO potentialJobNode (potentialJobNodeNodeId, potentialJobNodeMJobsId)
+#					$query");
+#	}
+#}
 
 #give the cluster name of the given node
 # arg1 --> database ref
@@ -310,8 +313,8 @@ sub select_sched_FIFO($){
 		my $JDLtmp = get_MJobs_JDL($dbh, $resulArray[0]);
 		print("[IOLIB] Parse mistake with the MJobs $resulArray[0]\n") if (JDLParserCigri::init_jdl($JDLtmp) == -1);
 
-		$dbh->do("INSERT INTO jobs (jobState,jobMJobsId,jobParam,jobNodeId,jobTSub,jobCmd)
-					VALUES (\"toLaunch\",$resulArray[0],\"$resulArray[2]\",$resulArray[1],\"$time\",\"$JDLParserCigri::clusterConf{$cluster}{execFile}\")");
+		$dbh->do("INSERT INTO jobs (jobState,jobMJobsId,jobParam,jobNodeId,jobTSub)
+					VALUES (\"toLaunch\",$resulArray[0],\"$resulArray[2]\",$resulArray[1],\"$time\")");
 		return 0;
 	}else{
 		return 1;
@@ -323,12 +326,14 @@ sub select_sched_FIFO($){
 # return an hashtable
 sub get_launching_job($) {
 	my $dbh = shift;
-	my $sth = $dbh->prepare("SELECT jobId,jobParam,nodeName,jobCmd,nodeClusterName,clusterBatch,MJobsUser
-							FROM jobs,nodes,clusters,multipleJobs
+	my $sth = $dbh->prepare("SELECT jobId,jobParam,nodeName,propertiesJobCmd,nodeClusterName,clusterBatch,MJobsUser
+							FROM jobs,nodes,clusters,multipleJobs,properties
 							WHERE jobState=\"toLaunch\"
 								AND jobNodeId = nodeId
 								AND nodeClusterName = clusterName
-								AND MJobsId = jobMJobsId");
+								AND MJobsId = jobMJobsId
+								AND propertiesClusterName = clusterName
+								And propertiesMJobsId = MJobsId");
 	$sth->execute();
 
 	my @result ;
@@ -405,27 +410,97 @@ sub get_job_to_update_state($){
 # Increment the MJobsNbCompletedJobs field
 # arg1 --> database ref
 # arg2 --> jobId (not a MJobsId)
-sub inc_MJobsNbCompletedJobs($$){
+#sub inc_MJobsNbCompletedJobs($$){
+#	my $dbh = shift;
+#	my $idJob = shift;
+#
+#	my $sth = $dbh->prepare("	SELECT (MJobsNbCompletedJobs+1), MJobsId, MJobsNbTotalJobs
+#								FROM multipleJobs, jobs
+#								WHERE jobId=\"$idJob\" AND jobMJobsId = MJobsId");
+#	$sth->execute();
+#	my @resulArray = $sth->fetchrow_array();
+#	$sth->finish();
+#
+#	$sth = $dbh->prepare("UPDATE multipleJobs SET MJobsNbCompletedJobs = \"$resulArray[0]\"
+#								WHERE MJobsId =\"$resulArray[1]\"");
+#	$sth->execute();
+#	$sth->finish();
+#
+#	if ($resulArray[0] == $resulArray[2]){
+#	# The Multiple jobs is terminated
+#		$sth = $dbh->prepare("UPDATE multipleJobs SET MJobsState = \"TERMINATED\"
+#								WHERE MJobsId =\"$resulArray[1]\"");
+#		$sth->execute();
+#		$sth->finish();
+#	}
+#}
+
+# update the number of free nodes for each cluster ans the remained MJobs number
+# arg1 --> database ref
+sub update_nb_freeNodes($){
 	my $dbh = shift;
-	my $idJob = shift;
 
-	my $sth = $dbh->prepare("	SELECT (MJobsNbCompletedJobs+1), MJobsId, MJobsNbTotalJobs
-								FROM multipleJobs, jobs
-								WHERE jobId=\"$idJob\" AND jobMJobsId = MJobsId");
+	my $sth = $dbh->prepare("	SELECT nodeClusterName, COUNT(*)
+								FROM nodes
+								WHERE nodeState = \"FREE\"
+								GROUP BY nodeClusterName");
 	$sth->execute();
-	my @resulArray = $sth->fetchrow_array();
+
+	my %resultNode;
+	while (my @ref = $sth->fetchrow_array()) {
+		$resultNode{$ref[0]} = $ref[1];
+	}
+
 	$sth->finish();
 
-	$sth = $dbh->prepare("UPDATE multipleJobs SET MJobsNbCompletedJobs = \"$resulArray[0]\"
-								WHERE MJobsId =\"$resulArray[1]\"");
+	$sth = $dbh->prepare("	SELECT nodeClusterName, COUNT(*)
+							FROM nodes,jobs
+							WHERE nodeId = jobNodeId
+							AND jobState = \"RemoteWaiting\"
+							GROUP BY nodeClusterName");
 	$sth->execute();
+
+	my %resultJob;
+	while (my @ref = $sth->fetchrow_array()) {
+		$resultJob{$ref[0]} = $ref[1];
+	}
+
+	$sth->finish();
+# Penser a enlever egalement les noeuds de la blacklist
+	$dbh->do("TRUNCATE TABLE clusterFreeNodes");
+	foreach my $i (keys(%resultNode)){
+		my $tmpNumber = $resultNode{$i} - $resultJob{$i};
+		$dbh->do("INSERT INTO clusterFreeNodes (clusterFreeNodesClusterName,clusterFreeNodesNumber)
+					VALUES (\"$i\",$tmpNumber)");
+	}
+
+	#calculate the remained MJob number
+	$sth = $dbh->prepare("	SELECT jobMJobsId, COUNT(*)
+							FROM multipleJobs,jobs
+							WHERE MJobsState = \"IN_TREATMENT\"
+							AND MJobsId = jobMJobsId
+							GROUP BY jobMJobsId");
+	$sth->execute();
+	my %resultNbMJobExecuted;
+	while (my @ref = $sth->fetchrow_array()) {
+		$resultNbMJobExecuted{$ref[0]} = $ref[1];
+	}
 	$sth->finish();
 
-	if ($resulArray[0] == $resulArray[2]){
-	# The Multiple jobs is terminated
-		$sth = $dbh->prepare("UPDATE multipleJobs SET MJobsState = \"TERMINATED\"
-								WHERE MJobsId =\"$resulArray[1]\"");
-		$sth->execute();
-		$sth->finish();
+	$sth = $dbh->prepare("	SELECT parametersMJobsId, COUNT(*)
+							FROM parameters
+							GROUP BY parametersMJobsId");
+	$sth->execute();
+	my %resultNbRemainedMJob;
+	while (my @ref = $sth->fetchrow_array()) {
+		$resultNbRemainedMJob{$ref[0]} = $ref[1];
+	}
+	$sth->finish();
+
+	$dbh->do("TRUNCATE TABLE multipleJobsRemained");
+	foreach my $i (keys(%resultNbRemainedMJob)){
+		my $tmpNumber = $resultNbRemainedMJob{$i} - $resultNbMJobExecuted{$i};
+		$dbh->do("INSERT INTO multipleJobsRemained (multipleJobsRemainedMJobsId,multipleJobsRemainedNumber)
+					VALUES (\"$i\",$tmpNumber)");
 	}
 }
