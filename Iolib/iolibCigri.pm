@@ -25,7 +25,7 @@ BEGIN {
 use JDLParserCigri;
 use ConfLibCigri qw(init_conf get_conf is_conf);
 
-my $collectLimit = 2;
+my $collectLimit = 1;
 
 # Connect to the database and give the ref
 sub connect() {
@@ -912,31 +912,6 @@ sub get_tocollect_MJob_files($$){
 								AND MJobsUser = userGridName
 								AND jobState = \"Terminated\"
 								AND jobCollectedJobId = 0
-								AND clusterName = nodeClusterName
-							");
-	$sth->execute();
-	my @result;
-
-	while (my $ref = $sth->fetchrow_hashref()) {
-		push(@result, $ref);
-	}
-
-	$sth->finish();
-	return @result;
-}
-
-# return jobs to collect
-# arg1 --> database ref
-# return --> a hashtable (clusterName --> a hashtable (MJobsId --> an array (jobBatchId)))
-sub get_tocollect_files($){
-	my $dbh = shift;
-	my $sth = $dbh->prepare("	SELECT nodeClusterName, jobMJobsId, userLogin, jobBatchId, userGridName, clusterBatch, jobId
-								FROM jobs, nodes, multipleJobs, users, clusters
-								WHERE jobState = \"Terminated\"
-								AND jobCollectorId = 0
-								AND jobNodeId = nodeId
-								AND jobMJobsId = MJobsId
-								AND MJobsUser = userGridName
 								AND clusterName = nodeClusterName
 							");
 	$sth->execute();

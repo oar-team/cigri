@@ -25,12 +25,19 @@ use SSHcmd;
 
 my $base = iolibCigri::connect();
 
-my @MjobsToCollect = iolibCigri::get_tocollect_MJobs($base);
+my @MjobsToCollect;
+
+if ($ARGV[0] =~ /^\d+$/ ){
+	push(@MjobsToCollect, $ARGV[0]);
+}else{
+	@MjobsToCollect = iolibCigri::get_tocollect_MJobs($base);
+}
 
 foreach my $i (@MjobsToCollect){
 	print("[COLLECTOR] I collecte the MJob $i\n");
 	# get clusters userLogins jobID jobBatchId clusterBatch userGridName
 	my @jobs = iolibCigri::get_tocollect_MJob_files($base,$i);
+	my @jobsBis = @jobs;
 	my @clusterVisited;
 	my @collectedJobs;
 	foreach my $j (@jobs){
@@ -76,6 +83,20 @@ foreach my $i (@MjobsToCollect){
 		}
 		foreach my $k (@collectedJobs){
 			iolibCigri::set_job_collectedJobId($base,$k,$resColl[1]);
+		}
+	}
+
+	print("[COLLECTOR] rm all files of the MJob $i\n");
+	foreach my $j (@jobsBis){
+		my %cmdResult;
+		my @fileToDownload =(	"OAR.cigri.tmp.$$j{jobId}.$$j{jobBatchId}.stdout",
+								"OAR.cigri.tmp.$$j{jobId}.$$j{jobBatchId}.stderr"
+							);
+		foreach my $k (@fileToDownload){
+			%cmdResult = SSHcmd::submitCmd($$j{nodeClusterName}, "sudo -u $$j{userLogin} rm -f ~$$j{userLogin}/$k");
+			if ($cmdResult{STDERR} ne ""){
+				die("DIE --> SSHcmd::submitCmd($$j{nodeClusterName}, sudo -u $$j{userLogin} rm -f ~$$j{userLogin}/$k\n");
+			}
 		}
 	}
 }

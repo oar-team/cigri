@@ -154,6 +154,7 @@ foreach my $i (keys(%jobRunningHash)){
 					iolibCigri::resubmit_job($base,${$j}{jobId});
 				}
 			}
+			SSHcmd::submitCmd($i,"sudo -u ${$j}{user} rm ~${$j}{user}/$remoteFile");
 		}else{
 			#verify if the job is waiting
 			if (defined($jobState{${$j}{batchJobId}})){
