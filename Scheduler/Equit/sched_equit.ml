@@ -8,7 +8,7 @@ type mjob_t = {
   mjobUser : string;
   mjobTsub : int*int*int*int*int*int; (* Beuh c'que c'est sale *)
   (* mjobTotalJobs : int; *)
-  mjobLeftJobs : int;
+  mutable mjobLeftJobs : int;
   mjobClusters : string list;
 }
 
@@ -24,6 +24,7 @@ type assign_t = {
   assignNb : int;
 }
 
+(* Le scheduler *)
 
 let schedule mjobs clusters = 
   let repart mjobs buffer cluster = 
@@ -36,12 +37,15 @@ let schedule mjobs clusters =
 	  let nb = Pervasives.min mj.mjobLeftJobs (n / l) in 
 	    if nb = 0 then 
 	      aux n (l - 1) buf mjs 
-	    else aux (n - nb) (l - 1) 
-	      ({assignId = mj.mjobId; assignCluster = cluster.clusterName; assignNb = nb}::buf) mjs in 
+	    else ( mj.mjobLeftJobs <- mj.mjobLeftJobs - nb; 
+		   aux (n - nb) (l - 1) 
+		     ({assignId = mj.mjobId; assignCluster = cluster.clusterName; assignNb = nb}::buf) mjs) in 
       aux cluster.clusterNodes (List.length possibleJobs) buffer possibleJobs in 
     
     List.fold_left (repart mjobs) [] clusters
       
+(* Les fonctions d'accès à la base de données *)
+
 let execQuery dbd q = 
   let res = Mysql.exec dbd q in 
     match Mysql.errmsg dbd with 
@@ -69,8 +73,7 @@ let getInfoMjobs dbd =
     Mysql.map resMJobs getOneInfo
 
 let getFreeNodes dbd = 
-  
-  let resFreeNodes = Mysql.exec dbd "SELECT clusterFreeNodesClusterName, clusterFreeNodesNumber 
+  let resFreeNodes = execQuery dbd "SELECT clusterFreeNodesClusterName, clusterFreeNodesNumber 
                                                    FROM clusterFreeNodes" in 
     Mysql.map resFreeNodes 
       (fun a -> { clusterName = get_option a.(0);
@@ -84,9 +87,9 @@ let makeAssign dbd a =
                                                jobsToSubmitNumber)
                                 VALUES (%d,\"%s\",%d)" a.assignId a.assignCluster a.assignNb))
     
+(* Le programme principal *)    
     
-    
-let _ = 
+let main = 
   print_endline "[SCHEDULER] Begining of scheduler EQUIT";
   let istest = ref false in 
     Arg.parse ["-test", Arg.Set istest, "Test Mode : uses another server"]
