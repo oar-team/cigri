@@ -7,6 +7,28 @@ package SSHcmd;
 #use warnings;
 use Data::Dumper;
 use IPC::Open3;
+
+BEGIN {
+	my ($scriptPathTmp) = $0 =~ m!(.*/*)!s;
+	my ($scriptPath) = readlink($scriptPathTmp);
+	if (!defined($scriptPath)){
+		$scriptPath = $scriptPathTmp;
+	}
+	# Relative path of the package
+	my @relativePathTemp = split(/\//, $scriptPath);
+	my $relativePath = "";
+	for (my $i = 0; $i < $#relativePathTemp; $i++){
+		$relativePath = $relativePath.$relativePathTemp[$i]."/";
+	}
+	$relativePath = $relativePath."../";
+	# configure the path to reach the lib directory
+	unshift(@INC, $relativePath."lib");
+	unshift(@INC, $relativePath."ConfLib");
+	unshift(@INC, $relativePath."Net");
+}
+
+use NetCommon;
+
 require Exporter;
 our (@ISA,@EXPORT,@EXPORT_OK);
 @ISA = qw(Exporter);
@@ -15,6 +37,7 @@ our (@ISA,@EXPORT,@EXPORT_OK);
 # line to print after a ssh command. With that we can know the end of the command
 my $endLineTag = "lacommandeestterminee";
 my $timeoutConnexion = 600;
+my $sshErrorPrefix = NetCommon::getSshErrorPrefix();
 
 my %sshConnections;
 my $fileHandleId = 0;
@@ -33,7 +56,7 @@ sub initSSHConnection($){
 	my $k = $fileHandleId;
 	$fileHandleId++;
 
-	my $timeout = 20;
+	my $timeout = 30;
 
 	my $READERStr = "";
 	my $ERRORStr = "";
@@ -63,7 +86,7 @@ sub initSSHConnection($){
 				if ($res > 0) {
 					sysread($j,$char,1);
 					if ($char eq ""){ #error on the medium
-						$ERRORStr = "[SSHcmd] connection closed by remote host\n";
+						$ERRORStr = "$sshErrorPrefix connection closed by remote host\n";
 						$res = -1;
 					}elsif ($char ne "\n"){
 						$tmpStr .= $char;
@@ -75,7 +98,7 @@ sub initSSHConnection($){
 				$READERStr .= $tmpStr."\n";
 			}
 			if ($res <= 0) {
-				$ERRORStr = "[SSHcmd] Reader too long...\n";
+				$ERRORStr = "$sshErrorPrefix Reader too long...\n";
 				$closeConnection = 1;
 			}
 		}
@@ -103,7 +126,7 @@ sub submitCmd($$){
 	my $ERRORStr = "";
 	my $closeConnection = 0;
 	my $currentTime = time();
-	print("currentTime=$currentTime, initSSHTime=$sshConnections{$clusterName}->[4]\n");
+	#print("currentTime=$currentTime, initSSHTime=$sshConnections{$clusterName}->[4]\n");
 	if ((!defined($sshConnections{$clusterName})) or (($currentTime - $sshConnections{$clusterName}->[4]) > $timeoutConnexion )){
 		if (defined($sshConnections{$clusterName}->[0])){
 			print("RESET CONNECTION\n");
@@ -117,7 +140,7 @@ sub submitCmd($$){
 		# we must established a new connection
 		my $resultTmp = initSSHConnection($clusterName);
 		if ($resultTmp == 1){
-			$ERRORStr = "[SSHcmd] Can t connect to $clusterName ...\n";
+			$ERRORStr = "$sshErrorPrefix Can t connect to $clusterName ...\n";
 			$closeConnection = 1;
 		}
 	}else{
@@ -131,7 +154,7 @@ sub submitCmd($$){
 
 		if (!(print($fd0 "/bin/sh -c '$command'; echo ; echo $endLineTag\n"))){
 			# can t write on the channel --> error
-			$ERRORStr = "[SSHcmd] can t send command\n";
+			$ERRORStr = "$sshErrorPrefix can t send command\n";
 			$closeConnection = 1;
 		}else{
 			my $rin = '';
@@ -151,7 +174,7 @@ sub submitCmd($$){
 						if ($char ne "\n"){
 							$tmpStr .= $char;
 						}elsif($char eq ""){
-							$ERRORStr = "[SSHcmd] connection closed by remote host\n";
+							$ERRORStr = "$sshErrorPrefix connection closed by remote host\n";
 							$res = -1;
 						}
 					}
@@ -160,7 +183,7 @@ sub submitCmd($$){
 					$READERStr .= $tmpStr."\n";
 				}
 				if ($res <= 0) {
-					$ERRORStr = "[SSHcmd] Reader too long, timeout = $timeout ...\n";
+					$ERRORStr = "$sshErrorPrefix Reader too long, timeout = $timeout ...\n";
 					$closeConnection = 1;
 				}
 			}
@@ -177,7 +200,7 @@ sub submitCmd($$){
 				vec($rin,fileno($fd2),1) = 1;
 				$res = select($rin, undef, undef, $timeout);
 				if ($_ eq ""){
-					$ERRORStr = "[SSHcmd] connection closed by remote host\n";
+					$ERRORStr = "$sshErrorPrefix connection closed by remote host\n";
 					$res = -1;
 					$closeConnection = 1;
 				}
