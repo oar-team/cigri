@@ -46,8 +46,8 @@ sub init_jdl($) {
 	return "[JDLParser]JDL not defined\n" if (! defined($jdl));
 	chomp($jdl);
 	# remove comments
-	$jdl =~ s/\n\s*#.*\n/\n/g;
-#	print(Dumper($jdl)."\n\n");
+	$jdl =~ s/\s*#.*\n/\n/g;
+	#print(Dumper($jdl)."\n\n");
 	my @clusters = split(/}/, $jdl);
 
 	#Check cluster names
