@@ -561,7 +561,7 @@ sub create_toLaunch_jobs($){
 			#add jobs in jobs table
 			$time = get_date();
 			$dbh->do("	INSERT INTO jobs (jobState,jobMJobsId,jobParam,jobNodeId,jobTSub)
-						VALUES (\"toLaunch\",$i->{jobsToSubmitMJobsId},$parametersTmp[$j],$nodesTmp[$j],\"$time\")");
+						VALUES (\"toLaunch\",$i->{jobsToSubmitMJobsId},\"$parametersTmp[$j]\",$nodesTmp[$j],\"$time\")");
 		}
 		# delete used params
 		$query = "";
