@@ -6,7 +6,7 @@
 		<tr>
 			{if $MJstate eq 'Running' and $nbrunning > 0}<td><a href="account.php?submenu=jobs&option=runningparams&id={$jobid}">Running Jobs</a>{else}<td style="font-style: italic;">Running Jobs{/if}</td>
 			<td>&nbsp;-&nbsp;</td>
-			<td>{if $nbexecuted > 0}<a href="account.php?submenu=jobs&option=executedparams&id={$jobid}">Executed Jobs</a>{else}Executed Jobs{/if}</td>
+			{if $nbexecuted > 0}<td><a href="account.php?submenu=jobs&option=executedparams&id={$jobid}">Executed Jobs</a>{else}<td style="font-style: italic;">Executed Jobs{/if}</td>
 			<td>&nbsp;-&nbsp;</td>
 			{if $MJstate eq 'Running' and $nbwaiting > 0}<td><a href="account.php?submenu=jobs&option=waitingparams&id={$jobid}">Waiting Parameters</a>{else}<td style="font-style: italic;">Waiting Parameters{/if}</td>
 		</tr>

@@ -3,11 +3,11 @@
 	<h5><a href="account.php?submenu=jobs&option=runningdetails&id={$jobid}">Running MultiJob #{$jobid}</a></h5>
 	<table border="0">
 	<tr>
-		<td>{if $nbrunning > 0}<a href="account.php?submenu=jobs&option=runningparams&id={$jobid}">Running Parameters</a>{else}Running Parameters{/if}</td>
+		{if $nbrunning > 0}<td><a href="account.php?submenu=jobs&option=runningparams&id={$jobid}">Running Parameters</a>{else}<td style="font-style: italic;">Running Parameters{/if}</td>
 		<td>&nbsp;-&nbsp;</td>
 		<td><a href="account.php?submenu=jobs&option=executedparams&id={$jobid}">Executed Parameters</a></td>
 		<td>&nbsp;-&nbsp;</td>
-		<td>{if $nbwaiting > 0}<a href="account.php?submenu=jobs&option=waitingparams&id={$jobid}">Waiting Parameters</a>{else}Waiting Parameters{/if}</td>
+		{if $nbwaiting > 0}<td><a href="account.php?submenu=jobs&option=waitingparams&id={$jobid}">Waiting Parameters</a>{else}<td style="font-style: italic;">Waiting Parameters{/if}</td>
 		</tr>
 	</table>
 
