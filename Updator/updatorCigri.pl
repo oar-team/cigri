@@ -30,6 +30,7 @@ use colomboCigri;
 use NetCommon;
 use jobStat;
 use nodeStat;
+use mailer;
 
 select(STDOUT);
 $|=1;
@@ -131,7 +132,7 @@ foreach my $i (keys(%jobRunningHash)){
 }
 
 #update the state of MJobs
-iolibCigri::check_end_MJobs($base);
+my @MJobs_ended = iolibCigri::check_end_MJobs($base);
 
 #update database for the scheduler
 #iolibCigri::check_remote_waiting_jobs($base);
@@ -139,4 +140,9 @@ iolibCigri::check_end_MJobs($base);
 iolibCigri::emptyTemporaryTables($base);
 
 iolibCigri::disconnect($base);
+
+# notify admin by email
+foreach my $i (@MJobs_ended){
+    mailer::sendMail("End MJob $i ","[Iolib] set to Terminated state the MJob $i");
+}
 

@@ -27,7 +27,7 @@ BEGIN {
 use JDLParserCigri;
 use ConfLibCigri qw(init_conf get_conf is_conf);
 use colomboCigri;
-use mailer;
+#use mailer;
 
 # Connect to the database and give the ref
 sub connect() {
@@ -202,7 +202,7 @@ sub add_mjobs($$) {
 
     $dbh->do("UNLOCK TABLES");
     # notify admin by email
-    mailer::sendMail("New MJob $id from user $lusr","Insert new MJob $id.\nJDL:\n$jdl");
+    #mailer::sendMail("New MJob $id from user $lusr","Insert new MJob $id.\nJDL:\n$jdl");
 
     return $id;
 }
@@ -774,6 +774,8 @@ sub check_end_MJobs($){
     my $dbh = shift;
     my @MJobs = get_IN_TREATMENT_MJobs($dbh);
 
+    my @result;
+    
     foreach my $i (@MJobs){
 #        print("------check $i --------\n");
         my $sth = $dbh->prepare("    SELECT jobMJobsId, count( * )
@@ -815,10 +817,12 @@ sub check_end_MJobs($){
                 $dbh->do("    UPDATE multipleJobs SET MJobsState = \"TERMINATED\"
                             WHERE MJobsId = $i");
                 # notify admin by email
-                mailer::sendMail("End MJob $i ","[Iolib] set to Terminated state the MJob $i");
+                #mailer::sendMail("End MJob $i ","[Iolib] set to Terminated state the MJob $i");
+                push(@result, $i);
             }
         }
     }
+    return(@result);
 }
 
 # update job attribute
@@ -1090,10 +1094,10 @@ sub set_frag_specific_MJob($$){
         colomboCigri::add_new_job_event($dbh,$ref[0],"FRAG","");
     }
 
-    # notify admin by email
-    mailer::sendMail("Frag MJob $MJobId","");
-
     $sth->finish();
+    
+    # notify admin by email
+    #mailer::sendMail("Frag MJob $MJobId","");
 }
 
 # get the eventId of the MJobs tofrag

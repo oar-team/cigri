@@ -28,6 +28,7 @@ use iolibCigri;
 use SSHcmdClient;
 use NetCommon;
 use jobDel;
+use mailer;
 
 my $base = iolibCigri::connect() ;
 
@@ -40,6 +41,12 @@ foreach my $i (@MJobsToFrag){
     iolibCigri::delete_all_MJob_parameters($base,$i);
     #Frag it jobs
     iolibCigri::set_frag_specific_MJob($base,$i);
+
+    iolibCigri::disconnect($base);
+    # notify admin by email
+    mailer::sendMail("Frag MJob $i","");
+    $base = iolibCigri::connect() ;
+
     #change state
     #iolibCigri::set_MJobState_fragged($base,$i);
     colomboCigri::fix_event($base,iolibCigri::get_MJobs_tofrag_eventId($base,$i));

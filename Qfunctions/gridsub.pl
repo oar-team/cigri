@@ -30,6 +30,7 @@ BEGIN {
 }
 use iolibCigri;
 use ConfLibCigri;
+use mailer;
 
 sub usage(){
     print(STDERR "usage: gridSub -f JDLscript \n");
@@ -79,5 +80,8 @@ if ($idJob == -1){
     print("[ERROR] Duplicate parameters\n");
     exit(2);
 }
+
+# notify admin by email
+mailer::sendMail("New MJob $idJob from user ".getpwuid($<),"Insert new MJob $idJob.\nJDL:\n$JDLfile");
 
 exit 0;

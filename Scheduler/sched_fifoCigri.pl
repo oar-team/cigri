@@ -58,10 +58,11 @@ foreach my $i (keys(%nbRemainedJobs)){
                 if (${${$nbFreeNodes{$j}}[$k]}[1] >= $propertiesClusterName{$j}){
                     $number += ${${$nbFreeNodes{$j}}[$k]}[1] / $propertiesClusterName{$j};
                     if ($number > $nbRemainedJobs{$i}){
-                        ${${$nbFreeNodes{$j}}[$k]}[1] += $number - $nbRemainedJobs{$i};
+                        ${${$nbFreeNodes{$j}}[$k]}[1] = ${${$nbFreeNodes{$j}}[$k]}[1] % $propertiesClusterName{$j} + ($number - $nbRemainedJobs{$i}) * $propertiesClusterName{$j};
                         $number = $nbRemainedJobs{$i};
+                    }else{
+                        ${${$nbFreeNodes{$j}}[$k]}[1] = ${${$nbFreeNodes{$j}}[$k]}[1] % $propertiesClusterName{$j};
                     }
-                    ${${$nbFreeNodes{$j}}[$k]}[1] = ${${$nbFreeNodes{$j}}[$k]}[1] % $propertiesClusterName{$j};
                 }
                 $k++;
             }
