@@ -195,19 +195,22 @@ sub is_cluster_active($$$){
 
 # test if the node is active for the MJob
 # arg1 --> database ref
-# arg2 --> nodeId
-# arg3 --> MJobsId
+# arg2 --> clusterName
+# arg3 --> nodeName
+# arg4 --> MJobsId
 # return the number of blacklist
-sub is_node_active($$$){
+sub is_node_active($$$$){
     my $dbh = shift;
-    my $nodeId = shift;
+    my $clusterName = shift;
+    my $nodeName = shift;
     my $MJobId = shift;
 
     my $sth = $dbh->prepare("    SELECT count( * )
                                 FROM nodeBlackList, events
                                 WHERE nodeBlackListEventId = eventId
                                     AND eventState = \"ToFIX\"
-                                    AND nodeBlackListNodeId = $nodeId
+                                    AND nodeBlackListNodeName = \"$nodeName\"
+                                    AND nodeBlackListClusterName = \"$clusterName\"
                                     AND (nodeBlackListMJobsID = $MJobId
                                         OR nodeBlackListMJobsID = 0)
                                 ");
@@ -307,14 +310,13 @@ sub get_blacklisted_nodes($$$){
     my $MJobId = shift;
     my $clusterName = shift;
 
-    my $sth = $dbh->prepare("SELECT  nodeName
-                             FROM nodes,nodeBlackList,events
+    my $sth = $dbh->prepare("SELECT  nodeBlackListNodeName
+                             FROM nodeBlackList,events
                              WHERE eventState = \"ToFIX\"
                                    AND nodeBlackListEventId = eventId
                                    AND (nodeBlackListMJobsID = $MJobId
                                         OR nodeBlackListMJobsID = 0)
-                                   AND nodeBlackListNodeId = nodeId
-                                   AND nodeClusterName = \"$clusterName\"
+                                   AND nodeBlackListEventId = \"$clusterName\"
                             ");
     $sth->execute();
     my @nodeNames;

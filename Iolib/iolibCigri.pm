@@ -375,16 +375,16 @@ sub get_MJobs_JDL($$){
 # arg1 --> database ref
 # arg2 --> nodeId
 # return the clusterName of the nodeId
-sub get_node_cluster($$){
-    my $dbh = shift;
-    my $nodeId = shift;
-    my $sth = $dbh->prepare("SELECT nodeClusterName FROM nodes WHERE nodeId = $nodeId");
-    $sth->execute();
-    my @resulArray = $sth->fetchrow_array();
-    $sth->finish();
-
-    return $resulArray[0];
-}
+#sub get_node_cluster($$){
+#    my $dbh = shift;
+#    my $nodeId = shift;
+#    my $sth = $dbh->prepare("SELECT nodeClusterName FROM nodes WHERE nodeId = $nodeId");
+#    $sth->execute();
+#    my @resulArray = $sth->fetchrow_array();
+#    $sth->finish();
+#
+#    return $resulArray[0];
+#}
 
 #give the nodeId of the given node name
 # arg1 --> database ref

@@ -99,7 +99,11 @@ sub listCurrentJobs($) {
 sub getFreeNodes($) {
     my $dbh = shift;
 
-    my $sth = $dbh->prepare("SELECT hostname, state, weight FROM nodes");
+    my $sth = $dbh->prepare("SELECT n.hostname, n.state, n.weight
+                             FROM nodes n, nodeProperties p
+                             WHERE n.hostname = p.hostname
+                                AND p.besteffort = \"YES\"
+                            ");
     $sth->execute();
     my %res = ();
     while (my @ref = $sth->fetchrow_array()) {

@@ -78,20 +78,26 @@ sub oarnodes($$){
             my $name = shift(@lines);
             $name =~ s/\s//g;
             my $state;
+            my $besteffort;
             my $lineTmp;
             my $key;
             # parse pbsnodes command
-            while ((! defined($state)) && ($#lines >= 0)){
+            while ((! defined($state) || (! defined($besteffort))) && ($#lines >= 0)){
                 $lineTmp = shift(@lines);
                 if ($lineTmp =~ /state =/){
                     ($key, $state) = split("=", $lineTmp);
                     # I drop spaces
                     $state =~ s/\s//g;
+                }elsif ($lineTmp =~ /properties =/){
+                    $lineTmp =~ /^.+besteffort=(YES|NO).*$/;
+                    $besteffort = $1;
                 }
             }
-            if (defined($name) && defined($state)){
-                # Databse update
-                iolibCigri::set_cluster_node_state($dbh, $cluster, $name, $state);
+            if (defined($name) && defined($state) && defined($besteffort)){
+                if ($besteffort eq "YES"){
+                    # Databse update
+                    iolibCigri::set_cluster_node_state($dbh, $cluster, $name, $state);
+                }
             }else{
                 print("[UPDATOR] There is an error in the oarnodes command parse, node=$name;state=$state\n");
                 colomboCigri::add_new_cluster_event($dbh,$cluster,0,"UPDATOR_PBSNODES_PARSE","There is an error in the oarnodes command parse, node=$name;state=$state");

@@ -50,12 +50,11 @@ PRIMARY KEY (clusterName)
 
 DROP TABLE IF EXISTS nodes;
 CREATE TABLE IF NOT EXISTS nodes (
-nodeId INT UNSIGNED NOT NULL AUTO_INCREMENT ,
+#nodeId INT UNSIGNED NOT NULL AUTO_INCREMENT ,
 nodeName VARCHAR( 100 ) NOT NULL ,
 nodeClusterName VARCHAR( 100 ) NOT NULL ,
 nodeState ENUM('BUSY','FREE') DEFAULT 'BUSY' NOT NULL ,
-PRIMARY KEY (nodeId),
-INDEX nom (nodeName,nodeClusterName)
+PRIMARY KEY (nodeName,nodeClusterName)
 )TYPE = InnoDB;
 
 DROP TABLE IF EXISTS jobs;
@@ -176,10 +175,11 @@ PRIMARY KEY (clusterBlackListClusterName,clusterBlackListEventId)
 DROP TABLE IF EXISTS nodeBlackList;
 CREATE TABLE IF NOT EXISTS nodeBlackList (
 nodeBlackListNum INT UNSIGNED NOT NULL ,
-nodeBlackListNodeId INT UNSIGNED NOT NULL ,
+nodeBlackListNodeName VARCHAR( 100 ) NOT NULL ,
+nodeBlackListClusterName VARCHAR( 100 ) NOT NULL ,
 nodeBlackListMJobsID INT UNSIGNED NOT NULL ,
 nodeBlackListEventId INT UNSIGNED NOT NULL ,
-PRIMARY KEY (nodeBlackListNodeId,nodeBlackListEventId)
+PRIMARY KEY (nodeBlackListNodeName,nodeBlackListClusterName,nodeBlackListEventId)
 )TYPE = InnoDB;
 
 DROP TABLE IF EXISTS userBlackList;
