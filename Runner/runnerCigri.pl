@@ -23,10 +23,12 @@ BEGIN {
 	unshift(@INC, $relativePath."Net");
 	unshift(@INC, $relativePath."Iolib");
 	unshift(@INC, $relativePath."Colombo");
+    unshift(@INC, $relativePath."ClusterQuery");
 }
 use iolibCigri;
 use SSHcmdClient;
 use NetCommon;
+use jobSubmit;
 
 # List of pbsnodes commands
 my %qsubCommand = ( 'PBS' => 'qsub',
@@ -77,13 +79,12 @@ if (colomboCigri::is_cluster_active($base,"$i",0) == 0){
 					"chmod +x ~/$tmpRemoteFile ;",
 					"cd ~$$i{user} ;",
 					"sudo -u $$i{user} /bin/cp ~/$tmpRemoteFile . ;",
-					"rm ~/$tmpRemoteFile ;",
-					"sudo -u $$i{user} $qsubCommand{$$i{batch}} -l nodes=1 -q besteffort `pwd`/$tmpRemoteFile;"
-	);
+					"rm ~/$tmpRemoteFile ;"
+#					"sudo -u $$i{user} $qsubCommand{$$i{batch}} -l nodes=1 -q besteffort `pwd`/$tmpRemoteFile;"
+                );
 
 	my $cmdString = join(" ", @cmdSSH);
 	my %cmdResult = SSHcmdClient::submitCmd($$i{clusterName},$cmdString);
-print(Dumper(%cmdResult));
 	if ($cmdResult{STDERR} ne ""){
 		print("[RUNNER_STDERR] $cmdResult{STDERR}");
 		# test if this is a ssh error
@@ -94,27 +95,21 @@ print(Dumper(%cmdResult));
         }
         exit(-1);
 	}else{
-		my @strTmp = split(/\n/, $cmdResult{STDOUT});
-		my $configured = 0;
-		foreach my $k (@strTmp){
-			# update cluster batchId of the job
-			if ($k =~ /\s*IdJob\s=\s(\d+)/){
-				iolibCigri::set_job_batch_id($base,$jobId,$1);
-				$configured = 1;
-			}
-			print("[RUNNER_STDOUT] $k\n");
-		}
-		if ($configured == 1){
-			iolibCigri::set_job_state($base,$jobId,"Running");
-		}else{
-			print("[RUNNER] There is a mistake, the job $jobId state = ERROR, bad remote batch id\n");
-			iolibCigri::set_job_state($base, $jobId, "Event");
-			colomboCigri::add_new_job_event($base,$jobId,"RUNNER_JOBID_PARSE","There is a mistake, the job $jobId state = ERROR, bad remote batch id");
+		my $retCode = jobSubmit::jobSubmit($$i{clusterName},$$i{user},$tmpRemoteFile);
+        if ($retCode < 0){
+            if ($retCode == -2){
+                print("[RUNNER] There is a mistake, the job $jobId state = ERROR, bad remote batch id\n");
+                iolibCigri::set_job_state($base, $jobId, "Event");
+                colomboCigri::add_new_job_event($base,$jobId,"RUNNER_JOBID_PARSE","There is a mistake, the job $jobId state = ERROR, bad remote batch id");
+            }
             exit(-1);
-		}
-	}
+        }else{
+            iolibCigri::set_job_batch_id($base,$jobId,$retCode);
+			iolibCigri::set_job_state($base,$jobId,"Running");
+        }
+    }
 }else{
-	print("[RUNNER] cluster blacklisted $$i{clusterName}\n");
+    print("[RUNNER] cluster blacklisted $$i{clusterName}\n");
 }
 }
 iolibCigri::disconnect($base);

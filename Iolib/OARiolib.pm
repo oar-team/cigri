@@ -116,4 +116,57 @@ sub fragRemoteJob($$) {
     return 1;
 }
 
+# ymdhms_to_sql
+# converts a date specified as year, month, day, minutes, secondes to a string
+# in the format used by the sql database
+# parameters : year, month, day, hours, minutes, secondes
+# return value : date string
+# side effects : /
+sub ymdhms_to_sql($$$$$$) {
+    my ($year,$mon,$mday,$hour,$min,$sec)=@_;
+    return ($year+1900)."-".($mon+1)."-".$mday." $hour:$min:$sec";
+}
+
+# get_date
+# returns the current time in the format used by the sql database
+# parameters : /
+# return value : date string
+# side effects : /
+sub get_date() {
+    my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime;
+    return ymdhms_to_sql($year,$mon,$mday,$hour,$min,$sec);
+}
+
+# submit a job
+# arg1 --> database ref
+# arg2 --> username
+# arg3 --> jobFile
+# return jobBatchId
+sub submitJob($$$) {
+    my $dbh = shift;
+    my $user = shift;
+    my $jobFile = shift;
+
+    $dbh->do("LOCK TABLE jobs WRITE");
+    my $sth = $dbh->prepare("SELECT MAX(idJob)+1 FROM jobs");
+    $sth->execute();
+    my $ref = $sth->fetchrow_hashref();
+    my @tmp = values %$ref;
+    my $id = $tmp[0];
+    $sth->finish();
+    if($id eq "") {
+        $id = 1;
+    }
+    my $time = get_date();
+
+    $dbh->do("INSERT INTO jobs (idJob,jobType,infoType,state,user,nbNodes,weight,command,submissionTime,maxTime,queueName) VALUES ($id,\"PASSIVE\",\"\",\"Waiting\",\"$user\",1,1,\"~$user/$jobFile\",\"$time\",\"01:00:00\",\"besteffort\")");
+
+    $dbh->do("UNLOCK TABLES");
+
+    #Insert job's properties
+    $dbh->do("INSERT INTO jobProperties (idJob,property,value) VALUES ($id,\"Killable\",\"1\")");
+
+    return $id;
+}
+
 return 1;
