@@ -17,52 +17,29 @@ CONNECT cigri;
 #FLUSH PRIVILEGES;
 
 
-DROP TABLE IF EXISTS errors;
-CREATE TABLE IF NOT EXISTS errors (
-errorId INT UNSIGNED NOT NULL AUTO_INCREMENT ,
-errorType ENUM('USER_SOFTWARE','RUNNER_SUBMIT','JOBID_PARSE') NOT NULL ,
-errorState ENUM('ToFIX','RESUBMITTED','CANCELED') DEFAULT 'ToFIX' NOT NULL ,
-errorJobId BIGINT UNSIGNED ,
-errorDate DATETIME NOT NULL ,
-errorMessage VARCHAR( 255 ) ,
-PRIMARY KEY (errorId)
-)TYPE = InnoDB;
-
-DROP TABLE IF EXISTS clusterErrors;
-CREATE TABLE IF NOT EXISTS clusterErrors (
-clusterErrorId INT UNSIGNED NOT NULL AUTO_INCREMENT ,
-clusterErrorType ENUM('QSTAT_CMD','PBSNODES_CMD','PBSNODES_PARSE') NOT NULL ,
-clusterErrorState ENUM('ToFIX','FIXED') DEFAULT 'ToFIX' NOT NULL ,
-clusterErrorClusterName VARCHAR( 100 ) NOT NULL ,
-clusterErrorDate DATETIME NOT NULL ,
-clusterErrorMessage VARCHAR( 255 ) ,
-PRIMARY KEY (clusterErrorId)
-)TYPE = InnoDB;
-
-DROP TABLE IF EXISTS schedulerErrors;
-CREATE TABLE IF NOT EXISTS schedulerErrors (
-schedulerErrorId INT UNSIGNED NOT NULL AUTO_INCREMENT ,
-schedulerErrorType ENUM('NB_PARAMS','NB_NODES','FILE') NOT NULL ,
-schedulerErrorState ENUM('ToFIX','FIXED') DEFAULT 'ToFIX' NOT NULL ,
-schedulerErrorSchedulerId INT UNSIGNED NOT NULL,
-schedulerErrorDate DATETIME NOT NULL ,
-schedulerErrorMessage VARCHAR( 255 ) ,
-PRIMARY KEY (schedulerErrorId)
+DROP TABLE IF EXISTS events;
+CREATE TABLE IF NOT EXISTS events (
+eventId INT UNSIGNED NOT NULL AUTO_INCREMENT ,
+eventType VARCHAR( 50 ) NOT NULL,
+eventClass ENUM('CLUSTER','JOB','SCHEDULER','MJOBS') NOT NULL ,
+eventState ENUM('ToFIX','FIXED') DEFAULT 'ToFIX' NOT NULL ,
+eventJobId BIGINT UNSIGNED ,
+eventClusterName VARCHAR( 100 ) ,
+#eventNodeId INT UNSIGNED ,
+eventSchedulerId INT UNSIGNED NOT NULL,
+eventMJobsId INT UNSIGNED ,
+eventDate DATETIME NOT NULL ,
+eventMessage VARCHAR( 255 ) ,
+eventAdminNote VARCHAR( 255 ) ,
+PRIMARY KEY (eventId)
 )TYPE = InnoDB;
 
 DROP TABLE IF EXISTS clusters;
 CREATE TABLE IF NOT EXISTS clusters (
 clusterName VARCHAR( 100 ) NOT NULL ,
-clusterState ENUM('Alive','Dead') DEFAULT 'Alive' NOT NULL ,
 clusterAdmin VARCHAR( 100 ) NOT NULL ,
 clusterBatch ENUM('PBS','OAR') DEFAULT 'OAR' NOT NULL ,
 clusterAlias VARCHAR( 20 ) ,
-#nbFreeNodes INT UNSIGNED NOT NULL DEFAULT 0 ,
-#clusterState ENUM('VALID','NOTVALID') DEFAULT 'VALID' NOT NULL ,
-#clusterCpu VARCHAR( 100 ) NOT NULL ,
-#clusterMem INT UNSIGNED ,
-#clusterDisk INT UNSIGNED ,
-#clusterBandwidth INT UNSIGNED,
 PRIMARY KEY (clusterName)
 )TYPE = InnoDB;
 
@@ -79,9 +56,7 @@ INDEX nom (nodeName,nodeClusterName)
 DROP TABLE IF EXISTS jobs;
 CREATE TABLE IF NOT EXISTS jobs (
 jobId BIGINT UNSIGNED NOT NULL AUTO_INCREMENT ,
-jobState ENUM('toLaunch', 'Running', 'RemoteWaiting', 'Terminated', 'Error', 'Killed', 'Fragged') NOT NULL ,
-jobFrag ENUM('YES','NO') NOT NULL DEFAULT 'NO' ,
-jobMessage VARCHAR( 255 ) ,
+jobState ENUM('toLaunch', 'Running', 'RemoteWaiting', 'Terminated', 'Event') NOT NULL ,
 jobMJobsId INT UNSIGNED ,
 jobParam VARCHAR( 255 ) ,
 jobName VARCHAR( 255 ) ,
@@ -92,7 +67,6 @@ jobCollectedJobId INT DEFAULT 0 NOT NULL ,
 jobTSub DATETIME ,
 jobTStart DATETIME ,
 jobTStop DATETIME ,
-#jobTStat VARCHAR( 100 ) ,
 PRIMARY KEY (jobId)
 )TYPE = InnoDB;
 
@@ -100,14 +74,10 @@ DROP TABLE IF EXISTS multipleJobs;
 CREATE TABLE IF NOT EXISTS multipleJobs (
 MJobsId INT UNSIGNED NOT NULL ,
 MJobsJDL MEDIUMBLOB ,
-MJobsState ENUM('IN_TREATMENT','TERMINATED','FRAGGED') NOT NULL DEFAULT 'IN_TREATMENT' ,
-MJobsFrag ENUM('YES','NO') NOT NULL DEFAULT 'NO' ,
+MJobsState ENUM('IN_TREATMENT','TERMINATED','EVENT') NOT NULL DEFAULT 'IN_TREATMENT' ,
 MJobsUser VARCHAR( 50 ) NOT NULL ,
 MJobsName VARCHAR( 255 ) ,
 MJobsTSub DATETIME ,
-#MJobsTStart DATETIME ,
-#MJobsTStop DATETIME ,
-#MJOBSMessage VARCHAR( 255 ) ,
 PRIMARY KEY (MJobsId)
 )TYPE = InnoDB;
 
@@ -126,8 +96,6 @@ CREATE TABLE IF NOT EXISTS properties (
 propertiesClusterName VARCHAR( 100 ) NOT NULL ,
 propertiesMJobsId INT UNSIGNED NOT NULL ,
 propertiesJobCmd VARCHAR( 255 ) NOT NULL ,
-propertiesErrorChecker VARCHAR( 255 ) ,
-propertiesActivated ENUM('ON','OFF') NOT NULL DEFAULT 'ON',
 PRIMARY KEY (propertiesClusterName,propertiesMJobsId)
 )TYPE = InnoDB;
 
@@ -189,6 +157,61 @@ semaphoreCollectorId INT UNSIGNED NOT NULL ,
 PRIMARY KEY (semaphoreCollectorId)
 )TYPE = InnoDB;
 
+DROP TABLE IF EXISTS clusterBlackList;
+CREATE TABLE IF NOT EXISTS clusterBlackList (
+clusterBlackListNum INT UNSIGNED NOT NULL ,
+clusterBlackListClusterName VARCHAR( 100 ) NOT NULL ,
+clusterBlackListMJobsID INT UNSIGNED NOT NULL ,
+clusterBlackListEventId INT UNSIGNED NOT NULL ,
+PRIMARY KEY (clusterBlackListClusterName,clusterBlackListEventId)
+)TYPE = InnoDB;
+
+DROP TABLE IF EXISTS nodeBlackList;
+CREATE TABLE IF NOT EXISTS nodeBlackList (
+nodeBlackListNum INT UNSIGNED NOT NULL ,
+nodeBlackListNodeId INT UNSIGNED NOT NULL ,
+nodeBlackListMJobsID INT UNSIGNED NOT NULL ,
+nodeBlackListEventId INT UNSIGNED NOT NULL ,
+PRIMARY KEY (nodeBlackListNodeId,nodeBlackListEventId)
+)TYPE = InnoDB;
+
+DROP TABLE IF EXISTS userBlackList;
+CREATE TABLE IF NOT EXISTS userBlackList (
+userBlackListNum INT UNSIGNED NOT NULL ,
+userBlackListUserGridName VARCHAR( 50 ) NOT NULL ,
+userBlackListClusterName VARCHAR( 100 ) NOT NULL ,
+userBlackListEventId INT UNSIGNED NOT NULL ,
+PRIMARY KEY (userBlackListUserGridName,userBlackListEventId)
+)TYPE = InnoDB;
+
+DROP TABLE IF EXISTS collectBlackList;
+CREATE TABLE IF NOT EXISTS collectBlackList (
+collectBlackListNum INT UNSIGNED NOT NULL ,
+collectBlackListMJobsID INT UNSIGNED ,
+collectBlackListClusterName VARCHAR( 100 ) ,
+collectBlackListEventId INT UNSIGNED NOT NULL ,
+#PRIMARY KEY ()
+)TYPE = InnoDB;
+
+DROP TABLE IF EXISTS schedulerBlackList;
+CREATE TABLE IF NOT EXISTS schedulerBlackList (
+schedulerBlackListNum INT UNSIGNED NOT NULL ,
+schedulerBlackListschedulerId INT UNSIGNED NOT NULL ,
+schedulerBlackListEventId INT UNSIGNED NOT NULL ,
+PRIMARY KEY (schedulerBlackListschedulerId,schedulerBlackListEventId)
+)TYPE = InnoDB;
+
+DROP TABLE IF EXISTS resubmissionLog;
+CREATE TABLE IF NOT EXISTS resubmissionLog (
+resubmissionLogEventId INT UNSIGNED NOT NULL ,
+PRIMARY KEY (resubmissionLogEventId)
+)TYPE = InnoDB;
+
+DROP TABLE IF EXISTS fragLog;
+CREATE TABLE IF NOT EXISTS fragLog (
+fragLogEventId INT UNSIGNED NOT NULL ,
+PRIMARY KEY (fragLogEventId)
+)TYPE = InnoDB;
 
 INSERT INTO clusters (clusterName,clusterAdmin,clusterBatch) VALUES ("pawnee", "", "OAR");
 #INSERT INTO clusters (clusterName,clusterAdmin,clusterBatch) VALUES ("i4", "", "PBS");
