@@ -172,12 +172,9 @@ sub submitJob($$$$$) {
     }
     my $time = get_date();
 
-    $dbh->do("INSERT INTO jobs (idJob,jobType,infoType,state,user,nbNodes,weight,command,submissionTime,maxTime,queueName) VALUES ($id,\"PASSIVE\",\"\",\"Waiting\",\"$user\",1,$weight,\"~$user/$jobFile\",\"$time\",\"01:00:00\",\"besteffort\")");
+    $dbh->do("INSERT INTO jobs (idJob,jobType,infoType,state,user,nbNodes,weight,command,submissionTime,maxTime,queueName,launchingDirectory) VALUES ($id,\"PASSIVE\",\"\",\"Waiting\",\"$user\",1,$weight,\"~$user/$jobFile\",\"$time\",\"01:00:00\",\"besteffort\",\"~$user\")");
 
     $dbh->do("UNLOCK TABLES");
-
-    #Insert job's properties
-    $dbh->do("INSERT INTO jobProperties (idJob,property,value) VALUES ($id,\"Killable\",\"1\")");
 
     return $id;
 }
