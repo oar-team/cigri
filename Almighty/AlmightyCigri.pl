@@ -18,8 +18,10 @@ BEGIN {
 	# configure the path to reach the lib directory
 	unshift(@INC, $relativePath."lib");
 	unshift(@INC, $relativePath."ConfLib");
+	unshift(@INC, $relativePath."Iolib");
 }
 use ConfLibCigri qw(init_conf dump_conf get_conf is_conf);
+use iolibCigri;
 
 # Init the request to the cigri.conf file
 init_conf();
@@ -31,8 +33,8 @@ if (is_conf("installPath")){
 	die("You must have a cigri.conf script with a valid installPath tag\n");
 }
 
-#my $scheduler_command = $path."sched_fifoCigri.pl";
-my $scheduler_command = "/home/capitn/CIGRI/Scheduler/Equit/sched_equitCigri";
+my $scheduler_command = $path."sched_fifoCigri.pl";
+#my $scheduler_command = "/home/capitn/CIGRI/Scheduler/Equit/sched_equitCigri";
 my $runner_command = $path."runnerCigri.pl";
 my $updator_command = $path."updatorCigri.pl";
 
@@ -50,6 +52,8 @@ my $internaltimeout = 5;
 my $schedulertimeout = 33;
 my $lastscheduler;
 my @internal_command_file;
+
+my $base = iolibCigri::connect();
 
 # arg1 --> command name
 sub launch_command($)
@@ -97,9 +101,20 @@ sub init(){
 #}
 #exit 0;
 
-sub scheduler()
-{
-	return launch_command($scheduler_command);
+sub scheduler(){
+	iolibCigri::update_current_scheduler($base);
+	my $sched = iolibCigri::get_current_scheduler($base);
+	#return launch_command($scheduler_command);
+	if (defined($$sched{schedulerFile})){
+		if ( -x $path.$$sched{schedulerFile} ){
+			return launch_command($path.$$sched{schedulerFile});
+		}else{
+			print("Bad scheduler file\n");
+			iolibCigri::insert_new_schedulerError($base,"FILE","Can t find the file $$sched{schedulerFile}");
+		}
+	}else{
+		print("NO SCHEDULER TO LAUNCH :-(\n");
+	}
 }
 
 sub qget()

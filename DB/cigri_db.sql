@@ -42,8 +42,9 @@ PRIMARY KEY (clusterErrorId)
 DROP TABLE IF EXISTS schedulerErrors;
 CREATE TABLE IF NOT EXISTS schedulerErrors (
 schedulerErrorId INT UNSIGNED NOT NULL AUTO_INCREMENT ,
-schedulerErrorType ENUM('NB_PARAMS','NB_NODES') NOT NULL ,
+schedulerErrorType ENUM('NB_PARAMS','NB_NODES','FILE') NOT NULL ,
 schedulerErrorState ENUM('ToFIX','FIXED') DEFAULT 'ToFIX' NOT NULL ,
+schedulerErrorSchedulerId INT UNSIGNED NOT NULL,
 schedulerErrorDate DATETIME NOT NULL ,
 schedulerErrorMessage VARCHAR( 255 ) ,
 PRIMARY KEY (schedulerErrorId)
@@ -106,13 +107,6 @@ MJobsTSub DATETIME ,
 PRIMARY KEY (MJobsId)
 )TYPE = InnoDB;
 
-#DROP TABLE IF EXISTS jobNode;
-#CREATE TABLE IF NOT EXISTS jobNode (
-#jobNodeJobId BIGINT UNSIGNED NOT NULL ,
-#jobNodeNodeId INT UNSIGNED NOT NULL ,
-#PRIMARY KEY (jobNodeJobId, jobNodeNodeId)
-#)TYPE = InnoDB;
-
 DROP TABLE IF EXISTS parameters;
 CREATE TABLE IF NOT EXISTS parameters (
 parametersMJobsId INT UNSIGNED NOT NULL ,
@@ -163,13 +157,6 @@ userLogin VARCHAR( 50 ) NOT NULL ,
 PRIMARY KEY (userGridName,userClusterName)
 )TYPE = InnoDB;
 
-#DROP TABLE IF EXISTS collector;
-#CREATE TABLE IF NOT EXISTS collector (
-#collectorId INT NOT NULL ,
-#collectorFileName VARCHAR( 100 ) NOT NULL ,
-#PRIMARY KEY (collectorId)
-#)TYPE = InnoDB;
-
 DROP TABLE IF EXISTS collectedJobs;
 CREATE TABLE IF NOT EXISTS collectedJobs (
 collectedJobsMJobsId INT UNSIGNED NOT NULL ,
@@ -178,8 +165,25 @@ collectedJobsFileName VARCHAR( 100 ) NOT NULL ,
 PRIMARY KEY (collectedJobsMJobsId,collectedJobsId)
 )TYPE = InnoDB;
 
+DROP TABLE IF EXISTS schedulers;
+CREATE TABLE IF NOT EXISTS schedulers (
+schedulerId INT UNSIGNED NOT NULL AUTO_INCREMENT ,
+schedulerFile VARCHAR( 255 ) NOT NULL ,
+schedulerPriority VARCHAR( 100 ) NOT NULL DEFAULT 0 ,
+PRIMARY KEY (schedulerId)
+)TYPE = InnoDB;
+
+DROP TABLE IF EXISTS currentScheduler;
+CREATE TABLE IF NOT EXISTS currentScheduler (
+currentSchedulerId INT UNSIGNED NOT NULL ,
+PRIMARY KEY (currentSchedulerId)
+)TYPE = InnoDB;
+
 INSERT INTO clusters (clusterName,clusterAdmin,clusterBatch) VALUES ("pawnee", "", "OAR");
 #INSERT INTO clusters (clusterName,clusterAdmin,clusterBatch) VALUES ("i4", "", "PBS");
 
 INSERT INTO users (userGridName,userClusterName,userLogin) VALUES ("capitn", "pawnee", "capitn");
+
+INSERT INTO schedulers (schedulerFile,schedulerPriority) VALUES ("sched_equitCigri",2);
+INSERT INTO schedulers (schedulerFile,schedulerPriority) VALUES ("sched_fifoCigri.pl",1);
 

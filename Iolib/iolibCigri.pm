@@ -813,9 +813,10 @@ sub insert_new_schedulerError($$$){
 	$errorMessage = substr($errorMessage, 0, 250);
 
 	my $time = get_date();
+	my $sched = get_current_scheduler($dbh);
 
-	$dbh->do("INSERT INTO schedulerErrors (schedulerErrorType,schedulerErrorState,schedulerErrorDate,schedulerErrorMessage)
-			VALUES (\"$errorType\",\"ToFIX\",\"$time\",\"$errorMessage\")");
+	$dbh->do("INSERT INTO schedulerErrors (schedulerErrorType,schedulerErrorState,schedulerErrorSchedulerId,schedulerErrorDate,schedulerErrorMessage)
+	VALUES (\"$errorType\",\"ToFIX\",$$sched{schedulerId},\"$time\",\"$errorMessage\")");
 }
 
 # set the message of a job
@@ -1005,6 +1006,68 @@ sub set_job_collectedJobId($$$){
 	my $collectedJobId = shift;
 
 	$dbh->do("UPDATE jobs SET jobCollectedJobId = $collectedJobId where jobId = $jobId");
+}
+
+# return the current scheduler
+# arg1 --> database ref
+sub get_current_scheduler($){
+	my $dbh = shift;
+
+	my $sth = $dbh->prepare("	SELECT schedulerId, schedulerFile
+								FROM currentScheduler, schedulers
+								WHERE currentSchedulerId = schedulerId
+								LIMIT 1
+							");
+	$sth->execute();
+	my $result  = $sth->fetchrow_hashref();
+
+	$sth->finish();
+
+	return $result;
+
+}
+
+# set the currentSZcheduler table
+# arg1 --> database ref
+sub update_current_scheduler($){
+	my $dbh = shift;
+	my @badScheds;
+	my $sth = $dbh->prepare("	SELECT schedulerErrorSchedulerId
+								FROM schedulerErrors
+								WHERE schedulerErrorState = \"ToFIX\"
+							");
+	$sth->execute();
+
+	while (my $ref = $sth->fetchrow_hashref()) {
+		push(@badScheds, $$ref{schedulerErrorSchedulerId});
+	}
+
+	$sth->finish();
+
+	my $query = "";
+	foreach my $i (@badScheds){
+		$query .= " AND schedulerId != $i";
+	}
+
+	#remove first AND if needed
+	if ("$query" ne ""){
+		$query =~ /\sAND\s(.*)/;
+		$query = "WHERE $1";
+	}
+
+	$sth = $dbh->prepare("	SELECT *
+							FROM schedulers
+							$query
+							ORDER BY schedulerPriority DESC
+							LIMIT 1
+						");
+	$sth->execute();
+	my $result  = $sth->fetchrow_hashref();
+
+	$sth->finish();
+
+	$dbh->do("TRUNCATE TABLE currentScheduler");
+	$dbh->do("INSERT INTO currentScheduler (currentSchedulerId) VALUES ($$result{schedulerId})");
 }
 
 sub begin_transaction($){
