@@ -35,19 +35,24 @@ sub getSshErrorPrefix(){
 
 # add an event when there is a mistake with ssh connection
 # detected in the error String
-# arg1 --> ssh error string
+# arg1 --> database ref
+# arg2 --> cluster name
+# arg3 --> ssh error string
 # return 0 if is not an ssh error and 1 otherwise
-sub checkSshError($){
+sub checkSshError($$$){
+    my $base = shift;
+    my $clusterName = shift;
     my $errorStr = shift;
 
     if (index($errorStr,$sshErrorPrefix) == 0){
         print("!SSH error!\n");
+        #add an event in the database
+        colomboCigri::add_new_ssh_event($base,"$clusterName","$errorStr");
         return 1;
     }else{
         print("No SSH error\n");
         return 0;
     }
-
 }
 
 return 1;

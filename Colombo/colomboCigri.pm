@@ -132,8 +132,8 @@ sub add_new_mjob_event($$$$){
 # add a new event relative of a scheduler in the database and treate it
 # arg1 --> database ref
 # arg2 --> schedulerId on which event occured
-# arg4 --> event Type
-# arg5 --> descriptive message
+# arg3 --> event Type
+# arg4 --> descriptive message
 sub add_new_scheduler_event($$$$){
 	my $dbh = shift;
 	my $schedId = shift;
@@ -147,6 +147,29 @@ sub add_new_scheduler_event($$$$){
 	my $time = get_date();
 	$dbh->do("	INSERT INTO events (eventId,eventType,eventClass,eventSchedulerId,eventDate,eventMessage)
 				VALUES ($id,\"$eventType\",\"SCHEDULER\",\"$schedId\",\"$time\",\"$eventMessage\")");
+
+	$dbh->commit;
+	$dbh->do("UNLOCK TABLES");
+
+	check_events($dbh);
+}
+
+# add a new event relative of a ssh in the database and treate it
+# arg1 --> database ref
+# arg2 --> cluster name
+# arg3 --> descriptive message
+sub add_new_ssh_event($$$){
+	my $dbh = shift;
+    my $clusterName = shift;
+	my $eventMessage = shift;
+
+	$dbh->do("LOCK TABLES events WRITE");
+	$dbh->begin_work;
+
+	my $id = calculate_event_id($dbh);
+	my $time = get_date();
+	$dbh->do("	INSERT INTO events (eventId,eventType,eventClass,eventClusterName,eventDate,eventMessage)
+				VALUES ($id,\"SSH\",\"CLUSTER\",\"$clusterName\",\"$time\",\"$eventMessage\")");
 
 	$dbh->commit;
 	$dbh->do("UNLOCK TABLES");
@@ -290,7 +313,7 @@ sub check_events($){
 	#SCHEDULER
 		# ALMIGHTY_FILE
 	#CLUSTER
-		# UPDATOR_PBSNODES_PARSE, UPDATOR_PBSNODES_CMD, UPDATOR_QSTAT_CMD
+		# UPDATOR_PBSNODES_PARSE, UPDATOR_PBSNODES_CMD, UPDATOR_QSTAT_CMD, SSH
 	#JOB
 		# FRAG, UPDATOR_RET_CODE_ERROR, UPDATOR_JOB_KILLED, RUNNER_SUBMIT, RUNNER_JOBID_PARSE
 
@@ -321,6 +344,7 @@ sub check_events($){
 								AND (eventType = \"UPDATOR_PBSNODES_PARSE\"
 									OR eventType = \"UPDATOR_PBSNODES_CMD\"
 									OR eventType = \"UPDATOR_QSTAT_CMD\"
+                                    OR eventType = \"SSH\"
 									)
 							");
 	$sth->execute();

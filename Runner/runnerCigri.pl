@@ -26,6 +26,7 @@ BEGIN {
 }
 use iolibCigri;
 use SSHcmdClient;
+use NetCommon;
 
 # List of pbsnodes commands
 my %qsubCommand = ( 'PBS' => 'qsub',
@@ -85,12 +86,15 @@ if (colomboCigri::is_cluster_active($base,"$i",0) == 0){
 print(Dumper(%cmdResult));
 	if ($cmdResult{STDERR} ne ""){
 		print("[RUNNER_STDERR] $cmdResult{STDERR}");
-		iolibCigri::set_job_state($base,$jobId,"Event");
-		# treate the SSH error
-		#iolibCigri::insert_new_error($base,"RUNNER_SUBMIT",$jobId,$cmdResult{STDERR});
-		colomboCigri::add_new_job_event($base,$jobId,"RUNNER_SUBMIT",$cmdResult{STDERR});
-		#iolibCigri::resubmit_job($base,$jobId);
+		# test if this is a ssh error
+        if (NetCommon::checkSshError($base,$$i{clusterName},$cmdResult{STDERR}) != 1){
+            iolibCigri::set_job_state($base,$jobId,"Event");
+            # treate the SSH error
+            #iolibCigri::insert_new_error($base,"RUNNER_SUBMIT",$jobId,$cmdResult{STDERR});
+            colomboCigri::add_new_job_event($base,$jobId,"RUNNER_SUBMIT",$cmdResult{STDERR});
+            #iolibCigri::resubmit_job($base,$jobId);
 #		$blackCluster{$$i{clusterName}} = 1;
+        }
 	}else{
 		my @strTmp = split(/\n/, $cmdResult{STDOUT});
 		my $configured = 0;

@@ -25,6 +25,7 @@ BEGIN {
 use iolibCigri;
 use SSHcmdClient;
 use colomboCigri;
+use NetCommon;
 
 select(STDOUT);
 $|=1;
@@ -91,8 +92,11 @@ foreach my $i (keys(%clusterNames)){
 	}else{
 		print("[UPDATOR_ERROR] There is an error in the execution of the pbsnodes command via SSH \n--> I disable all nodes of the cluster $i \n");
 		print("[UPDATOR_ERROR] $cmdResult{STDERR}\n");
-		#iolibCigri::insert_new_clusterError($base,"PBSNODES_CMD","$i","There is an error in the execution of the pbsnodes command via SSH-->I disable all nodes of the cluster $i;$cmdResult{STDERR}");
-		colomboCigri::add_new_cluster_event($base,"$i",0,"UPDATOR_PBSNODES_CMD","There is an error in the execution of the pbsnodes command via SSH-->I disable all nodes of the cluster $i;$cmdResult{STDERR}");
+		# test if this is a ssh error
+        if (NetCommon::checkSshError($base,$i,$cmdResult{STDERR}) != 1){
+            #iolibCigri::insert_new_clusterError($base,"PBSNODES_CMD","$i","There is an error in the execution of the pbsnodes command via SSH-->I disable all nodes of the cluster $i;$cmdResult{STDERR}");
+            colomboCigri::add_new_cluster_event($base,"$i",0,"UPDATOR_PBSNODES_CMD","There is an error in the execution of the pbsnodes command via SSH-->I disable all nodes of the cluster $i;$cmdResult{STDERR}");
+        }
 	}
 }
 
@@ -111,8 +115,11 @@ foreach my $i (keys(%jobRunningHash)){
 	my %jobState = ();
 	if ($cmdResult{STDERR} ne ""){
 		print("\t[UPDATOR_ERROR] $cmdResult{STDERR}\n");
-		#iolibCigri::insert_new_clusterError($base,"QSTAT_CMD","$i","$cmdResult{STDERR}");
-		colomboCigri::add_new_cluster_event($base,"$i",0,"UPDATOR_QSTAT_CMD","$cmdResult{STDERR}");
+		# test if this is a ssh error
+        if (NetCommon::checkSshError($base,$i,$cmdResult{STDERR}) != 1){
+            #iolibCigri::insert_new_clusterError($base,"QSTAT_CMD","$i","$cmdResult{STDERR}");
+		    colomboCigri::add_new_cluster_event($base,"$i",0,"UPDATOR_QSTAT_CMD","$cmdResult{STDERR}");
+        }
 	}else{
 		my $qstatStr = $cmdResult{STDOUT};
 		chomp($qstatStr);
@@ -135,10 +142,13 @@ foreach my $i (keys(%jobRunningHash)){
 				print("\t[UPDATOR_ERROR] Can't check the remote file\n");
 				print("\t[UPDATOR_STDERR] $cmdResult2{STDERR}");
 				# Can t read the file
-				iolibCigri::set_job_state($base, ${$j}{jobId}, "Event");
-				#iolibCigri::set_job_message($base, ${$j}{jobId}, "Can t check the remote file <$remoteFile> : $cmdResult2{STDERR}");
-				#iolibCigri::resubmit_job($base,${$j}{jobId});
-				colomboCigri::add_new_job_event($base,${$j}{jobId},"UPDATOR_JOB_KILLED","Can t check the remote file <$remoteFile> : $cmdResult2{STDERR}");
+				# test if this is a ssh error
+                if (NetCommon::checkSshError($base,$i,$cmdResult{STDERR}) != 1){
+                    iolibCigri::set_job_state($base, ${$j}{jobId}, "Event");
+                    #iolibCigri::set_job_message($base, ${$j}{jobId}, "Can t check the remote file <$remoteFile> : $cmdResult2{STDERR}");
+                    #iolibCigri::resubmit_job($base,${$j}{jobId});
+                    colomboCigri::add_new_job_event($base,${$j}{jobId},"UPDATOR_JOB_KILLED","Can t check the remote file <$remoteFile> : $cmdResult2{STDERR}");
+                }
 			}else{
 				my @strTmp = split(/\n/, $cmdResult2{STDOUT});
 				my %fileVars;
@@ -171,7 +181,9 @@ foreach my $i (keys(%jobRunningHash)){
 					colomboCigri::add_new_job_event($base,${$j}{jobId},"UPDATOR_JOB_KILLED","Can t find the FINISH TAG in the cigri remote file <$remoteFile> : $cmdResult2{STDOUT}");
 				}
 			}
-			SSHcmdClient::submitCmd($i,"sudo -u ${$j}{user} rm ~${$j}{user}/$remoteFile");
+			my %cmdResultRm = SSHcmdClient::submitCmd($i,"sudo -u ${$j}{user} rm ~${$j}{user}/$remoteFile");
+            # test if this is a ssh error
+            NetCommon::checkSshError($base,$i,$cmdResultRm{STDERR}) ;
 		}else{
 			#verify if the job is waiting
 			if (defined($jobState{${$j}{batchJobId}})){
