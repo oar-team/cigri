@@ -323,7 +323,7 @@ sub select_sched_FIFO($){
 
 # give the jobs to launch
 # arg1 --> database ref
-# return an hashtable
+# return an array of hashtables
 sub get_launching_job($) {
 	my $dbh = shift;
 	my $sth = $dbh->prepare("SELECT jobId,jobParam,nodeName,propertiesJobCmd,nodeClusterName,clusterBatch,MJobsUser
@@ -504,7 +504,12 @@ sub update_nb_freeNodes($){
 
 	$dbh->do("TRUNCATE TABLE multipleJobsRemained");
 	foreach my $i (keys(%resultNbRemainedMJob)){
-		my $tmpNumber = $resultNbRemainedMJob{$i} - $resultNbMJobExecuted{$i};
+		my $tmpNumber;
+		if (defined($resultNbMJobExecuted{$i})){
+			$tmpNumber = $resultNbRemainedMJob{$i} - $resultNbMJobExecuted{$i};
+		}else{
+			$tmpNumber = $resultNbRemainedMJob{$i};
+		}
 		$dbh->do("INSERT INTO multipleJobsRemained (multipleJobsRemainedMJobsId,multipleJobsRemainedNumber)
 					VALUES (\"$i\",$tmpNumber)");
 	}
