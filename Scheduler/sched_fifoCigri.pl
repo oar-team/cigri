@@ -14,7 +14,7 @@ my %nbRemainedJobs = iolibCigri::get_nb_remained_jobs($base);
 foreach my $i (keys(%nbRemainedJobs)){
 	my @propertiesClusterName = iolibCigri::get_MJobs_Properties($base, $i);
 	foreach my $j (@propertiesClusterName){
-		my $number ;
+		my $number = 0 ;
 		if ($nbRemainedJobs{$i} <= $nbFreeNodes{$j}){
 			$number = $nbRemainedJobs{$i};
 		}else{
@@ -22,6 +22,7 @@ foreach my $i (keys(%nbRemainedJobs)){
 		}
 		if ($number > 0){
 			iolibCigri::add_job_to_launch($base,$i,$j,$number);
+			print("[Scheduler] add toLaunch job : $i; cluster : $j; number : $number\n");
 			$nbFreeNodes{$j} -= $number;
 			$nbRemainedJobs{$i} -= $number;
 		}

@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS jobs (
 jobId BIGINT UNSIGNED NOT NULL AUTO_INCREMENT ,
 #jobType VARCHAR( 100 ) ,
 #jobJDL MEDIUMBLOB ,
-jobState ENUM('toLaunch', 'Waiting', 'Running', 'RemoteWainting', 'Terminated', 'Error') NOT NULL ,
+jobState ENUM('toLaunch', 'Waiting', 'Running', 'RemoteWaiting', 'Terminated', 'Error') NOT NULL ,
 #jobUser VARCHAR( 50 ) NOT NULL ,
 jobMJobsId INT UNSIGNED ,
 #jobCmd VARCHAR( 255 ) ,

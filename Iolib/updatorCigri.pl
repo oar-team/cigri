@@ -6,7 +6,6 @@ use strict;
 
 use Data::Dumper;
 use iolibCigri;
-#use ConfLibCigri;
 use Net::SSH;
 
 # List of pbsnodes commands
@@ -114,11 +113,15 @@ foreach my $i (keys(%jobRunningHash)){
 		}else{
 			#verify if the job is waiting
 			if ($jobState{${$j}{batchJobId}} eq "W"){
-				iolibCigri::set_job_state($base, ${$j}{jobId}, "RemoteWainting");
+				iolibCigri::set_job_state($base, ${$j}{jobId}, "RemoteWaiting");
+			}else{
+				iolibCigri::set_job_state($base, ${$j}{jobId}, "Running");
 			}
 		}
 	}
 }
+
+iolibCigri::check_end_MJobs($base);
 
 #iolibCigri::pre_schedule($base);
 iolibCigri::update_nb_freeNodes($base);

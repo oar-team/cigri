@@ -390,7 +390,7 @@ sub get_job_to_update_state($){
 	my $dbh = shift;
 	my $sth = $dbh->prepare("	SELECT jobBatchId,nodeClusterName,jobId
 								FROM jobs,nodes
-								WHERE jobState = \"Running\" and jobNodeId = nodeId");
+								WHERE (jobState = \"Running\" or jobState = \"RemoteWaiting\") and jobNodeId = nodeId");
 	$sth->execute();
 
 	my %resul;
@@ -435,7 +435,7 @@ sub get_job_to_update_state($){
 #	}
 #}
 
-# update the number of free nodes for each cluster ans the remained MJobs number
+# update the number of free nodes for each cluster and the remained MJobs number
 # arg1 --> database ref
 sub update_nb_freeNodes($){
 	my $dbh = shift;
@@ -480,20 +480,22 @@ sub update_nb_freeNodes($){
 	}
 
 	#calculate the remained MJob number
-	$sth = $dbh->prepare("	SELECT jobMJobsId, COUNT(*)
-							FROM multipleJobs,jobs
-							WHERE MJobsState = \"IN_TREATMENT\"
-							AND MJobsId = jobMJobsId
-							GROUP BY jobMJobsId");
-	$sth->execute();
-	my %resultNbMJobExecuted;
-	while (my @ref = $sth->fetchrow_array()) {
-		$resultNbMJobExecuted{$ref[0]} = $ref[1];
-	}
-	$sth->finish();
+	#$sth = $dbh->prepare("	SELECT jobMJobsId, COUNT(*)
+	#						FROM multipleJobs,jobs
+	#						WHERE MJobsState = \"IN_TREATMENT\"
+	#						AND MJobsId = jobMJobsId
+	#						GROUP BY jobMJobsId");
+	#$sth->execute();
+	#my %resultNbMJobExecuted;
+	#while (my @ref = $sth->fetchrow_array()) {
+	#	$resultNbMJobExecuted{$ref[0]} = $ref[1];
+	#}
+	#$sth->finish();
 
 	$sth = $dbh->prepare("	SELECT parametersMJobsId, COUNT(*)
-							FROM parameters
+							FROM parameters,multipleJobs
+							WHERE MJobsId = parametersMJobsId
+							AND MJobsState = \"IN_TREATMENT\"
 							GROUP BY parametersMJobsId");
 	$sth->execute();
 	my %resultNbRemainedMJob;
@@ -505,11 +507,11 @@ sub update_nb_freeNodes($){
 	$dbh->do("TRUNCATE TABLE multipleJobsRemained");
 	foreach my $i (keys(%resultNbRemainedMJob)){
 		my $tmpNumber;
-		if (defined($resultNbMJobExecuted{$i})){
-			$tmpNumber = $resultNbRemainedMJob{$i} - $resultNbMJobExecuted{$i};
-		}else{
+		#if (defined($resultNbMJobExecuted{$i})){
+		#	$tmpNumber = $resultNbRemainedMJob{$i} - $resultNbMJobExecuted{$i};
+		#}else{
 			$tmpNumber = $resultNbRemainedMJob{$i};
-		}
+		#}
 		$dbh->do("INSERT INTO multipleJobsRemained (multipleJobsRemainedMJobsId,multipleJobsRemainedNumber)
 					VALUES (\"$i\",$tmpNumber)");
 	}
@@ -585,3 +587,123 @@ sub add_job_to_launch($$$$){
 
 	$dbh->do("INSERT INTO jobsToSubmit (jobsToSubmitMJobsId,jobsToSubmitClusterName,jobsToSubmitNumber) VALUES ($MJobsId,\"$clusterName\",$number)");
 }
+
+# create jobs with the content of the jobsToSubmit table
+# arg1 --> database ref
+sub create_toLaunch_jobs($){
+	my $dbh = shift;
+
+	my $sth = $dbh->prepare("	SELECT jobsToSubmitMJobsId,jobsToSubmitClusterName,jobsToSubmitNumber
+								FROM jobsToSubmit");
+
+	$sth->execute();
+
+	my @result;
+	while (my $ref = $sth->fetchrow_hashref()) {
+		push(@result, $ref);
+	}
+	$sth->finish();
+
+	$dbh->do("TRUNCATE TABLE jobsToSubmit");
+	my $time;
+	my $query;
+	foreach my $i (@result){
+		# get parameters for this MJobs on this cluster
+		$sth = $dbh->prepare("SELECT parametersParam
+								FROM parameters
+								WHERE $i->{jobsToSubmitMJobsId} = parametersMJobsId LIMIT 0,$i->{jobsToSubmitNumber}");
+		$sth->execute();
+		my @parametersTmp;
+		while (my @ref = $sth->fetchrow_array()) {
+			push(@parametersTmp, $ref[0]);
+		}
+		$sth->finish();
+
+		if (scalar(@parametersTmp) != $i->{jobsToSubmitNumber}){
+			warn("[Iolib] Erreur de choix du scheduler pour le nb de parametres\n");
+			return 1;
+		}
+
+		# get right nodes
+		$sth = $dbh->prepare("	SELECT nodeId
+								FROM nodes
+								WHERE nodeState = \"FREE\"
+								AND nodeClusterName = \"$i->{jobsToSubmitClusterName}\"
+								LIMIT $i->{jobsToSubmitNumber}
+								");
+		$sth->execute();
+		my @nodesTmp;
+		while (my @ref = $sth->fetchrow_array()) {
+			push(@nodesTmp, $ref[0]);
+		}
+		$sth->finish();
+
+		if (scalar(@nodesTmp) != $i->{jobsToSubmitNumber}){
+			warn("[Iolib] Erreur de choix du scheduler pour le nb de noeuds\n");
+			return 1;
+		}
+
+		for (my $j=0; $j < $i->{jobsToSubmitNumber}; $j++){
+			#add jobs in jobs table
+			$time = get_date();
+			$dbh->do("	INSERT INTO jobs (jobState,jobMJobsId,jobParam,jobNodeId,jobTSub)
+						VALUES (\"toLaunch\",$i->{jobsToSubmitMJobsId},$parametersTmp[$j],$nodesTmp[$j],\"$time\")");
+		}
+		# delete used params
+		$query = "";
+		foreach my $k (@parametersTmp){
+			$query .= " OR parametersParam = \"$k\"";
+		}
+		#remove first OR or of the query
+		$query =~ /\sOR\s(.*)/;
+		$query = $1;
+		$dbh->do("	DELETE FROM parameters
+					WHERE parametersMJobsId = $i->{jobsToSubmitMJobsId}
+					AND ( $query )
+				");
+		# set to BUSY used nodes
+		$query = "";
+		foreach my $k (@nodesTmp){
+			$query .= " OR nodeId = $k";
+		}
+		#remove first OR or of the query
+		$query =~ /\sOR\s(.*)/;
+		$query = $1;
+		$dbh->do("UPDATE nodes SET nodeState = \"BUSY\" WHERE $query");
+
+	}
+}
+
+# check and set the end of each MJob in the IN_TREATMENT state
+sub check_end_MJobs($){
+	my $dbh = shift;
+	my @MJobs = get_IN_TREATMENT_MJobs($dbh);
+
+	foreach my $i (@MJobs){
+		$sth = $dbh->prepare("	SELECT jobMJobsId, count( * )
+								FROM jobs
+								WHERE jobMJobsId = $i
+								AND jobState != \"Terminated\"
+								GROUP BY jobMJobsId
+								");
+		$sth->execute();
+		my @MJobIdTmp = $sth->fetchrow_array();
+		$sth->finish();
+		if (!@MJobIdTmp){
+			# all jobs are terminated
+			$sth = $dbh->prepare("	SELECT count( * )
+									FROM parameters
+									WHERE parametersMJobsId = $i
+								");
+			$sth->execute();
+			my @nbParamsMJob = $sth->fetchrow_array();
+			$sth->finish();
+			if ($nbParamsMJob[0] == 0){
+				print("[Iolib] set to Terminated state the MJob $i\n");
+				$dbh->do("	UPDATE multipleJobs SET MJobsState = \"TERMINATED\"
+							WHERE MJobsId = $i");
+			}
+		}
+	}
+}
+

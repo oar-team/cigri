@@ -1,8 +1,8 @@
 DEFAULT{
 
 	titi= toto;
-#	nbJobs = 5;
-	paramFile = param.tmp;
+	nbJobs = 15;
+#	paramFile = param.tmp;
 }
 #i4{
 #	execFile = toto;

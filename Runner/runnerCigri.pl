@@ -56,6 +56,9 @@ sub forkSSH ($$$$){
 	return $pid;
 }
 
+# treate the scheduler output in the jobsToSubmit table
+exit 1 if (iolibCigri::create_toLaunch_jobs($base) == 1);
+
 my @jobList = iolibCigri::get_launching_job($base);
 
 my $jobId;
