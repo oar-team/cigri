@@ -35,6 +35,16 @@ my %pbsCommand = ( 	'PBS' => 'pbsnodes -a',
 my %qstatCmd = ( 	'PBS' => 'qstat -f',
 					'OAR' => 'qstat.pl -f' );
 
+#my %toto;
+#my %toto2;
+#while(1){
+#	%toto = SSHcmd::submitCmd("tomte","/bin/sh -c \"hostname; uname -a\"");
+#	print(Dumper(%toto));
+#	%toto2 = SSHcmd::submitCmd("pawnee","/bin/sh -c \"hostname; uname -a\"");
+#	print(Dumper(%toto2));
+#	sleep 1;
+#}
+#exit 0;
 
 my $base = iolibCigri::connect();
 
