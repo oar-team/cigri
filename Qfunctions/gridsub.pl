@@ -62,8 +62,21 @@ my $idJob= iolibCigri::add_mjobs($base,$JDLfile);
 print "IdJob = $idJob \n";
 iolibCigri::disconnect($base);
 
+# -1 = bad JDL file or bad param file
+# -2 = no cluster defined
+# -3 = no execFile in a cluster section
+# -4 = duplicate parameters
 if ($idJob == -1){
-	print("Bad JDLscript file\n");
+	print("[ERROR] Bad JDL file or Bad param file\n");
+	exit(2);
+}elsif($idJob == -2){
+	print("[ERROR] No cluster defined\n");
+	exit(2);
+}elsif($idJob == -3){
+	print("[ERROR] No execFile in a cluster section\n");
+	exit(2);
+}elsif($idJob == -4){
+	print("[ERROR] Duplicate parameters\n");
 	exit(2);
 }
 
