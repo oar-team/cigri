@@ -64,7 +64,8 @@ CREATE TABLE IF NOT EXISTS jobs (
 jobId BIGINT UNSIGNED NOT NULL AUTO_INCREMENT ,
 jobState ENUM('toLaunch', 'Running', 'RemoteWaiting', 'Terminated', 'Event') NOT NULL ,
 jobMJobsId INT UNSIGNED ,
-jobParam VARCHAR( 255 ) ,
+#jobParam VARCHAR( 255 ) ,
+jobParam TEXT ,
 jobName VARCHAR( 255 ) ,
 jobClusterName VARCHAR( 100 ) NOT NULL ,
 jobNodeName VARCHAR( 100 ) ,
@@ -98,11 +99,13 @@ PRIMARY KEY (MJobsId)
 DROP TABLE IF EXISTS parameters;
 CREATE TABLE IF NOT EXISTS parameters (
 parametersMJobsId INT UNSIGNED NOT NULL ,
-parametersParam VARCHAR( 255 )  NOT NULL ,
+#parametersParam VARCHAR( 255 )  NOT NULL ,
+parametersParam TEXT  NOT NULL ,
 parametersName VARCHAR( 255 ) ,
 parametersPriority INT UNSIGNED DEFAULT 0 ,
-INDEX parametersMJobsId (parametersMJobsId),
-PRIMARY KEY (parametersMJobsId, parametersParam)
+INDEX parametersMJobsId (parametersMJobsId)
+#,
+#PRIMARY KEY (parametersMJobsId, parametersParam)
 )TYPE = InnoDB;
 
 DROP TABLE IF EXISTS properties;
