@@ -85,14 +85,14 @@ foreach my $i (keys(%clusterNames)){
 			}else{
 				print("[UPDATOR] There is an error in the pbsnodes command parse, node=$name;state=$state\n");
 				#iolibCigri::insert_new_clusterError($base,"PBSNODES_PARSE","$i","There is an error in the pbsnodes command parse, node=$name;state=$state");
-				colomboCigri::add_new_cluster_event($base,"$i",0,"PBSNODES_PARSE","There is an error in the oarnodes command parse, node=$name;state=$state");
+				colomboCigri::add_new_cluster_event($base,"$i",0,"UPDATOR_PBSNODES_PARSE","There is an error in the oarnodes command parse, node=$name;state=$state");
 			}
 		}
 	}else{
 		print("[UPDATOR_ERROR] There is an error in the execution of the pbsnodes command via SSH \n--> I disable all nodes of the cluster $i \n");
 		print("[UPDATOR_ERROR] $cmdResult{STDERR}\n");
 		#iolibCigri::insert_new_clusterError($base,"PBSNODES_CMD","$i","There is an error in the execution of the pbsnodes command via SSH-->I disable all nodes of the cluster $i;$cmdResult{STDERR}");
-		colomboCigri::add_new_cluster_event($base,"$i",0,"PBSNODES_CMD","There is an error in the execution of the pbsnodes command via SSH-->I disable all nodes of the cluster $i;$cmdResult{STDERR}");
+		colomboCigri::add_new_cluster_event($base,"$i",0,"UPDATOR_PBSNODES_CMD","There is an error in the execution of the pbsnodes command via SSH-->I disable all nodes of the cluster $i;$cmdResult{STDERR}");
 	}
 }
 

@@ -38,7 +38,7 @@ sub connect() {
 	my $user = ConfLibCigri::get_conf("database_username");
 	my $pwd = ConfLibCigri::get_conf("database_userpassword");
 
-	return(DBI->connect("DBI:mysql:database=$name;host=$host", $user, $pwd,	{'RaiseError' => 1}));
+	return(DBI->connect("DBI:mysql:database=$name;host=$host", $user, $pwd,	{'RaiseError' => 0}));
 }
 
 # Disconnect from the database referenced by arg1
@@ -756,15 +756,15 @@ sub update_att_job($$$$$){
 # reschedule a job parameter
 # arg1 --> database parameter
 # arg2 --> idJob to resubmit
-sub resubmit_job($$){
-	my $dbh = shift;
-	my $jobId = shift;
-	$dbh->do("	INSERT INTO parameters (parametersMJobsId,parametersParam)
-				SELECT jobMJobsId, jobParam
-				FROM jobs
-				WHERE jobId = $jobId
-			");
-}
+#sub resubmit_job($$){
+#	my $dbh = shift;
+#	my $jobId = shift;
+#	$dbh->do("	INSERT INTO parameters (parametersMJobsId,parametersParam)
+#				SELECT jobMJobsId, jobParam
+#				FROM jobs
+#				WHERE jobId = $jobId
+#			");
+#}
 
 # Insert a field in the error table
 # arg1 --> database ref
@@ -1058,7 +1058,6 @@ sub update_current_scheduler($){
 	my $sth = $dbh->prepare("	SELECT schedulerId, schedulerFile, schedulerPriority
 							FROM schedulers
 							ORDER BY schedulerPriority DESC
-							LIMIT 1
 						");
 	$sth->execute();
 	my $schedId;

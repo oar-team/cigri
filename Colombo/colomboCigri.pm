@@ -76,7 +76,7 @@ sub add_new_cluster_event($$$$$){
 	$dbh->commit;
 	$dbh->do("UNLOCK TABLES");
 
-	check_events();
+	check_events($dbh);
 }
 
 # add a new event relative of a job in the database and treate it
@@ -101,7 +101,7 @@ sub add_new_job_event($$$$){
 	$dbh->commit;
 	$dbh->do("UNLOCK TABLES");
 
-	check_events();
+	check_events($dbh);
 }
 
 # add a new event relative of a MJob in the database and treate it
@@ -126,7 +126,7 @@ sub add_new_mjob_event($$$$){
 	$dbh->commit;
 	$dbh->do("UNLOCK TABLES");
 
-	check_events();
+	check_events($dbh);
 }
 
 # add a new event relative of a scheduler in the database and treate it
@@ -151,7 +151,7 @@ sub add_new_scheduler_event($$$$){
 	$dbh->commit;
 	$dbh->do("UNLOCK TABLES");
 
-	check_events();
+	check_events($dbh);
 }
 
 # test if the cluster is active for the MJob
@@ -285,8 +285,173 @@ sub fix_event($$){
 }
 
 # check events in the database and decide actions to perform
-sub check_events(){
-	print("I check events\n");
+# arg1 --> database ref
+sub check_events($){
+	#SCHEDULER
+		# ALMIGHTY_FILE
+	#CLUSTER
+		# UPDATOR_PBSNODES_PARSE, UPDATOR_PBSNODES_CMD, UPDATOR_QSTAT_CMD
+	#JOB
+		# FRAG, UPDATOR_RET_CODE_ERROR, UPDATOR_JOB_KILLED, RUNNER_SUBMIT, RUNNER_JOBID_PARSE
+
+	print("I chck events\n");
+
+	#lock tables
+	my $dbh = shift;
+
+	$dbh->do("LOCK TABLES events WRITE, clusterBlackList WRITE, jobs WRITE, nodes WRITE, schedulerBlackList WRITE, resubmissionLog WRITE, parameters WRITE");
+	$dbh->begin_work;
+	#list of cluster events used
+	my $sth = $dbh->prepare("	SELECT clusterBlackListEventId
+								FROM events, clusterBlackList
+								WHERE clusterBlackListEventId = eventId
+									AND eventState = \"ToFIX\"
+								");
+	$sth->execute();
+	my %eventUsed;
+	while (my @ref = $sth->fetchrow_array()) {
+		$eventUsed{$ref[0]}=1;
+	}
+	$sth->finish();
+
+	#search tofix event relative to a cluster error ("UPDATOR_PBSNODES_PARSE","UPDATOR_QSTAT_CMD","UPDATOR_PBSNODES_CMD",...
+	$sth = $dbh->prepare("	SELECT eventId, eventClusterName
+							FROM events
+							WHERE eventState = \"ToFIX\"
+								AND (eventType = \"UPDATOR_PBSNODES_PARSE\"
+									OR eventType = \"UPDATOR_PBSNODES_CMD\"
+									OR eventType = \"UPDATOR_QSTAT_CMD\"
+									)
+							");
+	$sth->execute();
+	while (my @ref = $sth->fetchrow_array()) {
+		if (!defined($eventUsed{$ref[0]})){
+			my $sthTmp = $dbh->prepare("SELECT MAX(clusterBlackListNum)+1 FROM clusterBlackList");
+			$sthTmp->execute();
+			my $refTmp = $sthTmp->fetchrow_hashref();
+			my @tmp = values(%$refTmp);
+			my $id = $tmp[0];
+			$sthTmp->finish();
+			if(!defined($id)) {
+				$id = 1;
+			}
+			$dbh->do("	INSERT INTO clusterBlackList (clusterBlackListNum,clusterBlackListClusterName,clusterBlackListEventId )
+						VALUES ($id,\"$ref[1]\",$ref[0])");
+		}
+	}
+	$sth->finish();
+
+	$dbh->commit;
+	$dbh->begin_work;
+
+	# JOB error ----> blacklist a cluster for a MJob
+	$sth = $dbh->prepare("	SELECT eventId, nodeClusterName, jobMJobsId
+							FROM events, jobs, nodes
+							WHERE eventState = \"ToFIX\"
+								AND (eventType = \"UPDATOR_RET_CODE_ERROR\"
+									OR eventType = \"RUNNER_SUBMIT\"
+									OR eventType = \"RUNNER_JOBID_PARSE\"
+									)
+								AND jobId = eventJobId
+								AND nodeId = jobNodeId
+							");
+	$sth->execute();
+
+	while (my @ref = $sth->fetchrow_array()) {
+		if (!defined($eventUsed{$ref[0]})){
+			my $sthTmp = $dbh->prepare("SELECT MAX(clusterBlackListNum)+1 FROM clusterBlackList");
+			$sthTmp->execute();
+			my $refTmp = $sthTmp->fetchrow_hashref();
+			my @tmp = values(%$refTmp);
+			my $id = $tmp[0];
+			$sthTmp->finish();
+			if(!defined($id)) {
+				$id = 1;
+			}
+			$dbh->do("	INSERT INTO clusterBlackList (clusterBlackListNum,clusterBlackListClusterName,clusterBlackListMJobsID,clusterBlackListEventId )
+						VALUES ($id,\"$ref[1]\",$ref[2],$ref[0])");
+		}
+	}
+	$sth->finish();
+
+	# I treate the UPDATOR_JOB_KILLED event type
+	# --> resubmit jobs
+
+	$dbh->commit;
+	$dbh->begin_work;
+
+	$sth = $dbh->prepare("	SELECT eventId, eventJobId
+							FROM events
+							WHERE eventState = \"ToFIX\"
+								AND eventType = \"UPDATOR_JOB_KILLED\"
+							");
+	$sth->execute();
+
+	while (my @ref = $sth->fetchrow_array()) {
+			resubmit_job($dbh,$ref[1]);
+			$dbh->do("	INSERT INTO resubmissionLog (resubmissionLogEventId)
+						VALUES ($ref[0])");
+			fix_event($dbh,$ref[0]);
+	}
+	$sth->finish();
+
+	# scheduler error --> blacklist scheduler
+	#list of scheduler events used
+
+	$dbh->commit;
+	$dbh->begin_work;
+
+	$sth = $dbh->prepare("	SELECT schedulerBlackListEventId
+							FROM events, schedulerBlackList
+							WHERE schedulerBlackListEventId = eventId
+								AND eventState = \"ToFIX\"
+							");
+	$sth->execute();
+	undef(%eventUsed);
+	while (my @ref = $sth->fetchrow_array()) {
+		$eventUsed{$ref[0]}=1;
+	}
+	$sth->finish();
+
+	$sth = $dbh->prepare("	SELECT eventId, eventSchedulerId
+							FROM events
+							WHERE eventState = \"ToFIX\"
+								AND eventType = \"ALMIGHTY_FILE\"
+							");
+	$sth->execute();
+
+	while (my @ref = $sth->fetchrow_array()) {
+		if (!defined($eventUsed{$ref[0]})){
+			my $sthTmp = $dbh->prepare("SELECT MAX(schedulerBlackListNum)+1 FROM schedulerBlackList");
+			$sthTmp->execute();
+			my $refTmp = $sthTmp->fetchrow_hashref();
+			my @tmp = values(%$refTmp);
+			my $id = $tmp[0];
+			$sthTmp->finish();
+			if(!defined($id)) {
+				$id = 1;
+			}
+			$dbh->do("	INSERT INTO schedulerBlackList (schedulerBlackListNum,schedulerBlackListSchedulerId,schedulerBlackListEventId)
+						VALUES ($id,$ref[1],$ref[0])");
+		}
+	}
+	$sth->finish();
+
+	$dbh->commit;
+	$dbh->do("UNLOCK TABLES");
+}
+
+# reschedule a job parameter
+# arg1 --> database parameter
+# arg2 --> idJob to resubmit
+sub resubmit_job($$){
+	my $dbh = shift;
+	my $jobId = shift;
+	$dbh->do("	INSERT INTO parameters (parametersMJobsId,parametersParam)
+				SELECT jobMJobsId, jobParam
+				FROM jobs
+				WHERE jobId = $jobId
+			");
 }
 
 return 1;
