@@ -60,7 +60,7 @@ sub init_jdl($) {
 	}
 
 	foreach my $i (@clusters){
-		$i =~ m/\s*(\w+)\s*{/ ;
+		$i =~ m/\s*([\w+\-*\.*]+)\s*{/ ;
 		my $clusterName = $1;
 		my ($devNull, $clusterBlock) = split(/{/, $i);
 		next if (!defined($clusterBlock));
