@@ -480,7 +480,7 @@ sub update_nb_freeNodes($){
 	}
 
 	$sth->finish();
-
+#A MODIFIER : BUG SI des jobs a Running --> 3 jobs Running et 2 nodes free ==> BUG
 	$sth = $dbh->prepare("	SELECT nodeClusterName, COUNT(*)
 							FROM nodes,jobs
 							WHERE nodeId = jobNodeId
