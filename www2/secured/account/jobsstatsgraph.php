@@ -49,14 +49,18 @@ WHERE
 	AND j.jobState='TERMINATED'
 	AND j.jobTStart > '$date'
 EOF;
-	list($res,$nb) = sqlquery($query,$link);
+        $nb=0;
+        $result = mysql_query($query,$link);
+        $times = array();
+        while ($row = mysql_fetch_array($result)) {
+                $times[] = $row[0];
+		$nb++;
+        }
+        mysql_free_result($result);
 
-	$times = array();
 	$total = 0;
 	for ($i = 0;$i < $nb;$i++) {
-	        $temp = $res[$i][0];
-	        $total += $temp;
-	        $times[] = $temp;
+	        $total += $times[$i];
 	}
 	
 	if ($nb != 0) {
