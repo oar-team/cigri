@@ -45,7 +45,7 @@ sub jobDel($$$){
     my $base = iolibCigri::connect();
     my %clusterProperties = iolibCigri::get_cluster_names_batch($base);
     my %result ;
-    my $retCode = 66;
+    my $retCode = -1;
     if (defined($cluster) && defined($clusterProperties{$cluster})){
         $retCode = &{$qdelCmd{$clusterProperties{$cluster}}}($base,$cluster,$user,$jobBatchId);
     }
@@ -85,7 +85,7 @@ sub oardel($$$){
         if (NetCommon::checkSshError($dbh,$cluster,$cmdResult{STDERR}) != 1){
             colomboCigri::add_new_cluster_event($dbh,$cluster,0,"QDEL_CMD","$cmdResult{STDERR}");
         }
-        return(66);
+        return(-1);
     }
 
     return(1);
@@ -104,7 +104,7 @@ sub oardelMysql($$$$){
     print("OAR_mysql -- $cluster\n");
     my $OARdb = OARiolib::connect($dbh,$cluster);
     if (!defined($OARdb)){
-        return(66);
+        return(-1);
     }
     OARiolib::fragRemoteJob($OARdb,$jobBatchId);
     OARiolib::disconnect($dbh);

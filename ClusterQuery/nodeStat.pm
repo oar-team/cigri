@@ -39,7 +39,7 @@ sub updateNodeStat($){
     my $base = iolibCigri::connect();
     my %clusterProperties = iolibCigri::get_cluster_names_batch($base);
     my %result ;
-    my $retCode = 66;
+    my $retCode = -1;
     if (defined($cluster) && defined($clusterProperties{$cluster})){
         $retCode = &{$nodeCmd{$clusterProperties{$cluster}}}($base,$cluster);
     }
@@ -95,7 +95,7 @@ sub oarnodes($$){
             }else{
                 print("[UPDATOR] There is an error in the oarnodes command parse, node=$name;state=$state\n");
                 colomboCigri::add_new_cluster_event($dbh,$cluster,0,"UPDATOR_PBSNODES_PARSE","There is an error in the oarnodes command parse, node=$name;state=$state");
-                return(66);
+                return(-1);
             }
         }
     }else{
@@ -105,7 +105,7 @@ sub oarnodes($$){
         if (NetCommon::checkSshError($dbh,$cluster,$cmdResult{STDERR}) != 1){
             colomboCigri::add_new_cluster_event($dbh,$cluster,0,"UPDATOR_PBSNODES_CMD","There is an error in the execution of the oarnodes command via SSH-->I disable all nodes of the cluster $cluster;$cmdResult{STDERR}");
         }
-        return(66);
+        return(-1);
     }
     return(1);
 }
@@ -119,7 +119,7 @@ sub oarnodesMysql($$){
     print("OAR_mysql -- $cluster\n");
     my $OARdb = OARiolib::connect($dbh,$cluster);
     if (!defined($OARdb)){
-        return(66);
+        return(-1);
     }
     my %nodeState = OARiolib::getFreeNodes($OARdb);
     foreach my $i (keys(%nodeState)){

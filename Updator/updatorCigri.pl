@@ -44,7 +44,7 @@ my %clusterNames = iolibCigri::get_cluster_names_batch($base);
 foreach my $i (keys(%clusterNames)){
 	print("[UPDATOR] Query free nodes on $i which has a batch-scheduler of the type : $clusterNames{$i}\n");
 
-    if (nodeStat::updateNodeStat($i) == 66){
+    if (nodeStat::updateNodeStat($i) == -1){
         #something wrong happens
         exit(66);
     }
@@ -57,7 +57,7 @@ print("[UPDATOR] Verify if Running jobs are still running:\n");
 foreach my $i (keys(%jobRunningHash)){
 	print("\tcluster = $i\n");
     my %jobState = ();
-    if (jobStat::jobStat($i, \%jobState) == 66){
+    if (jobStat::jobStat($i, \%jobState) == -1){
         exit(66);
     }
 	foreach my $j (@{$jobRunningHash{$i}}){
