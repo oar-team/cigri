@@ -63,7 +63,7 @@ sub launch_command($){
     print "Core dumped : $dumped_core\n";
     
     if ($signal_num || $dumped_core){
-        mailer::sendMail("/!\ Signal or core dumped","The command ($command) can not be executed correctly :\n\tExit value = $exit_value\n\tSignal num = $signal_num\n\tCore dumped = $dumped_core");
+        mailer::sendMail("/!\\ Signal or core dumped","The command ($command) can not be executed correctly :\n\tExit value = $exit_value\n\tSignal num = $signal_num\n\tCore dumped = $dumped_core");
         die "Something wrong occured (signal or core dumped) !!!\n";
     }
     return $exit_value;
