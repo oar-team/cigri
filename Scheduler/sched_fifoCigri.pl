@@ -68,13 +68,15 @@ foreach my $i (sort(keys(%nbRemainedJobs))){
                 $k++;
             }
             if ($number > 0){
-                my $flood_value = 0;
-                if (ConfLibCigri::is_conf("flood_parameter")){
-                    $flood_value = ConfLibCigri::get_conf("flood_parameter");
-                }
-                my $nb_jobs_to_launch = $number + ($number * $flood_value / 100);
-                print("[Scheduler] add toLaunch MJob : $i; cluster : $j; nb jobs : $nb_jobs_to_launch\n");
-                iolibCigri::add_job_to_launch($base,$i,$j,$nb_jobs_to_launch);
+                #my $flood_value = 0;
+                #if (ConfLibCigri::is_conf("flood_parameter")){
+                #    $flood_value = ConfLibCigri::get_conf("flood_parameter");
+                #}
+                #my $nb_jobs_to_launch = $number + ($number * $flood_value / 100);
+                #print("[Scheduler] add toLaunch MJob : $i; cluster : $j; nb jobs : $nb_jobs_to_launch\n");
+                print("[Scheduler] add toLaunch MJob : $i; cluster : $j; nb jobs : $number\n");
+                #iolibCigri::add_job_to_launch($base,$i,$j,$nb_jobs_to_launch);
+                iolibCigri::add_job_to_launch($base,$i,$j,$number);
                 $nbRemainedJobs{$i} -= $number;
             }
         }
