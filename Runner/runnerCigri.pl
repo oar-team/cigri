@@ -91,7 +91,7 @@ print(Dumper(%cmdResult));
             # treate the SSH error
             colomboCigri::add_new_job_event($base,$jobId,"RUNNER_SUBMIT",$cmdResult{STDERR});
         }
-        exit(12);
+        exit(-1);
 	}else{
 		my @strTmp = split(/\n/, $cmdResult{STDOUT});
 		my $configured = 0;
@@ -109,7 +109,7 @@ print(Dumper(%cmdResult));
 			print("[RUNNER] There is a mistake, the job $jobId state = ERROR, bad remote batch id\n");
 			iolibCigri::set_job_state($base, $jobId, "Event");
 			colomboCigri::add_new_job_event($base,$jobId,"RUNNER_JOBID_PARSE","There is a mistake, the job $jobId state = ERROR, bad remote batch id");
-            exit(12);
+            exit(-1);
 		}
 	}
 }else{

@@ -207,6 +207,22 @@ sub get_cluster_names_batch($){
     return %resulHash;
 }
 
+# get the cluster properties in a hash
+# arg1 --> database ref
+# arg2 --> cluster name
+# return --> hash of cluster properties
+sub get_cluster_properties($$){
+    my $dbh = shift;
+    my $clusterName = shift;
+    my $sth = $dbh->prepare("SELECT * FROM clusters WHERE clusterName = \"$clusterName\"");
+    $sth->execute();
+    my %resulHash;
+    %resulHash = %{$sth->fetchrow_hashref()} ;
+    $sth->finish();
+
+    return %resulHash;
+}
+
 # get all the cluster names in an array (even if it is dead)
 # arg1 --> database ref
 # return --> hash of cluster names
@@ -1026,3 +1042,4 @@ sub get_MJobs_tofrag_eventId($$){
     return $ref[0];
 }
 
+return 1;

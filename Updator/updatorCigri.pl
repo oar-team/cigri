@@ -86,7 +86,7 @@ foreach my $i (keys(%clusterNames)){
 			}else{
 				print("[UPDATOR] There is an error in the pbsnodes command parse, node=$name;state=$state\n");
 				colomboCigri::add_new_cluster_event($base,"$i",0,"UPDATOR_PBSNODES_PARSE","There is an error in the oarnodes command parse, node=$name;state=$state");
-                exit(12);
+                exit(-1);
 			}
 		}
 	}else{
@@ -96,7 +96,7 @@ foreach my $i (keys(%clusterNames)){
         if (NetCommon::checkSshError($base,$i,$cmdResult{STDERR}) != 1){
             colomboCigri::add_new_cluster_event($base,"$i",0,"UPDATOR_PBSNODES_CMD","There is an error in the execution of the pbsnodes command via SSH-->I disable all nodes of the cluster $i;$cmdResult{STDERR}");
         }
-        exit(12);
+        exit(-1);
 	}
 }
 
@@ -119,7 +119,7 @@ foreach my $i (keys(%jobRunningHash)){
         if (NetCommon::checkSshError($base,$i,$cmdResult{STDERR}) != 1){
 		    colomboCigri::add_new_cluster_event($base,"$i",0,"UPDATOR_QSTAT_CMD","$cmdResult{STDERR}");
         }
-        exit(12);
+        exit(-1);
 	}else{
 		my $qstatStr = $cmdResult{STDOUT};
 		chomp($qstatStr);
@@ -147,7 +147,7 @@ foreach my $i (keys(%jobRunningHash)){
                     iolibCigri::set_job_state($base, ${$j}{jobId}, "Event");
                     colomboCigri::add_new_job_event($base,${$j}{jobId},"UPDATOR_JOB_KILLED","Can t check the remote file <$remoteFile> : $cmdResult2{STDERR}");
                 }
-                exit(12);
+                exit(-1);
 			}else{
 				my @strTmp = split(/\n/, $cmdResult2{STDOUT});
 				my %fileVars;
@@ -167,7 +167,7 @@ foreach my $i (keys(%jobRunningHash)){
 						print("\t\tJob ${$j}{jobId} Error\n");
 						iolibCigri::set_job_state($base, ${$j}{jobId}, "Event");
 						colomboCigri::add_new_job_event($base,${$j}{jobId},"UPDATOR_RET_CODE_ERROR","$cmdResult{STDERR}");
-                        exit(12);
+                        exit(-1);
 					}
 				}else{
 					# the was killed by the batch scheduler of the cluster
@@ -182,7 +182,7 @@ foreach my $i (keys(%jobRunningHash)){
             # test if this is a ssh error
             if ($cmdResultRm{STDERR} ne ""){
                 NetCommon::checkSshError($base,$i,$cmdResultRm{STDERR}) ;
-                exit(12);
+                exit(-1);
             }
 		}else{
 			#verify if the job is waiting

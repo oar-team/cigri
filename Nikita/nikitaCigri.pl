@@ -62,7 +62,7 @@ foreach my $i (@jobsToFrag){
 			# test if this is a ssh error
             if (NetCommon::checkSshError($base,$$i{clusterName},$cmdResult{STDERR}) != 1){
                 print("ERREUR A TRAITER\n");
-                exit(12);
+                exit(-1);
             }
 		}else{
 			print("OK\n");

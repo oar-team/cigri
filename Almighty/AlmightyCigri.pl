@@ -104,13 +104,13 @@ sub nikita(){
 my $exitValue;
 LBL:while (1){
         $exitValue = nikita();
-        next LBL if ($exitValue == 12);
+        next LBL if ($exitValue == -1);
         $exitValue = updator();
-        next LBL if ($exitValue == 12);
+        next LBL if ($exitValue == -1);
         $exitValue = scheduler();
-        next LBL if ($exitValue == 12);
+        next LBL if ($exitValue == -1);
         $exitValue = runner();
-        next LBL if ($exitValue == 12);
+        next LBL if ($exitValue == -1);
         print("I make a pause of $timeout seconds :-)\n");
         sleep($timeout);
 }
