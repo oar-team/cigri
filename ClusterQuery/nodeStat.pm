@@ -116,7 +116,7 @@ sub oarnodesMysql($$){
     my $dbh = shift;
     my $cluster = shift;
 
-    print("OAR_mysql -- $cluster\n");
+    print("$cluster --> OAR_mysql\n");
     my $OARdb = OARiolib::connect($dbh,$cluster);
     if (!defined($OARdb)){
         return(-1);
