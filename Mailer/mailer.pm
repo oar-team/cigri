@@ -36,9 +36,9 @@ sub sendMail($$){
     my $pid=fork;
     if ($pid == 0){
         ConfLibCigri::init_conf();
-        close(STDOUT);
-        close(STDERR);
-        close(STDIN);
+#        close(STDOUT);
+#        close(STDERR);
+#        close(STDIN);
         my $smtpServer = ConfLibCigri::get_conf("MAIL_SMTP_SERVER");
         my $mailSenderAddress = ConfLibCigri::get_conf("MAIL_SENDER");
         my $mailRecipientAddress = ConfLibCigri::get_conf("MAIL_RECIPIENT");
