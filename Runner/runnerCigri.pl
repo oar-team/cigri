@@ -2,9 +2,25 @@
 use strict;
 use Data::Dumper;
 use IO::Socket::INET;
+BEGIN {
+	my $scriptPath = readlink($0);
+	if (!defined($scriptPath)){
+		$scriptPath = $0;
+	}
+	# Relative path of the package
+	my @relativePathTemp = split(/\//, $scriptPath);
+	my $relativePath = "";
+	for (my $i = 0; $i < $#relativePathTemp; $i++){
+		$relativePath = $relativePath.$relativePathTemp[$i]."/";
+	}
+	$relativePath = $relativePath."../";
+	# configure the path to reach the lib directory
+	unshift(@INC, $relativePath."lib");
+	unshift(@INC, $relativePath."Net");
+	unshift(@INC, $relativePath."Iolib");
+}
 use iolibCigri;
 use Net::SSH;
-
 
 # List of pbsnodes commands
 my %qsubCommand = ( 'PBS' => 'qsub',
@@ -30,6 +46,8 @@ sub forkSSH ($$$$){
 		return $pid;
 	}else{
 		#child
+		select(STDOUT);
+		$| = 1;
 		print("[RUNNER] I launch the job $jobId on the cluster $cluster\n");
 		Net::SSH::sshopen3($cluster, *WRITER, *READER, *ERROR, @cmd) || die "[RUNNER] ssh ERROR : $!";
 		close(WRITER);
@@ -57,7 +75,10 @@ sub forkSSH ($$$$){
 }
 
 # treate the scheduler output in the jobsToSubmit table
-exit 1 if (iolibCigri::create_toLaunch_jobs($base) == 1);
+if (iolibCigri::create_toLaunch_jobs($base) == 1){
+	warn("[Runner] Error when i create_toLaunch_jobs\n");
+	exit 1;
+}
 
 my @jobList = iolibCigri::get_launching_job($base);
 

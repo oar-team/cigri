@@ -3,6 +3,22 @@ package JDLParserCigri;
 use strict;
 use warnings;
 use Data::Dumper;
+BEGIN {
+	my $scriptPath = readlink($0);
+	if (!defined($scriptPath)){
+		$scriptPath = $0;
+	}
+	# Relative path of the package
+	my @relativePathTemp = split(/\//, $scriptPath);
+	my $relativePath = "";
+	for (my $i = 0; $i < $#relativePathTemp; $i++){
+		$relativePath = $relativePath.$relativePathTemp[$i]."/";
+	}
+	$relativePath = $relativePath."../";
+	# configure the path to reach the lib directory
+	unshift(@INC, $relativePath."lib");
+	unshift(@INC, $relativePath."Iolib");
+}
 use iolibCigri;
 require Exporter;
 our (@ISA,@EXPORT,@EXPORT_OK);
