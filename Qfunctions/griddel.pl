@@ -34,6 +34,8 @@ use ConfLibCigri;
 
 sub usage(){
 	print(STDERR "usage: griddel.pl [-m -j] id \n");
+	print(STDERR "\t -m for a multiplejob id \n");
+	print(STDERR "\t -j for a job id \n");
 	exit 1;
 }
 

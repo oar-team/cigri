@@ -21,6 +21,7 @@ BEGIN {
 	unshift(@INC, $relativePath."lib");
 	unshift(@INC, $relativePath."ConfLib");
 	unshift(@INC, $relativePath."JDLLib");
+    unshift(@INC, $relativePath."Colombo");
 }
 use JDLParserCigri;
 use ConfLibCigri qw(init_conf get_conf is_conf);
