@@ -15,9 +15,9 @@ if (is_conf("installPath")){
 	die("You must have a cigri.conf script with a valid installPath tag\n");
 }
 
-my $scheduler_command = $path."sched_fifo.pl";
-my $runner_command = $path."runner.pl";
-my $updator_command = $path."updator.pl";
+my $scheduler_command = $path."sched_fifoCigri.pl";
+my $runner_command = $path."runnerCigri.pl";
+my $updator_command = $path."updatorCigri.pl";
 
 my $server;
 my $serverport;

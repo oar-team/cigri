@@ -2,7 +2,7 @@
 use strict;
 use Data::Dumper;
 use IO::Socket::INET;
-use iolib;
+use iolibCigri;
 use Net::SSH;
 
 
@@ -10,7 +10,7 @@ use Net::SSH;
 my %qsubCommand = ( 'PBS' => 'qsub',
 					'OAR' => 'qsub.pl' );
 
-my $base = iolib::connect() ;
+my $base = iolibCigri::connect() ;
 
 sub forkSSH ($$$$){
 	my $cluster = shift;
@@ -38,16 +38,16 @@ sub forkSSH ($$$$){
 				print("[RUNNER_STDERR]$_");
 			}
 			close(ERROR);
-			iolib::set_job_state($base,$jobId,"Error");
+			iolibCigri::set_job_state($base,$jobId,"Error");
 		}elsif (defined(<READER>)){
 			while (<READER>){
 				if (($batch eq "OAR") and ($_ =~ /\s*IdJob\s=\s(\d+)/)){
-					iolib::set_job_batch_id($base,$jobId,$1);
+					iolibCigri::set_job_batch_id($base,$jobId,$1);
 				}
 				print("[RUNNER_STDOUT] $_");
 			}
 			close(READER);
-			iolib::set_job_state($base,$jobId,"Running");
+			iolibCigri::set_job_state($base,$jobId,"Running");
 		}else{
 			print("[RUNNER] There is a mistake, the job $jobId state is unchanged\n");
 		}
@@ -56,7 +56,7 @@ sub forkSSH ($$$$){
 	return $pid;
 }
 
-my @jobList = iolib::get_launching_job($base);
+my @jobList = iolibCigri::get_launching_job($base);
 
 my $jobId;
 my $jobtype;
@@ -72,7 +72,7 @@ foreach my $i (@jobList){
 	$tmpRemoteFile = "cigri.tmp.$jobId";
 	print("[RUNNER] The job $jobId is in treatment...\n");
 
-	#iolib::set_job_state($base,$jobId,"Launching");
+	#iolibCigri::set_job_state($base,$jobId,"Launching");
 
 	my @cmdSSH = ();
 
@@ -102,4 +102,4 @@ foreach my $i (@jobList){
 }
 #wait;
 
-iolib::disconnect($base);
+iolibCigri::disconnect($base);

@@ -1,17 +1,17 @@
 #!/usr/bin/perl -I../Iolib -I ../JDLLib -I ../ConfLib
 
 use strict;
-use iolib;
+use iolibCigri;
 
-my $base = iolib::connect();
+my $base = iolibCigri::connect();
 
 my $done =0;
 my $doneToLaunch=0;
 
 print "[SCHEDULER] Begining of scheduler FIFO\n";
 
-while (iolib::select_sched_FIFO($base) == 0){
-	iolib::pre_schedule($base);
+while (iolibCigri::select_sched_FIFO($base) == 0){
+	iolibCigri::pre_schedule($base);
 }
 
-iolib::disconnect($base);
+iolibCigri::disconnect($base);

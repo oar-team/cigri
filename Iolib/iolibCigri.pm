@@ -1,21 +1,21 @@
-package iolib;
+package iolibCigri;
 require Exporter;
 
 use Data::Dumper;
 use DBI;
-use JDLParser;
+use JDLParserCigri;
 #use strict;
-use ConfLib qw(init_conf get_conf is_conf);
+use ConfLibCigri qw(init_conf get_conf is_conf);
 
 # Connect to the database and give the ref
 sub connect() {
 	# Connect to the database.
-	ConfLib::init_conf();
+	ConfLibCigri::init_conf();
 
-	my $host = ConfLib::get_conf("database_host");
-	my $name = ConfLib::get_conf("database_name");
-	my $user = ConfLib::get_conf("database_username");
-	my $pwd = ConfLib::get_conf("database_userpassword");
+	my $host = ConfLibCigri::get_conf("database_host");
+	my $name = ConfLibCigri::get_conf("database_name");
+	my $user = ConfLibCigri::get_conf("database_username");
+	my $pwd = ConfLibCigri::get_conf("database_userpassword");
 
 	return(DBI->connect("DBI:mysql:database=$name;host=$host", $user, $pwd,	{'RaiseError' => 1}));
 }
@@ -70,9 +70,9 @@ sub add_mjobs($$) {
 
 	my $nbJobs = 0;
 	my $Params ="";
-	if (JDLParser::init_jdl($jdl) == 0){
-		if (defined($JDLParser::clusterConf{DEFAULT}{paramFile}) && (-r $JDLParser::clusterConf{DEFAULT}{paramFile})){
-			open(FILE, $JDLParser::clusterConf{DEFAULT}{paramFile});
+	if (JDLParserCigri::init_jdl($jdl) == 0){
+		if (defined($JDLParserCigri::clusterConf{DEFAULT}{paramFile}) && (-r $JDLParserCigri::clusterConf{DEFAULT}{paramFile})){
+			open(FILE, $JDLParserCigri::clusterConf{DEFAULT}{paramFile});
 			while (<FILE>){
 				#$params = $params.$_;
 				chomp;
@@ -82,10 +82,10 @@ sub add_mjobs($$) {
 				}
 			}
 			close(FILE);
-		}elsif (defined($JDLParser::clusterConf{DEFAULT}{nbJobs})){
-			$nbJobs = $JDLParser::clusterConf{DEFAULT}{nbJobs};
+		}elsif (defined($JDLParserCigri::clusterConf{DEFAULT}{nbJobs})){
+			$nbJobs = $JDLParserCigri::clusterConf{DEFAULT}{nbJobs};
 		}else{
-			print("[iolib] I can't read the param file $JDLParser::clusterConf{DEFAULT}{paramFile} or the nbJobs variable\n");
+			print("[iolib] I can't read the param file $JDLParserCigri::clusterConf{DEFAULT}{paramFile} or the nbJobs variable\n");
 			return -1;
 		}
 	}else{
@@ -241,9 +241,9 @@ sub pre_schedule($){
 	my @MJobsId = get_IN_TREATMENT_MJobs($dbh);
 	foreach my $i (@MJobsId){
 		my $JDLtmp = get_MJobs_JDL($dbh, $i);
-		print("[IOLIB] Parse mistake with the MJobs $i\n") if (JDLParser::init_jdl($JDLtmp) == -1);
+		print("[IOLIB] Parse mistake with the MJobs $i\n") if (JDLParserCigri::init_jdl($JDLtmp) == -1);
 		my $query = "select nodeId,MJobsId from nodes, multipleJobs where MJobsId = $i and nodeState = \'FREE\' and (";
-		my @clusters = keys(%JDLParser::clusterConf);
+		my @clusters = keys(%JDLParserCigri::clusterConf);
 		next if ($#clusters <= 0);
 		foreach my $j (@clusters){
 			if ($j ne "DEFAULT"){
@@ -291,10 +291,10 @@ sub select_sched_FIFO($){
 		my $time = get_date();
 		my $cluster = get_node_cluster($dbh, $resulArray[1]);
 		my $JDLtmp = get_MJobs_JDL($dbh, $resulArray[0]);
-		print("[IOLIB] Parse mistake with the MJobs $resulArray[0]\n") if (JDLParser::init_jdl($JDLtmp) == -1);
+		print("[IOLIB] Parse mistake with the MJobs $resulArray[0]\n") if (JDLParserCigri::init_jdl($JDLtmp) == -1);
 
 		$dbh->do("INSERT INTO jobs (jobState,jobMJobsId,jobParam,jobNodeId,jobTSub,jobCmd)
-					VALUES (\"toLaunch\",$resulArray[0],\"$resulArray[2]\",$resulArray[1],\"$time\",\"$JDLParser::clusterConf{$cluster}{execFile}\")");
+					VALUES (\"toLaunch\",$resulArray[0],\"$resulArray[2]\",$resulArray[1],\"$time\",\"$JDLParserCigri::clusterConf{$cluster}{execFile}\")");
 		return 0;
 	}else{
 		return 1;

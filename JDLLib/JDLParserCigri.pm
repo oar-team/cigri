@@ -1,8 +1,9 @@
-package JDLParser;
+package JDLParserCigri;
 
 use strict;
 use warnings;
 use Data::Dumper;
+use iolibCigri;
 require Exporter;
 our (@ISA,@EXPORT,@EXPORT_OK);
 @ISA = qw(Exporter);
@@ -33,9 +34,9 @@ sub init_jdl($) {
 	my @clusters = split(/}/, $jdl);
 
 	#Check cluster names
-	my $base = iolib::connect();
-	my %clusterNamesHash = iolib::get_cluster_names_batch($base);
-	iolib::disconnect($base);
+	my $base = iolibCigri::connect();
+	my %clusterNamesHash = iolibCigri::get_cluster_names_batch($base);
+	iolibCigri::disconnect($base);
 	my %clusterNames = ();
 	foreach my $i (keys(%clusterNamesHash)){
 		$clusterNames{$i} = 1;

@@ -5,8 +5,8 @@
 use strict;
 
 use Data::Dumper;
-use iolib;
-use ConfLib;
+use iolibCigri;
+#use ConfLibCigri;
 use Net::SSH;
 
 # List of pbsnodes commands
@@ -17,10 +17,10 @@ my %qstatCmd = ( 	'PBS' => 'qstat -f',
 					'OAR' => 'qstat.pl -f' );
 
 
-my $base = iolib::connect();
+my $base = iolibCigri::connect();
 
 # Get cluster names
-my %clusterNames = iolib::get_cluster_names_batch($base);
+my %clusterNames = iolibCigri::get_cluster_names_batch($base);
 
 # Exec through ssh : pbsnodes command
 foreach my $i (keys(%clusterNames)){
@@ -28,7 +28,7 @@ foreach my $i (keys(%clusterNames)){
 	Net::SSH::sshopen3($i, *WRITER, *READER, *ERROR, $pbsCommand{$clusterNames{$i}}) || die "[UPDATOR] ssh ERROR : $!";
 
 	# update database
-	iolib::disable_all_cluster_nodes($base, $i);
+	iolibCigri::disable_all_cluster_nodes($base, $i);
 
 	# Don t bloc ERROR reading
 
@@ -54,7 +54,7 @@ foreach my $i (keys(%clusterNames)){
 			}
 			if (defined($name) && defined($state)){
 				# Databse update
-				iolib::set_cluster_node_state($base, $i, $name, $state);
+				iolibCigri::set_cluster_node_state($base, $i, $name, $state);
 				#print("$name --> $state\n");
 			}else{
 				print("[UPDATOR] : There is an error in the pbsnodes command parse, node=$name;state=$state\n");
@@ -73,7 +73,7 @@ foreach my $i (keys(%clusterNames)){
 }
 
 # Update jobs which are in the Running state
-my %jobRunningHash = iolib::get_job_to_update_state($base);
+my %jobRunningHash = iolibCigri::get_job_to_update_state($base);
 print("[UPDATOR] Verify if Running jobs are still running:\n");
 # Exec qstat cmd for all clusters which have a running job
 foreach my $i (keys(%jobRunningHash)){
@@ -104,14 +104,14 @@ foreach my $i (keys(%jobRunningHash)){
 		# Verify if the job is still running on the cluster $i
 		if (!defined($jobState{${$j}{batchJobId}})){
 			print("\t\tJob ${$j}{jobId} Terminated\n");
-			iolib::set_job_state($base, ${$j}{jobId}, "Terminated");
+			iolibCigri::set_job_state($base, ${$j}{jobId}, "Terminated");
 			# Increment MJobsNbCompletedJobs
-			iolib::inc_MJobsNbCompletedJobs($base,${$j}{jobId});
+			iolibCigri::inc_MJobsNbCompletedJobs($base,${$j}{jobId});
 		}
 	}
 }
 
-iolib::pre_schedule($base);
+iolibCigri::pre_schedule($base);
 
-iolib::disconnect($base);
+iolibCigri::disconnect($base);
 
