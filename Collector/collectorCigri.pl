@@ -64,7 +64,8 @@ foreach my $i (@MjobsToCollect){
 		while((($k = pop(@fileToDownload)) ne "") and ($error == 0)){
 			if ($error == 0){
 				print("[COLLECTOR] tar rf ~cigri/results/$i.tar -C ~$$j{userLogin} $k  -- on $$j{nodeClusterName}\n");
-				%cmdResult = SSHcmd::submitCmd($$j{nodeClusterName}, "tar rf ~cigri/results/$i.tar -C ~$$j{userLogin} $k");
+				%cmdResult = SSHcmd::submitCmd($$j{nodeClusterName}, "test -e ~$$j{userLogin}/$k && tar rf ~cigri/results/$i.tar -C ~$$j{userLogin} $k && echo nimportequoi");
+				print(Dumper(%cmdResult));
 				if ($cmdResult{STDERR} ne ""){
 					warn("ERREUR --> SSHcmd::submitCmd($$j{nodeClusterName}, \"tar rf ~cigri/results/$i.tar -C ~$$j{userLogin} $k\") -- $cmdResult{STDERR}\n");
 					foreach my $l (@jobTaredTmp){
@@ -76,12 +77,14 @@ foreach my $i (@MjobsToCollect){
 					}
 					$error = 1;
 				}else{
-					push(@jobTaredTmp, $k);
+					if ($cmdResult{STDOUT} ne "\n"){
+						push(@jobTaredTmp, $k);
+					}
 				}
 			}
 		}
 
-		if ($error == 0){
+		if (($error == 0) && ($#jobTaredTmp >= 0)){
 			$collectedJobs{$$j{jobId}} = $j;
 			$clusterVisited{$$j{nodeClusterName}} = 1;
 		}else{
@@ -130,9 +133,9 @@ foreach my $i (@MjobsToCollect){
 		my @fileToDownload = get_file_names($j);
 		foreach my $k (@fileToDownload){
 			print("[COLLECTOR] rm file ~$$j{userLogin}/$k on cluster $$j{nodeClusterName}\n");
-			%cmdResult = SSHcmd::submitCmd($$j{nodeClusterName}, "sudo -u $$j{userLogin} rm -f ~$$j{userLogin}/$k");
+			%cmdResult = SSHcmd::submitCmd($$j{nodeClusterName}, "sudo -u $$j{userLogin} test -e ~$$j{userLogin}/$k && sudo -u $$j{userLogin} rm -rf ~$$j{userLogin}/$k");
 			if ($cmdResult{STDERR} ne ""){
-				warn("ERROR --> SSHcmd::submitCmd($$j{nodeClusterName}, sudo -u $$j{userLogin} rm -f ~$$j{userLogin}/$k\n");
+				warn("ERROR --> SSHcmd::submitCmd($$j{nodeClusterName}, sudo -u $$j{userLogin} rm -rf ~$$j{userLogin}/$k\n");
 			}
 		}
 	}
@@ -147,8 +150,8 @@ sub get_file_names($){
 	my @result ;
 	push(@result, "OAR.cigri.tmp.$$j{jobId}.$$j{jobBatchId}.stdout");
 	push(@result, "OAR.cigri.tmp.$$j{jobId}.$$j{jobBatchId}.stderr");
-	if($$j{jobResultFile} ne ""){
-		push(@result, $$j{jobResultFile});
+	if($$j{jobName} ne ""){
+		push(@result, $$j{jobName});
 	}
 
 	return @result;
