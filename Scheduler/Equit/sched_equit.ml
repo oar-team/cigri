@@ -73,7 +73,7 @@ let getInfoMjobs dbd =
 		 (Printf.sprintf "SELECT MJobsUser, MJobsTSub FROM multipleJobs WHERE MJobsId = %d" id) in
     let res2 = execQuery dbd 
 		 (Printf.sprintf "SELECT propertiesClusterName FROM properties 
-                                        WHERE propertiesMJobsId = %d AND propertiesActivated = \'ON\'" id) in
+                                        WHERE propertiesMJobsId = %d " id) in
     let array1 = get_option (Mysql.fetch res1) in
       { mjobId = id;
 	mjobUser = get_option (array1.(0));

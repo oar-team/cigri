@@ -28,7 +28,7 @@ use iolibCigri;
 init_conf();
 
 # number of seconds between two updates
-my $timeout = 3;
+my $timeout = 1;
 
 my $path;
 if (is_conf("installPath")){
@@ -72,7 +72,7 @@ sub scheduler(){
         if ( -x $path.$$sched{schedulerFile} ){
             my $exitValue = launch_command($path.$$sched{schedulerFile});
             if ($exitValue != 0){
-                colomboCigri::add_new_scheduler_event($base,$$sched{schedulerId},"EXIT_VALUE","bad exit value $exitValue for $path.$$sched{schedulerFile}");
+                colomboCigri::add_new_scheduler_event($base,$$sched{schedulerId},"EXIT_VALUE","bad exit value $exitValue for $path$$sched{schedulerFile}");
             }
             return $exitValue;
         }else{
