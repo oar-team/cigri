@@ -168,7 +168,7 @@ sub add_mjobs($$) {
                         if (defined($JDLParserCigri::clusterConf{$j}{walltime})){
                             $jobWalltime = $JDLParserCigri::clusterConf{$j}{walltime};
                         }
-                        if (defined($JDLParserCigri::clusterConf{$j}{weight})){
+                        if ((defined($JDLParserCigri::clusterConf{$j}{weight})) && ($JDLParserCigri::clusterConf{$j}{weight} > 0)){
                             $jobWeight = $JDLParserCigri::clusterConf{$j}{weight};
                         }
                         $dbh->do("INSERT INTO properties (propertiesClusterName,propertiesMJobsId,propertiesJobCmd,propertiesJobWalltime,propertiesJobWeight)
