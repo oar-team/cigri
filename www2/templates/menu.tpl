@@ -44,11 +44,17 @@
 			{assign var="notfirstitem" value=false}
 			{foreach from=$MENU item=secondkey}
 				{if $secondkey.level eq 2}
+					{* current item? then give it the right design *}
+					{if $secondkey.current eq true}
+						{assign var="currentparam" value="font-weight:bold;text-decoration:underline;"}
+					{else}
+						{assign var="currentparam" value=""}
+					{/if}
 					{if $notfirstitem eq true}
 						<td>&nbsp;|&nbsp;</td>
 					{/if}
 					<td>
-						<a href="{$secondkey.link}" class="menuclass2">{$secondkey.name}</a>
+						<a href="{$secondkey.link}" class="menuclass2" style="{$currentparam}">{$secondkey.name}</a>
 						{assign var="notfirstitem" value=true}
 					</td>
 				{/if}

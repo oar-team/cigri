@@ -1,7 +1,7 @@
 <table border="0" cellpadding="10" cellspacing="0" width="100%">
 <tr><td align="center">
 	{if $nbitems neq 0}
-		<h5>Confirm {$action} on following parameters</h5>
+		<h5>Multijob #{$jobid} - Confirm {$action} on following parameters</h5>
 		{if $shortaction eq 'priority'}
 			{if $wrongpriority eq true}
 				<p style="color:#FF0000">Invalid priority value</p>
@@ -50,5 +50,8 @@
 		<p>Please select a parameter.</p>
 		<p><a href="account.php?submenu=jobs&option=waitingparams&id={$jobid}">Back to Running MultiJob #{$jobid} waiting parameters</a></p>
 	{/if}
+	<p>&nbsp;</p>
+	<p><a href="account.php?submenu=jobs&option=waitingparams&id={$jobid}">Back to MultiJob #{$jobid} waiting parameters</a></p>
 </td></tr>
 </table>
+

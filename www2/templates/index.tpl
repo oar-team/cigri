@@ -1,7 +1,7 @@
 {literal}
 <table border="0" cellpadding="10" cellspacing="0">
 <tr><td>
-	<h1>Utilisation de la grille ci-gri</h1>
+	<h1><a name="usage">Utilisation de la grille ci-gri</a></h1>
 	<ul>
 		<li>
 	  		<h4><a name="step1">Etape 1 :</a></h4>

@@ -24,7 +24,7 @@ $smarty->assign('headername',$headername);
 // Set menu items
 unset($menu);
 unset($currentarray);
-cigri_register_menu_item($menu,$currentarray,"General","General&nbsp;informations","index.php",1,false);
+cigri_register_menu_item($menu,$currentarray,"General","General&nbsp;information","index.php",1,false);
 cigri_register_menu_item($menu,$currentarray,"Stats","Statistics","stats.php",1,true);
 cigri_register_menu_item($menu,$currentarray,"Events","Events","events.php",1,false);
 cigri_register_menu_item($menu,$currentarray,"Account","My&nbsp;account","secured/account.php",1,false);
@@ -32,15 +32,15 @@ cigri_register_menu_item($menu,$currentarray,"Account","My&nbsp;account","secure
 // Assign content
 // Check for submenus
 if (!isset($_GET['submenu'])) {
-	cigri_register_menu_item($menu,$currentarray,"istats","Main","stats.php",2,false);
-	cigri_register_menu_item($menu,$currentarray,"gstats","Grid&nbsp;Statstics","stats.php?submenu=grid",2,false);
+//	cigri_register_menu_item($menu,$currentarray,"istats","Main","stats.php",2,false);
+	cigri_register_menu_item($menu,$currentarray,"gstats","Grid&nbsp;Statistics","stats.php?submenu=grid",2,false);
 	cigri_register_menu_item($menu,$currentarray,"cstats","Cluster&nbsp;Statistics","stats.php?submenu=cluster",2,false);
 	$smarty->assign('contenttemplate',"stats.tpl");
 }
 else {
 	if ($_GET['submenu'] == 'grid') {
-		cigri_register_menu_item($menu,$currentarray,"istats","Main","stats.php",2,false);
-		cigri_register_menu_item($menu,$currentarray,"gstats","Grid&nbsp;Statstics","stats.php?submenu=grid",2,true);
+//		cigri_register_menu_item($menu,$currentarray,"istats","Main","stats.php",2,false);
+		cigri_register_menu_item($menu,$currentarray,"gstats","Grid&nbsp;Statistics","stats.php?submenu=grid",2,true);
 		cigri_register_menu_item($menu,$currentarray,"cstats","Cluster&nbsp;Statistics","stats.php?submenu=cluster",2,false);
 		$smarty->assign('contenttemplate',"stats/grid.tpl");
 		// assign time repartition
@@ -52,8 +52,8 @@ else {
 		}
 	}
 	else if ($_GET['submenu'] == 'cluster') {
-		cigri_register_menu_item($menu,$currentarray,"istats","Main","stats.php",2,false);
-		cigri_register_menu_item($menu,$currentarray,"gstats","Grid&nbsp;Statstics","stats.php?submenu=grid",2,false);
+//		cigri_register_menu_item($menu,$currentarray,"istats","Main","stats.php",2,false);
+		cigri_register_menu_item($menu,$currentarray,"gstats","Grid&nbsp;Statistics","stats.php?submenu=grid",2,false);
 		cigri_register_menu_item($menu,$currentarray,"cstats","Cluster&nbsp;Statistics","stats.php?submenu=cluster",2,true);
 		$smarty->assign('contenttemplate',"stats/cluster.tpl");
 		$smarty->assign('message',"");

@@ -67,7 +67,7 @@ if (isset($_GET['submenu'])) {
 // Set menu items
 unset($menu);
 unset($currentarray);
-cigri_register_menu_item($menu,$currentarray,"General","General&nbsp;informations","../index.php",1,false);
+cigri_register_menu_item($menu,$currentarray,"General","General&nbsp;information","../index.php",1,false);
 cigri_register_menu_item($menu,$currentarray,"Stats","Statistics","../stats.php",1,false);
 cigri_register_menu_item($menu,$currentarray,"Events","Events","../events.php",1,false);
 cigri_register_menu_item($menu,$currentarray,"Account","My&nbsp;account","account.php",1,true);
@@ -90,8 +90,8 @@ else {
 	// Assign content
 	// Check for submenus
 	if (!isset($_GET['submenu'])) {
-		cigri_register_menu_item($menu,$currentarray,"ainfo","Main","account.php",2,false);
-		cigri_register_menu_item($menu,$currentarray,"ajobs","Jobs","account.php?submenu=jobs",2,false);
+//		cigri_register_menu_item($menu,$currentarray,"ainfo","Main","account.php",2,false);
+		cigri_register_menu_item($menu,$currentarray,"ajobs","MultiJobs","account.php?submenu=jobs",2,false);
 		cigri_register_menu_item($menu,$currentarray,"astats","Statistics","account.php?submenu=stats",2,false);
 		cigri_register_menu_item($menu,$currentarray,"aerrors","Errors","account.php?submenu=errors",2,false);
 		cigri_register_menu_item($menu,$currentarray,"alogout",$login.": logout","account.php?submenu=logout",2,false);
@@ -100,24 +100,24 @@ else {
 	else {
 		// PHP code for submenus is in external files for easier update and management
 		if ($_GET['submenu'] == 'jobs') {
-			cigri_register_menu_item($menu,$currentarray,"ainfo","Main","account.php",2,false);
-			cigri_register_menu_item($menu,$currentarray,"ajobs","Jobs","account.php?submenu=jobs",2,true);
+//			cigri_register_menu_item($menu,$currentarray,"ainfo","Main","account.php",2,false);
+			cigri_register_menu_item($menu,$currentarray,"ajobs","MultiJobs","account.php?submenu=jobs",2,true);
 			cigri_register_menu_item($menu,$currentarray,"astats","Statistics","account.php?submenu=stats",2,false);
 			cigri_register_menu_item($menu,$currentarray,"aerrors","Errors","account.php?submenu=errors",2,false);
 			cigri_register_menu_item($menu,$currentarray,"alogout",$login.": logout","account.php?submenu=logout",2,false);
 			include("account/jobs.php");
 		}
 		else if ($_GET['submenu'] == 'stats') {
-			cigri_register_menu_item($menu,$currentarray,"ainfo","Main","account.php",2,false);
-			cigri_register_menu_item($menu,$currentarray,"ajobs","Jobs","account.php?submenu=jobs",2,false);
+//			cigri_register_menu_item($menu,$currentarray,"ainfo","Main","account.php",2,false);
+			cigri_register_menu_item($menu,$currentarray,"ajobs","MultiJobs","account.php?submenu=jobs",2,false);
 			cigri_register_menu_item($menu,$currentarray,"astats","Statistics","account.php?submenu=stats",2,true);
 			cigri_register_menu_item($menu,$currentarray,"aerrors","Errors","account.php?submenu=errors",2,false);
 			cigri_register_menu_item($menu,$currentarray,"alogout",$login.": logout","account.php?submenu=logout",2,false);
 			include("account/stats.php");
 		}
 		else if ($_GET['submenu'] == 'errors') {
-			cigri_register_menu_item($menu,$currentarray,"ainfo","Main","account.php",2,false);
-			cigri_register_menu_item($menu,$currentarray,"ajobs","Jobs","account.php?submenu=jobs",2,false);
+//			cigri_register_menu_item($menu,$currentarray,"ainfo","Main","account.php",2,false);
+			cigri_register_menu_item($menu,$currentarray,"ajobs","MultiJobs","account.php?submenu=jobs",2,false);
 			cigri_register_menu_item($menu,$currentarray,"astats","Statistics","account.php?submenu=stats",2,false);
 			cigri_register_menu_item($menu,$currentarray,"aerrors","Errors","account.php?submenu=errors",2,true);
 			cigri_register_menu_item($menu,$currentarray,"alogout",$login.": logout","account.php?submenu=logout",2,false);

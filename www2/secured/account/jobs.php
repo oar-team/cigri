@@ -8,7 +8,7 @@
 	// We check the 'option' value
 	// default value if not set: "running"
 	if (!isset($_GET['option'])) {
-		$option = "running";
+		$option = "jobs";
 	}
 	else {
 		$option = $_GET['option'];
@@ -27,12 +27,12 @@
 	else {
 		$page = 1;
 	}
+	
 if ($_SESSION['auth']) {
 switch ($option) {
-// {{{ Running jobs
-
-// {{{ running jobs
-	case "running":
+// {{{ All jobs
+// {{{ Properties
+	case "jobs":
 		$selectnames[] = "MJobsId";
 		$selectnames[] = "MJobsName";
 		$selectnames[] = "MJobsTSub";
@@ -45,7 +45,6 @@ FROM
 	multipleJobs
 WHERE
 	MJobsUser = '$login'
-	AND MJobsState ='IN_TREATMENT'
 EOF;
 		list($res,$nb) = sqlquery($query,$link);
 		$nbitems = $res[0][0];
@@ -60,7 +59,6 @@ FROM
 	multipleJobs
 WHERE
 	MJobsUser = '$login'
-	AND MJobsState = 'IN_TREATMENT'
 EOF;
 		$query .= $orderby;
 		$query .= <<<EOF
@@ -71,8 +69,7 @@ EOF;
 		list($res,$nb) = sqlquery($query,$link);
 	
 		// display parameters
-		cigri_register_menu_item($menu,$currentarray,"jrunning","Running MultiJobs","account.php?submenu=jobs&option=running",3,true);
-		$smarty->assign('contenttemplate',"account/jobs/running.tpl");
+		$smarty->assign('contenttemplate',"account/jobs/jobs.tpl");
 		for($i = 0; $i < $nb;$i++) {
 			$res[$i][1] = htmlentities($res[$i][1]) ;
 			$res[$i][2] = htmlentities($res[$i][2]) ;
@@ -82,14 +79,27 @@ EOF;
 		$smarty->assign('eventarray',$res);
 
 		break;
-
 // }}}
-
-// {{{ Running jobs details
-	case "runningdetails":
+// {{{ job details
+	case "details":
 		if (isset($_GET['id'])) {
 			if (is_numeric($_GET['id'])) {
 				$jobid = $_GET['id'];
+				$query = <<<EOF
+SELECT
+	MJobsState
+FROM
+	multipleJobs
+WHERE
+	MJobsId = $jobid
+EOF;
+                                list($res,$nb) = sqlquery($query,$link);
+				if ($res[0][0] == 'IN_TREATMENT') {
+					$smarty->assign('MJstate','Running');
+				} else {
+					$smarty->assign('MJstate','Terminated');
+				}
+				
 				$selectnames[] = "propertiesClusterName";
 				$selectnames[] = "propertiesJobCmd";
 				$selectnames[] = "propertiesJobWallTime";
@@ -128,9 +138,8 @@ EOF;
 				list($res,$nb) = sqlquery($query,$link);
 
 				// display parameters
-				cigri_register_menu_item($menu,$currentarray,"jrunning","Running MultiJobs","account.php?submenu=jobs&option=running",3,true);
-				cigri_register_menu_item($menu,$currentarray,"jrunningdetails","MultiJob #".$jobid,"account.php?submenu=jobs&option=runningdetails&id=".$jobid,4,true);
-				$smarty->assign('contenttemplate',"account/jobs/runningdetails.tpl");
+				cigri_register_menu_item($menu,$currentarray,"jdetails","MultiJob #".$jobid,"account.php?submenu=jobs&option=details&id=".$jobid,4,true);
+				$smarty->assign('contenttemplate',"account/jobs/jobdetails.tpl");
 				for($i = 0; $i < $nb;$i++) {
 					$res[$i][0] = htmlentities($res[$i][0]) ;
 					$res[$i][1] = htmlentities($res[$i][1]) ;
@@ -156,9 +165,24 @@ EOF;
 		if (isset($_GET['id'])) {
 			if (is_numeric($_GET['id'])) {
 				$jobid = $_GET['id'];
+				$query = <<<EOF
+SELECT
+	MJobsState
+FROM
+	multipleJobs
+WHERE
+	MJobsId = $jobid
+EOF;
+                                list($res,$nb) = sqlquery($query,$link);
+				if ($res[0][0] == 'IN_TREATMENT') {
+					$smarty->assign('MJstate','Running');
+				} else {
+					$smarty->assign('MJstate','Terminated');
+				}
+
 				$selectnames[] = "jobId";
-				$selectnames[] = "jobParam";
 				$selectnames[] = "jobName";
+				$selectnames[] = "jobParam";
 				$selectnames[] = "jobCollectedJobId";
 				$selectnames[] = "jobTStart";
 				$selectnames[] = "jobTStop";
@@ -184,7 +208,7 @@ EOF;
 
 				$query = <<<EOF
 SELECT
-	jobId, jobParam, jobName, jobCollectedJobId, jobTStart,jobTStop,  SEC_TO_TIME(UNIX_TIMESTAMP(jobTStop) -  UNIX_TIMESTAMP(jobTStart)) AS duration, jobClusterName, jobNodeName
+	jobId, jobName, jobParam, jobCollectedJobId, jobTStart,jobTStop,  SEC_TO_TIME(UNIX_TIMESTAMP(jobTStop) -  UNIX_TIMESTAMP(jobTStart)) AS duration, jobClusterName, jobNodeName
 FROM
 	jobs
 WHERE
@@ -201,10 +225,9 @@ EOF;
 				list($res,$nb) = sqlquery($query,$link);
 
 				// display parameters
-				cigri_register_menu_item($menu,$currentarray,"jrunning","Running MultiJobs","account.php?submenu=jobs&option=running",3,true);
-				cigri_register_menu_item($menu,$currentarray,"jrunningdetails","MultiJob #".$jobid,"account.php?submenu=jobs&option=runningdetails&id=".$jobid,4,true);
-				cigri_register_menu_item($menu,$currentarray,"jrunningexecutedp","Executed parameters","account.php?submenu=jobs&option=executedparams&id=".$jobid,5,true);
-				$smarty->assign('contenttemplate',"account/jobs/runningexecutedparams.tpl");
+				cigri_register_menu_item($menu,$currentarray,"jdetails","MultiJob #".$jobid,"account.php?submenu=jobs&option=details&id=".$jobid,3,true);
+				cigri_register_menu_item($menu,$currentarray,"jexecutedp","Executed jobs","account.php?submenu=jobs&option=executedparams&id=".$jobid,4,true);
+				$smarty->assign('contenttemplate',"account/jobs/jobexecutedparams.tpl");
 				for($i = 0; $i < $nb;$i++) {
 					$res[$i][1] = htmlentities($res[$i][1]) ;
 					$res[$i][2] = htmlentities($res[$i][2]) ;
@@ -227,14 +250,67 @@ EOF;
 		break;
 // }}}
 
+// {{{ One subjob details
+	case "jobdetail":
+		if (isset($_GET['id']) && isset($_GET['jid'])) {
+			if (is_numeric($_GET['id']) && is_numeric($_GET['jid'])) {
+				$jobid = $_GET['id'];
+				$subjobid = $_GET['jid'];
+				$query = <<<EOF
+SELECT
+	jobState, jobParam,jobName,jobClusterName,jobNodeName,jobBatchId,jobRetCode,jobCollectedJobId,jobTSub,jobTStart,jobTStop,SEC_TO_TIME(UNIX_TIMESTAMP(jobTStop) -  UNIX_TIMESTAMP(jobTStart)) AS duration
+FROM
+	jobs
+WHERE
+	jobId = $subjobid
+EOF;
+
+				list($res,$nb) = sqlquery($query,$link);
+				if ($nb != 0){
+					$res[0][0] = htmlentities($res[0][0]);
+					$res[0][1] = htmlentities($res[0][1]);
+					$res[0][2] = htmlentities($res[0][2]);
+					$res[0][3] = htmlentities($res[0][3]);
+					$res[0][4] = htmlentities($res[0][4]);
+					$res[0][5] = htmlentities($res[0][5]);
+					$res[0][6] = htmlentities($res[0][6]);
+					$res[0][7] = htmlentities($res[0][7]);
+					$res[0][8] = htmlentities($res[0][8]);
+					$res[0][9] = htmlentities($res[0][9]);
+					$res[0][10] = htmlentities($res[0][10]);
+					$res[0][11] = htmlentities($res[0][11]);
+				}
+				cigri_register_menu_item($menu,$currentarray,"jdetails","MultiJob #".$jobid,"account.php?submenu=jobs&option=details&id=".$jobid,3,true);
+				cigri_register_menu_item($menu,$currentarray,"jinter",$_GET['optiontext'],"account.php?submenu=jobs&option={$_GET['optionparam']}&id=".$jobid,4,true);
+				cigri_register_menu_item($menu,$currentarray,"subjdetails","Job #".$subjobid." details","account.php?submenu=jobs&option=jobdetail&id=".$jobid."&jid=".$subjobid."&optiontext=".rawurlencode($_GET['optiontext'])."&optionparam=".rawurlencode($_GET['optionparam']),5,true);
+				$smarty->assign('contenttemplate',"account/jobs/jobjobdetails.tpl");
+				$smarty->assign('jobid',$jobid);
+				$smarty->assign('subjobid',$subjobid);
+				$smarty->assign('nb',$nb);
+				$smarty->assign('eventarray',$res);
+			}
+			else {
+				$smarty->assign('contenttemplate','error.tpl');
+			}
+		}
+		else {
+			$smarty->assign('contenttemplate','error.tpl');
+		}
+		break;
+// }}}
+
+// }}}
+
+// {{{ Running jobs
+
 // {{{ Running parameters
 	case "runningparams":
 		if (isset($_GET['id'])) {
 			if (is_numeric($_GET['id'])) {
 				$jobid = $_GET['id'];
 				$selectnames[] = "jobId";
-				$selectnames[] = "jobParam";
-				$selectnames[] = "jobTStart";
+				$selectnames[] = "jobName";
+				$selectnames[] = "jobTSub";
 				$selectnames[] = "jobClusterName";
 				cigri_order_by($_GET,$selectnames,'account.php',$orderby,$orderarray,$orderimgs,$smarty,"../");
 
@@ -255,7 +331,7 @@ EOF;
 
 				$query = <<<EOF
 SELECT
-	jobId, jobParam, jobTStart, jobClusterName
+	jobId, jobName, jobTSub, jobClusterName
 FROM
 	jobs
 WHERE
@@ -272,9 +348,8 @@ EOF;
 				list($res,$nb) = sqlquery($query,$link);
 
 				// display parameters
-				cigri_register_menu_item($menu,$currentarray,"jrunning","Running MultiJobs","account.php?submenu=jobs&option=running",3,true);
-				cigri_register_menu_item($menu,$currentarray,"jrunningdetails","MultiJob #".$jobid,"account.php?submenu=jobs&option=runningdetails&id=".$jobid,4,true);
-				cigri_register_menu_item($menu,$currentarray,"jrunningrunningp","Running parameters","account.php?submenu=jobs&option=runningparams&id=".$jobid,5,true);
+				cigri_register_menu_item($menu,$currentarray,"jdetails","MultiJob #".$jobid,"account.php?submenu=jobs&option=details&id=".$jobid,3,true);
+				cigri_register_menu_item($menu,$currentarray,"jrunningrunningp","Running jobs","account.php?submenu=jobs&option=runningparams&id=".$jobid,4,true);
 				$smarty->assign('contenttemplate',"account/jobs/runningrunningparams.tpl");
 				for($i = 0; $i < $nb;$i++) {
 					$res[$i][1] = htmlentities($res[$i][1]) ;
@@ -336,9 +411,8 @@ EOF;
 				list($res,$nb) = sqlquery($query,$link);
 
 				// display parameters
-				cigri_register_menu_item($menu,$currentarray,"jrunning","Running MultiJobs","account.php?submenu=jobs&option=running",3,true);
-				cigri_register_menu_item($menu,$currentarray,"jrunningdetails","MultiJob #".$jobid,"account.php?submenu=jobs&option=runningdetails&id=".$jobid,4,true);
-				cigri_register_menu_item($menu,$currentarray,"jrunningwaitingp","Waiting parameters","account.php?submenu=jobs&option=waitingparams&id=".$jobid,5,true);
+				cigri_register_menu_item($menu,$currentarray,"jdetails","MultiJob #".$jobid,"account.php?submenu=jobs&option=details&id=".$jobid,3,true);
+				cigri_register_menu_item($menu,$currentarray,"jrunningwaitingp","Waiting parameters","account.php?submenu=jobs&option=waitingparams&id=".$jobid,4,true);
 				$smarty->assign('contenttemplate',"account/jobs/runningwaitingparams.tpl");
 				for($i = 0; $i < $nb;$i++) {
 					$res[$i][0] = htmlentities($res[$i][0]) ;
@@ -369,9 +443,8 @@ EOF;
 			exit;
 		}
 		
-		cigri_register_menu_item($menu,$currentarray,"jrunning","Running MultiJobs","account.php?submenu=jobs&option=running",3,true);
-		cigri_register_menu_item($menu,$currentarray,"jrunningdetails","MultiJob #".$jobid,"account.php?submenu=jobs&option=runningdetails&id=".$jobid,4,true);
-		cigri_register_menu_item($menu,$currentarray,"jrunningwaitingp","Waiting parameters","account.php?submenu=jobs&option=waitingparams&id=".$jobid,5,true);
+		cigri_register_menu_item($menu,$currentarray,"jdetails","MultiJob #".$jobid,"account.php?submenu=jobs&option=details&id=".$jobid,3,true);
+		cigri_register_menu_item($menu,$currentarray,"jrunningwaitingp","Waiting parameters","account.php?submenu=jobs&option=waitingparams&id=".$jobid,4,true);
 		// Checkboxes => array
 		unset($waitingp);
 		if (isset($_GET['paramcb']) && is_array($_GET['paramcb'])) {
@@ -384,13 +457,13 @@ EOF;
 		
 		if (isset($waitingp)) {
 			if (isset($_GET['remove'])) {
-				cigri_register_menu_item($menu,$currentarray,"jrunningaction","Remove parameters","account.php?submenu=errors&option=paramsaction&remove=ok&id=".$jobid,6,true);
+				cigri_register_menu_item($menu,$currentarray,"jrunningaction","Remove parameters","account.php?submenu=jobs&option=paramsaction&remove=ok&id=".$jobid,5,true);
 				$smarty->assign('action','Parameters deletion');
 				$smarty->assign('shortaction','remove');
 			}
 			else if (isset($_GET['priority'])) {
 				// change priorities)
-				cigri_register_menu_item($menu,$currentarray,"jrunningaction","Change priority","account.php?submenu=errors&option=paramsaction&priority=ok&id=".$jobid,6,true);
+				cigri_register_menu_item($menu,$currentarray,"jrunningaction","Change priority","account.php?submenu=jobs&option=paramsaction&priority=ok&id=".$jobid,5,true);
 				$smarty->assign('action','Priority change');
 				$smarty->assign('shortaction','priority');
 				// check for new priority (must be a positive integer)
@@ -503,313 +576,6 @@ EOF;
 
 // }}}
 
-// {{{ CLUSTER
-
-// {{{ Clusters
-	case "cluster":
-		$selectnames[] = "clusterName";
-		$selectnames[] = "clusterAdmin";
-		$selectnames[] = "clusterBatch";
-		cigri_order_by($_GET,$selectnames,'account.php',$orderby,$orderarray,$orderimgs,$smarty,"../");
-		$query = <<<EOF
-SELECT
-	clusterName, clusterAdmin, clusterBatch
-FROM
-	clusters
-EOF;
-                $query .= $orderby;
-
-		list($res,$nb) = sqlquery($query,$link);
-
-		// display parameters
-		cigri_register_menu_item($menu,$currentarray,"cluster","Clusters","account.php?submenu=jobs&option=cluster",3,true);
-		$smarty->assign('contenttemplate',"account/jobs/cluster.tpl");
-		for($i = 0; $i < $nb;$i++) {
-			$res[$i][1] = htmlentities($res[$i][1]);
-			$res[$i][2] = htmlentities($res[$i][2]);
-			// Store clusterName in HTML format in a new column
-			$res[$i][3] = htmlentities($res[$i][0]);
-			// and convert it to query string format
-			$res[$i][0] = rawurlencode($res[$i][0]);
-		}
-		$smarty->assign('nb',$nb);
-		$smarty->assign('eventarray',$res);
-		break;
-						    
-// }}}
-
-// {{{ Cluster details
-	case "clusterdetails":
-		if (isset($_GET['name'])) {
-			$clustername = $_GET['name'];
-			$name = addslashes($clustername);
-			$selectnames[] = "j.jobMJobsId";
-			$selectnames[] = "mj.MJobsName";
-			$selectnames[] = "mj.MJobsState";
-			cigri_order_by($_GET,$selectnames,'account.php',$orderby,$orderarray,$orderimgs,$smarty,"../");
-			$query = <<<EOF
-SELECT
-	COUNT(DISTINCT(j.jobMJobsId))
-FROM
-	jobs j, multipleJobs mj
-WHERE
-	j.jobClusterName= '$name'
-	AND mj.MJobsId = j.jobMJobsId
-EOF;
-
-			list($res,$nb) = sqlquery($query,$link);
-			$nbitems = $res[0][0];
-
-			// Do all the stuff to set page parameters before display
-			cigri_set_page_params($page,$step,$nbitems,$maxpages,$minindex,$maxindex,$smarty,$_GET,"account.php");
-
-			$query = <<<EOF
-SELECT
-	DISTINCT (j.jobMJobsId) , mj.MJobsName, mj.MJobsState
-FROM
-	jobs j, multipleJobs mj
-WHERE
-	j.jobClusterName= '$name'
-	AND mj.MJobsId = j.jobMJobsId
-EOF;
-	$query .= $orderby;
-	$query .= <<<EOF
- LIMIT
-	$minindex,$step;
-EOF;
-			unset($res);
-			list($res,$nb) = sqlquery($query,$link);
-	
-			// display parameters
-			cigri_register_menu_item($menu,$currentarray,"cluster","Clusters","account.php?submenu=jobs&option=cluster",3,true);
-			cigri_register_menu_item($menu,$currentarray,"cdetails",$clustername,"account.php?submenu=jobs&option=clusterdetails&name=".rawurlencode($clustername),4,true);
-			$smarty->assign('contenttemplate',"account/jobs/clusterdetails.tpl");
-			for($i = 0; $i < $nb;$i++) {
-				$res[$i][1] = htmlentities($res[$i][1]) ;
-				$res[$i][2] = htmlentities($res[$i][2]) ;
-			}
-			$smarty->assign('name',$clustername);
-			$smarty->assign('queryname',rawurlencode($clustername));
-			$smarty->assign('eventarray',$res);
-		}
-		else {
-			$smarty->assign('contenttemplate',"error.tpl");
-		}
-
-		break;
-// }}}
-
-// {{{ cluster params
-	case "clusterdistribution":
-		if (isset($_GET['name']) && isset($_GET['multijobid'])) {
-			if (is_numeric($_GET['multijobid'])) {
-				$clustername = $_GET['name'];
-				$name = addslashes($clustername);
-				$multijobid = $_GET['multijobid'];
-				$selectnames[] = "jobId";
-				$selectnames[] = "jobName";
-				$selectnames[] = "jobTStop";
-				$selectnames[] = "jobState";
-				$selectnames[] = "jobTStart";
-				$selectnames[] = "jobParam";
-				$selectnames[] = "jobTSub";
-				cigri_order_by($_GET,$selectnames,'account.php',$orderby,$orderarray,$orderimgs,$smarty,"../");
-				$query = <<<EOF
-SELECT
-	count(jobId)
-FROM
-	jobs
-WHERE
-	jobClusterName= '$name'
-	AND jobMJobsId = $multijobid
-EOF;
-			
-				list($res,$nb) = sqlquery($query,$link);
-				$nbitems = $res[0][0];
-
-				// Do all the stuff to set page parameters before display
-				cigri_set_page_params($page,$step,$nbitems,$maxpages,$minindex,$maxindex,$smarty,$_GET,"account.php");
-
-				$query = <<<EOF
-SELECT
-	jobId, jobName, jobTStop, jobState, jobTStart,  jobParam, jobTSub
-FROM
-	jobs
-WHERE
-	jobClusterName= '$name'
-	AND jobMJobsId = $multijobid
-EOF;
-	$query .= $orderby;
-	$query .= <<<EOF
- LIMIT
-	$minindex,$step
-EOF;
-				unset($res);
-				list($res,$nb) = sqlquery($query,$link);
-	
-				// display parameters
-				cigri_register_menu_item($menu,$currentarray,"cluster","Clusters","account.php?submenu=jobs&option=cluster",3,true);
-				cigri_register_menu_item($menu,$currentarray,"cdetails",$clustername,"account.php?submenu=jobs&option=clusterdetails&name=".rawurlencode($clustername),4,true);
-				cigri_register_menu_item($menu,$currentarray,"cdistri","MultiJob #".$multijobid,"account.php?submenu=jobs&option=clusterdistribution&name=".rawurlencode($clustername)."&multijobid=".$multijobid,5,true);
-				$smarty->assign('contenttemplate',"account/jobs/clusterdistribution.tpl");
-				for ($i = 0; $i < $nb;$i++) {
-					$res[$i][1] = htmlentities($res[$i][1]) ;
-					$res[$i][2] = htmlentities($res[$i][2]) ;
-					$res[$i][3] = htmlentities($res[$i][3]) ;
-					$res[$i][4] = htmlentities($res[$i][4]) ;
-					$res[$i][5] = htmlentities($res[$i][5]) ;
-					$res[$i][6] = htmlentities($res[$i][6]) ;
-				}
-				$smarty->assign('name',$clustername);
-				$smarty->assign('queryname',rawurlencode($clustername));
-				$smarty->assign('id',$multijobid);
-				$smarty->assign('eventarray',$res);
-			}
-			else {
-				$smarty->assign('contenttemplate',"error.tpl");
-			}
-		}
-		else {
-			$smarty->assign('contenttemplate',"error.tpl");
-		}
-		break;
-// }}}
-
-// }}}
-
-// {{{ terminated jobs management
-
-// {{{ terminated jobs
-	case "terminated":
-		$selectnames[] = "MJobsId";
-		$selectnames[] = "MJobsName";
-		$selectnames[] = "MJobsTSub";
-		cigri_order_by($_GET,$selectnames,'account.php',$orderby,$orderarray,$orderimgs,$smarty,"../");
-		$query = <<<EOF
-SELECT
-	count(MJobsId)
-FROM
-	multipleJobs
-WHERE
-	MJobsUser = '$login'
-	AND MJobsState = 'TERMINATED'
-EOF;
-
-		list($res,$nb) = sqlquery($query,$link);
-		$nbitems = $res[0][0];
-
-		// Do all the stuff to set page parameters before display
-		cigri_set_page_params($page,$step,$nbitems,$maxpages,$minindex,$maxindex,$smarty,$_GET,"account.php");
-								
-		$query = <<<EOF
-SELECT
-	MJobsId, MJobsName, MJobsTSub
-FROM
-	multipleJobs
-WHERE
-	MJobsUser = '$login'
-	AND MJobsState = 'TERMINATED'
-EOF;
-	$query .= $orderby;
-	$query .= <<<EOF
- LIMIT
-	$minindex,$step
-EOF;
-
-		unset($res);
-		list($res,$nb) = sqlquery($query,$link);
-
-		// display parameters
-		cigri_register_menu_item($menu,$currentarray,"tjobs","Terminated MultiJobs","account.php?submenu=jobs&option=terminated",3,true);
-		$smarty->assign('contenttemplate',"account/jobs/terminated.tpl");
-		for($i = 0; $i < $nb;$i++) {
-			$res[$i][1] = htmlentities($res[$i][1]) ;
-			$res[$i][2] = htmlentities($res[$i][2]) ;
-		}
-		$smarty->assign('eventarray',$res);
-		break;
-// }}}
-
-// {{{ terminated jobs details
-	case "terminateddetails":
-		if (isset($_GET['id'])) {
-			if (is_numeric($_GET['id'])) {
-				$jobid = $_GET['id'];
-				$selectnames[] = "jobId";
-				$selectnames[] = "jobParam";
-				$selectnames[] = "jobName";
-				$selectnames[] = "jobCollectedJobId";
-				$selectnames[] = "jobTStart";
-				$selectnames[] = "jobTStop";
-				$selectnames[] = "duration";
-				$selectnames[] = "jobClusterName";
-				$selectnames[] = "jobNodeName";
-				cigri_order_by($_GET,$selectnames,'account.php',$orderby,$orderarray,$orderimgs,$smarty,"../");
-
-				$query = <<<EOF
-SELECT
-	count(jobId)
-FROM
-	jobs
-WHERE
-	jobMJobsId = $jobid
-	AND jobState = 'Terminated'
-EOF;
-				list($res,$nb) = sqlquery($query,$link);
-				$nbitems = $res[0][0];
-
-				// Do all the stuff to set page parameters before display
-				cigri_set_page_params($page,$step,$nbitems,$maxpages,$minindex,$maxindex,$smarty,$_GET,"account.php");
-
-				$query = <<<EOF
-SELECT
-	jobId, jobParam, jobName, jobCollectedJobId, jobTStart,jobTStop,  SEC_TO_TIME(UNIX_TIMESTAMP(jobTStop) -  UNIX_TIMESTAMP(jobTStart)) AS duration, jobClusterName, jobNodeName
-FROM
-	jobs
-WHERE
-	jobMJobsId = $jobid
-	AND jobState = 'Terminated'
-EOF;
-	$query .= $orderby;
-	$query .= <<<EOF
- LIMIT
-	$minindex,$step
-EOF;
-
-				unset($res);
-				list($res,$nb) = sqlquery($query,$link);
-
-				// display parameters
-				cigri_register_menu_item($menu,$currentarray,"tjobs","Terminated MultiJobs","account.php?submenu=jobs&option=terminated",3,true);
-				cigri_register_menu_item($menu,$currentarray,"tjobsdetails","MultiJob #".$jobid,"account.php?submenu=jobs&option=terminateddetails&id=".$jobid,4,true);
-				$smarty->assign('contenttemplate',"account/jobs/terminateddetails.tpl");
-				for($i = 0; $i < $nb;$i++) {
-					$res[$i][1] = htmlentities($res[$i][1]) ;
-					$res[$i][2] = htmlentities($res[$i][2]) ;
-					$res[$i][4] = htmlentities($res[$i][4]) ;
-					$res[$i][5] = htmlentities($res[$i][5]) ;
-					$res[$i][6] = htmlentities($res[$i][6]) ;
-					$res[$i][7] = htmlentities($res[$i][7]) ;
-					$res[$i][8] = htmlentities($res[$i][8]) ;
-				}
-				$smarty->assign('jobid',$jobid);
-				$smarty->assign('eventarray',$res);
-			}
-			else {
-				$smarty->assign('contenttemplate','error.tpl');
-			}
-		}
-		else {
-			$smarty->assign('contenttemplate','error.tpl');
-		}
-		break;
-// }}}
-// }}}
-
-	default:
-		// Unknown option -> error
-		$smarty->assign('contenttemplate','error.tpl');
-		break;
 }
 }
 	mysql_close($link);

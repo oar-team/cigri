@@ -1,13 +1,13 @@
 <table border="0" cellpadding="10" cellspacing="0" width="100%">
 <tr><td align="center">
-	<h5><a href="account.php?submenu=jobs&option=runningdetails&id={$jobid}">Running MultiJob #{$jobid}</a></h5>
+	<h5>MultiJob #{$jobid} - Running</h5>
 	<table border="0">
 	<tr>
-		<td><a href="account.php?submenu=jobs&option=runningparams&id={$jobid}">Running Parameters</a></td>
+		<td><a href="account.php?submenu=jobs&option=runningparams&id={$jobid}">Running Jobs</a></td>
 		<td>&nbsp;-&nbsp;</td>
-		<td><a href="account.php?submenu=jobs&option=executedparams&id={$jobid}">Executed Parameters</a></td>
+		<td><a href="account.php?submenu=jobs&option=executedparams&id={$jobid}">Executed Jobs</a></td>
 		<td>&nbsp;-&nbsp;</td>
-		<td><a href="account.php?submenu=jobs&option=waitingparams&id={$jobid}">Waiting Parameters</a></td>
+		<td style="font-weight: bold;">Waiting Parameters</td>
 		</tr>
 	</table>
 

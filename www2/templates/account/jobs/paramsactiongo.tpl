@@ -1,7 +1,7 @@
 <table border="0" cellpadding="10" cellspacing="0" width="100%">
 <tr><td align="center">
 	{if $nbitems neq 0}
-		<h5>{$action} {if $shortaction eq 'priority'}to {$newpriority}{/if} successful on {$updates} parameters out of {$nbitems}</h5>
+		<h5>Multijob #{$jobid} - {$action} {if $shortaction eq 'priority'}to {$newpriority}{/if} successful on {$updates} parameters out of {$nbitems}</h5>
 		<p>{$nbitems} selected parameters shown below for information</p>
 		{* parity var *}
 		{assign var="even" value=true}
@@ -27,11 +27,11 @@
 			</tr>
 		{/foreach}
 		</table>
-		<p><a href="account.php?submenu=jobs&option=waitingparams&id={$jobid}">Back to Running MultiJob #{$jobid} waiting parameters</a></p>
+		<p><a href="account.php?submenu=jobs&option=waitingparams&id={$jobid}">Back to MultiJob #{$jobid} waiting parameters</a></p>
 
 	{else}
 		<p>Please select a parameter.</p>
-		<p><a href="account.php?submenu=jobs&option=waitingparams&id={$jobid}">Back to Running MultiJob #{$jobid} waiting parameters</a></p>
+		<p><a href="account.php?submenu=jobs&option=waitingparams&id={$jobid}">Back to MultiJob #{$jobid} waiting parameters</a></p>
 	{/if}
 </td></tr>
 </table>

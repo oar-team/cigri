@@ -13,17 +13,13 @@ $smarty->assign('toroot','');
 // Set page vars
 $smarty->assign('pagetitle',"CiGri - Grid Management");
 // Set header vars
-$smarty->assign('headername',"CiGri -- General Informations");
+$smarty->assign('headername',"CiGri -- General Information");
 
 // Set menu items
 unset($menu);
 unset($currentarray);
-cigri_register_menu_item($menu,$currentarray,"General","General&nbsp;informations","index.php",1,true);
-cigri_register_menu_item($menu,$currentarray,"S1","Step&nbsp;1","index.php#step1",2,false);
-cigri_register_menu_item($menu,$currentarray,"S2","Step&nbsp;2","index.php#step2",2,false);
-cigri_register_menu_item($menu,$currentarray,"S3","Step&nbsp;3","index.php#step3",2,false);
-cigri_register_menu_item($menu,$currentarray,"S4","Step&nbsp;4","index.php#step4",2,false);
-cigri_register_menu_item($menu,$currentarray,"S5","Step&nbsp;5","index.php#step5",2,false);
+cigri_register_menu_item($menu,$currentarray,"General","General&nbsp;information","index.php",1,true);
+cigri_register_menu_item($menu,$currentarray,"Usage","Usage","index.php#usage",2,false);
 cigri_register_menu_item($menu,$currentarray,"ex","Example","index.php#example",2,false);
 cigri_register_menu_item($menu,$currentarray,"links","Links","index.php#links",2,false);
 cigri_register_menu_item($menu,$currentarray,"Stats","Statistics","stats.php",1,false);

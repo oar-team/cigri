@@ -27,12 +27,12 @@ $smarty->assign('headername',$headername);
 // Set menu items
 unset($menu);
 unset($currentarray);
-cigri_register_menu_item($menu,$currentarray,"General","General&nbsp;informations","index.php",1,false);
+cigri_register_menu_item($menu,$currentarray,"General","General&nbsp;information","index.php",1,false);
 cigri_register_menu_item($menu,$currentarray,"Stats","Statistics","stats.php",1,false);
 cigri_register_menu_item($menu,$currentarray,"Events","Events","events.php",1,true);
 cigri_register_menu_item($menu,$currentarray,"Account","My&nbsp;account","secured/account.php",1,false);
 
-cigri_register_menu_item($menu,$currentarray,"ievents","Main","events.php",2,false);
+//cigri_register_menu_item($menu,$currentarray,"ievents","Main","events.php",2,false);
 $smarty->assign('contenttemplate',"events.tpl");
 
 // {{{ Events query
@@ -40,17 +40,13 @@ $selectnames[] = "e.eventId";
 $selectnames[] = "e.eventType";
 $selectnames[] = "e.eventState";
 $selectnames[] = "e.eventClusterName";
-$selectnames[] = "mj.MJobsTSub";
-$selectnames[] = "mj.MJobsName";
-$selectnames[] = "mj.MJobsUser";
+$selectnames[] = "e.eventDate";
 cigri_order_by($_GET,$selectnames,'events.php',$orderby,$orderarray,$orderimgs,$smarty,"");
 $query = <<<EOF
 SELECT
 	COUNT(e.eventId)
 FROM
-	events e,multipleJobs mj
-WHERE
-	e.eventMJobsId = mj.MJobsId
+	events e
 EOF;
 list($res,$nb) = sqlquery($query,$link);
 $nbitems = $res[0][0];
@@ -60,11 +56,9 @@ cigri_set_page_params($page,$step,$nbitems,$maxpages,$minindex,$maxindex,$smarty
 // New query with page limits
 $query = <<<EOF
 SELECT
-	e.eventId, e.eventType, e.eventState, e.eventClusterName, mj.MJobsTSub, mj.MJobsName, mj.MJobsUser
+	e.eventId, e.eventType, e.eventState, e.eventClusterName, e.eventDate
 FROM
-	multipleJobs mj, events e
-WHERE
-	e.eventMJobsId = mj.MJobsId
+	events e
 
 EOF;
 $query .= $orderby;
@@ -81,8 +75,6 @@ for($i = 0; $i < $nb;$i++) {
 	$res[$i][2] = htmlentities($res[$i][2]) ;
 	$res[$i][3] = htmlentities($res[$i][3]) ;
 	$res[$i][4] = htmlentities($res[$i][4]) ;
-	$res[$i][5] = htmlentities($res[$i][5]) ;
-	$res[$i][6] = htmlentities($res[$i][6]) ;
 }
 $smarty->assign('eventarray',$res);
 // }}}
