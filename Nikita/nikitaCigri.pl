@@ -28,7 +28,7 @@ use SSHcmdClient;
 
 # List of pbsnodes commands
 my %qdelCommand = ( 'PBS' => 'qdel',
-#					'OAR' => 'qdel.pl' );
+					'OAR1' => 'qdel.pl',
 					'OAR' => 'oardel' );
 
 my $base = iolibCigri::connect() ;

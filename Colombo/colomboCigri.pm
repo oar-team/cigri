@@ -120,7 +120,7 @@ sub add_new_mjob_event($$$$){
 
 	my $id = calculate_event_id($dbh);
 	my $time = get_date();
-	$dbh->do("	INSERT INTO events (eventId,eventType,eventClass,eventMJosbId,eventDate,eventMessage)
+	$dbh->do("	INSERT INTO events (eventId,eventType,eventClass,eventMJobsId,eventDate,eventMessage)
 				VALUES ($id,\"$eventType\",\"MJOB\",\"$mjobId\",\"$time\",\"$eventMessage\")");
 
 	$dbh->commit;
@@ -294,12 +294,12 @@ sub check_events($){
 	#JOB
 		# FRAG, UPDATOR_RET_CODE_ERROR, UPDATOR_JOB_KILLED, RUNNER_SUBMIT, RUNNER_JOBID_PARSE
 
-	print("I chck events\n");
+	print("I check events\n");
 
 	#lock tables
 	my $dbh = shift;
 
-	$dbh->do("LOCK TABLES events WRITE, clusterBlackList WRITE, jobs WRITE, nodes WRITE, schedulerBlackList WRITE, resubmissionLog WRITE, parameters WRITE");
+	$dbh->do("LOCK TABLES events WRITE, clusterBlackList WRITE, jobs WRITE, nodes WRITE, schedulerBlackList WRITE, resubmissionLog WRITE, parameters WRITE, fragLog WRITE");
 	$dbh->begin_work;
 	#list of cluster events used
 	my $sth = $dbh->prepare("	SELECT clusterBlackListEventId
@@ -433,6 +433,37 @@ sub check_events($){
 			}
 			$dbh->do("	INSERT INTO schedulerBlackList (schedulerBlackListNum,schedulerBlackListSchedulerId,schedulerBlackListEventId)
 						VALUES ($id,$ref[1],$ref[0])");
+		}
+	}
+	$sth->finish();
+
+	# treate FRAG events
+	$dbh->commit;
+	$dbh->begin_work;
+
+	$sth = $dbh->prepare("	SELECT fragLogEventId
+							FROM events, fragLog
+							WHERE fragLogEventId = eventId
+								AND eventState = \"ToFIX\"
+							");
+	$sth->execute();
+	undef(%eventUsed);
+	while (my @ref = $sth->fetchrow_array()) {
+		$eventUsed{$ref[0]}=1;
+	}
+	$sth->finish();
+
+	$sth = $dbh->prepare("	SELECT eventId
+							FROM events
+							WHERE eventState = \"ToFIX\"
+								AND eventType = \"FRAG\"
+							");
+	$sth->execute();
+
+	while (my @ref = $sth->fetchrow_array()) {
+		if (!defined($eventUsed{$ref[0]})){
+			$dbh->do("	INSERT INTO fragLog (fragLogEventId)
+						VALUES ($ref[0])");
 		}
 	}
 	$sth->finish();

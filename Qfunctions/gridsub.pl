@@ -40,13 +40,6 @@ sub usage(){
 # Main
 #
 
-# Get the server configuration
-ConfLibCigri::init_conf();
-my $remote_host = undef;
-$remote_host = ConfLibCigri::get_conf("CIGRI_SERVER") if ConfLibCigri::is_conf("CIGRI_SERVER") or die("Can't get value of the CIGRI_SERVER tag in cigri.conf\n");
-my $remote_port = undef;
-$remote_port = ConfLibCigri::get_conf("CIGRI_SERVER_PORT") if ConfLibCigri::is_conf("CIGRI_SERVER_PORT") or die("Can't get value of the CIGRI_SERVER_PORT tag in cigri.conf\n");
-
 # Options on arg command line
 my %opts;
 Getopt::Std::getopts('f:', \%opts);

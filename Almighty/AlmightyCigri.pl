@@ -98,10 +98,10 @@ sub nikita(){
 
 # core of the AlmightyCigri
 while (1){
+	nikita();
 	updator();
 	scheduler();
 	runner();
-	nikita();
 	print("I make a pause of $timeout seconds :-)\n");
 	sleep($timeout);
 }

@@ -1,7 +1,7 @@
 DEFAULT{
 
 	name = essais1 ;
-	nbJobs = 2;
+	nbJobs = 20;
 #	paramFile = param.tmp;
 #	resultFile = result.tmp;
 }
@@ -16,9 +16,9 @@ pawnee{
 #	execFile = /home/nis/capitn/test.sh ;
 #	execTime = 12;
 #}
-#bioimage.ujf-grenoble.fr{
-#	execFile = /home/nis/capit/test.sh ;
-#	execTime = 12;
-#}
+bioimage.ujf-grenoble.fr{
+	execFile = /home/nis/capit/test.sh ;
+	execTime = 12;
+}
 
 

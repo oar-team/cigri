@@ -57,6 +57,7 @@ if (defined($opts{"m"})){
 	print("Delete the MJob $MJobId\n");
 }elsif(defined($opts{"j"})){
 	$jobId = $opts{"j"};
+	iolibCigri::set_job_state($base, $jobId, "Event");
 	colomboCigri::add_new_job_event($base,$jobId,"FRAG","user frag event");
 	print("Delete the job $jobId\n");
 }else{

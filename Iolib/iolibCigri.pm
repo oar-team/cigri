@@ -391,6 +391,18 @@ sub set_job_state($$$) {
 	$sth->finish();
 }
 
+# set the state of a Mjob
+# arg1 --> database ref
+# arg2 --> MjobsId
+# arg3 --> state
+sub set_mjobs_state($$$) {
+	my $dbh = shift;
+	my $idmJob = shift;
+	my $state = shift;
+	$dbh->do("	UPDATE multipleJobs SET MJobsState = \"$state\"
+				WHERE MJobsId =\"$idmJob\"");
+}
+
 # set the batch id of a job
 # arg1 --> database ref
 # arg2 --> jobId
@@ -441,22 +453,6 @@ sub update_nb_freeNodes($){
 	my $dbh = shift;
 
 	emptyTemporaryTables($dbh);
-
-	#Verify if the scheduler is not bad!!
-	#my $sth = $dbh->prepare("	SELECT count( * )
-	#							FROM schedulerErrors
-	#							WHERE schedulerErrorState = \"ToFIX\"
-	#						");
-	#$sth->execute();
-	#my @numError = $sth->fetchrow_array();
-	#$sth->finish();
-
-	#print("NUM of SCHEDULER ERROR = $numError[0]\n");
-
-	#if ($numError[0] != 0){
-	#	return $numError[0];
-	#}
-	#en of verif
 
 	my $sth = $dbh->prepare("	SELECT nodeClusterName, COUNT(*)
 							FROM nodes
@@ -753,163 +749,6 @@ sub update_att_job($$$$$){
 				WHERE jobId = $id");
 }
 
-# reschedule a job parameter
-# arg1 --> database parameter
-# arg2 --> idJob to resubmit
-#sub resubmit_job($$){
-#	my $dbh = shift;
-#	my $jobId = shift;
-#	$dbh->do("	INSERT INTO parameters (parametersMJobsId,parametersParam)
-#				SELECT jobMJobsId, jobParam
-#				FROM jobs
-#				WHERE jobId = $jobId
-#			");
-#}
-
-# Insert a field in the error table
-# arg1 --> database ref
-# arg2 --> error Type
-# arg3 --> job id which generate this error
-# arg4 --> message, describe the error
-#sub insert_new_error($$$$){
-#	my ($dbh, $errorType, $errorJobId, $errorMessage) = @_;
-#	$errorMessage = substr($errorMessage, 0, 250);
-#	my $time = get_date();
-#
-#	$dbh->do("INSERT INTO errors (errorType,errorState,errorJobId,errorDate,errorMessage)
-#			VALUES (\"$errorType\",\"ToFIX\",\"$errorJobId\",\"$time\",\"$errorMessage\")");
-#}
-
-# Insert a field in the clusterError table
-# arg1 --> database ref
-# arg2 --> error Type
-# arg3 --> cluster id which generate this error
-# arg4 --> message, describe the error
-#sub insert_new_clusterError($$$$){
-#	my ($dbh, $errorType, $errorClusterName, $errorMessage) = @_;
-#
-#	$errorMessage = substr($errorMessage, 0, 250);
-#
-#	my $time = get_date();
-#
-#	$dbh->do("INSERT INTO clusterErrors (clusterErrorType,clusterErrorState,clusterErrorClusterName,clusterErrorDate,clusterErrorMessage)
-#			VALUES (\"$errorType\",\"ToFIX\",\"$errorClusterName\",\"$time\",\"$errorMessage\")");
-#}
-
-# Insert a field in the schedulerError table
-# arg1 --> database ref
-# arg2 --> error Type
-# arg3 --> message, describe the error
-#sub insert_new_schedulerError($$$){
-#	my ($dbh, $errorType, $errorMessage) = @_;
-#
-#	$errorMessage = substr($errorMessage, 0, 250);
-#
-#	my $time = get_date();
-#	my $sched = get_current_scheduler($dbh);
-#
-#	$dbh->do("INSERT INTO schedulerErrors #(schedulerErrorType,schedulerErrorState,schedulerErrorSchedulerId,schedulerErrorDate,schedulerErrorMessage)
-#	VALUES (\"$errorType\",\"ToFIX\",$$sched{schedulerId},\"$time\",\"$errorMessage\")");
-#}
-
-# set the message of a job
-# arg1 --> database ref
-# arg2 --> jobId
-# arg3 --> message to insert in the database
-#sub set_job_message($$$) {
-#	my $dbh = shift;
-#	my $idJob = shift;
-#	my $message = shift;
-#	$message = substr($message, 0, 250);
-#	my $sth = $dbh->prepare("UPDATE jobs SET jobMessage = \"$message\"
-#								WHERE jobId =\"$idJob\"");
-#	$sth->execute();
-#	$sth->finish();
-#}
-
-# Error analyser
-# arg1 --> database ref
-#sub analyse_error($){
-#	my $dbh = shift;
-#	#Analyse clusterError which blacklist cluster
-#	my $sth = $dbh->prepare("	SELECT clusterErrorClusterName
-#								FROM clusterErrors
-#								WHERE clusterErrorState = \"ToFIX\"
-#							");
-#	$sth->execute();
-#	my @clusterTmp;
-#	while (my @ref = $sth->fetchrow_array()) {
-#		push(@clusterTmp, $ref[0]);
-#	}
-#	$sth->finish();
-#	#blacklist bad clusters
-#	print(Dumper(@clusterTmp));
-#	foreach my $i (@clusterTmp){
-#		$dbh->do("	UPDATE clusters SET clusterState = \"Dead\"
-#					WHERE clusterName = \"$i\"");
-#	}
-#
-#	#Analyse errors which blacklist cluster
-#	$sth = $dbh->prepare("	SELECT nodeClusterName
-#							FROM errors,jobs,nodes
-#							WHERE errorState = \"ToFIX\"
-#							AND errorType = \"JOBID_PARSE\"
-#							AND errorJobId = jobId
-#							AND jobNodeId = nodeId
-#						");
-#	$sth->execute();
-#	my @errorTmp;
-#	while (my @ref = $sth->fetchrow_array()) {
-#		push(@errorTmp, $ref[0]);
-#	}
-#	$sth->finish();
-#	#blacklist bad clusters
-#	foreach my $i (@errorTmp){
-#		$dbh->do("	UPDATE clusters SET clusterState = \"Dead\"
-#					WHERE clusterName = \"$i\"");
-#	}
-#
-#	#Analyse errors which blacklist properties of mjobs
-#	$sth = $dbh->prepare("	SELECT nodeClusterName, jobMJobsId
-#							FROM errors,jobs,nodes
-#							WHERE errorState = \"ToFIX\"
-#							AND (errorType = \"USER_SOFTWARE\" OR  errorType = \"RUNNER_SUBMIT\")
-#							AND errorJobId = jobId
-#							AND jobNodeId = nodeId
-#						");
-#	$sth->execute();
-#	@errorTmp = ();
-#	while (my @ref = $sth->fetchrow_array()) {
-#		push(@errorTmp, \@ref);
-#	}
-#	$sth->finish();
-#	#blacklist bad clusters
-#	foreach my $i (@errorTmp){
-#		$dbh->do("	UPDATE properties SET propertiesActivated = \"OFF\"
-#					WHERE propertiesClusterName = \"$$i[0]\"
-#					AND propertiesMJobsId = \"$$i[1]\"");
-#	}
-#}
-
-# Check if the cluster is down
-# arg1 --> database ref
-# arg2 --> cluster name
-#sub is_cluster_down($$){
-#	my $dbh = shift;
-#	my $clusterName = shift;
-#	my $sth = $dbh->prepare("	SELECT count( * )
-#								FROM clusters
-#								WHERE clusterName = \"$clusterName\"
-#								AND clusterState = \"Dead\"
-#							");
-#	$sth->execute();
-#
-#	my @ref = $sth->fetchrow_array();
-#
-#	$sth->finish();
-#	return $ref[0];
-#}
-
 # return Mjobs to collect
 # arg1 --> database ref
 # return --> an array of MJobs
@@ -1025,35 +864,6 @@ sub get_current_scheduler($){
 sub update_current_scheduler($){
 	my $dbh = shift;
 	my @badScheds;
-	#my $sth = $dbh->prepare("	SELECT schedulerErrorSchedulerId
-	#							FROM schedulerErrors
-	#							WHERE schedulerErrorState = \"ToFIX\"
-	#						");
-	#$sth->execute();
-	#
-	#while (my $ref = $sth->fetchrow_hashref()) {
-	#	push(@badScheds, $$ref{schedulerErrorSchedulerId});
-	#}
-
-	#$sth->finish();
-
-	#my $query = "";
-	#foreach my $i (@badScheds){
-	#	$query .= " AND schedulerId != $i";
-	#}
-
-	#remove first AND if needed
-	#if ("$query" ne ""){
-	#	$query =~ /\sAND\s(.*)/;
-	#	$query = "WHERE $1";
-	#}
-
-#	$sth = $dbh->prepare("	SELECT *
-#							FROM schedulers
-#							$query
-#							ORDER BY schedulerPriority DESC
-#							LIMIT 1
-#						");
 
 	my $sth = $dbh->prepare("	SELECT schedulerId, schedulerFile, schedulerPriority
 							FROM schedulers
@@ -1187,30 +997,6 @@ sub set_frag_specific_MJob($$){
 	}
 	$sth->finish();
 }
-
-# set the MJobState to FRAGGED
-# arg1 --> database ref
-# arg2 --> MJobId
-#sub set_MJobState_fragged($$){
-#	my $dbh = shift;
-#	my $MJobId = shift;
-#
-#	$dbh->do("	UPDATE multipleJobs SET MJobsState = \"EVENT\"
-#				WHERE MJobsId = $MJobId
-#			");
-#}
-
-# set the jobState to Fragged
-# arg1 --> database ref
-# arg2 --> jobId
-#sub set_jobState_fragged($$){
-#	my $dbh = shift;
-#	my $jobId = shift;
-#
-#	$dbh->do("	UPDATE jobs SET jobState = \"Fragged\"
-#				WHERE jobId = $jobId
-#			");
-#}
 
 # get the eventId of the MJobs tofrag
 # arg1 --> database ref

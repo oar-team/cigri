@@ -29,7 +29,7 @@ use SSHcmdClient;
 
 # List of pbsnodes commands
 my %qsubCommand = ( 'PBS' => 'qsub',
-#					'OAR' => 'qsub.pl' );
+					'OAR1' => 'qsub.pl',
 					'OAR' => 'oarsub' );
 
 my $base = iolibCigri::connect() ;

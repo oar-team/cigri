@@ -31,11 +31,11 @@ $|=1;
 
 # List of pbsnodes commands
 my %pbsCommand = ( 	'PBS' => 'pbsnodes -a',
-#					'OAR' => 'pbsnodes.pl -a' );
+					'OAR1' => 'pbsnodes.pl -a',
 					'OAR' => 'oarnodes -a' );
 
 my %qstatCmd = ( 	'PBS' => 'qstat -f',
-#					'OAR' => 'qstat.pl -f' );
+					'OAR1' => 'qstat.pl -f',
 					'OAR' => 'oarstat -f' );
 
 my $base = iolibCigri::connect();
