@@ -42,7 +42,7 @@ my $runner_command = $path."runnerCigri.pl";
 my $updator_command = $path."updatorCigri.pl";
 my $nikita_command = $path."nikitaCigri.pl";
 
-my $base = iolibCigri::connect();
+#my $base = iolibCigri::connect();
 
 # launch a command and monitor it
 # arg1 --> command name
@@ -64,6 +64,7 @@ sub launch_command($){
 
 # launch a scheduler or blacklist it
 sub scheduler(){
+    my $base = iolibCigri::connect();
     iolibCigri::update_current_scheduler($base);
     my $sched = iolibCigri::get_current_scheduler($base);
     #return launch_command($scheduler_command);
@@ -73,15 +74,17 @@ sub scheduler(){
             if ($exitValue != 0){
                 colomboCigri::add_new_scheduler_event($base,$$sched{schedulerId},"EXIT_VALUE","bad exit value $exitValue for $path$$sched{schedulerFile}");
             }
+            #print("---------------->".${iolibCigri::get_current_scheduler($base)}{schedulerFile}."\n");
+            iolibCigri::disconnect($base);
             return $exitValue;
         }else{
             print("Bad scheduler file\n");
-            #iolibCigri::insert_new_schedulerError($base,"FILE","Can t find the file $$sched{schedulerFile}");
             colomboCigri::add_new_scheduler_event($base,$$sched{schedulerId},"ALMIGHTY_FILE","Can t find the file $path.$$sched{schedulerFile}");
         }
     }else{
         print("NO SCHEDULER TO LAUNCH :-(\n");
     }
+    iolibCigri::disconnect($base);
 }
 
 # launch the runner command
