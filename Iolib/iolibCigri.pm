@@ -117,6 +117,7 @@ sub add_mjobs($$) {
     if (JDLParserCigri::init_jdl($jdl) == 0){
         if (defined($JDLParserCigri::clusterConf{DEFAULT}{paramFile}) && (-r $JDLParserCigri::clusterConf{DEFAULT}{paramFile})){
                 open(FILE, $JDLParserCigri::clusterConf{DEFAULT}{paramFile});
+                my $doRet;
                 while (<FILE>){
                     chomp;
                     my @commentaire;
@@ -126,11 +127,9 @@ sub add_mjobs($$) {
                         my $paramName;
                         my @tmp;
                         ($paramName, @tmp) = split (' ', $_, 2);
-                        eval{
-                            print("Insert ($id,\'$_\',\'$paramName\')\n");
-                            $dbh->do("INSERT INTO parameters (parametersMJobsId,parametersParam,parametersName) VALUES ($id,\'$_\',\'$paramName\')");
-                        };
-                        if ($@){
+                        print("Insert ($id,\'$_\',\'$paramName\')\n");
+                        $doRet = $dbh->do("INSERT INTO parameters (parametersMJobsId,parametersParam,parametersName) VALUES ($id,\'$_\',\'$paramName\')");
+                        if ($doRet != 1){
                             warn("Duplicate parameters\n");
                             warn("$@");
                             #$dbh->do("DELETE FROM parameters WHERE parametersMJobsId = $id");

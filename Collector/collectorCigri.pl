@@ -44,7 +44,7 @@ if ($ARGV[0] =~ /^\d+$/ ){
 
 foreach my $i (@MjobsToCollect){
     iolibCigri::begin_transaction($base);
-    print("[COLLECTOR] I collecte the MJob $i\n");
+    print("\n[COLLECTOR] I collecte the MJob $i\n");
     # get clusters userLogins jobID jobBatchId clusterBatch userGridName
     my @jobs = iolibCigri::get_tocollect_MJob_files($base,$i);
     my %clusterVisited;

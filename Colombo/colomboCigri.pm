@@ -302,7 +302,7 @@ sub check_events($){
 	#SCHEDULER
 		# ALMIGHTY_FILE
 	#CLUSTER
-		# UPDATOR_PBSNODES_PARSE, UPDATOR_PBSNODES_CMD, UPDATOR_QSTAT_CMD, SSH
+		# UPDATOR_PBSNODES_PARSE, UPDATOR_PBSNODES_CMD, UPDATOR_QSTAT_CMD, SSH, COLLECTOR
 	#JOB
 		# FRAG, UPDATOR_RET_CODE_ERROR, UPDATOR_JOB_KILLED, RUNNER_SUBMIT, RUNNER_JOBID_PARSE
 
@@ -326,7 +326,7 @@ sub check_events($){
 	}
 	$sth->finish();
 
-	#search tofix event relative to a cluster error ("UPDATOR_PBSNODES_PARSE","UPDATOR_QSTAT_CMD","UPDATOR_PBSNODES_CMD",...
+	#search tofix event relative to a cluster error ("UPDATOR_PBSNODES_PARSE","UPDATOR_QSTAT_CMD","UPDATOR_PBSNODES_CMD","SSH","COLLECTOR")
 	$sth = $dbh->prepare("	SELECT eventId, eventClusterName
 							FROM events
 							WHERE eventState = \"ToFIX\"
@@ -334,6 +334,7 @@ sub check_events($){
 									OR eventType = \"UPDATOR_PBSNODES_CMD\"
 									OR eventType = \"UPDATOR_QSTAT_CMD\"
                                     OR eventType = \"SSH\"
+                                    OR eventType = \"COLLECTOR\"
 									)
 							");
 	$sth->execute();
