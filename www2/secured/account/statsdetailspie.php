@@ -26,6 +26,8 @@ WHERE
 	AND jobMJobsId = '$jobid'
 GROUP BY
 	jobClusterName
+ORDER BY
+	jobClusterName
 EOF;
 
 list($res,$nb) = sqlquery($query,$link);

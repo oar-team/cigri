@@ -166,7 +166,7 @@ EOF;
 		$time += $granularity;
 	}
 	
-	$colorarray = array("bisque4","wheat1","brown","cadetblue1","chartreuse","cornsilk","darkgoldenrod","darkolivegreen4","deeppink","deepskyblue","gainsboro","hotpink","linen","maroon4","purple3","rosybrown3","thistle3","turquoise3");
+	$colorarray = array("brown","khaki1","burlywood2","khaki3","bisque1","chocolate3","darkcyan","darkgreen","gold2","lightsalmon","chartreuse4","steelblue2");
 
 	if ($nb != 0) {
 		$graph->SetScale("textlin");

@@ -18,7 +18,7 @@ $graph = new Graph(650,650,"mjob".$jobid,720);
 
 $query = <<<EOF
 SELECT
-	UNIX_TIMESTAMP(jobTStop) - UNIX_TIMESTAMP(jobTStart)
+	UNIX_TIMESTAMP(jobTStop) - UNIX_TIMESTAMP(jobTStart),jobId,jobClusterName
 FROM
 	jobs
 WHERE
@@ -29,26 +29,50 @@ EOF;
 $nb=0;
 $result = mysql_query($query,$link);
 $times = array();
-while ($row = mysql_fetch_array($result)) {
-	$times[] = $row[0];
+unset($min);
+unset($max);
+$clusterarray = array();
+$sortby = array();
+while ($row = mysql_fetch_row($result)) {
+	$times[] = array($row[0],$row[2]);
+	$sortby[] = $row[0];
+	if (!in_array($row[2],$clusterarray)) {
+		$clusterarray[] = $row[2];
+	}
+	if (!isset($min)) {
+		$min = $row[0];
+		$minid = $row[1];
+		$max = $row[0];
+		$maxid = $row[1];
+		$mincluster = $row[2];
+		$maxcluster = $row[2];
+	} else {
+		if ($row[0] < $min) {
+			$min = $row[0];
+			$minid = $row[1];
+			$mincluster = $row[2];
+		} else if ($row[0] > $max) {
+			$max = $row[0];
+			$maxid = $row[1];
+			$maxcluster = $row[2];
+		}
+	}
 	$nb++;
 }
 mysql_free_result($result);
 
 $total = 0;
 for ($i = 0;$i < $nb;$i++) {
-	$total += $times[$i];
+	$total += $times[$i][0];
 }
 
 if ($nb != 0) {
-	sort($times);
-	$min = $times[0];
-	$max = $times[$nb-1];
+	array_multisort($sortby,$times);
 	$moy = $total / $nb;
 	if ($nb % 2 == 0) {
-		$median = ($times[$nb/2-1] + $times[$nb/2]) / 2;
+		$median = ($times[$nb/2-1][0] + $times[$nb/2][0]) / 2;
 	} else {
-		$median = $times[floor($nb/2)];
+		$median = $times[floor($nb/2)][0];
 	}
 
 	$ticks = array();
@@ -60,29 +84,36 @@ if ($nb != 0) {
 	}
 	// Enter data
 	$data = array();
-	for ($i = 0;$i < NB_BARS;$i++) {
-		$data[] = 0;
+	for ($j = 0;$j < count($clusterarray);$j++) {
+		$data[$clusterarray[$j]] = array();
+		for ($i = 0;$i < NB_BARS;$i++) {
+			$data[$clusterarray[$j]][] = 0;
+		}
 	}
 	$temp = $granularity;
 	$i = 0;
 	$j = 0;
 	$variance = 0;
 	while ($i < $nb) {
-		while ($times[$i] >= $temp) {
+		while ($times[$i][0] >= $temp) {
 		       $j++;
 		       $temp += $granularity;
 		}
-		$tempv = $times[$i] - $moy;
+		$tempv = $times[$i][0] - $moy;
 		$tempv *= $tempv;
 		$variance += $tempv;
-		$data[$j]++;
+		$data[$times[$i][1]][$j]++;
 		$i++;
 	}
 	$stddev = sqrt($variance/$nb);
 
-	for ($i = 0;$i < NB_BARS;$i++) {
-		$data[$i] = $data[$i]/$nb*100;
+	for ($j = 0;$j < count($clusterarray);$j++) {
+		for ($i = 0;$i < NB_BARS;$i++) {
+			$data[$clusterarray[$j]][$i] = $data[$clusterarray[$j]][$i]/$nb*100;
+		}
 	}
+	$colorarray = array("brown","khaki1","burlywood2","khaki3","bisque1","chocolate3","darkcyan","darkgreen","gold2","lightsalmon","chartreuse4","steelblue2");
+	array_multisort($clusterarray,$data);
 
 	$graph->SetScale("textlin");
 	$graph->title->Set("Jobs time repartition");
@@ -106,10 +137,10 @@ if ($nb != 0) {
 	$graph->Add($stddev1);	
 	$stddev2 = new PlotLine(VERTICAL,($moy-$stddev)/$max*NB_BARS,"darkgreen",1);
 	$graph->Add($stddev2);	
-	$g2text = new Text("Minimal execution time: ".$min." s");
+	$g2text = new Text("Minimal execution time: ".$min." s for job #".$minid." on ".$mincluster);
 	$g2text->Pos(0.2,0.84);
 	$graph->Add($g2text);
-	$g3text = new Text("Maximal execution time: ".$max." s");
+	$g3text = new Text("Maximal execution time: ".$max." s for job #".$maxid." on ".$maxcluster);
 	$g3text->Pos(0.2,0.86);
 	$graph->Add($g3text);
 	$temptext = sprintf("Mean time: %.2f s",$moy);
@@ -127,8 +158,18 @@ if ($nb != 0) {
 	$g6text->Pos(0.2,0.92);
 	$g6text->SetColor("darkgreen");
 	$graph->Add($g6text);
-	$barplot = new BarPlot($data);
-	$graph->Add($barplot);
+	$barplot = array();
+        $i = 0;
+        foreach ($data as $key=>$val1) {
+        	$tempbar = new BarPlot($val1);
+                $tempbar->SetLegend($key);
+                $i %= count($colorarray);
+                $tempbar->SetFillColor($colorarray[$i++]);
+                $barplot[] = $tempbar;
+        }
+        $accbarplot = new AccBarPlot($barplot);
+        $graph->Add($accbarplot);
+	$graph->legend->Pos(0.05,0.05);
 	$graph->Stroke();
 }
 else {
