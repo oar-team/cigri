@@ -1,7 +1,6 @@
 DEFAULT{
 
-	titi= toto;
-	nbJobs = 11;
+	nbJobs = 31;
 #	paramFile = param.tmp;
 }
 #i4{
