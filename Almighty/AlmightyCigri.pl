@@ -19,6 +19,7 @@ BEGIN {
 	unshift(@INC, $relativePath."lib");
 	unshift(@INC, $relativePath."ConfLib");
 	unshift(@INC, $relativePath."Iolib");
+	unshift(@INC, $relativePath."Colombo");
 }
 use ConfLibCigri qw(init_conf dump_conf get_conf is_conf);
 use iolibCigri;
@@ -72,7 +73,8 @@ sub scheduler(){
 			return launch_command($path.$$sched{schedulerFile});
 		}else{
 			print("Bad scheduler file\n");
-			iolibCigri::insert_new_schedulerError($base,"FILE","Can t find the file $$sched{schedulerFile}");
+			#iolibCigri::insert_new_schedulerError($base,"FILE","Can t find the file $$sched{schedulerFile}");
+			colomboCigri::add_new_scheduler_event($base,$$sched{schedulerId},"ALMIGHTY_FILE","Can t find the file $path.$$sched{schedulerFile}");
 		}
 	}else{
 		print("NO SCHEDULER TO LAUNCH :-(\n");

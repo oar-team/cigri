@@ -21,29 +21,35 @@ BEGIN {
 	unshift(@INC, $relativePath."lib");
 	unshift(@INC, $relativePath."Net");
 	unshift(@INC, $relativePath."Iolib");
+	unshift(@INC, $relativePath."Colombo");
 }
 use iolibCigri;
 use SSHcmdClient;
 
 # List of pbsnodes commands
 my %qdelCommand = ( 'PBS' => 'qdel',
-					'OAR' => 'qdel.pl' );
+#					'OAR' => 'qdel.pl' );
+					'OAR' => 'oardel' );
 
 my $base = iolibCigri::connect() ;
 
 #Get MJobs to frag
 my @MJobsToFrag = iolibCigri::get_tofrag_MJobs($base);
 
+print(Dumper(@MJobsToFrag));
+
 foreach my $i (@MJobsToFrag){
 	iolibCigri::delete_all_MJob_parameters($base,$i);
 	#Frag it jobs
-	iolibCigri::set_frag_flag_specific_MJob($base,$i);
+	iolibCigri::set_frag_specific_MJob($base,$i);
 	#change state
-	iolibCigri::set_MJobState_fragged($base,$i);
+	#iolibCigri::set_MJobState_fragged($base,$i);
+	colomboCigri::fix_event($base,iolibCigri::get_MJobs_tofrag_eventId($base,$i));
 }
 
 #Get jobs to frag
 my @jobsToFrag = iolibCigri::get_tofrag_jobs($base);
+print(Dumper(@jobsToFrag));
 
 foreach my $i (@jobsToFrag){
 	#Delete this job
@@ -56,8 +62,11 @@ foreach my $i (@jobsToFrag){
 		}else{
 			print("OK\n");
 			#change state
-			iolibCigri::set_jobState_fragged($base,$$i{jobId});
+			#iolibCigri::set_jobState_fragged($base,$$i{jobId});
+			colomboCigri::fix_event($base,$$i{eventId});
 		}
+	}else{
+		colomboCigri::fix_event($base,$$i{eventId});
 	}
 }
 

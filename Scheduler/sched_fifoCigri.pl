@@ -17,6 +17,7 @@ BEGIN {
 	# configure the path to reach the lib directory
 	unshift(@INC, $relativePath."lib");
 	unshift(@INC, $relativePath."Iolib");
+	unshift(@INC, $relativePath."Colombo");
 }
 use iolibCigri;
 use Data::Dumper;

@@ -18,10 +18,12 @@ BEGIN {
 	unshift(@INC, $relativePath."lib");
 	unshift(@INC, $relativePath."Net");
 	unshift(@INC, $relativePath."Iolib");
+	unshift(@INC, $relativePath."Colombo");
 }
 use iolibCigri;
 use Data::Dumper;
 use SSHcmd;
+use colomboCigri;
 
 my $base = iolibCigri::connect();
 # connection to the database for the lock
@@ -50,6 +52,11 @@ foreach my $i (@MjobsToCollect){
 
 	foreach my $j (@jobs){
 		my %cmdResult;
+
+		if ((colomboCigri::is_cluster_active($base,"$$j{nodeClusterName}",$i) > 0) || (colomboCigri::is_collect_active($base,$i,"$$j{nodeClusterName}") > 0)){
+			print("[COLLECTOR] the cluster $$j{nodeClusterName} is blacklisted\n");
+			next;
+		}
 
 		# clean the repository on the remote cluster
 		if (!defined($clusterVisited{$$j{nodeClusterName}})){
@@ -119,6 +126,10 @@ foreach my $i (@MjobsToCollect){
 	# copy the tar on the grid server
 	my %jobToRemove;
 	foreach my $j (keys(%clusterVisited)){
+		if (colomboCigri::is_cluster_active($base,"$j",0) > 0){
+			print("[COLLECTOR] the cluster $j is blacklisted\n");
+			next;
+		}
 		my @resColl = iolibCigri::create_new_collector($base,$j,$i);
 		print("mkdir -p ~cigri/results/$userGridName/$i \n");
 		system("mkdir -p ~cigri/results/$userGridName/$i");
@@ -152,6 +163,10 @@ foreach my $i (@MjobsToCollect){
 	foreach my $l (keys(%jobToRemove)){
 		my %cmdResult;
 		my $j = $jobToRemove{$l};
+		if (colomboCigri::is_cluster_active($base,"$$j{nodeClusterName}",0) > 0){
+			print("[COLLECTOR] the cluster $$j{nodeClusterName} is blacklisted\n");
+			next;
+		}
 		my %hashfileToDownload = get_file_names($j);
 		my @fileToDownload = keys(%hashfileToDownload);
 		foreach my $k (@fileToDownload){

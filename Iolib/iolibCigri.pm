@@ -91,7 +91,7 @@ sub add_mjobs($$) {
 	my @tmp = values(%$ref);
 	my $id = $tmp[0];
 	$sth->finish();
-	if($id eq "") {
+	if(!defined($id)) {
 		$id = 1;
 	}
 
@@ -459,9 +459,8 @@ sub update_nb_freeNodes($){
 	#en of verif
 
 	my $sth = $dbh->prepare("	SELECT nodeClusterName, COUNT(*)
-							FROM nodes,clusters
+							FROM nodes
 							WHERE nodeState = \"FREE\"
-							AND nodeClusterName = clusterName
 							GROUP BY nodeClusterName");
 	$sth->execute();
 
@@ -1073,7 +1072,9 @@ sub update_current_scheduler($){
 	$sth->finish();
 
 	$dbh->do("TRUNCATE TABLE currentScheduler");
-	$dbh->do("INSERT INTO currentScheduler (currentSchedulerId) VALUES ($schedId)");
+	if (defined($schedId)){
+		$dbh->do("INSERT INTO currentScheduler (currentSchedulerId) VALUES ($schedId)");
+	}
 }
 
 sub begin_transaction($){
@@ -1106,11 +1107,15 @@ sub unlock_collector($){
 # return --> an array of MJobsId
 sub get_tofrag_MJobs($){
 	my $dbh = shift;
-	my $sth = $dbh->prepare("	SELECT MJobsId
-								FROM multipleJobs
-								WHERE MJobsFrag = \"YES\"
-								AND MJobsState = \"IN_TREATMENT\"
+	my $sth = $dbh->prepare("	SELECT eventMJobsId
+								FROM fragLog, events
+								WHERE fragLogEventId = eventId
+								AND eventState = \"ToFIX\"
+								AND eventClass = \"MJOB\"
+								AND eventType = \"FRAG\"
 							");
+
+
 	$sth->execute();
 	my @result;
 
@@ -1127,16 +1132,18 @@ sub get_tofrag_MJobs($){
 # return --> an array of jobsId
 sub get_tofrag_jobs($){
 	my $dbh = shift;
-	my $sth = $dbh->prepare("	SELECT jobId, jobBatchId, clusterName, clusterBatch, userLogin
-								FROM jobs, users, nodes, clusters
-								WHERE jobFrag = \"YES\"
-								AND (jobState = \"toLaunch\"
-									OR jobState = \"Running\"
-									OR jobState = \"RemoteWaiting\"
-									)
+	my $sth = $dbh->prepare("	SELECT jobId, jobBatchId, clusterName, clusterBatch, userLogin, eventId
+								FROM fragLog, events, jobs, users, nodes, clusters, multipleJobs
+								WHERE fragLogEventId = eventId
+								AND eventState = \"ToFIX\"
+								AND eventClass = \"JOB\"
+								AND eventType = \"FRAG\"
+								AND eventJobId = jobId
 								AND jobNodeId = nodeId
 								AND nodeClusterName = clusterName
 								AND clusterName = userClusterName
+								AND MJobsUser = userGridName
+								AND jobMJobsId = MJobsId
 							");
 	$sth->execute();
 	my @result;
@@ -1159,43 +1166,73 @@ sub delete_all_MJob_parameters($$){
 	$dbh->do("DELETE FROM parameters WHERE parametersMJobsId = $MJobId");
 }
 
-# set th flag FRAG to YES for all jobs from a specific MJobId
+# add FRAG event for all jobs from a specific MJobId
 # arg1 --> database ref
 # arg2 --> MJobId
-sub set_frag_flag_specific_MJob($$){
+sub set_frag_specific_MJob($$){
 	my $dbh = shift;
 	my $MJobId = shift;
 
-	$dbh->do("	UPDATE jobs SET jobFrag = \"YES\"
-				WHERE (jobState = \"toLaunch\"
-					OR jobState = \"RemoteWaiting\"
-					OR jobState = \"Running\")
-				AND jobMJobsId = $MJobId
-			");
+	my $sth = $dbh->prepare("	SELECT jobId
+								FROM jobs
+								WHERE (jobState = \"toLaunch\"
+									OR jobState = \"RemoteWaiting\"
+									OR jobState = \"Running\")
+								AND jobMJobsId = $MJobId
+							");
+	$sth->execute();
 
+	while (my @ref = $sth->fetchrow_array()) {
+		set_job_state($dbh, $ref[0], "Event");
+		colomboCigri::add_new_job_event($dbh,$ref[0],"FRAG","");
+	}
+	$sth->finish();
 }
 
 # set the MJobState to FRAGGED
 # arg1 --> database ref
 # arg2 --> MJobId
-sub set_MJobState_fragged($$){
-	my $dbh = shift;
-	my $MJobId = shift;
-
-	$dbh->do("	UPDATE multipleJobs SET MJobsState = \"FRAGGED\"
-				WHERE MJobsId = $MJobId
-			");
-}
+#sub set_MJobState_fragged($$){
+#	my $dbh = shift;
+#	my $MJobId = shift;
+#
+#	$dbh->do("	UPDATE multipleJobs SET MJobsState = \"EVENT\"
+#				WHERE MJobsId = $MJobId
+#			");
+#}
 
 # set the jobState to Fragged
 # arg1 --> database ref
 # arg2 --> jobId
-sub set_jobState_fragged($$){
-	my $dbh = shift;
-	my $jobId = shift;
+#sub set_jobState_fragged($$){
+#	my $dbh = shift;
+#	my $jobId = shift;
+#
+#	$dbh->do("	UPDATE jobs SET jobState = \"Fragged\"
+#				WHERE jobId = $jobId
+#			");
+#}
 
-	$dbh->do("	UPDATE jobs SET jobState = \"Fragged\"
-				WHERE jobId = $jobId
-			");
+# get the eventId of the MJobs tofrag
+# arg1 --> database ref
+# arg2 --> MJobsId
+sub get_MJobs_tofrag_eventId($$){
+	my $dbh = shift;
+	my $MJobId = shift;
+
+	my $sth = $dbh->prepare("	SELECT eventId
+								FROM events
+								WHERE eventState = \"ToFIX\"
+								AND eventMJobsId = $MJobId
+								AND eventClass = \"MJOB\"
+								AND eventType = \"FRAG\"
+								LIMIT 1
+							");
+	$sth->execute();
+
+	my @ref = $sth->fetchrow_array();
+	$sth->finish();
+
+	return $ref[0];
 }
 

@@ -1,7 +1,7 @@
 DEFAULT{
 
-	name = essais_grand1 ;
-	nbJobs = 100000;
+	name = essais1 ;
+	nbJobs = 2;
 #	paramFile = param.tmp;
 #	resultFile = result.tmp;
 }
@@ -12,10 +12,10 @@ DEFAULT{
 pawnee{
 	execFile = /users/huron/capitn/test.sh ;
 }
-tomte.ujf-grenoble.fr{
-	execFile = /home/nis/capitn/test.sh ;
-	execTime = 12;
-}
+#tomte.ujf-grenoble.fr{
+#	execFile = /home/nis/capitn/test.sh ;
+#	execTime = 12;
+#}
 #bioimage.ujf-grenoble.fr{
 #	execFile = /home/nis/capit/test.sh ;
 #	execTime = 12;
