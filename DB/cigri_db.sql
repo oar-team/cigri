@@ -104,26 +104,24 @@ propertiesJobCmd VARCHAR( 255 ) NOT NULL ,
 PRIMARY KEY (propertiesClusterName,propertiesMJobsId)
 )TYPE = InnoDB;
 
-DROP TABLE IF EXISTS clusterFreeNodes;
-CREATE TABLE IF NOT EXISTS clusterFreeNodes (
-clusterFreeNodesClusterName VARCHAR( 100 ) NOT NULL ,
-clusterFreeNodesNumber INT UNSIGNED NOT NULL ,
-PRIMARY KEY (clusterFreeNodesClusterName)
-)TYPE = InnoDB;
+#DROP TABLE IF EXISTS clusterFreeNodes;
+#CREATE TABLE IF NOT EXISTS clusterFreeNodes (
+#clusterFreeNodesClusterName VARCHAR( 100 ) NOT NULL ,
+#clusterFreeNodesNumber INT UNSIGNED NOT NULL ,
+#PRIMARY KEY (clusterFreeNodesClusterName)
+#)TYPE = InnoDB;
 
-DROP TABLE IF EXISTS multipleJobsRemained;
-CREATE TABLE IF NOT EXISTS multipleJobsRemained (
-multipleJobsRemainedMJobsId INT UNSIGNED NOT NULL ,
-multipleJobsRemainedNumber INT NOT NULL ,
-PRIMARY KEY (multipleJobsRemainedMJobsId)
-)TYPE = InnoDB;
+#DROP TABLE IF EXISTS multipleJobsRemained;
+#CREATE TABLE IF NOT EXISTS multipleJobsRemained (
+#multipleJobsRemainedMJobsId INT UNSIGNED NOT NULL ,
+#multipleJobsRemainedNumber INT NOT NULL ,
+#PRIMARY KEY (multipleJobsRemainedMJobsId)
+#)TYPE = InnoDB;
 
 DROP TABLE IF EXISTS jobsToSubmit;
 CREATE TABLE IF NOT EXISTS jobsToSubmit (
 jobsToSubmitMJobsId INT UNSIGNED NOT NULL ,
-jobsToSubmitClusterName VARCHAR( 100 ) NOT NULL ,
-jobsToSubmitNumber INT NOT NULL ,
-PRIMARY KEY (jobsToSubmitMJobsId,jobsToSubmitClusterName)
+jobsToSubmitNodeId INT UNSIGNED NOT NULL
 )TYPE = InnoDB;
 
 DROP TABLE IF EXISTS users;
