@@ -82,6 +82,8 @@ sub add_mjobs($$) {
 	$dbh->do("LOCK TABLES multipleJobs WRITE, parameters WRITE, properties WRITE");
 	my $lusr= getpwuid($<);
 
+	begin_transaction($dbh);
+
 	my $sth = $dbh->prepare("SELECT MAX(MJobsId)+1 FROM multipleJobs");
 	$sth->execute();
 	my $ref = $sth->fetchrow_hashref();
@@ -102,6 +104,7 @@ sub add_mjobs($$) {
 		}
 		close(FILE);
 	}else{
+		rollback_transaction($dbh);
 		return(-1);
 	}
 
@@ -109,28 +112,61 @@ sub add_mjobs($$) {
 	my $Params ="";
 	if (JDLParserCigri::init_jdl($jdl) == 0){
 		if (defined($JDLParserCigri::clusterConf{DEFAULT}{paramFile}) && (-r $JDLParserCigri::clusterConf{DEFAULT}{paramFile})){
-			open(FILE, $JDLParserCigri::clusterConf{DEFAULT}{paramFile});
-			while (<FILE>){
-				chomp;
-				if ($_ ne ""){
-					eval{
-						$dbh->do("INSERT INTO parameters (parametersMJobsId,parametersParam) VALUES ($id,\'$_\')");
-					};
-					if ($@){
-						warn("Duplicate parameters\n");
-						warn("$@");
-						$dbh->do("DELETE FROM parameters WHERE parametersMJobsId = $id");
-						return -4;
+			if (defined($JDLParserCigri::clusterConf{DEFAULT}{resultFile}) && (-r $JDLParserCigri::clusterConf{DEFAULT}{resultFile})){
+				open(FILEparam, $JDLParserCigri::clusterConf{DEFAULT}{paramFile});
+				open(FILEresult, $JDLParserCigri::clusterConf{DEFAULT}{resultFile});
+				my $result;
+				while (<FILEparam>){
+					chomp;
+					$result = <FILEresult>;
+					chomp($result);
+					if ($_ ne ""){
+						if ($result ne ""){
+							eval{
+								$dbh->do("INSERT INTO parameters (parametersMJobsId,parametersParam,parametersResultFile) VALUES ($id,\'$_\',\'$result\')");
+							};
+							if ($@){
+								warn("Duplicate parameters\n");
+								warn("$@");
+								#$dbh->do("DELETE FROM parameters WHERE parametersMJobsId = $id");
+								rollback_transaction($dbh);
+								return -6;
+							}
+						}else{
+							warn("Bad resultFile\n");
+							rollback_transaction($dbh);
+							return -5
+						}
 					}
 				}
+				close(FILEparam);
+				close(FILEresult);
+			}else{
+				open(FILE, $JDLParserCigri::clusterConf{DEFAULT}{paramFile});
+				while (<FILE>){
+					chomp;
+					if ($_ ne ""){
+						eval{
+							$dbh->do("INSERT INTO parameters (parametersMJobsId,parametersParam) VALUES ($id,\'$_\')");
+						};
+						if ($@){
+							warn("Duplicate parameters\n");
+							warn("$@");
+							#$dbh->do("DELETE FROM parameters WHERE parametersMJobsId = $id");
+							rollback_transaction($dbh);
+							return -4;
+						}
+					}
+				}
+				close(FILE);
 			}
-			close(FILE);
 		}elsif (defined($JDLParserCigri::clusterConf{DEFAULT}{nbJobs})){
 			for (my $k=0; $k<$JDLParserCigri::clusterConf{DEFAULT}{nbJobs}; $k++) {
 				$dbh->do("INSERT INTO parameters (parametersMJobsId,parametersParam) VALUES ($id,\'$k\')");
 			}
 		}else{
 			print("[iolib] I can't read the param file $JDLParserCigri::clusterConf{DEFAULT}{paramFile} or the nbJobs variable\n");
+			rollback_transaction($dbh);
 			return -1;
 		}
 		# Update the properties table
@@ -141,19 +177,24 @@ sub add_mjobs($$) {
 					if (defined($JDLParserCigri::clusterConf{$j}{execFile})){
 						$dbh->do("INSERT INTO properties (propertiesClusterName,propertiesMJobsId,propertiesJobCmd) VALUES (\"$j\",$id,\"$JDLParserCigri::clusterConf{$j}{execFile}\")");
 					}else{
+						rollback_transaction($dbh);
 						return -3;
 					}
 				}
 			}
 		}else{
+			rollback_transaction($dbh);
 			return -2;
 		}
 	}else{
+		rollback_transaction($dbh);
 		return -1;
 	}
 
 	$dbh->do("INSERT INTO multipleJobs (MJobsId,MJobsUser,MJobsJDL,MJobsTSub)
 			VALUES ($id,\"$lusr\",\"$jdl\",\"$time\")");
+
+	commit_transaction($dbh);
 
 	$dbh->do("UNLOCK TABLES");
 	return $id;
@@ -567,15 +608,17 @@ sub create_toLaunch_jobs($){
 	foreach my $i (@result){
 		if ($i->{jobsToSubmitNumber} != 0){
 			# get parameters for this MJobs on this cluster
-			$sth = $dbh->prepare("SELECT parametersParam
+			$sth = $dbh->prepare("SELECT parametersParam,parametersResultFile
 									FROM parameters
 									WHERE $i->{jobsToSubmitMJobsId} = parametersMJobsId
 									ORDER BY parametersPriority DESC
 									LIMIT 0,$i->{jobsToSubmitNumber}");
 			$sth->execute();
 			my @parametersTmp;
+			my @parametersResultFileTmp;
 			while (my @ref = $sth->fetchrow_array()) {
 				push(@parametersTmp, $ref[0]);
+				push(@parametersResultFileTmp, $ref[1]);
 			}
 			$sth->finish();
 
@@ -608,8 +651,8 @@ sub create_toLaunch_jobs($){
 			for (my $j=0; $j < $i->{jobsToSubmitNumber}; $j++){
 				#add jobs in jobs table
 				$time = get_date();
-				$dbh->do("	INSERT INTO jobs (jobState,jobMJobsId,jobParam,jobNodeId,jobTSub)
-							VALUES (\"toLaunch\",$i->{jobsToSubmitMJobsId},\"$parametersTmp[$j]\",$nodesTmp[$j],\"$time\")");
+				$dbh->do("	INSERT INTO jobs (jobState,jobMJobsId,jobParam,jobResultFile,jobNodeId,jobTSub)
+							VALUES (\"toLaunch\",$i->{jobsToSubmitMJobsId},\"$parametersTmp[$j]\",\"$parametersResultFileTmp[$j]\",$nodesTmp[$j],\"$time\")");
 			}
 			# delete used params
 			$query = "";
@@ -904,7 +947,7 @@ sub get_tocollect_MJobs($){
 sub get_tocollect_MJob_files($$){
 	my $dbh = shift;
 	my $MJobId = shift;
-	my $sth = $dbh->prepare("	SELECT nodeClusterName, userLogin, jobBatchId, clusterBatch, jobId, userGridName
+	my $sth = $dbh->prepare("	SELECT nodeClusterName, userLogin, jobBatchId, clusterBatch, jobId, userGridName, jobResultFile
 								FROM jobs, nodes, multipleJobs, users, clusters
 								WHERE jobMJobsId = $MJobId
 								AND jobNodeId = nodeId
@@ -913,6 +956,7 @@ sub get_tocollect_MJob_files($$){
 								AND jobState = \"Terminated\"
 								AND jobCollectedJobId = 0
 								AND clusterName = nodeClusterName
+								AND userClusterName = clusterName
 							");
 	$sth->execute();
 	my @result;
@@ -963,3 +1007,17 @@ sub set_job_collectedJobId($$$){
 	$dbh->do("UPDATE jobs SET jobCollectedJobId = $collectedJobId where jobId = $jobId");
 }
 
+sub begin_transaction($){
+	my $dbh = shift;
+	$dbh->begin_work;
+}
+
+sub commit_transaction($){
+	my $dbh = shift;
+	$dbh->commit;
+}
+
+sub rollback_transaction($){
+	my $dbh = shift;
+	$dbh->rollback;
+}
