@@ -85,7 +85,6 @@ foreach my $i (keys(%clusterNames)){
 				iolibCigri::set_cluster_node_state($base, $i, $name, $state);
 			}else{
 				print("[UPDATOR] There is an error in the pbsnodes command parse, node=$name;state=$state\n");
-				#iolibCigri::insert_new_clusterError($base,"PBSNODES_PARSE","$i","There is an error in the pbsnodes command parse, node=$name;state=$state");
 				colomboCigri::add_new_cluster_event($base,"$i",0,"UPDATOR_PBSNODES_PARSE","There is an error in the oarnodes command parse, node=$name;state=$state");
 			}
 		}
@@ -94,7 +93,6 @@ foreach my $i (keys(%clusterNames)){
 		print("[UPDATOR_ERROR] $cmdResult{STDERR}\n");
 		# test if this is a ssh error
         if (NetCommon::checkSshError($base,$i,$cmdResult{STDERR}) != 1){
-            #iolibCigri::insert_new_clusterError($base,"PBSNODES_CMD","$i","There is an error in the execution of the pbsnodes command via SSH-->I disable all nodes of the cluster $i;$cmdResult{STDERR}");
             colomboCigri::add_new_cluster_event($base,"$i",0,"UPDATOR_PBSNODES_CMD","There is an error in the execution of the pbsnodes command via SSH-->I disable all nodes of the cluster $i;$cmdResult{STDERR}");
         }
 	}
@@ -117,7 +115,6 @@ foreach my $i (keys(%jobRunningHash)){
 		print("\t[UPDATOR_ERROR] $cmdResult{STDERR}\n");
 		# test if this is a ssh error
         if (NetCommon::checkSshError($base,$i,$cmdResult{STDERR}) != 1){
-            #iolibCigri::insert_new_clusterError($base,"QSTAT_CMD","$i","$cmdResult{STDERR}");
 		    colomboCigri::add_new_cluster_event($base,"$i",0,"UPDATOR_QSTAT_CMD","$cmdResult{STDERR}");
         }
 	}else{
@@ -145,8 +142,6 @@ foreach my $i (keys(%jobRunningHash)){
 				# test if this is a ssh error
                 if (NetCommon::checkSshError($base,$i,$cmdResult{STDERR}) != 1){
                     iolibCigri::set_job_state($base, ${$j}{jobId}, "Event");
-                    #iolibCigri::set_job_message($base, ${$j}{jobId}, "Can t check the remote file <$remoteFile> : $cmdResult2{STDERR}");
-                    #iolibCigri::resubmit_job($base,${$j}{jobId});
                     colomboCigri::add_new_job_event($base,${$j}{jobId},"UPDATOR_JOB_KILLED","Can t check the remote file <$remoteFile> : $cmdResult2{STDERR}");
                 }
 			}else{
@@ -167,7 +162,6 @@ foreach my $i (keys(%jobRunningHash)){
 					}else{
 						print("\t\tJob ${$j}{jobId} Error\n");
 						iolibCigri::set_job_state($base, ${$j}{jobId}, "Event");
-						#iolibCigri::insert_new_error($base,"USER_SOFTWARE",${$j}{jobId},"RET_CODE=$fileVars{RET_CODE}");
 						colomboCigri::add_new_job_event($base,${$j}{jobId},"UPDATOR_RET_CODE_ERROR","$cmdResult{STDERR}");
 					}
 				}else{
@@ -176,8 +170,6 @@ foreach my $i (keys(%jobRunningHash)){
 					print("\t[UPDATOR_ERROR] Can't find the FINISH TAG for the job ${$j}{jobId}\n");
 					print("\t[UPDATOR_ERROR] cat $remoteFile ==> $cmdResult2{STDOUT}\n");
 					iolibCigri::set_job_state($base, ${$j}{jobId}, "Event");
-					#iolibCigri::set_job_message($base, ${$j}{jobId}, "Can t find the FINISH TAG in the cigri remote file <$remoteFile> : $cmdResult2{STDOUT}");
-					#iolibCigri::resubmit_job($base,${$j}{jobId});
 					colomboCigri::add_new_job_event($base,${$j}{jobId},"UPDATOR_JOB_KILLED","Can t find the FINISH TAG in the cigri remote file <$remoteFile> : $cmdResult2{STDOUT}");
 				}
 			}
@@ -199,9 +191,6 @@ foreach my $i (keys(%jobRunningHash)){
 
 #update the state of MJobs
 iolibCigri::check_end_MJobs($base);
-
-#check errors in the database
-#iolibCigri::analyse_error($base);
 
 #update database for the scheduler
 iolibCigri::update_nb_freeNodes($base);

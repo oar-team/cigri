@@ -52,7 +52,6 @@ my $jobinfo;
 
 my $tmpRemoteFile ;
 my $resultFile ;
-#my %blackCluster;
 
 select(STDOUT);
 $| = 1;
@@ -90,10 +89,7 @@ print(Dumper(%cmdResult));
         if (NetCommon::checkSshError($base,$$i{clusterName},$cmdResult{STDERR}) != 1){
             iolibCigri::set_job_state($base,$jobId,"Event");
             # treate the SSH error
-            #iolibCigri::insert_new_error($base,"RUNNER_SUBMIT",$jobId,$cmdResult{STDERR});
             colomboCigri::add_new_job_event($base,$jobId,"RUNNER_SUBMIT",$cmdResult{STDERR});
-            #iolibCigri::resubmit_job($base,$jobId);
-#		$blackCluster{$$i{clusterName}} = 1;
         }
 	}else{
 		my @strTmp = split(/\n/, $cmdResult{STDOUT});
@@ -111,12 +107,7 @@ print(Dumper(%cmdResult));
 		}else{
 			print("[RUNNER] There is a mistake, the job $jobId state = ERROR, bad remote batch id\n");
 			iolibCigri::set_job_state($base, $jobId, "Event");
-			#iolibCigri::set_job_message($base, $jobId, "can t determine the remoteJobId");
-			# bad parsing
-			#iolibCigri::insert_new_error($base,"JOBID_PARSE","$jobId","There is a mistake, the job $jobId state = ERROR, bad remote batch id");
 			colomboCigri::add_new_job_event($base,$jobId,"RUNNER_JOBID_PARSE","There is a mistake, the job $jobId state = ERROR, bad remote batch id");
-			#iolibCigri::resubmit_job($base,$jobId);
-#			$blackCluster{$$i{clusterName}} = 1;
 		}
 	}
 }else{

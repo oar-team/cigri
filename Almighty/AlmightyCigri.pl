@@ -28,7 +28,7 @@ use iolibCigri;
 init_conf();
 
 # number of seconds between two updates
-my $timeout = 1;
+my $timeout = 2;
 
 my $path;
 if (is_conf("installPath")){
