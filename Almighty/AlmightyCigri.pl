@@ -26,7 +26,7 @@ use iolibCigri;
 # Init the request to the cigri.conf file
 init_conf();
 
-my $timeout = 3;
+my $timeout = 5;
 
 my $path;
 if (is_conf("installPath")){
