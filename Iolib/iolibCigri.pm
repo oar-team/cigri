@@ -641,12 +641,26 @@ sub check_end_MJobs($){
 									WHERE jobMJobsId = $i
 									AND jobState != \"Terminated\"
 									AND jobState != \"Killed\"
+									AND jobState != \"Error\"
 									GROUP BY jobMJobsId
 								");
 		$sth->execute();
 		my @MJobIdTmp = $sth->fetchrow_array();
 		$sth->finish();
-		if (!@MJobIdTmp){
+
+		$sth = $dbh->prepare("	SELECT jobMJobsId, count( * )
+								FROM jobs, errors
+								WHERE jobMJobsId = $i
+								AND jobState = \"Error\"
+								AND errorJobId = jobId
+								AND errorState = \"ToFIX\"
+								GROUP BY jobMJobsId
+							");
+		$sth->execute();
+		my @nbErrorJob = $sth->fetchrow_array();
+		$sth->finish();
+
+		if ((!@MJobIdTmp) and (!@nbErrorJob)){
 			# all jobs are terminated
 			$sth = $dbh->prepare("	SELECT count( * )
 									FROM parameters
@@ -831,4 +845,23 @@ sub analyse_error($){
 					WHERE propertiesClusterName = \"$$i[0]\"
 					AND propertiesMJobsId = \"$$i[1]\"");
 	}
+}
+
+# Check if the cluster is down
+# arg1 --> database ref
+# arg2 --> cluster name
+sub is_cluster_down($$){
+	my $dbh = shift;
+	my $clusterName = shift;
+	my $sth = $dbh->prepare("	SELECT count( * )
+								FROM clusters
+								WHERE clusterName = \"$clusterName\"
+								AND clusterState = \"Dead\"
+							");
+	$sth->execute();
+
+	my @ref = $sth->fetchrow_array();
+
+	$sth->finish();
+	return $ref[0];
 }
