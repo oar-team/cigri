@@ -3,5 +3,7 @@
 	<h3>Multijob #{$jobid} time repartition</h3>
 	<!-- display graph -->
 	<img src="account/statsdetailsgraph.php?id={$jobid}" alt="graph">
+	<p></p>
+	<img src="account/statsdetailspie.php?id={$jobid}" alt="graph">
 </td></tr>
 </table>
