@@ -89,7 +89,7 @@ let getInfoMjobs dbd =
 	mjobUser = get_option (array1.(0));
 	mjobTsub = Mysql.datetime2ml (get_option (array1.(1)));
 	mjobLeftJobs = Mysql.int2ml (get_option a.(1));
-	mjobClusters = List.filter (fun c -> List.mem c list_BlackList) list_ClName; } in  
+	mjobClusters = List.filter (fun c -> not (List.mem c list_BlackList)) list_ClName; } in  
     
     Mysql.map resMJobs getOneInfo
 
