@@ -1,0 +1,9 @@
+DEFAULT{
+paramFiles=param.tmp;
+}
+tomte.ujf-grenoble.fr{
+	execFile = /path/vers/pi sur tomte/pi250_arg;
+}
+bioimage.ujf-grenoble.fr{
+	execFile = /path/vers/pi sur bioimage/pi250_arg;
+}

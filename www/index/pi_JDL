@@ -1,0 +1,9 @@
+DEFAULT{
+nbjobs = 1000;
+}
+tomte.ujf-grenoble.fr{
+	execFile = /path/vers/pi_sur_tomte/pi250;	#ou pi_simple
+}
+bioimage.ujf-grenoble.fr{
+	execFile = /path/vers/pi_sur_bioimage/pi250;	#ou pi_simple
+}
