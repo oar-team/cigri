@@ -54,6 +54,11 @@ foreach my $i (@MjobsToCollect){
     foreach my $j (@jobs){
         my %cmdResult;
 
+        my $execDir = $$j{propertiesExecDirectory};
+        if ($execDir eq "~"){
+            $execDir = "~$$j{userLogin}";
+        }
+        
         if ((colomboCigri::is_cluster_active($base,"$$j{jobClusterName}",$i) > 0) || (colomboCigri::is_collect_active($base,$i,"$$j{jobClusterName}") > 0)){
                 # le code qui delete un caractere : \x8
                 #print("[COLLECTOR] the cluster $$j{jobClusterName} is blacklisted : ");
@@ -88,11 +93,11 @@ foreach my $i (@MjobsToCollect){
             if ($error == 0){
                 my $cmd = "";
                 if ("$hashfileToDownload{$k}" ne ""){
-                    $cmd = "test ! -e ~$$j{userLogin}/$hashfileToDownload{$k} && test -e ~$$j{userLogin}/$k && sudo -u $$j{userLogin} mv ~$$j{userLogin}/$k ~$$j{userLogin}/$hashfileToDownload{$k} ; test -e ~$$j{userLogin}/$hashfileToDownload{$k} && tar rf ~cigri/results_tmp/$i.tar -C ~$$j{userLogin} $hashfileToDownload{$k} && echo nimportequoi";
-                    print("[COLLECTOR] tar rf ~cigri/results_tmp/$i.tar -C ~$$j{userLogin} $hashfileToDownload{$k}  -- on $$j{jobClusterName}\n");
+                    $cmd = "test ! -e $execDir/$hashfileToDownload{$k} && test -e $execDir/$k && sudo -u $$j{userLogin} mv $execDir/$k $execDir/$hashfileToDownload{$k} ; test -e $execDir/$hashfileToDownload{$k} && tar rf ~cigri/results_tmp/$i.tar -C $execDir $hashfileToDownload{$k} && echo nimportequoi";
+                    print("[COLLECTOR] tar rf ~cigri/results_tmp/$i.tar -C $execDir $hashfileToDownload{$k}  -- on $$j{jobClusterName}\n");
                 }else{
-                    $cmd = "test -e ~$$j{userLogin}/$k && tar rf ~cigri/results_tmp/$i.tar -C ~$$j{userLogin} $k && echo nimportequoi";
-                    print("[COLLECTOR] tar rf ~cigri/results_tmp/$i.tar -C ~$$j{userLogin} $k  -- on $$j{jobClusterName}\n");
+                    $cmd = "test -e $execDir/$k && tar rf ~cigri/results_tmp/$i.tar -C $execDir $k && echo nimportequoi";
+                    print("[COLLECTOR] tar rf ~cigri/results_tmp/$i.tar -C $execDir $k  -- on $$j{jobClusterName}\n");
                 }
                 %cmdResult = SSHcmd::submitCmd($$j{jobClusterName}, $cmd);
                 #print(Dumper(%cmdResult));
@@ -186,6 +191,7 @@ foreach my $i (@MjobsToCollect){
                 warn("Error scp exit_code=$?\n");
             }else{
                 system("mv ~cigri/results/$userGridName/$i/.$resColl[2].tar.gz ~cigri/results/$userGridName/$i/$resColl[2].tar.gz");
+                system("sudo chown $userGridName ~cigri/results/$userGridName/$i/$resColl[2].tar.gz");
                 foreach my $k (keys(%collectedJobs)){
                     if("${$collectedJobs{$k}}{jobClusterName}" eq "$j"){
                         print("set collectedJobId de $k = $resColl[1]\n");
@@ -208,17 +214,23 @@ foreach my $i (@MjobsToCollect){
             print("*");
             next;
         }
+
+        my $execDir = $$j{propertiesExecDirectory};
+        if ($execDir eq "~"){
+            $execDir = "~$$j{userLogin}";
+        }
+
         print("\n");
         my %hashfileToDownload = get_file_names($j);
         my @fileToDownload = keys(%hashfileToDownload);
         foreach my $k (@fileToDownload){
             my $cmd = "";
             if ("$hashfileToDownload{$k}" ne ""){
-                $cmd = "sudo -u $$j{userLogin} test -e ~$$j{userLogin}/$hashfileToDownload{$k} && sudo -u $$j{userLogin} rm -rf ~$$j{userLogin}/$hashfileToDownload{$k}";
-                print("[COLLECTOR] rm file ~$$j{userLogin}/$hashfileToDownload{$k} on cluster $$j{jobClusterName}\n");
+                $cmd = "sudo -u $$j{userLogin} test -e $execDir/$hashfileToDownload{$k} && sudo -u $$j{userLogin} rm -rf $execDir/$hashfileToDownload{$k}";
+                print("[COLLECTOR] rm file $execDir/$hashfileToDownload{$k} on cluster $$j{jobClusterName}\n");
             }else{
-                $cmd = "sudo -u $$j{userLogin} test -e ~$$j{userLogin}/$k && sudo -u $$j{userLogin} rm -rf ~$$j{userLogin}/$k";
-                print("[COLLECTOR] rm file ~$$j{userLogin}/$k on cluster $$j{jobClusterName}\n");
+                $cmd = "sudo -u $$j{userLogin} test -e $execDir/$k && sudo -u $$j{userLogin} rm -rf $execDir/$k";
+                print("[COLLECTOR] rm file $execDir/$k on cluster $$j{jobClusterName}\n");
             }
             %cmdResult = SSHcmd::submitCmd($$j{jobClusterName}, $cmd);
             if ($cmdResult{STDERR} ne ""){

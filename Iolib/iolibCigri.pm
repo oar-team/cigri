@@ -165,14 +165,18 @@ sub add_mjobs($$) {
                     if (defined($JDLParserCigri::clusterConf{$j}{execFile})){
                         my $jobWalltime = "1:00:00";
                         my $jobWeight = 1;
+                        my $execDir = "~";
                         if (defined($JDLParserCigri::clusterConf{$j}{walltime})){
                             $jobWalltime = $JDLParserCigri::clusterConf{$j}{walltime};
                         }
                         if ((defined($JDLParserCigri::clusterConf{$j}{weight})) && ($JDLParserCigri::clusterConf{$j}{weight} > 0)){
                             $jobWeight = $JDLParserCigri::clusterConf{$j}{weight};
                         }
-                        $dbh->do("INSERT INTO properties (propertiesClusterName,propertiesMJobsId,propertiesJobCmd,propertiesJobWalltime,propertiesJobWeight)
-                                  VALUES (\"$j\",$id,\"$JDLParserCigri::clusterConf{$j}{execFile}\",\"$jobWalltime\",$jobWeight)");
+                        if ((defined($JDLParserCigri::clusterConf{$j}{execDir})) && !($JDLParserCigri::clusterConf{$j}{execDir} =~ m/.*\~.*/m)){
+                            $execDir = $JDLParserCigri::clusterConf{$j}{execDir};
+                        }
+                        $dbh->do("INSERT INTO properties (propertiesClusterName,propertiesMJobsId,propertiesJobCmd,propertiesJobWalltime,propertiesJobWeight,propertiesExecDirectory)
+                                  VALUES (\"$j\",$id,\"$JDLParserCigri::clusterConf{$j}{execFile}\",\"$jobWalltime\",$jobWeight,\"$execDir\")");
                     }else{
                         rollback_transaction($dbh);
                         return -3;
@@ -424,17 +428,17 @@ sub get_MJobs_JDL($$){
 sub get_launching_job($$) {
     my $dbh = shift;
     my $clusterName = shift;
-    my $sth = $dbh->prepare("SELECT jobId,jobParam,propertiesJobCmd,jobClusterName,clusterBatch,userLogin,MJobsId,propertiesJobWalltime,propertiesJobWeight 
-                            FROM jobs,clusters,multipleJobs,properties,users
-                            WHERE jobState=\"toLaunch\"
-                                AND clusterName = \"$clusterName\"
-                                AND MJobsId = jobMJobsId
-                                AND propertiesClusterName = clusterName
-                                And propertiesMJobsId = MJobsId
-                                AND MJobsUser = userGridName
-                                AND userClusterName = clusterName
-                                AND jobClusterName = clusterName
-                                LIMIT 1
+    my $sth = $dbh->prepare("SELECT jobId,jobParam,propertiesJobCmd,jobClusterName,clusterBatch,userLogin,MJobsId,propertiesJobWalltime,propertiesJobWeight,propertiesExecDirectory
+                             FROM jobs,clusters,multipleJobs,properties,users
+                             WHERE jobState=\"toLaunch\"
+                                 AND clusterName = \"$clusterName\"
+                                 AND MJobsId = jobMJobsId
+                                 AND propertiesClusterName = clusterName
+                                 And propertiesMJobsId = MJobsId
+                                 AND MJobsUser = userGridName
+                                 AND userClusterName = clusterName
+                                 AND jobClusterName = clusterName
+                                 LIMIT 1
                             ");
     $sth->execute();
 
@@ -450,7 +454,8 @@ sub get_launching_job($$) {
         'user'          => $ref[5],
         'mjobid'        => $ref[6],
         'walltime'      => $ref[7],
-        'weight'        => $ref[8]
+        'weight'        => $ref[8],
+        'execDir'       => $ref[9]
     );
 
     return %result;
@@ -612,12 +617,14 @@ sub set_job_batch_id($$$){
 # return a hashtable of array refs : ${${$resul{pawnee}}[0]}{batchJobId} --> give the first batchId for the cluster pawnee
 sub get_job_to_update_state($){
     my $dbh = shift;
-    my $sth = $dbh->prepare("SELECT jobBatchId,jobClusterName,jobId,userLogin,MJobsId
-                             FROM jobs,multipleJobs,users
+    my $sth = $dbh->prepare("SELECT jobBatchId,jobClusterName,jobId,userLogin,MJobsId,propertiesExecDirectory
+                             FROM jobs,multipleJobs,users,properties
                              WHERE (jobState = \"Running\" or jobState = \"RemoteWaiting\")
                                 and MJobsId = jobMJobsId
                                 and MJobsUser = userGridName
                                 and jobClusterName = userClusterName
+                                and propertiesMJobsId = MJobsId
+                                and propertiesClusterName = jobClusterName
                             ");
     $sth->execute();
 
@@ -628,7 +635,8 @@ sub get_job_to_update_state($){
             my $tmp = {
                     "jobId" => $ref[2],
                     "batchJobId" => $ref[0],
-                    "user" => $ref[3]
+                    "user" => $ref[3],
+                    "execDir" => $ref[5]
             };
             push(@{$resul{$ref[1]}},$tmp);
         }
@@ -879,15 +887,17 @@ sub get_tocollect_MJobs($$){
 sub get_tocollect_MJob_files($$){
     my $dbh = shift;
     my $MJobId = shift;
-    my $sth = $dbh->prepare("   SELECT jobClusterName, userLogin, jobBatchId, clusterBatch, jobId, userGridName, jobName
-                                FROM jobs, multipleJobs, users, clusters
+    my $sth = $dbh->prepare("   SELECT jobClusterName, userLogin, jobBatchId, clusterBatch, jobId, userGridName, jobName, propertiesExecDirectory
+                                FROM jobs, multipleJobs, users, clusters, properties
                                 WHERE jobMJobsId = $MJobId
                                 AND jobMJobsId = MJobsId
+                                AND propertiesMJobsId = jobMJobsId
                                 AND MJobsUser = userGridName
                                 AND jobState = \"Terminated\"
                                 AND jobCollectedJobId = 0
                                 AND clusterName = jobClusterName
                                 AND userClusterName = clusterName
+                                AND propertiesClusterName = jobClusterName
                                 ORDER BY clusterName
                             ");
     $sth->execute();

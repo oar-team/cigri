@@ -109,6 +109,7 @@ propertiesMJobsId INT UNSIGNED NOT NULL ,
 propertiesJobCmd VARCHAR( 255 ) NOT NULL ,
 propertiesJobWalltime TIME NOT NULL ,
 propertiesJobWeight INT UNSIGNED NOT NULL ,
+propertiesExecDirectory VARCHAR( 255 ) ,
 INDEX propertiesMJobsId (propertiesMJobsId),
 PRIMARY KEY (propertiesClusterName,propertiesMJobsId)
 )TYPE = InnoDB;

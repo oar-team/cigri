@@ -324,7 +324,7 @@ sub get_blacklisted_nodes($$$){
                                    AND nodeBlackListEventId = eventId
                                    AND (nodeBlackListMJobsID = $MJobId
                                         OR nodeBlackListMJobsID = 0)
-                                   AND nodeBlackListEventId = \"$clusterName\"
+                                   AND nodeBlackListClusterName = \"$clusterName\"
                             ");
     $sth->execute();
     my @nodeNames;

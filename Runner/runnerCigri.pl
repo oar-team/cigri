@@ -49,25 +49,25 @@ foreach my $j (keys(%clusterNames)){
 
             my $jobId = $job{id};
             #my $tmpRemoteFile = "cigri.tmp.$jobId";
-            my $tmpRemoteFile = iolibCigri::get_cigri_remote_script_name($jobId);
-            my $resultFile = "~/".iolibCigri::get_cigri_remote_file_name($jobId);
+            my $tmpRemoteFile = "~cigri/".iolibCigri::get_cigri_remote_script_name($jobId);
+            my $resultFile = "$job{execDir}/".iolibCigri::get_cigri_remote_file_name($jobId);
 
             print("[RUNNER] The job $jobId is in treatment...\n");
 
             # command to launch on the frontal of the cluster
-            my @cmdSSH = (  "echo \\#\\!/bin/sh > ~/$tmpRemoteFile;",
-                            "echo \"echo \\\"BEGIN_DATE=\\\"\\`date +\%Y-\%m-\%d\\ \%H:\%M:\%S\\` >> $resultFile\" >> ~/$tmpRemoteFile;",
-                            "echo $job{cmd} $job{param} >> ~/$tmpRemoteFile;",
-                            "echo CODE=\\\$? >> ~/$tmpRemoteFile;",
-                            "echo \"echo \\\"END_DATE=\\\"\\`date +\%Y-\%m-\%d\\ \%H:\%M:\%S\\` >> $resultFile\" >> ~/$tmpRemoteFile;",
-                            "echo \"echo \\\"RET_CODE=\\\$CODE\\\" >> $resultFile\" >> ~/$tmpRemoteFile;",
-                            "echo \"echo \\\"NODE=\\\"\\`cat \\\$OAR_FILE_NODES | head -1\\` >> $resultFile\" >> ~/$tmpRemoteFile;",
-                            "echo \"echo \\\"FINISH=1\\\" >> $resultFile\" >> ~/$tmpRemoteFile;",
-                            "echo rm ~$job{user}/$tmpRemoteFile >> ~/$tmpRemoteFile;",
-                            "chmod +x ~/$tmpRemoteFile ;",
-                            "cd ~$job{user} ;",
-                            "sudo -u $job{user} /bin/cp ~/$tmpRemoteFile . ;",
-                            "rm ~/$tmpRemoteFile ;"
+            my @cmdSSH = (  "echo \\#\\!/bin/sh > $tmpRemoteFile;",
+                            "echo \"echo \\\"BEGIN_DATE=\\\"\\`date +\%Y-\%m-\%d\\ \%H:\%M:\%S\\` >> $resultFile\" >> $tmpRemoteFile;",
+                            "echo $job{cmd} $job{param} >> $tmpRemoteFile;",
+                            "echo CODE=\\\$? >> $tmpRemoteFile;",
+                            "echo \"echo \\\"END_DATE=\\\"\\`date +\%Y-\%m-\%d\\ \%H:\%M:\%S\\` >> $resultFile\" >> $tmpRemoteFile;",
+                            "echo \"echo \\\"RET_CODE=\\\$CODE\\\" >> $resultFile\" >> $tmpRemoteFile;",
+                            "echo \"echo \\\"NODE=\\\"\\`cat \\\$OAR_FILE_NODES | head -1\\` >> $resultFile\" >> $tmpRemoteFile;",
+                            "echo \"echo \\\"FINISH=1\\\" >> $resultFile\" >> $tmpRemoteFile;",
+                            "echo rm ~$job{user}/$tmpRemoteFile >> $tmpRemoteFile;",
+                            "chmod +x $tmpRemoteFile ;",
+                            #"cd $job{execDir} ;",
+                            "sudo -H -u $job{user} sh -c \"cp $tmpRemoteFile $job{execDir}/. \" ;",
+                            "rm $tmpRemoteFile ;"
                          );
 
             my $cmdString = join(" ", @cmdSSH);
@@ -83,7 +83,8 @@ foreach my $j (keys(%clusterNames)){
                 exit(66);
             }else{
                 my @blackNodes = colomboCigri::get_blacklisted_nodes($base,$job{mjobid},$job{clusterName});
-                my $retCode = jobSubmit::jobSubmit($job{clusterName},\@blackNodes,$job{user},$tmpRemoteFile,$job{walltime},$job{weight});
+                my $remoteScript = "$job{execDir}/".iolibCigri::get_cigri_remote_script_name($jobId);
+                my $retCode = jobSubmit::jobSubmit($job{clusterName},\@blackNodes,$job{user},$remoteScript,$job{walltime},$job{weight},$job{execDir});
                 if ($retCode < 0){
                     if ($retCode == -2){
                         print("[RUNNER] There is a mistake, the job $jobId state = ERROR, bad remote batch id\n");
@@ -110,4 +111,5 @@ foreach my $j (keys(%clusterNames)){
 
 iolibCigri::disconnect($base);
 
-exit(0)
+exit(0);
+

@@ -66,10 +66,10 @@ foreach my $i (keys(%jobRunningHash)){
         # Verify if the job is still running on the cluster $i
         if (!defined($jobState{${$j}{batchJobId}})){
             # Check the result file on the cluster
-            my $remoteFile = iolibCigri::get_cigri_remote_file_name(${$j}{jobId});
-            my $tmpRemoteScript = iolibCigri::get_cigri_remote_script_name(${$j}{jobId});
+            my $remoteFile = "${$j}{execDir}/".iolibCigri::get_cigri_remote_file_name(${$j}{jobId});
+            my $tmpRemoteScript = "${$j}{execDir}/".iolibCigri::get_cigri_remote_script_name(${$j}{jobId});
             print("[Updator] Check the job ${$j}{jobId} \n");
-            my %cmdResult = SSHcmdClient::submitCmd($i,"sudo -u ${$j}{user} cat ~${$j}{user}/$remoteFile");
+            my %cmdResult = SSHcmdClient::submitCmd($i,"sudo -H -u ${$j}{user} sh -c \"cat $remoteFile\"");
             if ($cmdResult{STDERR} ne ""){
                 print("\t[UPDATOR_ERROR] Can t check the remote file\n");
                 print("\t[UPDATOR_STDERR] $cmdResult{STDERR}");
@@ -112,7 +112,7 @@ foreach my $i (keys(%jobRunningHash)){
                 }
             }
             # cigri script, log and OAR files must be deleted ---> A FAIRE
-            my %cmdResultRm = SSHcmdClient::submitCmd($i,"sudo -u ${$j}{user} rm -f ~${$j}{user}/$remoteFile ~${$j}{user}/$tmpRemoteScript");
+            my %cmdResultRm = SSHcmdClient::submitCmd($i,"sudo -H -u ${$j}{user} sh -c \"rm -f $remoteFile $tmpRemoteScript\"");
             # test if this is a ssh error
             if ($cmdResultRm{STDERR} ne ""){
                 NetCommon::checkSshError($base,$i,$cmdResultRm{STDERR}) ;

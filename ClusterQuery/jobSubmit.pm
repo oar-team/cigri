@@ -41,21 +41,23 @@ my %submitCmd = ('PBS' => \&pbssubmit,
 #arg4 --> jobFile to submit
 #arg5 --> walltime of the job
 #arg6 --> weight of the job
+#arg7 --> execution directory
 #return jobBatchId or -1 or -2 if something wrong happens
-sub jobSubmit($$$$$$){
+sub jobSubmit($$$$$$$){
     my $cluster = shift;
     my $blackNodes = shift;
     my $user = shift;
     my $jobFile = shift;
     my $walltime = shift;
     my $weight = shift;
+    my $execDir = shift;
 
     my $base = iolibCigri::connect();
     my %clusterProperties = iolibCigri::get_cluster_names_batch($base);
     my %result ;
     my $retCode = -1;
     if (defined($cluster) && defined($clusterProperties{$cluster})){
-    $retCode = &{$submitCmd{$clusterProperties{$cluster}}}($base,$cluster,$blackNodes,$user,$jobFile,$walltime,$weight);
+        $retCode = &{$submitCmd{$clusterProperties{$cluster}}}($base,$cluster,$blackNodes,$user,$jobFile,$walltime,$weight,$execDir);
     }
     iolibCigri::disconnect($base);
     return($retCode);
@@ -83,7 +85,8 @@ sub endJobSubmissions($){
 #arg5 --> jobFile to submit
 #arg6 --> walltime
 #arg7 --> weight
-sub pbssubmit($$$$$$$){
+#arg8 --> execDir
+sub pbssubmit($$$$$$$$){
     my $dbh = shift;
     my $cluster = shift;
     my $blackNodes = shift;
@@ -91,6 +94,7 @@ sub pbssubmit($$$$$$$){
     my $jobFile = shift;
     my $walltime = shift;
     my $weight = shift;
+    my $execDir = shift;
 
     print("PBS NOT IMPLEMENTED -- $cluster\n");
     return(-1);
@@ -103,10 +107,11 @@ sub pbssubmit($$$$$$$){
 #arg5 --> jobFile to submit
 #arg6 --> walltime
 #arg7 --> weight
+#arg8 --> execDir
 #return jodBatchId or
 #   -1 : for a command execution error
 #   -2 : for a jobId parse error
-sub oarsubmit($$$$$$$){
+sub oarsubmit($$$$$$$$){
     my $dbh = shift;
     my $cluster = shift;
     my $blackNodes = shift;
@@ -114,6 +119,7 @@ sub oarsubmit($$$$$$$){
     my $jobFile = shift;
     my $walltime = shift;
     my $weight = shift;
+    my $execDir = shift;
 
     print("$cluster --> OAR\n");
     #my $weight = iolibCigri::get_cluster_default_weight($dbh,$cluster);
@@ -129,7 +135,8 @@ sub oarsubmit($$$$$$$){
         $propertyString = "";
     }
     print("Property String = $propertyString\n");
-    my %cmdResult = SSHcmd::submitCmd($cluster,"cd ~$user; sudo -u $user oarsub -l nodes=1,weight=$weight,walltime=$walltime -p \"$propertyString\" -q besteffort ~$user/$jobFile");
+    #my %cmdResult = SSHcmd::submitCmd($cluster,"cd ~$user; sudo -H -u $user oarsub -l nodes=1,weight=$weight,walltime=$walltime -p \"$propertyString\" -q besteffort $jobFile");
+    my %cmdResult = SSHcmd::submitCmd($cluster,"sudo -H -u $user sh -c \"cd $execDir; oarsub -l nodes=1,weight=$weight,walltime=$walltime -p \\\"$propertyString\\\" -q besteffort $jobFile\"");
     #print(Dumper(%cmdResult));
     if ($cmdResult{STDERR} ne ""){
         # test if this is a ssh error
