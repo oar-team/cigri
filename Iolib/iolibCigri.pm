@@ -455,7 +455,7 @@ sub get_cluster_job_toLaunch($$$) {
     my $job = shift;
 
     $dbh->do("LOCK TABLES jobs WRITE, jobsToSubmit WRITE, nodes WRITE, parameters WRITE, clusters WRITE, multipleJobs WRITE, properties WRITE, users WRITE, clusterBlackList WRITE, nodeBlackList WRITE, events WRITE");
-    my $sth = $dbh->prepare("SELECT jobsToSubmitMJobsId
+    my $sth = $dbh->prepare("SELECT jobsToSubmitMJobsId, jobsToSubmitNumber
                              FROM jobsToSubmit
                              WHERE jobsToSubmitClusterName = \"$clusterName\"
                                  AND jobsToSubmitNumber > 0
@@ -531,6 +531,7 @@ sub get_cluster_job_toLaunch($$$) {
 
         # delete used entry in jobToSubmit
         my $newNumber = $MJobtoSubmit[1] - 1;
+        print("$newNumber\n");
         $dbh->do("UPDATE jobsToSubmit SET jobsToSubmitNumber = $newNumber
                     WHERE jobsToSubmitMJobsId = $MJobtoSubmit[0]
                           AND jobsToSubmitClusterName = \"$clusterName\"
