@@ -56,7 +56,7 @@ sub initSSHConnection($){
 	my $k = $fileHandleId;
 	$fileHandleId++;
 
-	my $timeout = 1;
+	my $timeout = 30;
 
 	my $READERStr = "";
 	my $ERRORStr = "";
