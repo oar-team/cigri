@@ -33,14 +33,15 @@ let schedule mjobs clusters =
     let rec aux n l buf = function 
 	[] -> buf
       | mj::mjs -> 
-      	if n = 0 then buf 
-	else let nb = Pervasives.min mj.mjobLeftJobs (n / l) in 
-	  aux (n - nb) (l - 1) 
-	    ({assignId = mj.mjobId; assignCluster = cluster.clusterName; assignNb = nb}::buf) mjs in 
+	  let nb = Pervasives.min mj.mjobLeftJobs (n / l) in 
+	    if nb = 0 then 
+	      aux n (l - 1) buf mjs 
+	    else aux (n - nb) (l - 1) 
+	      ({assignId = mj.mjobId; assignCluster = cluster.clusterName; assignNb = nb}::buf) mjs in 
       aux cluster.clusterNodes (List.length possibleJobs) buffer possibleJobs in 
     
     List.fold_left (repart mjobs) [] clusters
-
+      
 let execQuery dbd q = 
   let res = Mysql.exec dbd q in 
     match Mysql.errmsg dbd with 
@@ -87,12 +88,22 @@ let makeAssign dbd a =
     
 let _ = 
   print_endline "[SCHEDULER] Begining of scheduler EQUIT";
-  let dbd = Mysql.connect { Mysql.dbhost = Some "localhost"; 
-			    Mysql.dbname = Some "cigri"; 
-			    Mysql.dbport = None;
-			    Mysql.dbpwd = Some "cigri"; 
-			    Mysql.dbuser = Some "cigri" } in
-  let sched = schedule (getInfoMjobs dbd) (getFreeNodes dbd) in 
-    List.iter (makeAssign dbd) sched; 
-    print_endline "[SCHEDULER] End of scheduler EQUIT";;
+  let istest = ref false in 
+    Arg.parse ["-test", Arg.Set istest, "Test Mode : uses another server"]
+      ignore "sched_equitCigri [option]";
+    let connector = if !istest 
+    then { Mysql.dbhost = Some "pawnee"; 
+	   Mysql.dbname = Some "cigriSched"; 
+	   Mysql.dbport = None;
+	   Mysql.dbpwd = Some "cigriSched"; 
+	   Mysql.dbuser = Some "cigriSched" }
+    else { Mysql.dbhost = Some "localhost"; 
+	   Mysql.dbname = Some "cigri"; 
+	   Mysql.dbport = None;
+	   Mysql.dbpwd = Some "cigri"; 
+	   Mysql.dbuser = Some "cigri" } in
+    let dbd = Mysql.connect connector in 
+    let sched = schedule (getInfoMjobs dbd) (getFreeNodes dbd) in 
+      List.iter (makeAssign dbd) sched; 
+      print_endline "[SCHEDULER] End of scheduler EQUIT";;
 
