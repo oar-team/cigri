@@ -2,14 +2,15 @@ OCAMLOPT=ocamlopt
 EXEC=sched_equitCigri
 OCAMLDEP=ocamldep
 OCAMLPREP=-pp camlp4o
+OCAMLFLAGS=-I /usr/lib/ocaml/3.06/cameleon
 
 ALLOBJS=mysql.cmxa sched_equit.cmx
-PREPROCESSEDOBJS=mysql.cmx
+PREPROCESSEDOBJS=mysql.cmx sched_equit.cmx
 CC=gcc-2.95
-CFLAGS=-g -O2 -I/usr/lib/ocaml/3.06 
+CFLAGS=-g -O2 -I/usr/lib/ocaml/3.06
 
 all: $(ALLOBJS)
-	$(OCAMLOPT) -o $(EXEC) unix.cmxa $(OCAMLFLAGS) $(ALLOBJS)
+	$(OCAMLOPT) -o $(EXEC)  $(OCAMLFLAGS) options.cmx $(ALLOBJS)
 
 sched_equit.cmx: mysql.cmxa mysql.cmi
 mysql.cmx: mysql.cmi
@@ -17,7 +18,7 @@ mysql.cmx: mysql.cmi
 %.cmx: %.ml
 	$(OCAMLOPT) $(OCAMLFLAGS) -c $<
 $(PREPROCESSEDOBJS): %.cmx : %.ml
-	$(OCAMLOPT) $(OCAMLOPTFLAGS) $(OCAMLPREP) -c $<
+	$(OCAMLOPT) $(OCAMLFLAGS) $(OCAMLPREP) -c $<
 %.d : %.ml
 	@set -e; $(OCAMLDEP) $< > $@; \
 		[ -s $@ ] || rm -f $@

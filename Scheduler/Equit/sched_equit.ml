@@ -19,8 +19,8 @@ type mjob_t = {
 
 
 let printMJob m = 
-  Printf.printf "MJob %d: %s, reste %d, sur %s\n"
-    m.mjobId m.mjobUser m.mjobLeftJobs (concatene id m.mjobClusters)
+  Printf.printf "MJob %d: %s, reste %d, sur%s\n"
+    m.mjobId m.mjobUser m.mjobLeftJobs (concatene ((^) " ") m.mjobClusters)
 
 type cluster_t = {
   clusterName : string;
@@ -99,12 +99,86 @@ let makeAssign dbd a =
                                                jobsToSubmitNumber)
                                 VALUES (%d,\"%s\",%d)" a.assignId a.assignCluster a.assignNb))
     
-(* Le programme principal *)    
+(* Lecture du fichier de config *)
+
+let conf_file = ref "/etc/cigri.conf"
+
+open Options
+
+(* Version qui aurait pu marcher si Nico ne mettait pas des / de m...
+   sans les protéger par des guillemets *)
+let read_conf file = 
+  let opf = create_options_file file in 
+  let db_host = define_option opf ["database_host"] "" string_option "localhost"
+  and db_name = define_option opf ["database_name"] "" string_option "truc"
+  and db_username = define_option opf ["database_username"] "" string_option ""
+  and db_userpassword = define_option opf ["database_userpassword"] "" string_option "" in 
+  let convert = function 
+      "" -> None
+    | s -> Some s in 
+    load opf; 
+    { Mysql.dbhost = convert (!! db_host); 
+      Mysql.dbname = convert (!! db_name);
+      Mysql.dbport = None;
+      Mysql.dbpwd = convert (!! db_userpassword);
+      Mysql.dbuser = convert (!! db_username) }
+
+(* La vraie version. Y'a pas intérêt à ce que tu me mettes des mots finissant par un /.
+   Sinon je te démonte *)
     
+let read_conf file = 
+  let rec parse list = parser 
+      [< _ = parse_assoc list; _ = parse list ?? "Beuh" >] -> ()
+    | [< >] -> () 
+  and parse_assoc list = parser 
+      [< 'Genlex.Ident name; 
+	 'Genlex.Kwd "=" ?? Printf.sprintf "= expected after name %s" name; 
+	 value = parse_value ?? Printf.sprintf "value expected after name %s =" name >] 
+      -> ( (* Printf.printf "Found %s = %s\n" name value; *)
+	   try let f = List.assoc name list in f value
+	   with _ -> () ) 
+  and parse_value = parser 
+      [< 'Genlex.Ident "/"; v = parse_val; s = parse_value_next >] -> "/"^v^s
+    | [< v = parse_val; s = parse_value_next >] -> v^s
+  and parse_value_next = parser
+      [< 'Genlex.Ident "/"; v = parse_val; s = parse_value_next >] -> "/"^v^s
+    | [< >] -> "" 
+  and parse_val = parser
+      [< 'Genlex.Ident v >] -> v
+    | [< 'Genlex.Int i >] -> string_of_int i
+    | [< 'Genlex.Float f >] -> string_of_float f
+    | [< 'Genlex.String v >] -> v
+    | [< 'Genlex.Char c >] -> String.make 1 c in
+
+  let db_host = ref "" 
+  and db_name = ref "" 
+  and db_username = ref "" 
+  and db_userpasswd = ref "" in 
+  let convert = function 
+      "" -> None
+    | s -> Some s in 
+    
+    Printf.printf "Reading configuration file %s\n" file;
+
+    parse ["database_host", (:=) db_host;
+	   "database_name", (:=) db_name;
+	   "database_username", (:=) db_username;
+	   "database_userpassword", (:=) db_userpasswd] 
+	(Genlex.make_lexer ["="] (Stream.of_channel (open_in file))); 
+    
+    { Mysql.dbhost = convert (! db_host); 
+      Mysql.dbname = convert (! db_name);
+      Mysql.dbport = None;
+      Mysql.dbpwd = convert (! db_userpasswd);
+      Mysql.dbuser = convert (! db_username) }
+    
+(* Le programme principal *)    
+
 let main = 
   print_endline "[SCHEDULER] Begining of scheduler EQUIT";
   let istest = ref false in 
-    Arg.parse ["-test", Arg.Set istest, "Test Mode : uses another server"]
+    Arg.parse ["-test", Arg.Set istest, "Test Mode : uses a test database";
+	       "-conf_file", Arg.String (fun s -> conf_file := s), "Set conf_file; default = "^(!conf_file)]
       ignore "sched_equitCigri [option]";
     let connector = if !istest 
     then { Mysql.dbhost = Some "pawnee"; 
@@ -112,17 +186,18 @@ let main =
 	   Mysql.dbport = None;
 	   Mysql.dbpwd = Some "cigriSched"; 
 	   Mysql.dbuser = Some "cigriSched" }
-    else { Mysql.dbhost = Some "localhost"; 
-	   Mysql.dbname = Some "cigri"; 
-	   Mysql.dbport = None;
-	   Mysql.dbpwd = Some "cigri"; 
-	   Mysql.dbuser = Some "cigri" } in
-    let dbd = Mysql.connect connector in 
-    let mjobs = getInfoMjobs dbd and nodes = getFreeNodes dbd in 
-      List.iter printMJob mjobs; 
-      print_newline(); 
-      List.iter printCluster nodes;
-    let sched = schedule mjobs nodes in 
-      List.iter (makeAssign dbd) sched; 
-      print_endline "[SCHEDULER] End of scheduler EQUIT";;
+    else read_conf !conf_file in 
+    let conv = function Some s -> s | None -> "''" in
+      Printf.printf "Connecting to database %s on %s@%s\n" 
+	(conv connector.Mysql.dbname) 
+	(conv connector.Mysql.dbuser)
+	(conv connector.Mysql.dbhost);
+      let dbd = Mysql.connect connector in 
+      let mjobs = getInfoMjobs dbd and nodes = getFreeNodes dbd in 
+	List.iter printMJob mjobs; 
+	print_newline(); 
+	List.iter printCluster nodes;
+	let sched = schedule mjobs nodes in 
+	  List.iter (makeAssign dbd) sched; 
+	  print_endline "[SCHEDULER] End of scheduler EQUIT";;
 
