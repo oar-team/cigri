@@ -31,7 +31,8 @@ use NetCommon;
 # List of pbsnodes commands
 my %qsubCommand = ( 'PBS' => 'qsub',
 					'OAR1' => 'qsub.pl',
-					'OAR' => 'oarsub' );
+					'OAR' => 'oarsub',
+                    'OAR_mysql' => 'oarsub');
 
 my $base = iolibCigri::connect() ;
 

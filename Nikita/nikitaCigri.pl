@@ -22,15 +22,12 @@ BEGIN {
 	unshift(@INC, $relativePath."Net");
 	unshift(@INC, $relativePath."Iolib");
 	unshift(@INC, $relativePath."Colombo");
+    unshift(@INC, $relativePath."ClusterQuery");
 }
 use iolibCigri;
 use SSHcmdClient;
 use NetCommon;
-
-# List of pbsnodes commands
-my %qdelCommand = ( 'PBS' => 'qdel',
-					'OAR1' => 'qdel.pl',
-					'OAR' => 'oardel' );
+use jobDel;
 
 my $base = iolibCigri::connect() ;
 
@@ -55,23 +52,16 @@ print(Dumper(@jobsToFrag));
 foreach my $i (@jobsToFrag){
 	#Delete this job
 	if (($$i{jobBatchId} ne "") && ($$i{userLogin} ne "") && ($$i{clusterName} ne "")){
-		print("ssh $$i{clusterName} -c sudo -u $$i{userLogin} $qdelCommand{$$i{clusterBatch}} $$i{jobBatchId}\n");
-		my %cmdResult = SSHcmdClient::submitCmd($$i{clusterName},"sudo -u $$i{userLogin} $qdelCommand{$$i{clusterBatch}} $$i{jobBatchId}");
-		print(Dumper(%cmdResult));
-		if ($cmdResult{STDERR} ne ""){
-			# test if this is a ssh error
-            if (NetCommon::checkSshError($base,$$i{clusterName},$cmdResult{STDERR}) != 1){
-                print("ERREUR A TRAITER\n");
-                exit(-1);
-            }
+		if ( jobDel::jobDel($$i{clusterName},$$i{userLogin},$$i{jobBatchId}) == -1){
+            exit(-1);
 		}else{
-			print("OK\n");
-			#change state
-			#iolibCigri::set_jobState_fragged($base,$$i{jobId});
-			colomboCigri::fix_event($base,$$i{eventId});
+            print("OK\n");
+            #change state
+            #iolibCigri::set_jobState_fragged($base,$$i{jobId});
+            colomboCigri::fix_event($base,$$i{eventId});
 		}
 	}else{
-		colomboCigri::fix_event($base,$$i{eventId});
+        colomboCigri::fix_event($base,$$i{eventId});
 	}
 }
 

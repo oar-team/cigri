@@ -57,10 +57,10 @@ sub pbsstat($$$){
     my $cluster = shift;
     my $resRefHash = shift;
 
-    print("PBS -- $cluster\n");
+    print("PBS NOT IMPLEMENTED -- $cluster\n");
     my %jobState;
     undef(%jobState);
-    return(%jobState);
+    return(1);
 }
 
 #arg1 --> db ref

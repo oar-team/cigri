@@ -105,4 +105,15 @@ sub getFreeNodes($) {
     return %res;
 }
 
+# frag a job
+# arg1 --> database ref
+# arg2 --> jobBatchId
+sub fragRemoteJob($$) {
+    my $dbh = shift;
+    my $jobBatchId = shift;
+
+    $dbh->do("UPDATE jobs SET toFrag = \"Yes\" WHERE idJob = $jobBatchId");
+    return 1;
+}
+
 return 1;

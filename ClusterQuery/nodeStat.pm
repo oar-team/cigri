@@ -53,10 +53,10 @@ sub pbsnodes($$){
     my $dbh = shift;
     my $cluster = shift;
 
-    print("PBS -- $cluster\n");
+    print("PBS NOT IMPLEMENTED -- $cluster\n");
     my %nodeState;
     undef(%nodeState);
-    return(%nodeState);
+    return(1);
 }
 
 #arg1 --> db ref
