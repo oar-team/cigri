@@ -31,6 +31,7 @@ eventMJobsId INT UNSIGNED ,
 eventDate DATETIME NOT NULL ,
 eventMessage VARCHAR( 255 ) ,
 eventAdminNote VARCHAR( 255 ) ,
+INDEX eventState (eventState),
 PRIMARY KEY (eventId)
 )TYPE = InnoDB;
 
@@ -54,6 +55,8 @@ CREATE TABLE IF NOT EXISTS nodes (
 nodeName VARCHAR( 100 ) NOT NULL ,
 nodeClusterName VARCHAR( 100 ) NOT NULL ,
 nodeState ENUM('BUSY','FREE') DEFAULT 'BUSY' NOT NULL ,
+INDEX nodeState (nodeState),
+INDEX nodeClusterName (nodeClusterName),
 PRIMARY KEY (nodeName,nodeClusterName)
 )TYPE = InnoDB;
 
@@ -73,6 +76,10 @@ jobCollectedJobId INT DEFAULT 0 NOT NULL ,
 jobTSub DATETIME ,
 jobTStart DATETIME ,
 jobTStop DATETIME ,
+INDEX jobState (jobState),
+INDEX jobMJobsId (jobMJobsId),
+INDEX jobClusterName (jobClusterName),
+INDEX jobCollectedJobId (jobCollectedJobId),
 PRIMARY KEY (jobId)
 )TYPE = InnoDB;
 
@@ -84,6 +91,8 @@ MJobsState ENUM('IN_TREATMENT','TERMINATED') NOT NULL DEFAULT 'IN_TREATMENT' ,
 MJobsUser VARCHAR( 50 ) NOT NULL ,
 MJobsName VARCHAR( 255 ) ,
 MJobsTSub DATETIME ,
+INDEX MJOBsState (MJobsState),
+INDEX MJOBsId (MJobsId),
 PRIMARY KEY (MJobsId)
 )TYPE = InnoDB;
 
@@ -93,7 +102,7 @@ parametersMJobsId INT UNSIGNED NOT NULL ,
 parametersParam VARCHAR( 255 )  NOT NULL ,
 parametersName VARCHAR( 255 ) ,
 parametersPriority INT UNSIGNED DEFAULT 0 ,
-INDEX param (parametersMJobsId),
+INDEX parametersMJobsId (parametersMJobsId),
 PRIMARY KEY (parametersMJobsId, parametersParam)
 )TYPE = InnoDB;
 
@@ -102,6 +111,7 @@ CREATE TABLE IF NOT EXISTS properties (
 propertiesClusterName VARCHAR( 100 ) NOT NULL ,
 propertiesMJobsId INT UNSIGNED NOT NULL ,
 propertiesJobCmd VARCHAR( 255 ) NOT NULL ,
+INDEX propertiesMJobsId (propertiesMJobsId),
 PRIMARY KEY (propertiesClusterName,propertiesMJobsId)
 )TYPE = InnoDB;
 
@@ -140,6 +150,7 @@ CREATE TABLE IF NOT EXISTS collectedJobs (
 collectedJobsMJobsId INT UNSIGNED NOT NULL ,
 collectedJobsId INT NOT NULL ,
 collectedJobsFileName VARCHAR( 100 ) NOT NULL ,
+INDEX collectedJobsMJobsId (collectedJobsMJobsId),
 PRIMARY KEY (collectedJobsMJobsId,collectedJobsId)
 )TYPE = InnoDB;
 
