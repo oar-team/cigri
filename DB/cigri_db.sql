@@ -108,6 +108,7 @@ CREATE TABLE IF NOT EXISTS properties (
 propertiesClusterName VARCHAR( 100 ) NOT NULL ,
 propertiesMJobsId INT UNSIGNED NOT NULL ,
 propertiesJobCmd VARCHAR( 255 ) NOT NULL ,
+propertiesJobWalltime TIME NOT NULL ,
 INDEX propertiesMJobsId (propertiesMJobsId),
 PRIMARY KEY (propertiesClusterName,propertiesMJobsId)
 )TYPE = InnoDB;

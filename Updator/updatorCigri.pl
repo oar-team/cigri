@@ -88,7 +88,7 @@ foreach my $i (keys(%jobRunningHash)){
                         $fileVars{$1} = $2;
                     }
                 }
-                print(Dumper(%fileVars));
+                #print(Dumper(%fileVars));
                 if (defined($fileVars{FINISH})){
                     # the job is finished
                     iolibCigri::update_att_job($base,${$j}{jobId},$fileVars{BEGIN_DATE},$fileVars{END_DATE},$fileVars{RET_CODE},$i,$fileVars{NODE});

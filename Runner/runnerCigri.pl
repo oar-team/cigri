@@ -45,7 +45,7 @@ foreach my $j (keys(%clusterNames)){
         $base = iolibCigri::connect() ;
         while (iolibCigri::get_cluster_job_toLaunch($base,$j,\%job) == 0){
             print("[Runner] Launch the job $job{id} on the cluster $job{clusterName}\n");
-            print(Dumper(%job));
+            #print(Dumper(%job));
 
             my $jobId = $job{id};
             #my $tmpRemoteFile = "cigri.tmp.$jobId";
@@ -83,7 +83,7 @@ foreach my $j (keys(%clusterNames)){
                 exit(66);
             }else{
                 my @blackNodes = colomboCigri::get_blacklisted_nodes($base,$job{mjobid},$job{clusterName});
-                my $retCode = jobSubmit::jobSubmit($job{clusterName},\@blackNodes,$job{user},$tmpRemoteFile);
+                my $retCode = jobSubmit::jobSubmit($job{clusterName},\@blackNodes,$job{user},$tmpRemoteFile,$job{walltime});
                 if ($retCode < 0){
                     if ($retCode == -2){
                         print("[RUNNER] There is a mistake, the job $jobId state = ERROR, bad remote batch id\n");

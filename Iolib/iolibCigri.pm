@@ -163,7 +163,12 @@ sub add_mjobs($$) {
             foreach my $j (@clusters){
                 if ($j ne "DEFAULT"){
                     if (defined($JDLParserCigri::clusterConf{$j}{execFile})){
-                        $dbh->do("INSERT INTO properties (propertiesClusterName,propertiesMJobsId,propertiesJobCmd) VALUES (\"$j\",$id,\"$JDLParserCigri::clusterConf{$j}{execFile}\")");
+                        my $jobWalltime = "1:00:00";
+                        if (defined($JDLParserCigri::clusterConf{$j}{walltime})){
+                            $jobWalltime = $JDLParserCigri::clusterConf{$j}{walltime};
+                        }
+                        $dbh->do("INSERT INTO properties (propertiesClusterName,propertiesMJobsId,propertiesJobCmd,propertiesJobWalltime)
+                                  VALUES (\"$j\",$id,\"$JDLParserCigri::clusterConf{$j}{execFile}\",\"$jobWalltime\")");
                     }else{
                         rollback_transaction($dbh);
                         return -3;
@@ -415,7 +420,7 @@ sub get_MJobs_JDL($$){
 sub get_launching_job($$) {
     my $dbh = shift;
     my $clusterName = shift;
-    my $sth = $dbh->prepare("SELECT jobId,jobParam,propertiesJobCmd,jobClusterName,clusterBatch,userLogin,MJobsId
+    my $sth = $dbh->prepare("SELECT jobId,jobParam,propertiesJobCmd,jobClusterName,clusterBatch,userLogin,MJobsId,propertiesJobWalltime
                             FROM jobs,clusters,multipleJobs,properties,users
                             WHERE jobState=\"toLaunch\"
                                 AND clusterName = \"$clusterName\"
@@ -439,7 +444,8 @@ sub get_launching_job($$) {
         'clusterName'   => $ref[3],
         'batch'         => $ref[4],
         'user'          => $ref[5],
-        'mjobid'        => $ref[6]
+        'mjobid'        => $ref[6],
+        'walltime'      => $ref[7]
     );
 
     return %result;

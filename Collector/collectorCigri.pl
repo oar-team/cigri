@@ -177,7 +177,7 @@ foreach my $i (@MjobsToCollect){
             warn("Error exit_code=$?\n");
         }else{
             print("scp -q $j:~cigri/results_tmp/$i.tar.gz ~cigri/results/$userGridName/$i/$resColl[2].tar.gz \n");
-            system("scp -q $j:~cigri/results_tmp/$i.tar.gz ~cigri/results/$userGridName/$i/$resColl[2].tar.gz");
+            system("scp -q $j:~cigri/results_tmp/$i.tar.gz ~cigri/results/$userGridName/$i/.$resColl[2].tar.gz");
             if( $? != 0 ){
                 iolibCigri::rollback_transaction($base);
                 iolibCigri::begin_transaction($base);
@@ -185,6 +185,7 @@ foreach my $i (@MjobsToCollect){
                 #colomboCigri::add_new_cluster_event($base,$j,0,"COLLECTOR","There is a SCP  error in the collector");
                 warn("Error scp exit_code=$?\n");
             }else{
+                system("mv ~cigri/results/$userGridName/$i/.$resColl[2].tar.gz ~cigri/results/$userGridName/$i/$resColl[2].tar.gz");
                 foreach my $k (keys(%collectedJobs)){
                     if("${$collectedJobs{$k}}{jobClusterName}" eq "$j"){
                         print("set collectedJobId de $k = $resColl[1]\n");

@@ -39,19 +39,21 @@ my %submitCmd = ('PBS' => \&pbssubmit,
 #arg2 --> blacklisted nodes
 #arg3 --> user
 #arg4 --> jobFile to submit
+#arg5 --> walltime of the job
 #return jobBatchId or -1 or -2 if something wrong happens
-sub jobSubmit($$$$){
+sub jobSubmit($$$$$){
     my $cluster = shift;
     my $blackNodes = shift;
     my $user = shift;
     my $jobFile = shift;
+    my $walltime = shift;
 
     my $base = iolibCigri::connect();
     my %clusterProperties = iolibCigri::get_cluster_names_batch($base);
     my %result ;
     my $retCode = -1;
     if (defined($cluster) && defined($clusterProperties{$cluster})){
-        $retCode = &{$submitCmd{$clusterProperties{$cluster}}}($base,$cluster,$blackNodes,$user,$jobFile);
+        $retCode = &{$submitCmd{$clusterProperties{$cluster}}}($base,$cluster,$blackNodes,$user,$jobFile,$walltime);
     }
     iolibCigri::disconnect($base);
     return($retCode);
@@ -77,12 +79,14 @@ sub endJobSubmissions($){
 #arg3 --> black nodes
 #arg4 --> user
 #arg5 --> jobFile to submit
-sub pbssubmit($$$$$){
+#arg6 --> walltime
+sub pbssubmit($$$$$$){
     my $dbh = shift;
     my $cluster = shift;
     my $blackNodes = shift;
     my $user = shift;
     my $jobFile = shift;
+    my $walltime = shift;
 
     print("PBS NOT IMPLEMENTED -- $cluster\n");
     return(-1);
@@ -93,15 +97,17 @@ sub pbssubmit($$$$$){
 #arg3 --> blacklisted nodes
 #arg4 --> user
 #arg5 --> jobFile to submit
+#arg6 --> walltime
 #return jodBatchId or
 #   -1 : for a command execution error
 #   -2 : for a jobId parse error
-sub oarsubmit($$$$$){
+sub oarsubmit($$$$$$){
     my $dbh = shift;
     my $cluster = shift;
     my $blackNodes = shift;
     my $user = shift;
     my $jobFile = shift;
+    my $walltime = shift;
 
     print("$cluster --> OAR\n");
     my $weight = iolibCigri::get_cluster_default_weight($dbh,$cluster);
@@ -117,8 +123,8 @@ sub oarsubmit($$$$$){
         $propertyString = "";
     }
     print("Property String = $propertyString\n");
-    my %cmdResult = SSHcmd::submitCmd($cluster,"cd ~$user; sudo -u $user oarsub -l nodes=1,weight=$weight,walltime=5 -p \"$propertyString\" -q besteffort ~$user/$jobFile");
-    print(Dumper(%cmdResult));
+    my %cmdResult = SSHcmd::submitCmd($cluster,"cd ~$user; sudo -u $user oarsub -l nodes=1,weight=$weight,walltime=$walltime -p \"$propertyString\" -q besteffort ~$user/$jobFile");
+    #print(Dumper(%cmdResult));
     if ($cmdResult{STDERR} ne ""){
         # test if this is a ssh error
         if (NetCommon::checkSshError($dbh,$cluster,$cmdResult{STDERR}) != 1){
@@ -141,13 +147,16 @@ sub oarsubmit($$$$$){
 #arg3 --> blacklisted nodes
 #arg4 --> user
 #arg5 --> jobFile to submit
+#arg6 --> walltime
 #return jodBatchId or -1 for an error
-sub oarsubmitMysql($$$$$){
+sub oarsubmitMysql($$$$$$){
     my $dbh = shift;
     my $cluster = shift;
     my $blackNodes = shift;
     my $user = shift;
     my $jobFile = shift;
+    #not implemented
+    my $walltime = shift;
 
     print("OAR_mysql -- $cluster\n");
     my $OARdb = OARiolib::connect($dbh,$cluster);
