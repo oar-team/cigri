@@ -83,7 +83,7 @@ sub oarsubmit($$$$){
 
     print("$cluster --> OAR\n");
     my $weight = iolibCigri::get_cluster_default_weight($dbh,$cluster);
-    my %cmdResult = SSHcmdClient::submitCmd($cluster,"sudo -u $user oarsub -l nodes=1,weight=$weight -q besteffort ~$user/$jobFile");
+    my %cmdResult = SSHcmdClient::submitCmd($cluster,"cd ~$user; sudo -u $user oarsub -l nodes=1,weight=$weight -q besteffort ~$user/$jobFile");
     print(Dumper(%cmdResult));
     if ($cmdResult{STDERR} ne ""){
         # test if this is a ssh error
