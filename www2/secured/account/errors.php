@@ -63,6 +63,12 @@ EOF;
 
 // {{{ FIXED errors
 	case "fixed":
+		// if no order is specified, set to default
+		if (!isset($_GET['orderby'])) {
+			$_GET['orderby'] = "e.eventId";
+			$_GET['sort'] = "DESC";
+		}
+				
 		$selectnames[] = "e.eventId";
 		$selectnames[] = "e.eventDate";
 		$selectnames[] = "mj.MJobsName";
@@ -169,6 +175,11 @@ EOF;
 
 // {{{ TO FIX errors
 	case "tofix":
+		// if no order is specified, set to default
+		if (!isset($_GET['orderby'])) {
+			$_GET['orderby'] = "e.eventId";
+			$_GET['sort'] = "DESC";
+		}
 		$selectnames[] = "e.eventId";
 		$selectnames[] = "e.eventDate";
 		$selectnames[] = "mj.MJobsName";

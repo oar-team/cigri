@@ -7,6 +7,7 @@ require_once("../jpgraph-1.12.2/src/jpgraph_pie3d.php");
 $link = dbconnect();
 $time = time();
 
+$timerepartition = $_GET['timerepartition'];
 if ($timerepartition == "day") {
 	// 1 day = 86400 seconds
 	$sec = $time - 86400;
@@ -25,11 +26,14 @@ else if ($timerepartition == "week") {
 }
 else {
 	// default is week timerepartition
+	$timerepartition = "week";
 	$sec = $time - 604800;
 }
 
 // convert unix timestamp to SQL timestamp
 $date = date("Y-m-d H:m:s",$sec);
+
+$graph = new PieGraph(650,450,"grid".$timerepartition,720);
 
 $query = <<<EOF
 SELECT
@@ -61,7 +65,6 @@ for ($i = 0; $i < $nb; $i++) {
 }
 
 if ($nb != 0) {
-	$graph = new PieGraph(650,450,"auto");
 
 	$graph->title->Set("Time Repartition");
 	$graph->title->SetFont(FF_FONT1,FS_BOLD);
@@ -76,7 +79,6 @@ if ($nb != 0) {
 	$graph->Stroke();
 }
 else {
-	$graph = new PieGraph(500,50,"auto");
 	$graph->title->Set("no event recorded on clusters");
 	$graph->Stroke();
 }

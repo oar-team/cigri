@@ -33,6 +33,11 @@ switch ($option) {
 // {{{ All jobs
 // {{{ Properties
 	case "jobs":
+		// if no order is specified, set to default
+		if (!isset($_GET['orderby'])) {
+			$_GET['orderby'] = "MJobsId";
+			$_GET['sort'] = "DESC";
+		}
 		$selectnames[] = "MJobsId";
 		$selectnames[] = "MJobsName";
 		$selectnames[] = "MJobsTSub";
@@ -104,6 +109,7 @@ EOF;
 				$selectnames[] = "propertiesJobCmd";
 				$selectnames[] = "propertiesJobWallTime";
 				$selectnames[] = "propertiesJobWeight";
+				$selectnames[] = "propertiesExecDirectory";
 				cigri_order_by($_GET,$selectnames,'account.php',$orderby,$orderarray,$orderimgs,$smarty,"../");
 
 				$query = <<<EOF
@@ -122,7 +128,7 @@ EOF;
 
 				$query = <<<EOF
 SELECT
-	propertiesClusterName, propertiesJobCmd, propertiesJobWallTime, propertiesJobWeight
+	propertiesClusterName, propertiesJobCmd, propertiesJobWallTime, propertiesJobWeight, propertiesExecDirectory
 FROM
 	properties
 WHERE
@@ -145,6 +151,7 @@ EOF;
 					$res[$i][1] = htmlentities($res[$i][1]) ;
 					$res[$i][2] = htmlentities($res[$i][2]) ;
 					$res[$i][3] = htmlentities($res[$i][3]) ;
+					$res[$i][4] = htmlentities($res[$i][4]) ;
 				}
 				$smarty->assign('jobid',$jobid);
 				$smarty->assign('eventarray',$res);
@@ -164,6 +171,11 @@ EOF;
 	case "executedparams":
 		if (isset($_GET['id'])) {
 			if (is_numeric($_GET['id'])) {
+				// if no order is specified, set to default
+				if (!isset($_GET['orderby'])) {
+					$_GET['orderby'] = "jobId";
+					$_GET['sort'] = "DESC";
+				}
 				$jobid = $_GET['id'];
 				$query = <<<EOF
 SELECT
@@ -307,6 +319,11 @@ EOF;
 	case "runningparams":
 		if (isset($_GET['id'])) {
 			if (is_numeric($_GET['id'])) {
+				// if no order is specified, set to default
+				if (!isset($_GET['orderby'])) {
+					$_GET['orderby'] = "jobId";
+					$_GET['sort'] = "DESC";
+				}
 				$jobid = $_GET['id'];
 				$selectnames[] = "jobId";
 				$selectnames[] = "jobName";
@@ -373,6 +390,11 @@ EOF;
 	case "waitingparams":
 		if (isset($_GET['id'])) {
 			if (is_numeric($_GET['id'])) {
+				// if no order is specified, set to default
+				if (!isset($_GET['orderby'])) {
+					$_GET['orderby'] = "parametersPriority";
+					$_GET['sort'] = "DESC";
+				}
 				$jobid = $_GET['id'];
 				$selectnames[] = "parametersParam";
 				$selectnames[] = "parametersName";

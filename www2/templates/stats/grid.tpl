@@ -1,6 +1,6 @@
 <table border="0" cellpadding="10" cellspacing="0">
 <tr><td>
-	<h3>Grid Statistics</h3>
+	<h3>Clusters time repartition</h3>
 	<p>See time repartition for last: 
 	{if $timerepartition eq 'day'}
 		day
@@ -26,7 +26,7 @@
 		<a href="stats.php?submenu=grid&timerepartition=year">year</a>
 	{/if}
 	</p>
-	<h4>Computing Grid time repartition during last {$timerepartition}</h4>
+	<h4>Clusters time repartition during last {$timerepartition}</h4>
 	<!-- display graph -->
 	<img src="stats/gridstatsgraph.php?timerepartition={$timerepartition}" alt="graph">
 </td></tr>

@@ -36,6 +36,13 @@ cigri_register_menu_item($menu,$currentarray,"Account","My&nbsp;account","secure
 $smarty->assign('contenttemplate',"events.tpl");
 
 // {{{ Events query
+
+// if no order is specified, set to default
+if (!isset($_GET['orderby'])) {
+	$_GET['orderby'] = "e.eventId";
+	$_GET['sort'] = "DESC";
+}
+
 $selectnames[] = "e.eventId";
 $selectnames[] = "e.eventType";
 $selectnames[] = "e.eventState";

@@ -20,6 +20,7 @@
 		<tr class="titlerow">
 			<th><a href="{$itemsorderby[0]}">Cluster Name{$itemsorderimgs[0]}</a></th>
 			<th><a href="{$itemsorderby[1]}">Execution Command{$itemsorderimgs[1]}</a></th>
+			<th><a href="{$itemsorderby[4]}">Exec Directory{$itemsorderimgs[4]}</a></th>
 			<th><a href="{$itemsorderby[2]}">Wall Time{$itemsorderimgs[2]}</a></th>
 			<th><a href="{$itemsorderby[3]}">Weight{$itemsorderimgs[3]}</a></th>
 		</tr>
@@ -35,7 +36,8 @@
 			<tr class="{$trclass}">
 				<td align="center">{$secondkey[0]}</td>
 				<td align="center">{$secondkey[1]}</td>
-				<td align="center">{$secondkey[2]}</span></td>
+				<td align="center">{$secondkey[4]}</td>
+				<td align="center">{$secondkey[2]}</td>
 				<td align="center">{$secondkey[3]}</td>
 			</tr>
 		{/foreach}

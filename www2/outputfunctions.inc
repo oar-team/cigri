@@ -53,8 +53,11 @@ function cigri_set_page_params(&$page,&$step,$nbitems,&$maxpages,&$minindex,&$ma
 	if (!is_numeric($step)) {
 		$step = 20;
 	}
-	else if ($step <= 0 || $step >= 200) {
+	else if ($step <= 0) {
 		$step = 20;
+	}
+	else if ($step > 500) {
+		$step = 500;
 	}
 
 	$maxpages = intval(($nbitems+$step - 1) / $step);
