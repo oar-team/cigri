@@ -6,38 +6,38 @@ html {
 body {
 	font-family: Sans-Serif;
 	background-color: #bbbbbb;
-	font-size: 9pt;
+	font-size: 11pt;
 	color: #000000;
 }
 h1 {
 	font-family: Sans-Serif;
 	font-weight: bold;
 	font-style: normal;
-	font-size: 18pt;
+	font-size: 20pt;
 }
 h2 {
 	font-family: Sans-Serif;
 	font-weight: bold;
 	font-style: normal;
-	font-size: 14pt;
+	font-size: 16pt;
 }
 h3 {
 	font-family: Sans-Serif;
 	font-weight: bold;
 	font-style: normal;
-	font-size: 13pt;
+	font-size: 15pt;
 }
 h4 {
 	font-family: Sans-Serif;
 	font-weight: bold;
 	font-style: normal;
-	font-size: 12pt;
+	font-size: 14pt;
 }
 h5 {
 	font-family: Sans-Serif;
 	font-weight: bold;
 	font-style: normal;
-	font-size: 10pt;
+	font-size: 12pt;
 }
 a:link {
 	color: #00a;
@@ -49,99 +49,99 @@ a:visited {
 }
 .smallclass {
 	font-family: Sans-Serif;
-	font-size: 8pt;
+	font-size: 10pt;
 }
 .menutitleclass {
 	font-family: Sans-Serif;
 	font-weight: bold;
-	font-size: 13pt;
+	font-size: 15pt;
 }
 .menuclass1 {
 	font-family: Sans-Serif;
 	text-decoration: none;
 	font-weight: bold;
-	font-size: 9pt;
+	font-size: 11pt;
 }
 .menuclass1:link {
 	font-family: Sans-Serif;
 	text-decoration: none;
 	font-weight: bold;
-	font-size: 9pt;
+	font-size: 11pt;
 }
 .menuclass1:visited {
 	font-family: Sans-Serif;
 	text-decoration: none;
 	font-weight: bold;
-	font-size: 9pt;
+	font-size: 11pt;
 }
 .menuclass1:hover {
 	font-family: Sans-Serif;
 	text-decoration: underline;
 	font-weight: bold;
-	font-size: 9pt;
+	font-size: 11pt;
 }
 .menuclass2 {
 	font-family: Sans-Serif;
 	text-decoration: none;
 	color: #000000;
-	font-size: 8pt;
+	font-size: 10pt;
 }
 .menuclass2:link {
 	font-family: Sans-Serif;
 	text-decoration: none;
 	color: #000000;
-	font-size: 8pt;
+	font-size: 10pt;
 }
 .menuclass2:visited {
 	font-family: Sans-Serif;
 	text-decoration: none;
 	color: #000000;
-	font-size: 8pt;
+	font-size: 10pt;
 }
 .menuclass2:hover {
 	font-family: Sans-Serif;
 	text-decoration: underline;
 	background-color: #FFFFFF;
 	color: #000000;
-	font-size: 8pt;
+	font-size: 10pt;
 }
 /*********************************************************************************/
 .evenrow {
 	font-family: Sans-Serif;
 	background-color: #FFCC88;
 	color: #000000;
-	font-size: 9pt;
+	font-size: 11pt;
 }
 .oddrow {
 	font-family: Sans-Serif;
 	background-color: #DDAA66;
 	color: #000000;
-	font-size: 9pt;
+	font-size: 11pt;
 }
 .titlerow {
 	font-family: Sans-Serif;
 	background-color: #AA2200;
 	color: #FFFFFF;
-	font-size: 10pt;
+	font-size: 12pt;
 }
 .titlerow a:link {
 	font-family: Sans-Serif;
 	background-color: #AA2200;
 	color: #FFFFFF;
-	font-size: 10pt;
+	font-size: 12pt;
 	text-decoration: none;
 }
 .titlerow a:visited {
 	font-family: Sans-Serif;
 	background-color: #AA2200;
 	color: #FFFFFF;
-	font-size: 10pt;
+	font-size: 12pt;
 	text-decoration: none;
 }
 .titlerow a:hover {
 	font-family: Sans-Serif;
 	background-color: #AA2200;
 	color: #FFFFFF;
-	font-size: 10pt;
+	font-size: 12pt;
 	text-decoration: underline;
 }
