@@ -215,6 +215,15 @@ fragLogEventId INT UNSIGNED NOT NULL ,
 PRIMARY KEY (fragLogEventId)
 )TYPE = InnoDB;
 
+DROP TABLE IF EXISTS webusers;
+CREATE TABLE IF NOT EXISTS webusers (
+login varchar(20) NOT NULL default "",
+pass varchar(20) default NULL,
+PRIMARY KEY  (`login`),
+)TYPE = InnoDB;
+
+INSERT INTO webusers VALUES ("admin", "");
+
 #INSERT INTO clusters (clusterName,clusterAdmin,clusterBatch) VALUES ("pawnee", "", "OAR");
 #INSERT INTO clusters (clusterName,clusterAdmin,clusterBatch) VALUES ("i4", "", "PBS");
 
