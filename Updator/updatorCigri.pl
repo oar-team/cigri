@@ -110,7 +110,7 @@ foreach my $i (keys(%jobRunningHash)){
                     colomboCigri::add_new_job_event($base,${$j}{jobId},"UPDATOR_JOB_KILLED","Can t find the FINISH TAG in the cigri remote file <$remoteFile> : $cmdResult{STDOUT}");
                 }
             }
-
+            # cigri script, log and OAR files must be deleted ---> A FAIRE
             my %cmdResultRm = SSHcmdClient::submitCmd($i,"sudo -u ${$j}{user} rm -f ~${$j}{user}/$remoteFile ~${$j}{user}/$tmpRemoteScript");
             # test if this is a ssh error
             if ($cmdResultRm{STDERR} ne ""){
