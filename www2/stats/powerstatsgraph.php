@@ -31,37 +31,34 @@ if (!$_GET['byear']) {
 	if (is_numeric($_GET['byear'])) $byear = $_GET['byear'];
 	else $ok = false;
 }
-if (!$_GET['eday']) {
+if (!$_GET['timerange']) {
 	$ok = false;
 } else {
-	if (is_numeric($_GET['eday'])) $eday = $_GET['eday'];
-	else $ok = false;
-}
-if (!$_GET['emonth']) {
-	$ok = false;
-} else {
-	if (is_numeric($_GET['emonth'])) $emonth = $_GET['emonth'];
-	else $ok = false;
-}
-if (!$_GET['eyear']) {
-	$ok = false;
-} else {
-	if (is_numeric($_GET['eyear'])) $eyear = $_GET['eyear'];
-	else $ok = false;
-}
-if ($ok) {
-	if ($eyear < $byear) {
-		$eyear = $byear;
-	}
-	if ($eyear == $byear) {
-		if ($emonth < $bmonth) {
-			$emonth = $bmonth;
-		}
-		if ($emonth == $bmonth) {
-			if ($eday < $bday) {
-				$eday = $bday+1;
-			}
-		}
+	switch ($_GET['timerange']) {
+		case "1 day":
+			$timerange = 24*3600;
+			$granularity = 3600;
+			break;
+		case "1 week":
+			$timerange = 7*24*3600;
+			$granularity = 24*3600;
+			break;
+		case "2 weeks":
+			$timerange = 14*24*3600;
+			$granularity = 24*3600;
+			break;
+		case "1 month":
+			$timerange = 30*24*3600;
+			$granularity = 24*3600;
+			break;
+		case "1 year":
+			$timerange = 365*24*3600;
+			$granularity = 30*24*3600;
+			break;
+		default:
+			// Set to month
+			$timerange = 30*24*3600;
+			$granularity = 24*3600;
 	}
 }
 if ($ok) {
@@ -78,53 +75,18 @@ if ($ok) {
 	} else {
 		$ok = false;
 	}
-	if ($eday >= 1 && $eday <= 31 && $emonth >= 1 && $emonth <= 12 && $eyear >= 1990 && $eyear <= 2100) {
-		if (!checkdate($emonth,$eday,$eyear)) {
-			// This can only be a bad day number
-			if (checkdate($emonth,30,$eyear)) {
-			       $eday = 30;
-			} else {
-				if (checkdate($emonth,29,$eyear)) $eday = 29;
-				else $eday = 28;
-			}
-		}
-	} else {
-		$ok = false;
-	}
 }
 if ($ok) {
-	if ($byear == $eyear && $bmonth == $emonth && $bday == $eday) {
-		if (checkdate($emonth,$eday+1,$eyear)) $eday++;
-		else $bday--;
-	}
+	$starttime = mktime(0,0,0,$bmonth,$bday,$byear);
+	$stoptime = $starttime + $timerange;
+	$eyear = date("Y",$stoptime);
+	$emonth = date("m",$stoptime);
+	$eday = date("d",$stoptime);
 
 	// Check graph
-	$graph = new Graph(650,450,"power".$byear.$bmonth.$bday.$eyear.$emonth.$eday,720);
+	$cachefile = sprintf("power%04d%02d%02d%d",$byear,$bmonth,$bday,$timerange);
+	$graph = new Graph(650,650,$cachefile,720);
 
-	$starttime = mktime(0,0,0,$bmonth,$bday,$byear);
-	$stoptime = mktime(0,0,0,$emonth,$eday,$eyear);
-	// Compute new granularity
-	$duration = $stoptime - $starttime;
-	$nbhours = ceil($duration/(3600*MAX_BARS));
-	if ($nbhours <= 6) {
-		$granularity = $nbhours * 3600;
-		$periodsize = $nbhours;
-		$periodtype = "hours";
-	} else {
-		$nbdays = ceil($duration/(3600*24*MAX_BARS));
-		if ($nbdays <= 3) {
-			$granularity = $nbdays * 3600 * 24;
-			$periodsize = $nbdays;
-			$periodtype = "days";
-		} else {
-			$nbweeks = ceil($duration/(3600*24*7*MAX_BARS));
-			$granularity = $nbweeks * 3600 * 24 * 7;
-			$periodsize = $nbweeks;
-			$periodtype = "weeks";
-		}
-	}
-	
-	
 	$startdate = sprintf('%04d-%02d-%02d 00:00:00',$byear,$bmonth,$bday);
 	$stopdate = sprintf('%04d-%02d-%02d 00:00:00',$eyear,$emonth,$eday);
 	$startstep = timestep($starttime);
@@ -192,7 +154,18 @@ EOF;
 			}
 		}
 	}
-
+	$tickslabels = array();
+	$time = $starttime;
+	for ($i = 0;$i < $nbtimesteps;$i++) {
+		if ($granularity <= 3600) {
+			$newtick = date("H:i:s",$time);
+		} else {
+			$newtick = date("Y-m-d",$time);
+		}
+		$tickslabels[] = $newtick;
+		$time += $granularity;
+	}
+	
 	$colorarray = array("bisque4","wheat1","brown","cadetblue1","chartreuse","cornsilk","darkgoldenrod","darkolivegreen4","deeppink","deepskyblue","gainsboro","hotpink","linen","maroon4","purple3","rosybrown3","thistle3","turquoise3");
 
 	if ($nb != 0) {
@@ -200,12 +173,15 @@ EOF;
 	
 		$graph->title->Set("Computing Power");
 		$graph->title->SetFont(FF_FONT1,FS_BOLD);
-		$graph->xaxis->title->Set("Time (".$periodsize." ".$periodtype." periods)");
+		$graph->xaxis->title->Set("Time");
+		$graph->xaxis->SetLabelAngle(90);
+		$graph->xaxis->SetTickLabels($tickslabels);
+		
 		$graph->yaxis->title->Set("Power");
 		$graph->xaxis->title->SetFont(FF_FONT1,FS_BOLD);
 		$graph->yaxis->title->SetFont(FF_FONT1,FS_BOLD);
 		$graph->SetShadow();
-		$graph->img->SetMargin(70,100,100,11*(1+count($data)));
+		$graph->img->SetMargin(70,100,30+11*(1+count($data)),100);
 		$graph->legend->Pos(0.05,0.05,"right","top");	
 		$barplot = array();
 		$i = 0;
@@ -221,6 +197,10 @@ EOF;
 		$graph->Stroke();
 	}
 	else {
+		$graph->SetScale("textlin",0,1);
+		$temparr = array(0);
+		$barplot = new BarPlot($temparr);
+		$graph->Add($barplot);
 		$graph->title->Set("no job recorded on clusters");
 		$graph->Stroke();
 	}
