@@ -1156,4 +1156,48 @@ sub get_MJobs_tofrag_eventId($$){
     return $ref[0];
 }
 
+# get the user name of the specified MJob
+# arg1 --> database ref
+# arg2 --> MJobId
+# return the user name
+sub get_MJob_user($$){
+    my $dbh = shift;
+    my $MJobId = shift;
+
+    my $sth = $dbh->prepare(" SELECT MJobsUser
+                              FROM multipleJobs
+                              WHERE
+                                 MJobsId = $MJobId
+                            ");
+    $sth->execute();
+
+    my @ref = $sth->fetchrow_array();
+    $sth->finish();
+
+    return($ref[0]);
+}
+
+
+# get the user name of the specified Job
+# arg1 --> database ref
+# arg2 --> JobId
+# return the user name
+sub get_job_user($$){
+    my $dbh = shift;
+    my $jobId = shift;
+
+    my $sth = $dbh->prepare(" SELECT MJobsUser
+                              FROM multipleJobs, jobs
+                              WHERE
+                                     jobId = $jobId
+                                 AND MJobsId = jobMJobsId
+                            ");
+    $sth->execute();
+
+    my @ref = $sth->fetchrow_array();
+    $sth->finish();
+
+    return($ref[0]);
+}
+
 return 1;
