@@ -169,7 +169,7 @@ foreach my $i (@MjobsToCollect){
 
         # voir pour mettre un timeout sur le gzip???????
         print("ssh $j gzip ~cigri/results_tmp/$i.tar\n");
-        system("ssh $j gzip ~cigri/results_tmp/$i.tar");
+        system("ssh $j gzip \"~cigri/results_tmp/$i.tar\"");
         if ($? != 0){
             iolibCigri::rollback_transaction($base);
             iolibCigri::begin_transaction($base);
