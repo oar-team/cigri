@@ -69,7 +69,7 @@ jobMessage VARCHAR( 255 ) ,
 #jobUser VARCHAR( 50 ) NOT NULL ,
 jobMJobsId INT UNSIGNED ,
 #jobCmd VARCHAR( 255 ) ,
-jobParam TEXT ,
+jobParam VARCHAR( 255 ) ,
 jobNodeId INT UNSIGNED NOT NULL ,
 jobBatchId INT UNSIGNED ,
 jobRetCode INT ,
@@ -114,9 +114,10 @@ DROP TABLE IF EXISTS potentialJobNode;
 DROP TABLE IF EXISTS parameters;
 CREATE TABLE IF NOT EXISTS parameters (
 parametersMJobsId INT UNSIGNED NOT NULL ,
-parametersParam TEXT NOT NULL ,
-INDEX param (parametersMJobsId)
-#PRIMARY KEY (parametersMJobsId, parametersParam)
+parametersParam VARCHAR( 255 )  NOT NULL ,
+parametersPriority INT UNSIGNED DEFAULT 0 ,
+INDEX param (parametersMJobsId),
+PRIMARY KEY (parametersMJobsId, parametersParam)
 );
 
 DROP TABLE IF EXISTS properties;
