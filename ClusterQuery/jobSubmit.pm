@@ -124,6 +124,10 @@ sub oarsubmitMysql($$$$){
     OARiolib::disconnect($dbh);
     my $retCode = oarNotify::notify($cluster,"Qsub");
 
+    if ($retCode != 0){
+        return(-1);
+    }
+
     return($jobBatchId);
 }
 
