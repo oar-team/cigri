@@ -21,12 +21,12 @@ DROP TABLE IF EXISTS events;
 CREATE TABLE IF NOT EXISTS events (
 eventId INT UNSIGNED NOT NULL AUTO_INCREMENT ,
 eventType VARCHAR( 50 ) NOT NULL,
-eventClass ENUM('CLUSTER','JOB','SCHEDULER','MJOBS') NOT NULL ,
+eventClass ENUM('CLUSTER','SCHEDULER','JOB') NOT NULL ,
 eventState ENUM('ToFIX','FIXED') DEFAULT 'ToFIX' NOT NULL ,
 eventJobId BIGINT UNSIGNED ,
 eventClusterName VARCHAR( 100 ) ,
 #eventNodeId INT UNSIGNED ,
-eventSchedulerId INT UNSIGNED NOT NULL,
+eventSchedulerId INT UNSIGNED ,
 eventMJobsId INT UNSIGNED ,
 eventDate DATETIME NOT NULL ,
 eventMessage VARCHAR( 255 ) ,
@@ -196,9 +196,9 @@ collectBlackListEventId INT UNSIGNED NOT NULL ,
 DROP TABLE IF EXISTS schedulerBlackList;
 CREATE TABLE IF NOT EXISTS schedulerBlackList (
 schedulerBlackListNum INT UNSIGNED NOT NULL ,
-schedulerBlackListschedulerId INT UNSIGNED NOT NULL ,
+schedulerBlackListSchedulerId INT UNSIGNED NOT NULL ,
 schedulerBlackListEventId INT UNSIGNED NOT NULL ,
-PRIMARY KEY (schedulerBlackListschedulerId,schedulerBlackListEventId)
+PRIMARY KEY (schedulerBlackListSchedulerId,schedulerBlackListEventId)
 )TYPE = InnoDB;
 
 DROP TABLE IF EXISTS resubmissionLog;

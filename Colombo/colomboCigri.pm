@@ -27,7 +27,7 @@ BEGIN {
 require Exporter;
 our (@ISA,@EXPORT,@EXPORT_OK);
 @ISA = qw(Exporter);
-@EXPORT_OK = qw(add_new_event);
+@EXPORT_OK = qw(add_new_cluster_event add_new_job_event add_new_scheduler_event is_cluster_active is_node_active is_user_active is_collect_active is_scheduler_active);
 
 
 # give the date in with the right pattern
@@ -222,6 +222,127 @@ sub is_collect_active($$$){
 									AND (collectBlackListClusterName = \"$clusterName\"
 										OR collectBlackListClusterName = \"ALL\")
 								");
+	$sth->execute();
+	my @numErrors = $sth->fetchrow_array();
+	$sth->finish();
+
+	return $numErrors[0];
+}
+
+# test if the cluster is active for the MJob
+# arg1 --> database ref
+# arg2 --> clusterName
+# arg3 --> MJobsId
+# return the number of blacklist
+sub is_cluster_active($$$){
+	my $dbh = shift;
+	my $clusterName = shift;
+	my $MJobId = shift;
+
+	my $sth = $dbh->prepare("	SELECT count( * )
+								FROM clusterBlackList, events
+								WHERE clusterBlackListEventId = eventId
+									AND eventState = \"ToFIX\"
+									AND clusterBlackListClusterName = \"$clusterName\"
+									AND (clusterBlackListMJobsID = $MJobId
+										OR clusterBlackListMJobsID = 0)
+								");
+	$sth->execute();
+	my @numErrors = $sth->fetchrow_array();
+	$sth->finish();
+
+	return $numErrors[0];
+}
+
+# test if the node is active for the MJob
+# arg1 --> database ref
+# arg2 --> nodeId
+# arg3 --> MJobsId
+# return the number of blacklist
+sub is_node_active($$$){
+	my $dbh = shift;
+	my $nodeId = shift;
+	my $MJobId = shift;
+
+	my $sth = $dbh->prepare("	SELECT count( * )
+								FROM nodeBlackList, events
+								WHERE nodeBlackListEventId = eventId
+									AND eventState = \"ToFIX\"
+									AND nodeBlackListNodeId = $nodeId
+									AND (nodeBlackListMJobsID = $MJobId
+										OR nodeBlackListMJobsID = 0)
+								");
+	$sth->execute();
+	my @numErrors = $sth->fetchrow_array();
+	$sth->finish();
+
+	return $numErrors[0];
+}
+
+# test if the user is active for the cluster
+# arg1 --> database ref
+# arg2 --> userName
+# arg3 --> clusterName
+# return the number of blacklist
+sub is_user_active($$$){
+	my $dbh = shift;
+	my $userName = shift;
+	my $clusterName = shift;
+
+	my $sth = $dbh->prepare("	SELECT count( * )
+								FROM userBlackList, events
+								WHERE userBlackListEventId = eventId
+									AND eventState = \"ToFIX\"
+									AND userBlackListUserGridName = \"$userName\"
+									AND (userBlackListClusterName = \"$clusterName\"
+										OR userBlackListClusterName = \"ALL\")
+								");
+	$sth->execute();
+	my @numErrors = $sth->fetchrow_array();
+	$sth->finish();
+
+	return $numErrors[0];
+}
+
+# test if the collect is active for the MJob and the cluster
+# arg1 --> database ref
+# arg2 --> MJobsId
+# arg3 --> clusterName
+sub is_collect_active($$$){
+	my $dbh = shift;
+	my $MJobsId = shift;
+	my $clusterName = shift;
+
+	my $sth = $dbh->prepare("	SELECT count( * )
+								FROM collectBlackList, events
+								WHERE collectBlackListEventId = eventId
+									AND eventState = \"ToFIX\"
+									AND (collectBlackListMJobsId = \"$MJobsId\"
+										OR collectBlackListMJobsId = 0)
+									AND (collectBlackListClusterName = \"$clusterName\"
+										OR collectBlackListClusterName = \"ALL\")
+								");
+	$sth->execute();
+	my @numErrors = $sth->fetchrow_array();
+	$sth->finish();
+
+	return $numErrors[0];
+}
+
+# test if the scheduler is active
+# arg1 --> database ref
+# arg2 --> schedulerId
+sub is_scheduler_active($$){
+	my $dbh = shift;
+	my $schedId = shift;
+
+	my $sth = $dbh->prepare("	SELECT count( * )
+								FROM schedulerBlackList, events
+								WHERE schedulerBlackListEventId = eventId
+									AND eventState = \"ToFIX\"
+									AND (schedulerBlackListSchedulerId = $schedId
+										OR schedulerBlackListSchedulerId = 0)
+							");
 	$sth->execute();
 	my @numErrors = $sth->fetchrow_array();
 	$sth->finish();
