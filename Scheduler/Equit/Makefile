@@ -2,7 +2,7 @@ OCAMLOPT=ocamlopt
 EXEC=sched_equitCigri
 OCAMLDEP=ocamldep
 OCAMLPREP=-pp camlp4o
-OCAMLFLAGS=-I /usr/lib/ocaml/3.06/cameleon
+#OCAMLFLAGS=-I /usr/lib/ocaml/3.06/cameleon
 
 ALLOBJS=mysql.cmxa sched_equit.cmx
 PREPROCESSEDOBJS=mysql.cmx sched_equit.cmx
