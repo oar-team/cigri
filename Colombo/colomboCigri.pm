@@ -66,14 +66,11 @@ sub add_new_cluster_event($$$$$){
 	my $eventMessage = shift;
 
 	$dbh->do("LOCK TABLES events WRITE");
-	$dbh->begin_work;
 
 	my $id = calculate_event_id($dbh);
 	my $time = get_date();
 	$dbh->do("	INSERT INTO events (eventId,eventType,eventClass,eventClusterName,eventMJobsId,eventDate,eventMessage)
 				VALUES ($id,\"$eventType\",\"CLUSTER\",\"$clusterName\",$MJobsId,\"$time\",\"$eventMessage\")");
-
-	$dbh->commit;
 	$dbh->do("UNLOCK TABLES");
 
 	check_events($dbh);
@@ -91,14 +88,12 @@ sub add_new_job_event($$$$){
 	my $eventMessage = shift;
 
 	$dbh->do("LOCK TABLES events WRITE");
-	$dbh->begin_work;
 
 	my $id = calculate_event_id($dbh);
 	my $time = get_date();
 	$dbh->do("	INSERT INTO events (eventId,eventType,eventClass,eventJobId,eventDate,eventMessage)
 				VALUES ($id,\"$eventType\",\"JOB\",\"$jobId\",\"$time\",\"$eventMessage\")");
 
-	$dbh->commit;
 	$dbh->do("UNLOCK TABLES");
 
 	check_events($dbh);
@@ -116,14 +111,12 @@ sub add_new_mjob_event($$$$){
 	my $eventMessage = shift;
 
 	$dbh->do("LOCK TABLES events WRITE");
-	$dbh->begin_work;
 
 	my $id = calculate_event_id($dbh);
 	my $time = get_date();
 	$dbh->do("	INSERT INTO events (eventId,eventType,eventClass,eventMJobsId,eventDate,eventMessage)
 				VALUES ($id,\"$eventType\",\"MJOB\",\"$mjobId\",\"$time\",\"$eventMessage\")");
 
-	$dbh->commit;
 	$dbh->do("UNLOCK TABLES");
 
 	check_events($dbh);
@@ -141,14 +134,12 @@ sub add_new_scheduler_event($$$$){
 	my $eventMessage = shift;
 
 	$dbh->do("LOCK TABLES events WRITE");
-	$dbh->begin_work;
 
 	my $id = calculate_event_id($dbh);
 	my $time = get_date();
 	$dbh->do("	INSERT INTO events (eventId,eventType,eventClass,eventSchedulerId,eventDate,eventMessage)
 				VALUES ($id,\"$eventType\",\"SCHEDULER\",\"$schedId\",\"$time\",\"$eventMessage\")");
 
-	$dbh->commit;
 	$dbh->do("UNLOCK TABLES");
 
 	check_events($dbh);
@@ -164,14 +155,12 @@ sub add_new_ssh_event($$$){
 	my $eventMessage = shift;
 
 	$dbh->do("LOCK TABLES events WRITE");
-	$dbh->begin_work;
 
 	my $id = calculate_event_id($dbh);
 	my $time = get_date();
 	$dbh->do("	INSERT INTO events (eventId,eventType,eventClass,eventClusterName,eventDate,eventMessage)
 				VALUES ($id,\"SSH\",\"CLUSTER\",\"$clusterName\",\"$time\",\"$eventMessage\")");
 
-	$dbh->commit;
 	$dbh->do("UNLOCK TABLES");
 
 	check_events($dbh);
@@ -323,7 +312,7 @@ sub check_events($){
 	my $dbh = shift;
 
 	$dbh->do("LOCK TABLES events WRITE, clusterBlackList WRITE, jobs WRITE, nodes WRITE, schedulerBlackList WRITE, resubmissionLog WRITE, parameters WRITE, fragLog WRITE");
-	$dbh->begin_work;
+
 	#list of cluster events used
 	my $sth = $dbh->prepare("	SELECT clusterBlackListEventId
 								FROM events, clusterBlackList
@@ -365,9 +354,6 @@ sub check_events($){
 	}
 	$sth->finish();
 
-	$dbh->commit;
-	$dbh->begin_work;
-
 	# JOB error ----> blacklist a cluster for a MJob
 	$sth = $dbh->prepare("	SELECT eventId, nodeClusterName, jobMJobsId
 							FROM events, jobs, nodes
@@ -401,9 +387,6 @@ sub check_events($){
 	# I treate the UPDATOR_JOB_KILLED event type
 	# --> resubmit jobs
 
-	$dbh->commit;
-	$dbh->begin_work;
-
 	$sth = $dbh->prepare("	SELECT eventId, eventJobId
 							FROM events
 							WHERE eventState = \"ToFIX\"
@@ -421,9 +404,6 @@ sub check_events($){
 
 	# scheduler error --> blacklist scheduler
 	#list of scheduler events used
-
-	$dbh->commit;
-	$dbh->begin_work;
 
 	$sth = $dbh->prepare("	SELECT schedulerBlackListEventId
 							FROM events, schedulerBlackList
@@ -464,8 +444,6 @@ sub check_events($){
 	$sth->finish();
 
 	# treate FRAG events
-	$dbh->commit;
-	$dbh->begin_work;
 
 	$sth = $dbh->prepare("	SELECT fragLogEventId
 							FROM events, fragLog
@@ -494,7 +472,6 @@ sub check_events($){
 	}
 	$sth->finish();
 
-	$dbh->commit;
 	$dbh->do("UNLOCK TABLES");
 }
 
