@@ -26,7 +26,8 @@ BEGIN {
     unshift(@INC, $relativePath."ClusterQuery");
 }
 use iolibCigri;
-use SSHcmdClient;
+#use SSHcmdClient;
+use SSHcmd;
 use NetCommon;
 use jobSubmit;
 
@@ -64,7 +65,8 @@ foreach my $j (keys(%clusterNames)){
                    );
 
         my $cmdString = join(" ", @cmdSSH);
-        my %cmdResult = SSHcmdClient::submitCmd($job{clusterName},$cmdString);
+        #my %cmdResult = SSHcmdClient::submitCmd($job{clusterName},$cmdString);
+        my %cmdResult = SSHcmd::submitCmd($job{clusterName},$cmdString);
         if ($cmdResult{STDERR} ne ""){
             print("[RUNNER_STDERR] $cmdResult{STDERR}");
             # test if this is a ssh error
