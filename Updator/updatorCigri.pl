@@ -68,15 +68,16 @@ foreach my $i (keys(%jobRunningHash)){
 			print("[Updator] Check the job ${$j}{jobId} \n");
 			my %cmdResult = SSHcmdClient::submitCmd($i,"sudo -u ${$j}{user} cat ~${$j}{user}/$remoteFile");
 			if ($cmdResult{STDERR} ne ""){
-				print("\t[UPDATOR_ERROR] Can't check the remote file\n");
+				print("\t[UPDATOR_ERROR] Can t check the remote file\n");
 				print("\t[UPDATOR_STDERR] $cmdResult{STDERR}");
 				# Can t read the file
 				# test if this is a ssh error
                 if (NetCommon::checkSshError($base,$i,$cmdResult{STDERR}) != 1){
                     iolibCigri::set_job_state($base, ${$j}{jobId}, "Event");
                     colomboCigri::add_new_job_event($base,${$j}{jobId},"UPDATOR_JOB_KILLED","Can t check the remote file <$remoteFile> : $cmdResult{STDERR}");
+                }else{
+                    exit(66);
                 }
-                exit(66);
 			}else{
 				my @strTmp = split(/\n/, $cmdResult{STDOUT});
 				my %fileVars;
