@@ -23,6 +23,7 @@ BEGIN {
 }
 use ConfLibCigri qw(init_conf dump_conf get_conf is_conf);
 use iolibCigri;
+use mailer;
 
 # Init the request to the cigri.conf file
 init_conf();
@@ -60,8 +61,11 @@ sub launch_command($){
     print "Exit value : $exit_value\n";
     print "Signal num : $signal_num\n";
     print "Core dumped : $dumped_core\n";
-    die "Something wrong occured (signal or core dumped) !!!\n"
-        if $signal_num || $dumped_core;
+    
+    if ($signal_num || $dumped_core){
+        mailer::sendMail("/!\ Signal or core dumped","The command ($command) can not be executed correctly :\n\tExit value = $exit_value\n\tSignal num = $signal_num\n\tCore dumped = $dumped_core");
+        die "Something wrong occured (signal or core dumped) !!!\n";
+    }
     return $exit_value;
 }
 
