@@ -1,8 +1,9 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 # Tool to update NODE_STATE in the database
 
 use Data::Dumper;
+use warnings;
 BEGIN {
 	my ($scriptPathTmp) = $0 =~ m!(.*/*)!s;
 	my ($scriptPath) = readlink($scriptPathTmp);
@@ -89,7 +90,7 @@ foreach my $i (keys(%jobRunningHash)){
 				print(Dumper(%fileVars));
 				if (defined($fileVars{FINISH})){
 					# the job is finished
-					iolibCigri::update_att_job($base,${$j}{jobId},$fileVars{BEGIN_DATE},$fileVars{END_DATE},$fileVars{RET_CODE});
+                    iolibCigri::update_att_job($base,${$j}{jobId},$fileVars{BEGIN_DATE},$fileVars{END_DATE},$fileVars{RET_CODE});
 					if ($fileVars{RET_CODE} == 0){
 						print("\t\tJob ${$j}{jobId} Terminated\n");
 						iolibCigri::set_job_state($base, ${$j}{jobId}, "Terminated");
@@ -108,6 +109,9 @@ foreach my $i (keys(%jobRunningHash)){
 					colomboCigri::add_new_job_event($base,${$j}{jobId},"UPDATOR_JOB_KILLED","Can t find the FINISH TAG in the cigri remote file <$remoteFile> : $cmdResult{STDOUT}");
 				}
 			}
+
+            #Penser a supprimer le cigri...log et le OAR..stdout/stderr meme si ils n existent pas (faire test)
+
 			my %cmdResultRm = SSHcmdClient::submitCmd($i,"sudo -u ${$j}{user} rm ~${$j}{user}/$remoteFile");
             # test if this is a ssh error
             if ($cmdResultRm{STDERR} ne ""){
@@ -131,7 +135,9 @@ foreach my $i (keys(%jobRunningHash)){
 iolibCigri::check_end_MJobs($base);
 
 #update database for the scheduler
-iolibCigri::update_nb_freeNodes($base);
+iolibCigri::check_remote_waiting_jobs($base);
+
+iolibCigri::emptyTemporaryTables($base);
 
 iolibCigri::disconnect($base);
 

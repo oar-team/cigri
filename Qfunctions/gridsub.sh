@@ -1,4 +1,4 @@
 #!/bin/sh
 
-/home/cigri/CIGRI/Qfunctions/gridsub.pl $@
+/home/capitn/CIGRI/Qfunctions/gridsub.pl $@
 
