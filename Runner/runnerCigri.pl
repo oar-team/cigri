@@ -36,10 +36,8 @@ my $base = iolibCigri::connect() ;
 # Get active cluster names
 my %clusterNames = iolibCigri::get_cluster_names_batch($base);
 my %job;
-my $nbWait = 0;
 foreach my $j (keys(%clusterNames)){
     print("[RUNNER] check for cluster $j\n");
-    $nbWait++;
     my $pid=fork;
     if ($pid == 0){
         while (iolibCigri::get_cluster_job_toLaunch($base,$j,\%job) == 0){
@@ -97,9 +95,9 @@ foreach my $j (keys(%clusterNames)){
         }
         exit(0);
     }
-    for (my $i=0; $i < $nbWait; $i++){
-        wait();
-    }
+}
+foreach my $j (keys(%clusterNames)){
+    wait();
 }
 
 iolibCigri::disconnect($base);
