@@ -33,6 +33,7 @@ CREATE TABLE IF NOT EXISTS clusters (
 clusterName VARCHAR( 100 ) NOT NULL ,
 clusterAdmin VARCHAR( 100 ) NOT NULL ,
 clusterBatch ENUM('PBS','OAR') NOT NULL ,
+nbFreeNodes INT UNSIGNED NOT NULL DEFAULT 0 ,
 #clusterState ENUM('VALID','NOTVALID') DEFAULT 'VALID' NOT NULL ,
 #clusterCpu VARCHAR( 100 ) NOT NULL ,
 #clusterMem INT UNSIGNED ,
@@ -115,6 +116,15 @@ parametersMJobsId INT UNSIGNED NOT NULL ,
 parametersParam TEXT NOT NULL ,
 INDEX param (parametersMJobsId)
 #PRIMARY KEY (parametersMJobsId, parametersParam)
+);
+
+DROP TABLE IF EXISTS properties;
+CREATE TABLE IF NOT EXISTS properties (
+clusterName VARCHAR( 100 ) NOT NULL ,
+MJobsId INT UNSIGNED NOT NULL ,
+executable VARCHAR( 255 ) NOT NULL ,
+errorChecker VARCHAR( 255 ) ,
+PRIMARY KEY (clusterName,MJobsId)
 );
 
 INSERT INTO clusters (clusterName,clusterAdmin,clusterBatch) VALUES ("pawnee", "", "OAR");
