@@ -24,6 +24,7 @@ BEGIN {
     unshift(@INC, $relativePath."Colombo");
 }
 use iolibCigri;
+use colomboCigri;
 
 # Connect to the database and give the ref
 # arg1 --> iolibCIGRI db ref
@@ -43,7 +44,14 @@ sub connect($$) {
     my $pwd = $clusterProperties{clusterMysqlPassword};
     my $port = $clusterProperties{clusterMysqlPort};
 
-    $dbh = DBI->connect("DBI:mysql:database=$name;host=$host;port=$port;mysql_ssl=1", $user, $pwd, {'RaiseError' => 0});
+    eval {
+        $dbh = DBI->connect("DBI:mysql:database=$name;host=$host;port=$port;mysql_ssl=1", $user, $pwd, {'RaiseError' => 1});
+    };
+    if ($@) {
+        colomboCigri::add_new_cluster_event($dbIolibCigri,$host,0,"MYSQL_OAR_CONNECT","There is an error when i try to connect to the MySQL server -- $@");
+        print("DBI connection problem --> $@ retCode=$?\n");
+       # undef($dbh);
+    }
     return($dbh);
 }
 

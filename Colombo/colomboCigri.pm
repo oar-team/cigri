@@ -328,7 +328,7 @@ sub check_events($){
 	}
 	$sth->finish();
 
-	#search tofix event relative to a cluster error ("UPDATOR_PBSNODES_PARSE","UPDATOR_QSTAT_CMD","UPDATOR_PBSNODES_CMD","SSH","COLLECTOR")
+	#search tofix event relative to a cluster error ("UPDATOR_PBSNODES_PARSE","UPDATOR_QSTAT_CMD","UPDATOR_PBSNODES_CMD","SSH","COLLECTOR", ...)
 	$sth = $dbh->prepare("	SELECT eventId, eventClusterName, eventMessage
 							FROM events
 							WHERE eventState = \"ToFIX\"
@@ -337,6 +337,12 @@ sub check_events($){
 									OR eventType = \"UPDATOR_QSTAT_CMD\"
                                     OR eventType = \"SSH\"
                                     OR eventType = \"COLLECTOR\"
+                                    OR eventType = \"MYSQL_OAR_CONNECT\"
+                                    OR eventType = \"QDEL_CMD\"
+                                    OR eventType = \"OAR_OARSUB\"
+                                    OR eventType = \"OAR_NOTIFY\"
+                                    OR eventType = \"RUNNER_SUBMIT\"
+									OR eventType = \"RUNNER_JOBID_PARSE\"
 									)
 							");
 	$sth->execute();
@@ -365,8 +371,6 @@ sub check_events($){
 							FROM events, jobs, nodes
 							WHERE eventState = \"ToFIX\"
 								AND (eventType = \"UPDATOR_RET_CODE_ERROR\"
-									OR eventType = \"RUNNER_SUBMIT\"
-									OR eventType = \"RUNNER_JOBID_PARSE\"
 									)
 								AND jobId = eventJobId
 								AND nodeId = jobNodeId

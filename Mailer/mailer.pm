@@ -40,7 +40,9 @@ sub sendMail($$){
         my $mailSenderAddress = ConfLibCigri::get_conf("MAIL_SENDER");
         my $mailRecipientAddress = ConfLibCigri::get_conf("MAIL_RECIPIENT");
 
-        my $smtp = Net::SMTP->new($smtpServer, Timeout => 30);
+        print("[MAILER] Isend a mail to $mailRecipientAddress with the sender $mailSenderAddress on the server $smtpServer\n");
+
+        my $smtp = Net::SMTP->new($smtpServer, Timeout => 120);
         $smtp->mail($mailSenderAddress);
         $smtp->to($mailRecipientAddress);
         $smtp->data();
