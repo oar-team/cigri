@@ -1078,3 +1078,102 @@ sub unlock_collector($){
 	my $dbh = shift;
 	$dbh->do("UNLOCK TABLES");
 }
+
+# return MJob to frag
+# arg1 --> database ref
+# return --> an array of MJobsId
+sub get_tofrag_MJobs($){
+	my $dbh = shift;
+	my $sth = $dbh->prepare("	SELECT MJobsId
+								FROM multipleJobs
+								WHERE MJobsFrag = \"YES\"
+								AND MJobsState = \"IN_TREATMENT\"
+							");
+	$sth->execute();
+	my @result;
+
+	while (my @ref = $sth->fetchrow_array()) {
+		push(@result, $ref[0]);
+	}
+
+	$sth->finish();
+	return @result;
+}
+
+# return jobId to frag
+# arg1 --> database ref
+# return --> an array of jobsId
+sub get_tofrag_jobs($){
+	my $dbh = shift;
+	my $sth = $dbh->prepare("	SELECT jobId, jobBatchId, clusterName, clusterBatch, userLogin
+								FROM jobs, users, nodes, clusters
+								WHERE jobFrag = \"YES\"
+								AND (jobState = \"toLaunch\"
+									OR jobState = \"Running\"
+									OR jobState = \"RemoteWaiting\"
+									)
+								AND jobNodeId = nodeId
+								AND nodeClusterName = clusterName
+								AND clusterName = userClusterName
+							");
+	$sth->execute();
+	my @result;
+
+	while (my $ref = $sth->fetchrow_hashref()) {
+		push(@result, $ref);
+	}
+
+	$sth->finish();
+	return @result;
+}
+
+# delete all parameters of a MJobs
+# arg1 --> database ref
+# arg2 --> MJobId
+sub delete_all_MJob_parameters($$){
+	my $dbh = shift;
+	my $MJobId = shift;
+
+	$dbh->do("DELETE FROM parameters WHERE parametersMJobsId = $MJobId");
+}
+
+# set th flag FRAG to YES for all jobs from a specific MJobId
+# arg1 --> database ref
+# arg2 --> MJobId
+sub set_frag_flag_specific_MJob($$){
+	my $dbh = shift;
+	my $MJobId = shift;
+
+	$dbh->do("	UPDATE jobs SET jobFrag = \"YES\"
+				WHERE (jobState = \"toLaunch\"
+					OR jobState = \"RemoteWaiting\"
+					OR jobState = \"Running\")
+				AND jobMJobsId = $MJobId
+			");
+
+}
+
+# set the MJobState to FRAGGED
+# arg1 --> database ref
+# arg2 --> MJobId
+sub set_MJobState_fragged($$){
+	my $dbh = shift;
+	my $MJobId = shift;
+
+	$dbh->do("	UPDATE multipleJobs SET MJobsState = \"FRAGGED\"
+				WHERE MJobsId = $MJobId
+			");
+}
+
+# set the jobState to Fragged
+# arg1 --> database ref
+# arg2 --> jobId
+sub set_jobState_fragged($$){
+	my $dbh = shift;
+	my $jobId = shift;
+
+	$dbh->do("	UPDATE jobs SET jobState = \"Fragged\"
+				WHERE jobId = $jobId
+			");
+}
+
