@@ -93,16 +93,16 @@ if (colomboCigri::is_cluster_active($base,"$i",0) == 0){
             # treate the SSH error
             colomboCigri::add_new_job_event($base,$jobId,"RUNNER_SUBMIT",$cmdResult{STDERR});
         }
-        exit(-1);
+        exit(66);
 	}else{
 		my $retCode = jobSubmit::jobSubmit($$i{clusterName},$$i{user},$tmpRemoteFile);
-        if ($retCode < 0){
-            if ($retCode == -2){
+        if ($retCode != 0){
+            if ($retCode == 2){
                 print("[RUNNER] There is a mistake, the job $jobId state = ERROR, bad remote batch id\n");
                 iolibCigri::set_job_state($base, $jobId, "Event");
                 colomboCigri::add_new_job_event($base,$jobId,"RUNNER_JOBID_PARSE","There is a mistake, the job $jobId state = ERROR, bad remote batch id");
             }
-            exit(-1);
+            exit(66);
         }else{
             iolibCigri::set_job_batch_id($base,$jobId,$retCode);
 			iolibCigri::set_job_state($base,$jobId,"Running");

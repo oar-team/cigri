@@ -37,7 +37,7 @@ my %submitCmd = ('PBS' => \&pbssubmit,
 #arg1 --> cluster name
 #arg2 --> user
 #arg3 --> jobFile to submit
-#return jobBatchId or -1 or -2 if something wrong happens
+#return jobBatchId or 66 or 1 or 2 if something wrong happens
 sub jobSubmit($$$){
     my $cluster = shift;
     my $user = shift;
@@ -46,7 +46,7 @@ sub jobSubmit($$$){
     my $base = iolibCigri::connect();
     my %clusterProperties = iolibCigri::get_cluster_names_batch($base);
     my %result ;
-    my $retCode = -1;
+    my $retCode = 66;
     if (defined($cluster) && defined($clusterProperties{$cluster})){
         $retCode = &{$submitCmd{$clusterProperties{$cluster}}}($base,$cluster,$user,$jobFile);
     }
@@ -65,7 +65,7 @@ sub pbssubmit($$$$){
     my $jobFile = shift;
 
     print("PBS NOT IMPLEMENTED -- $cluster\n");
-    return(-1);
+    return(66);
 }
 
 #arg1 --> db ref
@@ -73,8 +73,8 @@ sub pbssubmit($$$$){
 #arg3 --> user
 #arg4 --> jobFile to submit
 #return jodBatchId or
-#   -1 : for a command execution error
-#   -2 : for a jobId parse error
+#   1 : for a command execution error
+#   2 : for a jobId parse error
 sub oarsubmit($$$$){
     my $dbh = shift;
     my $cluster = shift;
@@ -90,7 +90,7 @@ sub oarsubmit($$$$){
         if (NetCommon::checkSshError($dbh,$cluster,$cmdResult{STDERR}) != 1){
             colomboCigri::add_new_cluster_event($dbh,$cluster,0,"OAR_OARSUB","$cmdResult{STDERR}");
         }
-        return(-1);
+        return(1);
     }
     my @strTmp = split(/\n/, $cmdResult{STDOUT});
     foreach my $k (@strTmp){
@@ -99,14 +99,14 @@ sub oarsubmit($$$$){
             return($1);
         }
     }
-    return(-2);
+    return(2);
 }
 
 #arg1 --> db ref
 #arg2 --> cluster name
 #arg3 --> user
 #arg4 --> jobFile to submit
-#return jodBatchId or -1 for an error
+#return jodBatchId or 66 for an error
 sub oarsubmitMysql($$$$){
     my $dbh = shift;
     my $cluster = shift;
@@ -116,7 +116,7 @@ sub oarsubmitMysql($$$$){
     print("OAR_mysql -- $cluster\n");
     my $OARdb = OARiolib::connect($dbh,$cluster);
     if (!defined($OARdb)){
-        return(-1);
+        return(66);
     }
     my $jobBatchId = OARiolib::submitJob($OARdb,$dbh,$cluster,$user,$jobFile);
     OARiolib::disconnect($dbh);

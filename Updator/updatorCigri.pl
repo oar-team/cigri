@@ -44,9 +44,9 @@ my %clusterNames = iolibCigri::get_cluster_names_batch($base);
 foreach my $i (keys(%clusterNames)){
 	print("[UPDATOR] Query free nodes on $i which has a batch-scheduler of the type : $clusterNames{$i}\n");
 
-    if (nodeStat::updateNodeStat($i) == -1){
+    if (nodeStat::updateNodeStat($i) == 66){
         #something wrong happens
-        exit(-1);
+        exit(66);
     }
 }
 
@@ -57,8 +57,8 @@ print("[UPDATOR] Verify if Running jobs are still running:\n");
 foreach my $i (keys(%jobRunningHash)){
 	print("\tcluster = $i\n");
     my %jobState = ();
-    if (jobStat::jobStat($i, \%jobState) == -1){
-        exit(-1);
+    if (jobStat::jobStat($i, \%jobState) == 66){
+        exit(66);
     }
 	foreach my $j (@{$jobRunningHash{$i}}){
 		# Verify if the job is still running on the cluster $i
@@ -76,7 +76,7 @@ foreach my $i (keys(%jobRunningHash)){
                     iolibCigri::set_job_state($base, ${$j}{jobId}, "Event");
                     colomboCigri::add_new_job_event($base,${$j}{jobId},"UPDATOR_JOB_KILLED","Can t check the remote file <$remoteFile> : $cmdResult{STDERR}");
                 }
-                exit(-1);
+                exit(66);
 			}else{
 				my @strTmp = split(/\n/, $cmdResult{STDOUT});
 				my %fileVars;
@@ -96,7 +96,7 @@ foreach my $i (keys(%jobRunningHash)){
 						print("\t\tJob ${$j}{jobId} Error\n");
 						iolibCigri::set_job_state($base, ${$j}{jobId}, "Event");
 						colomboCigri::add_new_job_event($base,${$j}{jobId},"UPDATOR_RET_CODE_ERROR","$cmdResult{STDERR}");
-                        exit(-1);
+                        exit(66);
 					}
 				}else{
 					# the was killed by the batch scheduler of the cluster
@@ -111,7 +111,7 @@ foreach my $i (keys(%jobRunningHash)){
             # test if this is a ssh error
             if ($cmdResultRm{STDERR} ne ""){
                 NetCommon::checkSshError($base,$i,$cmdResultRm{STDERR}) ;
-                exit(-1);
+                exit(66);
             }
 		}else{
 			#verify if the job is waiting

@@ -46,7 +46,7 @@ sub notify($$){
                 if (NetCommon::checkSshError($base,$cluster,$cmdResult{STDERR}) != 1){
                     colomboCigri::add_new_cluster_event($base,$cluster,0,"OAR_NOTIFY","$cmdResult{STDERR}");
                 }
-                return(-1);
+                return(66);
             }
         }
     }

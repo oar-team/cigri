@@ -41,7 +41,7 @@ sub jobStat($$){
     my $base = iolibCigri::connect();
     my %clusterProperties = iolibCigri::get_cluster_names_batch($base);
     my %result ;
-    my $retCode = -1;
+    my $retCode = 66;
     if (defined($cluster) && defined($clusterProperties{$cluster})){
         $retCode = &{$qstatCmd{$clusterProperties{$cluster}}}($base,$cluster,$resRefHash);
     }
@@ -81,7 +81,7 @@ sub oarstat($$$){
         if (NetCommon::checkSshError($dbh,$cluster,$cmdResult{STDERR}) != 1){
 		    colomboCigri::add_new_cluster_event($dbh,$cluster,0,"UPDATOR_QSTAT_CMD","$cmdResult{STDERR}");
         }
-        return(-1);
+        return(66);
 	}else{
 		my $qstatStr = $cmdResult{STDOUT};
 		chomp($qstatStr);
@@ -109,7 +109,7 @@ sub oarstatMysql($$$){
     print("OAR_mysql -- $cluster\n");
     my $OARdb = OARiolib::connect($dbh,$cluster);
     if (!defined($OARdb)){
-        return(-1);
+        return(66);
     }
     my %jobState = OARiolib::listCurrentJobs($OARdb);
     OARiolib::disconnect($dbh);
