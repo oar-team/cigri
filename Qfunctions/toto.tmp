@@ -1,8 +1,8 @@
 DEFAULT{
 
-	name = doodoo;
-#	nbJobs = 5;
-	paramFile = param.tmp;
+	name = fgythjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjhhhh ;
+	nbJobs = 1000;
+#	paramFile = param.tmp;
 #	resultFile = result.tmp;
 }
 #i4{
@@ -16,9 +16,9 @@ tomte.ujf-grenoble.fr{
 	execFile = /home/nis/capitn/test.sh ;
 	execTime = 12;
 }
-#bioimage.ujf-grenoble.fr{
-#	execFile = /home/nis/capit/test.sh ;
-#	execTime = 12;
-#}
+bioimage.ujf-grenoble.fr{
+	execFile = /home/nis/capit/test.sh ;
+	execTime = 12;
+}
 
 
