@@ -219,7 +219,7 @@ DROP TABLE IF EXISTS webusers;
 CREATE TABLE IF NOT EXISTS webusers (
 login varchar(20) NOT NULL default "",
 pass varchar(20) default NULL,
-PRIMARY KEY  (`login`),
+PRIMARY KEY  (`login`)
 )TYPE = InnoDB;
 
 INSERT INTO webusers VALUES ("admin", "");
