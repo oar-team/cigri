@@ -30,6 +30,10 @@ use SSHcmd;
 ConfLibCigri::init_conf();
 my $sshServerPort = ConfLibCigri::get_conf("SSH_SERVER_PORT") if ConfLibCigri::is_conf("SSH_SERVER_PORT") or die("Can't get value of the SSH_SERVER_PORT tag in cigri.conf\n");
 
+if ($sshServerPort < 1024){
+    die("BAD configuration file cigri.conf. SSH_SERVER_PORT must be defined and have a value beyond 1024\n");
+}
+
 my $server = IO::Socket::INET->new(    LocalHost => "127.0.0.1",
                                     LocalPort => $sshServerPort,
                                     PeerHost => "127.0.0.1",

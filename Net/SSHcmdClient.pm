@@ -27,6 +27,7 @@ BEGIN {
 }
 use ConfLibCigri qw(init_conf dump_conf get_conf is_conf);
 use NetCommon;
+use SSHcmd;
 
 require Exporter;
 our (@ISA,@EXPORT,@EXPORT_OK);
@@ -35,13 +36,17 @@ our (@ISA,@EXPORT,@EXPORT_OK);
 
 my $sshErrorPrefix = NetCommon::getSshErrorPrefix();
 ConfLibCigri::init_conf();
-my $sshServerPort = ConfLibCigri::get_conf("SSH_SERVER_PORT") if ConfLibCigri::is_conf("SSH_SERVER_PORT") or die("Can't get value of the SSH_SERVER_PORT tag in cigri.conf\n");
+#my $sshServerPort = ConfLibCigri::get_conf("SSH_SERVER_PORT") if ConfLibCigri::is_conf("SSH_SERVER_PORT") or die("Can't get value of the SSH_SERVER_PORT tag in cigri.conf\n");
+my $sshServerPort = 0;
+if (ConfLibCigri::is_conf("SSH_SERVER_PORT")) {
+    $sshServerPort = ConfLibCigri::get_conf("SSH_SERVER_PORT");
+}
 
 
 # submit a command to the given cluster
 # arg1 --> clusterName
 # arg2 --> command
-sub submitCmd($$){
+sub submitCmdToSSHServer($$){
     my $clusterName = shift;
     my $command = shift;
 
@@ -82,6 +87,21 @@ sub submitCmd($$){
     }
     #    print("\n".Dumper(%cmdResult));
     return %cmdResult;
+}
+
+# submit a command to the given cluster
+# arg1 --> clusterName
+# arg2 --> command
+sub submitCmd($$){
+    my $clusterName = shift;
+    my $command = shift;
+
+    if ($sshServerPort < 1024){
+        return(SSHcmd::submitCmd($clusterName, $command));
+    }else{
+        print("{SSHcmdClient} I use the SSH daemon\n");
+        return(submitCmdToSSHServer($clusterName, $command));
+    }
 }
 
 return 1;

@@ -31,16 +31,19 @@ init_conf();
 my $timeout = 5;
 
 my $path;
-if (is_conf("installPath")){
-    $path = get_conf("installPath")."/bin/";
+if (is_conf("INSTALL_PATH")){
+    #$path = get_conf("INSTALL_PATH")."/bin/";
+    $path = get_conf("INSTALL_PATH");
 }else{
-    die("You must have a cigri.conf script with a valid installPath tag\n");
+    die("You must have a cigri.conf (in /etc or in \$CIGRIDIR) script with a valid INSTALL_PATH tag\n");
 }
 
 #set paths of executables
-my $runner_command = $path."runnerCigri.pl";
-my $updator_command = $path."updatorCigri.pl";
-my $nikita_command = $path."nikitaCigri.pl";
+my $runner_command = $path."/Runner/runnerCigri.pl";
+my $updator_command = $path."/Updator/updatorCigri.pl";
+my $nikita_command = $path."/Nikita/nikitaCigri.pl";
+
+my $scheduler_path = $path."/Scheduler/";
 
 #my $base = iolibCigri::connect();
 
@@ -71,17 +74,17 @@ sub scheduler(){
     my $sched = iolibCigri::get_current_scheduler($base);
     #return launch_command($scheduler_command);
     if (defined($$sched{schedulerFile})){
-        if ( -x $path.$$sched{schedulerFile} ){
-            my $exitValue = launch_command($path.$$sched{schedulerFile});
+        if ( -x $scheduler_path.$$sched{schedulerFile} ){
+            my $exitValue = launch_command($scheduler_path.$$sched{schedulerFile});
             if ($exitValue != 0){
-                colomboCigri::add_new_scheduler_event($base,$$sched{schedulerId},"EXIT_VALUE","bad exit value $exitValue for $path$$sched{schedulerFile}");
+                colomboCigri::add_new_scheduler_event($base,$$sched{schedulerId},"EXIT_VALUE","bad exit value $exitValue for $scheduler_path$$sched{schedulerFile}");
             }
             #print("---------------->".${iolibCigri::get_current_scheduler($base)}{schedulerFile}."\n");
             #iolibCigri::disconnect($base);
             return $exitValue;
         }else{
             print("Bad scheduler file\n");
-            colomboCigri::add_new_scheduler_event($base,$$sched{schedulerId},"ALMIGHTY_FILE","Can t find the file $path.$$sched{schedulerFile}");
+            colomboCigri::add_new_scheduler_event($base,$$sched{schedulerId},"ALMIGHTY_FILE","Can t find the file $scheduler_path$$sched{schedulerFile}");
         }
     }else{
         print("NO SCHEDULER TO LAUNCH :-(\n");

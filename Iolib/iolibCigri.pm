@@ -34,10 +34,10 @@ sub connect() {
     # Connect to the database.
     ConfLibCigri::init_conf();
 
-    my $host = ConfLibCigri::get_conf("database_host");
-    my $name = ConfLibCigri::get_conf("database_name");
-    my $user = ConfLibCigri::get_conf("database_username");
-    my $pwd = ConfLibCigri::get_conf("database_userpassword");
+    my $host = ConfLibCigri::get_conf("DATABASE_HOST");
+    my $name = ConfLibCigri::get_conf("DATABASE_NAME");
+    my $user = ConfLibCigri::get_conf("DATABASE_USER_NAME");
+    my $pwd  = ConfLibCigri::get_conf("DATABASE_USER_PASSWORD");
 
     return(DBI->connect("DBI:mysql:database=$name;host=$host", $user, $pwd,    {'RaiseError' => 1,'InactiveDestroy' => 1}));
 }

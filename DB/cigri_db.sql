@@ -1,20 +1,20 @@
 CREATE DATABASE IF NOT EXISTS cigri;
-CONNECT cigri;
+#CONNECT cigri;
 
 # Creation de l utilisateur cigri
-#CONNECT mysql;
-#INSERT INTO user (Host,User,Password) VALUES('localhost','cigri',PASSWORD('cigri'));
+CONNECT mysql;
+INSERT IGNORE INTO user (Host,User,Password) VALUES('localhost','cigri',PASSWORD('cigri'));
 
-#INSERT INTO user (Host,User,Password) VALUES('%.imag.fr','cigri',PASSWORD('cigri'));
-#INSERT INTO db  (Host,Db,User,Select_priv,Insert_priv,Update_priv,Delete_priv, Create_priv,Drop_priv) VALUES
-#				('localhost','cigri','cigri','Y','Y','Y','Y','Y','Y');
-#INSERT INTO db  (Host,Db,User,Select_priv,Insert_priv,Update_priv,Delete_priv, Create_priv,Drop_priv) VALUES
+#INSERT IGNORE INTO user (Host,User,Password) VALUES('%.imag.fr','cigri',PASSWORD('cigri'));
+INSERT IGNORE INTO db  (Host,Db,User,Select_priv,Insert_priv,Update_priv,Delete_priv, Create_priv,Drop_priv) VALUES
+				('localhost','cigri','cigri','Y','Y','Y','Y','Y','Y');
+#INSERT IGNORE INTO db  (Host,Db,User,Select_priv,Insert_priv,Update_priv,Delete_priv, Create_priv,Drop_priv) VALUES
 #				('%.imag.fr','cigri','cigri','Y','Y','Y','Y','Y','Y');
-#FLUSH PRIVILEGES;
+FLUSH PRIVILEGES;
 
-#GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP ON cigri.* TO cigri@localhost;
+GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP ON cigri.* TO cigri@localhost;
 #GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP ON cigri.* TO cigri@"%.imag.fr";
-#FLUSH PRIVILEGES;
+FLUSH PRIVILEGES;
 
 CONNECT cigri;
 
@@ -39,8 +39,9 @@ DROP TABLE IF EXISTS clusters;
 CREATE TABLE IF NOT EXISTS clusters (
 clusterName VARCHAR( 100 ) NOT NULL ,
 clusterAdmin VARCHAR( 100 ) NOT NULL ,
-clusterBatch ENUM('PBS','OAR') DEFAULT 'OAR' NOT NULL ,
+clusterBatch ENUM('OAR') DEFAULT 'OAR' NOT NULL ,
 clusterAlias VARCHAR( 20 ) ,
+clusterPower FLOAT DEFAULT '1' NOT NULL ,
 #clusterDefaultWeight INT UNSIGNED DEFAULT 1 ,
 #clusterMysqlUser VARCHAR( 50 ) ,
 #clusterMysqlPassword VARCHAR( 50 ) ,
@@ -224,13 +225,13 @@ pass varchar(20) default NULL,
 PRIMARY KEY  (`login`)
 )TYPE = InnoDB;
 
-INSERT INTO webusers VALUES ("admin", "");
+INSERT IGNORE INTO webusers VALUES ("admin", "");
 
 #INSERT INTO clusters (clusterName,clusterAdmin,clusterBatch) VALUES ("pawnee", "", "OAR");
 #INSERT INTO clusters (clusterName,clusterAdmin,clusterBatch) VALUES ("i4", "", "PBS");
 
 #INSERT INTO users (userGridName,userClusterName,userLogin) VALUES ("capitn", "pawnee", "capitn");
 
-INSERT INTO schedulers (schedulerFile,schedulerPriority) VALUES ("sched_equitCigri",2);
-INSERT INTO schedulers (schedulerFile,schedulerPriority) VALUES ("sched_fifoCigri.pl",1);
+INSERT IGNORE INTO schedulers (schedulerFile,schedulerPriority) VALUES ("sched_equitCigri",1);
+INSERT IGNORE INTO schedulers (schedulerFile,schedulerPriority) VALUES ("sched_fifoCigri.pl",2);
 
