@@ -92,20 +92,21 @@ sub emptyTemporaryTables($){
 sub add_mjobs($$) {
     my ($dbh, $JDLfile) = @_;
 
-    $dbh->do("LOCK TABLES multipleJobs WRITE, parameters WRITE, properties WRITE");
+    #$dbh->do("LOCK TABLES multipleJobs WRITE, parameters WRITE, properties WRITE");
     my $lusr= getpwuid($<);
 
     begin_transaction($dbh);
+    
 
-    my $sth = $dbh->prepare("SELECT MAX(MJobsId)+1 FROM multipleJobs");
-    $sth->execute();
-    my $ref = $sth->fetchrow_hashref();
-    my @tmp = values(%$ref);
-    my $id = $tmp[0];
-    $sth->finish();
-    if(!defined($id)) {
-        $id = 1;
-    }
+    #my $sth = $dbh->prepare("SELECT MAX(MJobsId)+1 FROM multipleJobs");
+    #$sth->execute();
+    #my $ref = $sth->fetchrow_hashref();
+    #my @tmp = values(%$ref);
+    #my $id = $tmp[0];
+    #$sth->finish();
+    #if(!defined($id)) {
+    #    $id = 1;
+    #}
 
     my $time = get_date();
 
@@ -120,6 +121,16 @@ sub add_mjobs($$) {
         rollback_transaction($dbh);
         return(-1);
     }
+    
+    $dbh->do("INSERT INTO multipleJobs (MJobsId,MJobsUser,MJobsJDL,MJobsTSub)
+            VALUES (NULL,\"$lusr\",\"$jdl\",\"$time\")");
+
+    my $sth = $dbh->prepare("SELECT LAST_INSERT_ID()");
+    $sth->execute();
+    my $ref = $sth->fetchrow_hashref();
+    my @tmp = values(%$ref);
+    my $id = $tmp[0];
+    $sth->finish();
 
     # copy params in the database
     my $Params ="";
@@ -199,12 +210,11 @@ sub add_mjobs($$) {
         $MJName = $JDLParserCigri::clusterConf{DEFAULT}{name};
     }
 
-    $dbh->do("INSERT INTO multipleJobs (MJobsId,MJobsUser,MJobsJDL,MJobsTSub,MJobsName)
-            VALUES ($id,\"$lusr\",\"$jdl\",\"$time\",\"$MJName\")");
+    $dbh->do("UPDATE multipleJobs SET MJobsName = \"$MJName\" WHERE MJobsId = $id");
 
     commit_transaction($dbh);
 
-    $dbh->do("UNLOCK TABLES");
+    #$dbh->do("UNLOCK TABLES");
     # notify admin by email
     mailer::sendMail("New MJob $id from user $lusr","Insert new MJob $id.\nJDL:\n$jdl");
 
@@ -471,7 +481,8 @@ sub get_cluster_job_toLaunch($$$) {
     my $clusterName = shift;
     my $job = shift;
 
-    $dbh->do("LOCK TABLES jobs WRITE, jobsToSubmit WRITE, nodes WRITE, parameters WRITE, clusters WRITE, multipleJobs WRITE, properties WRITE, users WRITE, clusterBlackList WRITE, nodeBlackList WRITE, events WRITE");
+    #$dbh->do("LOCK TABLES jobs WRITE, jobsToSubmit WRITE, nodes WRITE, parameters WRITE, clusters WRITE, multipleJobs WRITE, properties WRITE, users WRITE, clusterBlackList WRITE, nodeBlackList WRITE, events WRITE");
+    #print("Take the LOCK for cluster $clusterName\n");
     my $sth = $dbh->prepare("SELECT jobsToSubmitMJobsId, jobsToSubmitNumber
                              FROM jobsToSubmit
                              WHERE jobsToSubmitClusterName = \"$clusterName\"
@@ -485,7 +496,7 @@ sub get_cluster_job_toLaunch($$$) {
     if (defined($MJobtoSubmit[0])){
         #Verif if the scheduler is right
         if (colomboCigri::is_cluster_active($dbh,$clusterName,$MJobtoSubmit[0]) != 0){
-            $dbh->do("UNLOCK TABLES");
+            #$dbh->do("UNLOCK TABLES");
             warn("[Iolib] Erreur de choix du scheduler, le cluster est blackliste\n");
             colomboCigri::add_new_scheduler_event($dbh,${get_current_scheduler($dbh)}{schedulerId},"CLUSTER_BLACKLISTED"," Erreur de choix du scheduler, le cluster $clusterName est blackliste");
             return(1);
@@ -498,6 +509,9 @@ sub get_cluster_job_toLaunch($$$) {
             # return(1);
         # }
 
+        #Lock for integrity in multi-process mode
+        $dbh->do("SELECT GET_LOCK(\"cigriParamLock\",3000)");
+        
         # get parameter for this MJob on this cluster
         $sth = $dbh->prepare("SELECT parametersParam,parametersName
                               FROM parameters
@@ -509,7 +523,8 @@ sub get_cluster_job_toLaunch($$$) {
         $sth->finish();
 
         if (!defined($parameter)){
-            $dbh->do("UNLOCK TABLES");
+            #$dbh->do("UNLOCK TABLES");
+            $dbh->do("SELECT RELEASE_LOCK(\"cigriParamLock\")");
             warn("[Iolib] Erreur de choix du scheduler pour le nb de parametres\n");
             colomboCigri::add_new_scheduler_event($dbh,${get_current_scheduler($dbh)}{schedulerId},"NB_PARAMS"," Erreur de choix du scheduler pour le nb de parametres");
             return(1);
@@ -526,19 +541,19 @@ sub get_cluster_job_toLaunch($$$) {
 
         #add jobs in jobs table
         my $time = get_date();
-        $sth = $dbh->prepare("SELECT MAX(jobId)+1 FROM jobs");
-        $sth->execute();
-        my @tmp = $sth->fetchrow_array();
-        $sth->finish();
-        my $id = $tmp[0];
-        if(!defined($id)) {
-            $id = 1;
-        }
+        #$sth = $dbh->prepare("SELECT MAX(jobId)+1 FROM jobs");
+        #$sth->execute();
+        #my @tmp = $sth->fetchrow_array();
+        #$sth->finish();
+        #my $id = $tmp[0];
+        #if(!defined($id)) {
+        #    $id = 1;
+        #}
 
         begin_transaction($dbh);
 
         $dbh->do("INSERT INTO jobs (jobId,jobState,jobMJobsId,jobParam,jobName,jobClusterName,jobTSub)
-        VALUES ($id,\"toLaunch\",$MJobtoSubmit[0],\"$$parameter{parametersParam}\",\"$$parameter{parametersName}\",\"$clusterName\",\"$time\")");
+        VALUES (NULL,\"toLaunch\",$MJobtoSubmit[0],\"$$parameter{parametersParam}\",\"$$parameter{parametersName}\",\"$clusterName\",\"$time\")");
 
         # delete used param
         $dbh->do("DELETE FROM parameters
@@ -558,10 +573,12 @@ sub get_cluster_job_toLaunch($$$) {
         #$dbh->do("UPDATE nodes SET nodeState = \"BUSY\" WHERE nodeId = $MJobtoSubmit[1]");
 
         commit_transaction($dbh);
+            
+        $dbh->do("SELECT RELEASE_LOCK(\"cigriParamLock\")");
     }
 
     my %jobTmp = get_launching_job($dbh,$clusterName);
-    $dbh->do("UNLOCK TABLES");
+    #$dbh->do("UNLOCK TABLES");
     if (defined($jobTmp{id})){
         #print(Dumper(%jobTmp));
         %{$job} = %jobTmp;
@@ -702,7 +719,7 @@ sub get_nb_remained_jobs($){
                              WHERE MJobsId = parametersMJobsId
                              AND MJobsState = \"IN_TREATMENT\"
                              GROUP BY parametersMJobsId
-                             ORDER BY parametersMJobsId DESC");
+                             ORDER BY parametersMJobsId ASC");
     $sth->execute();
 
     my %result;
@@ -1010,14 +1027,17 @@ sub rollback_transaction($){
     $dbh->rollback;
 }
 
-sub lock_collector($){
+sub lock_collector($$){
     my $dbh = shift;
-    $dbh->do("LOCK TABLES semaphoreCollector WRITE");
+    my $lockTime = shift;
+    #$dbh->do("LOCK TABLES semaphoreCollector WRITE");
+    $dbh->do("SELECT GET_LOCK(\"cigriCollectorLock\",$lockTime)");
 }
 
 sub unlock_collector($){
     my $dbh = shift;
-    $dbh->do("UNLOCK TABLES");
+    #$dbh->do("UNLOCK TABLES");
+    $dbh->do("SELECT RELEASE_LOCK(\"cigriCollectorLock\")");
 }
 
 # return MJob to frag

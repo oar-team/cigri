@@ -38,13 +38,13 @@ DROP TABLE IF EXISTS clusters;
 CREATE TABLE IF NOT EXISTS clusters (
 clusterName VARCHAR( 100 ) NOT NULL ,
 clusterAdmin VARCHAR( 100 ) NOT NULL ,
-clusterBatch ENUM('PBS','OAR','OAR_mysql') DEFAULT 'OAR' NOT NULL ,
+clusterBatch ENUM('PBS','OAR') DEFAULT 'OAR' NOT NULL ,
 clusterAlias VARCHAR( 20 ) ,
 #clusterDefaultWeight INT UNSIGNED DEFAULT 1 ,
-clusterMysqlUser VARCHAR( 50 ) ,
-clusterMysqlPassword VARCHAR( 50 ) ,
-clusterMysqlDatabase VARCHAR( 50 ) ,
-clusterMysqlPort INT UNSIGNED ,
+#clusterMysqlUser VARCHAR( 50 ) ,
+#clusterMysqlPassword VARCHAR( 50 ) ,
+#clusterMysqlDatabase VARCHAR( 50 ) ,
+#clusterMysqlPort INT UNSIGNED ,
 PRIMARY KEY (clusterName)
 )TYPE = InnoDB;
 
@@ -81,7 +81,7 @@ PRIMARY KEY (jobId)
 
 DROP TABLE IF EXISTS multipleJobs;
 CREATE TABLE IF NOT EXISTS multipleJobs (
-MJobsId INT UNSIGNED NOT NULL ,
+MJobsId INT UNSIGNED NOT NULL AUTO_INCREMENT ,
 MJobsJDL MEDIUMBLOB ,
 MJobsState ENUM('IN_TREATMENT','TERMINATED') NOT NULL DEFAULT 'IN_TREATMENT' ,
 MJobsUser VARCHAR( 50 ) NOT NULL ,
@@ -153,11 +153,11 @@ currentSchedulerId INT UNSIGNED NOT NULL ,
 PRIMARY KEY (currentSchedulerId)
 )TYPE = InnoDB;
 
-DROP TABLE IF EXISTS semaphoreCollector;
-CREATE TABLE IF NOT EXISTS semaphoreCollector (
-semaphoreCollectorId INT UNSIGNED NOT NULL ,
-PRIMARY KEY (semaphoreCollectorId)
-)TYPE = InnoDB;
+#DROP TABLE IF EXISTS semaphoreCollector;
+#CREATE TABLE IF NOT EXISTS semaphoreCollector (
+#semaphoreCollectorId INT UNSIGNED NOT NULL ,
+#PRIMARY KEY (semaphoreCollectorId)
+#)TYPE = InnoDB;
 
 DROP TABLE IF EXISTS clusterBlackList;
 CREATE TABLE IF NOT EXISTS clusterBlackList (

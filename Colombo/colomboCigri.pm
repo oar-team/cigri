@@ -40,19 +40,19 @@ sub get_date() {
 
 # calculate the id of the next event
 # arg1 --> database ref
-sub calculate_event_id($){
-    my $dbh = shift;
-    my $sth = $dbh->prepare("SELECT MAX(eventId)+1 FROM events");
-    $sth->execute();
-    my $ref = $sth->fetchrow_hashref();
-    my @tmp = values(%$ref);
-    my $id = $tmp[0];
-    $sth->finish();
-    if(!defined($id)) {
-        $id = 1;
-    }
-    return $id;
-}
+#sub calculate_event_id($){
+#    my $dbh = shift;
+#    my $sth = $dbh->prepare("SELECT MAX(eventId)+1 FROM events");
+#    $sth->execute();
+#    my $ref = $sth->fetchrow_hashref();
+#    my @tmp = values(%$ref);
+#    my $id = $tmp[0];
+#    $sth->finish();
+#    if(!defined($id)) {
+#        $id = 1;
+#    }
+#    return $id;
+#}
 
 # add a new event relative of a cluster in the database and treate it
 # arg1 --> database ref
@@ -67,13 +67,16 @@ sub add_new_cluster_event($$$$$){
     my $eventType = shift;
     my $eventMessage = shift;
 
-    $dbh->do("LOCK TABLES events WRITE");
+    #$dbh->do("LOCK TABLES events WRITE");
+    $dbh->begin_work;
 
-    my $id = calculate_event_id($dbh);
+    #my $id = calculate_event_id($dbh);
     my $time = get_date();
     $dbh->do("    INSERT INTO events (eventId,eventType,eventClass,eventClusterName,eventMJobsId,eventDate,eventMessage)
-                VALUES ($id,\"$eventType\",\"CLUSTER\",\"$clusterName\",$MJobsId,\"$time\",\"$eventMessage\")");
-    $dbh->do("UNLOCK TABLES");
+                VALUES (NULL,\"$eventType\",\"CLUSTER\",\"$clusterName\",$MJobsId,\"$time\",\"$eventMessage\")");
+    
+    #$dbh->do("UNLOCK TABLES");
+    $dbh->commit;
 
     check_events($dbh);
 }
@@ -97,14 +100,16 @@ sub add_new_job_event($$$$){
     my @refJob = $sth->fetchrow_array();
     $sth->finish();
 
-    $dbh->do("LOCK TABLES events WRITE");
+    #$dbh->do("LOCK TABLES events WRITE");
+    $dbh->begin_work;
 
-    my $id = calculate_event_id($dbh);
+    #my $id = calculate_event_id($dbh);
     my $time = get_date();
     $dbh->do("    INSERT INTO events (eventId,eventType,eventClass,eventJobId,eventDate,eventMessage,eventMJobsId,eventClusterName)
-                VALUES ($id,\"$eventType\",\"JOB\",\"$jobId\",\"$time\",\"$eventMessage\",$refJob[0],\"$refJob[1]\")");
+                VALUES (NULL,\"$eventType\",\"JOB\",\"$jobId\",\"$time\",\"$eventMessage\",$refJob[0],\"$refJob[1]\")");
 
-    $dbh->do("UNLOCK TABLES");
+    #$dbh->do("UNLOCK TABLES");
+    $dbh->commit;
 
     check_events($dbh);
 }
@@ -120,14 +125,16 @@ sub add_new_mjob_event($$$$){
     my $eventType = shift;
     my $eventMessage = shift;
 
-    $dbh->do("LOCK TABLES events WRITE");
+    #$dbh->do("LOCK TABLES events WRITE");
+    $dbh->begin_work;
 
-    my $id = calculate_event_id($dbh);
+    #my $id = calculate_event_id($dbh);
     my $time = get_date();
     $dbh->do("    INSERT INTO events (eventId,eventType,eventClass,eventMJobsId,eventDate,eventMessage)
-                VALUES ($id,\"$eventType\",\"MJOB\",\"$mjobId\",\"$time\",\"$eventMessage\")");
+                VALUES (NULL,\"$eventType\",\"MJOB\",\"$mjobId\",\"$time\",\"$eventMessage\")");
 
-    $dbh->do("UNLOCK TABLES");
+    #$dbh->do("UNLOCK TABLES");
+    $dbh->commit;
 
     check_events($dbh);
 }
@@ -143,14 +150,16 @@ sub add_new_scheduler_event($$$$){
     my $eventType = shift;
     my $eventMessage = shift;
 
-    $dbh->do("LOCK TABLES events WRITE");
+    #$dbh->do("LOCK TABLES events WRITE");
+    $dbh->begin_work;
 
-    my $id = calculate_event_id($dbh);
+    #my $id = calculate_event_id($dbh);
     my $time = get_date();
     $dbh->do("    INSERT INTO events (eventId,eventType,eventClass,eventSchedulerId,eventDate,eventMessage)
-                VALUES ($id,\"$eventType\",\"SCHEDULER\",\"$schedId\",\"$time\",\"$eventMessage\")");
+                VALUES (NULL,\"$eventType\",\"SCHEDULER\",\"$schedId\",\"$time\",\"$eventMessage\")");
 
-    $dbh->do("UNLOCK TABLES");
+    #$dbh->do("UNLOCK TABLES");
+    $dbh->commit;
 
     check_events($dbh);
 }
@@ -164,14 +173,16 @@ sub add_new_ssh_event($$$){
     my $clusterName = shift;
     my $eventMessage = shift;
 
-    $dbh->do("LOCK TABLES events WRITE");
+    #$dbh->do("LOCK TABLES events WRITE");
+    $dbh->begin_work;
 
-    my $id = calculate_event_id($dbh);
+    #my $id = calculate_event_id($dbh);
     my $time = get_date();
     $dbh->do("    INSERT INTO events (eventId,eventType,eventClass,eventClusterName,eventDate,eventMessage)
-                VALUES ($id,\"SSH\",\"CLUSTER\",\"$clusterName\",\"$time\",\"$eventMessage\")");
+                VALUES (NULL,\"SSH\",\"CLUSTER\",\"$clusterName\",\"$time\",\"$eventMessage\")");
 
-    $dbh->do("UNLOCK TABLES");
+    #$dbh->do("UNLOCK TABLES");
+    $dbh->commit;
 
     check_events($dbh);
 }
@@ -350,8 +361,10 @@ sub check_events($){
     #lock tables
     my $dbh = shift;
 
-    $dbh->do("LOCK TABLES events WRITE, clusterBlackList WRITE, jobs WRITE, nodes WRITE, schedulerBlackList WRITE, resubmissionLog WRITE, parameters WRITE, fragLog WRITE");
+    #$dbh->do("LOCK TABLES events WRITE, clusterBlackList WRITE, jobs WRITE, nodes WRITE, schedulerBlackList WRITE, resubmissionLog WRITE, parameters WRITE, fragLog WRITE");
 
+    $dbh->do("SELECT GET_LOCK(\"cigriEventLock\",300)");
+    
     #list of cluster events used
     my $sth = $dbh->prepare("    SELECT clusterBlackListEventId
                                 FROM events, clusterBlackList
@@ -523,7 +536,8 @@ sub check_events($){
     }
     $sth->finish();
 
-    $dbh->do("UNLOCK TABLES");
+    #$dbh->do("UNLOCK TABLES");
+    $dbh->do("SELECT RELEASE_LOCK(\"cigriEventLock\")");
 }
 
 # reschedule a job parameter

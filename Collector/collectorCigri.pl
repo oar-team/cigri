@@ -28,9 +28,11 @@ use NetCommon;
 
 my $base = iolibCigri::connect();
 # connection to the database for the lock
-my $baseLock = iolibCigri::connect();
+#my $baseLock = iolibCigri::connect();
 # only one instance of the collector
-iolibCigri::lock_collector($baseLock);
+#iolibCigri::lock_collector($baseLock);
+# lock for 12H
+iolibCigri::lock_collector($base,43200);
 
 # id of MJobs to collect
 my @MjobsToCollect;
@@ -244,7 +246,8 @@ foreach my $i (@MjobsToCollect){
     iolibCigri::commit_transaction($base);
 }
 
-iolibCigri::unlock_collector($baseLock);
+#iolibCigri::unlock_collector($baseLock);
+iolibCigri::unlock_collector($base);
 iolibCigri::disconnect($base);
 
 print("\n");
