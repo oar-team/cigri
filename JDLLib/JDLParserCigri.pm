@@ -33,7 +33,7 @@ our %clusterConf;
 # default section pattern
 my $defaultSection = "DEFAULT";
 # needed parameters
-my @neededParams = ("execFile","execTime");
+my @neededParams = ("execFile");
 
 
 # Config init
@@ -52,7 +52,7 @@ sub init_jdl($) {
 
 	#Check cluster names
 	my $base = iolibCigri::connect();
-	my %clusterNamesHash = iolibCigri::get_cluster_names_batch($base);
+	my %clusterNamesHash = iolibCigri::get_all_cluster_names($base);
 	iolibCigri::disconnect($base);
 	my %clusterNames = ();
 	foreach my $i (keys(%clusterNamesHash)){

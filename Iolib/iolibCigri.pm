@@ -201,6 +201,23 @@ sub get_cluster_names_batch($){
 	return %resulHash;
 }
 
+# get all the cluster names in an array (even if it is dead)
+# arg1 --> database ref
+# return --> hash of cluster names
+sub get_all_cluster_names($){
+	my $dbh = shift;
+	my $sth = $dbh->prepare("SELECT clusterName FROM clusters ");
+	$sth->execute();
+
+	my %resulHash;
+	while (my @ref = $sth->fetchrow_array()) {
+		$resulHash{$ref[0]} = 1;
+	}
+	$sth->finish();
+
+	return %resulHash;
+}
+
 # set NODE_STATE to BUSY for all nodes
 # arg1 --> database ref
 sub disable_all_nodes($){
