@@ -100,14 +100,23 @@ else {
 	if ($submenu == 'newaccount') {
 		cigri_register_menu_item($menu,$currentarray,"ausers","Users","index.php?submenu=users",2,false);
 		cigri_register_menu_item($menu,$currentarray,"anew","Create new user","index.php?submenu=newaccount",2,true);
+		cigri_register_menu_item($menu,$currentarray,"events","Events","index.php?submenu=events",2,false);
 		cigri_register_menu_item($menu,$currentarray,"logout","Logout","index.php?submenu=logout",2,false);
 		include("newaccount.php");
 	}
 	else if ($submenu == 'users') {
 		cigri_register_menu_item($menu,$currentarray,"ausers","Users","index.php?submenu=users",2,true);
 		cigri_register_menu_item($menu,$currentarray,"anew","Create new user","index.php?submenu=newaccount",2,false);
+		cigri_register_menu_item($menu,$currentarray,"events","Events","index.php?submenu=events",2,false);
 		cigri_register_menu_item($menu,$currentarray,"logout","Logout","index.php?submenu=logout",2,false);
 		include("users.php");
+	}
+	else if ($submenu == 'events') {
+		cigri_register_menu_item($menu,$currentarray,"ausers","Users","index.php?submenu=users",2,false);
+		cigri_register_menu_item($menu,$currentarray,"anew","Create new user","index.php?submenu=newaccount",2,false);
+		cigri_register_menu_item($menu,$currentarray,"events","Events","index.php?submenu=events",2,true);
+		cigri_register_menu_item($menu,$currentarray,"logout","Logout","index.php?submenu=logout",2,false);
+		include("events.php");
 	}
 	else {
 		// unknown parameter
