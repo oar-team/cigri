@@ -1,6 +1,6 @@
 DEFAULT{
 
-	nbJobs = 10;
+	nbJobs = 20;
 #	paramFile = param.tmp;
 }
 #i4{
