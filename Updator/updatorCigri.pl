@@ -99,7 +99,7 @@ foreach my $i (keys(%jobRunningHash)){
                         print("\t\tJob ${$j}{jobId} Error\n");
                         iolibCigri::set_job_state($base, ${$j}{jobId}, "Event");
                         colomboCigri::add_new_job_event($base,${$j}{jobId},"UPDATOR_RET_CODE_ERROR","$cmdResult{STDERR}");
-                        exit(66);
+                        #exit(66);
                     }
                 }else{
                     # the job was killed by the batch scheduler of the cluster

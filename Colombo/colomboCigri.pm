@@ -89,12 +89,20 @@ sub add_new_job_event($$$$){
     my $eventType = shift;
     my $eventMessage = shift;
 
+    my $sth = $dbh->prepare("SELECT jobMJobsId,jobClusterName
+                             FROM jobs
+                             WHERE jobId = $jobId
+                            ");
+    $sth->execute();
+    my @refJob = $sth->fetchrow_array();
+    $sth->finish();
+
     $dbh->do("LOCK TABLES events WRITE");
 
     my $id = calculate_event_id($dbh);
     my $time = get_date();
-    $dbh->do("    INSERT INTO events (eventId,eventType,eventClass,eventJobId,eventDate,eventMessage)
-                VALUES ($id,\"$eventType\",\"JOB\",\"$jobId\",\"$time\",\"$eventMessage\")");
+    $dbh->do("    INSERT INTO events (eventId,eventType,eventClass,eventJobId,eventDate,eventMessage,eventMJobsId,eventClusterName)
+                VALUES ($id,\"$eventType\",\"JOB\",\"$jobId\",\"$time\",\"$eventMessage\",$refJob[0],\"$refJob[1]\")");
 
     $dbh->do("UNLOCK TABLES");
 
@@ -396,12 +404,11 @@ sub check_events($){
     $sth->finish();
 
     # JOB error ----> blacklist a cluster for a MJob
-    $sth = $dbh->prepare("    SELECT eventId, jobClusterName, jobMJobsId, eventMessage
-                            FROM events, jobs
+    $sth = $dbh->prepare("    SELECT eventId, eventClusterName, eventMJobsId, eventMessage
+                            FROM events
                             WHERE eventState = \"ToFIX\"
                                 AND (eventType = \"UPDATOR_RET_CODE_ERROR\"
                                     )
-                                AND jobId = eventJobId
                             ");
     $sth->execute();
 
