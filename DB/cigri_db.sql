@@ -79,7 +79,7 @@ INDEX nom (nodeName,nodeClusterName)
 DROP TABLE IF EXISTS jobs;
 CREATE TABLE IF NOT EXISTS jobs (
 jobId BIGINT UNSIGNED NOT NULL AUTO_INCREMENT ,
-jobState ENUM('toLaunch', 'Running', 'RemoteWaiting', 'Terminated', 'Error', 'Killed') NOT NULL ,
+jobState ENUM('toLaunch', 'Running', 'RemoteWaiting', 'Terminated', 'Error', 'Killed', 'Fragged') NOT NULL ,
 jobFrag ENUM('YES','NO') NOT NULL DEFAULT 'NO' ,
 jobMessage VARCHAR( 255 ) ,
 jobMJobsId INT UNSIGNED ,
@@ -100,7 +100,7 @@ DROP TABLE IF EXISTS multipleJobs;
 CREATE TABLE IF NOT EXISTS multipleJobs (
 MJobsId INT UNSIGNED NOT NULL ,
 MJobsJDL MEDIUMBLOB ,
-MJobsState ENUM('IN_TREATMENT','ERROR','TERMINATED') NOT NULL DEFAULT 'IN_TREATMENT' ,
+MJobsState ENUM('IN_TREATMENT','TERMINATED','FRAGGED') NOT NULL DEFAULT 'IN_TREATMENT' ,
 MJobsFrag ENUM('YES','NO') NOT NULL DEFAULT 'NO' ,
 MJobsUser VARCHAR( 50 ) NOT NULL ,
 MJobsName VARCHAR( 255 ) ,
