@@ -33,6 +33,7 @@ CREATE TABLE IF NOT EXISTS clusters (
 clusterName VARCHAR( 100 ) NOT NULL ,
 clusterAdmin VARCHAR( 100 ) NOT NULL ,
 clusterBatch ENUM('PBS','OAR') NOT NULL ,
+#clusterState ENUM('VALID','NOTVALID') DEFAULT 'VALID' NOT NULL ,
 #clusterCpu VARCHAR( 100 ) NOT NULL ,
 #clusterMem INT UNSIGNED ,
 #clusterDisk INT UNSIGNED ,
@@ -117,4 +118,4 @@ INDEX param (parametersMJobsId)
 );
 
 INSERT INTO clusters (clusterName,clusterAdmin,clusterBatch) VALUES ("pawnee", "", "OAR");
-INSERT INTO clusters (clusterName,clusterAdmin,clusterBatch) VALUES ("i4", "", "PBS");
+#INSERT INTO clusters (clusterName,clusterAdmin,clusterBatch) VALUES ("i4", "", "PBS");

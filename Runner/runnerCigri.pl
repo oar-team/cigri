@@ -83,6 +83,7 @@ foreach my $i (@jobList){
 					"chmod +x ~/$tmpRemoteFile ;",
 					"cd ~$$i{user} ;",
 					"sudo -u $$i{user} /bin/cp ~/$tmpRemoteFile . ;",
+					"rm ~/$tmpRemoteFile ;",
 					"sudo -u $$i{user} $qsubCommand{$$i{batch}} -l nodes=1 `pwd`/$tmpRemoteFile;"
 		);
 	}else{
@@ -92,6 +93,7 @@ foreach my $i (@jobList){
 					"chmod +x ~/$tmpRemoteFile ;",
 					"cd ~$$i{user} ;",
 					"sudo -u $$i{user} /bin/cp ~/$tmpRemoteFile . ;",
+					"rm ~/$tmpRemoteFile ;",
 					"$qsubCommand{$$i{batch}} -l nodes=$$i{node} $tmpRemoteFile;"
 		);
 	}
