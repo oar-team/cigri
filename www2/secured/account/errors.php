@@ -357,7 +357,7 @@ EOF;
 INSERT INTO
 	parameters
 VALUES
-	({$res[$i][4]},'{$res[$i][3]}','{$res[$i][5]}',0)
+	({$res[$i][4]},'{$res[$i][5]}','{$res[$i][3]}',0)
 EOF;
 							mysql_query($query,$link);
 							$updates += mysql_affected_rows($link);
