@@ -43,11 +43,13 @@ my $jobinfo;
 
 my $tmpRemoteFile ;
 my $resultFile ;
+my %blackCluster;
 
 select(STDOUT);
 $| = 1;
 
 foreach my $i (@jobList){
+if (not defined($blackCluster{$$i{clusterName}})){
 	$jobId = $$i{id};
 	$tmpRemoteFile = "cigri.tmp.$jobId";
 	#$resultFile = "cigri.$jobId.log";
@@ -79,6 +81,7 @@ print(Dumper(%cmdResult));
 		#
 		iolibCigri::insert_new_error($base,"RUNNER_SUBMIT",$jobId,$cmdResult{STDERR});
 		iolibCigri::resubmit_job($base,$jobId);
+		$blackCluster{$$i{clusterName}} = 1;
 		#
 	}else{
 		my @strTmp = split(/\n/, $cmdResult{STDOUT});
@@ -99,9 +102,11 @@ print(Dumper(%cmdResult));
 			#
 			iolibCigri::insert_new_error($base,"JOBID_PARSE","$jobId","There is a mistake, the job $jobId state = ERROR, bad remote batch id");
 			iolibCigri::resubmit_job($base,$jobId);
+			$blackCluster{$$i{clusterName}} = 1;
 			#
 
 		}
 	}
+}
 }
 iolibCigri::disconnect($base);
