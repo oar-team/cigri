@@ -14,6 +14,7 @@ our (@ISA,@EXPORT,@EXPORT_OK);
 
 # line to print after a ssh command. With that we can know the end of the command
 my $endLineTag = "lacommandeestterminee";
+my $timeoutConnexion = 10;
 
 my %sshConnections;
 my $fileHandleId = 0;
@@ -38,9 +39,9 @@ sub initSSHConnection($){
 	my $ERRORStr = "";
 	my $closeConnection = 0;
 
-	open3( $i, $j, $k, "ssh -T $server");
-
-	$sshConnections{$server} = [ $i, $j, $k];
+	my $pid = open3( $i, $j, $k, "ssh -T $server");
+	my $currentTime = time();
+	$sshConnections{$server} = [ $i, $j, $k, $pid, $currentTime];
 	#init connection
 
 	if (!(print($i "/bin/sh -c \"echo ; echo $endLineTag\"\n"))){
@@ -101,7 +102,18 @@ sub submitCmd($$){
 	my $READERStr = "";
 	my $ERRORStr = "";
 	my $closeConnection = 0;
-	if (!defined($sshConnections{$clusterName})){
+	my $currentTime = time();
+	print("currentTime=$currentTime, initSSHTime=$sshConnections{$clusterName}->[4]\n");
+	if ((!defined($sshConnections{$clusterName})) or (($currentTime - $sshConnections{$clusterName}->[4]) > $timeoutConnexion )){
+		if (defined($sshConnections{$clusterName}->[0])){
+			print("RESET CONNECTION\n");
+			close($sshConnections{$clusterName}->[0]);
+			close($sshConnections{$clusterName}->[1]);
+			close($sshConnections{$clusterName}->[2]);
+			print("I wait for the pid $sshConnections{$clusterName}->[3]\n");
+			my $ret = waitpid($sshConnections{$clusterName}->[3],WNOHANG);
+			print("wait return = $ret\n");
+		}
 		# we must established a new connection
 		my $resultTmp = initSSHConnection($clusterName);
 		if ($resultTmp == 1){
