@@ -66,7 +66,7 @@ sub init_jdl($) {
 		next if (!defined($clusterBlock));
 		my @linesConf = split(/;/, $clusterBlock);
 		foreach my $j (@linesConf){
-			if ($j =~ m/^\s*(\w+)\s*=\s*([\w\.\/]+)\s*$/){
+			if ($j =~ m/^\s*(\w+)\s*=\s*([\w\.\/-]+)\s*$/){
 				$clusterConf{$clusterName}{$1} = $2;
 			}
 		}
