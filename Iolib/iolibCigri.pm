@@ -240,6 +240,22 @@ sub get_all_cluster_names($){
     return %resulHash;
 }
 
+# get defaultWeight of a cluster
+# arg1 --> database ref
+# arg2 --> clusterName
+# return --> integer
+sub get_cluster_default_weight($$){
+    my $dbh = shift;
+    my $clusterName = shift;
+    my $sth = $dbh->prepare("select clusterDefaultWeight from clusters where clusterName = \"$clusterName\"");
+    $sth->execute();
+
+    my @ref = $sth->fetchrow_array();
+    $sth->finish();
+
+    return $ref[0];
+}
+
 # set NODE_STATE to BUSY for all nodes
 # arg1 --> database ref
 sub disable_all_nodes($){

@@ -139,14 +139,19 @@ sub get_date() {
 
 # submit a job
 # arg1 --> database ref
-# arg2 --> username
-# arg3 --> jobFile
+# arg2 --> cigri_iolib database ref
+# arg3 --> clusterName
+# arg4 --> username
+# arg5 --> jobFile
 # return jobBatchId
-sub submitJob($$$) {
+sub submitJob($$$$$) {
     my $dbh = shift;
+    my $cigriDB = shift;
+    my $cluster = shift;
     my $user = shift;
     my $jobFile = shift;
 
+    my $weight = iolibCigri::get_cluster_default_weight($cigriDB,$cluster);
     $dbh->do("LOCK TABLE jobs WRITE");
     my $sth = $dbh->prepare("SELECT MAX(idJob)+1 FROM jobs");
     $sth->execute();
@@ -159,7 +164,7 @@ sub submitJob($$$) {
     }
     my $time = get_date();
 
-    $dbh->do("INSERT INTO jobs (idJob,jobType,infoType,state,user,nbNodes,weight,command,submissionTime,maxTime,queueName) VALUES ($id,\"PASSIVE\",\"\",\"Waiting\",\"$user\",1,1,\"~$user/$jobFile\",\"$time\",\"01:00:00\",\"besteffort\")");
+    $dbh->do("INSERT INTO jobs (idJob,jobType,infoType,state,user,nbNodes,weight,command,submissionTime,maxTime,queueName) VALUES ($id,\"PASSIVE\",\"\",\"Waiting\",\"$user\",1,$weight,\"~$user/$jobFile\",\"$time\",\"01:00:00\",\"besteffort\")");
 
     $dbh->do("UNLOCK TABLES");
 

@@ -40,7 +40,7 @@ clusterName VARCHAR( 100 ) NOT NULL ,
 clusterAdmin VARCHAR( 100 ) NOT NULL ,
 clusterBatch ENUM('PBS','OAR','OAR_mysql') DEFAULT 'OAR' NOT NULL ,
 clusterAlias VARCHAR( 20 ) ,
-clusterDefaultWeight INT UNSIGNED ,
+clusterDefaultWeight INT UNSIGNED DEFAULT 1 ,
 clusterMysqlUser VARCHAR( 50 ) ,
 clusterMysqlPassword VARCHAR( 50 ) ,
 clusterMysqlDatabase VARCHAR( 50 ) ,
@@ -142,7 +142,7 @@ collectedJobsFileName VARCHAR( 100 ) NOT NULL ,
 PRIMARY KEY (collectedJobsMJobsId,collectedJobsId)
 )TYPE = InnoDB;
 
-#DROP TABLE IF EXISTS schedulers;
+DROP TABLE IF EXISTS schedulers;
 CREATE TABLE IF NOT EXISTS schedulers (
 schedulerId INT UNSIGNED NOT NULL AUTO_INCREMENT ,
 schedulerFile VARCHAR( 255 ) NOT NULL ,
