@@ -22,7 +22,9 @@ BEGIN {
 	unshift(@INC, $relativePath."lib");
 	unshift(@INC, $relativePath."Net");
 	unshift(@INC, $relativePath."Iolib");
+    unshift(@INC, $relativePath."Mailer");
 }
+use mailer;
 
 require Exporter;
 our (@ISA,@EXPORT,@EXPORT_OK);
@@ -351,6 +353,9 @@ sub check_events($){
 			}
 			$dbh->do("	INSERT INTO clusterBlackList (clusterBlackListNum,clusterBlackListClusterName,clusterBlackListEventId )
 						VALUES ($id,\"$ref[1]\",$ref[0])");
+
+            # notify admin by email
+            mailer::sendMail("clusterBlackList = $ref[1] for all MJobs; eventId = $ref[0]","");
 		}
 	}
 	$sth->finish();
@@ -381,6 +386,9 @@ sub check_events($){
 			}
 			$dbh->do("	INSERT INTO clusterBlackList (clusterBlackListNum,clusterBlackListClusterName,clusterBlackListMJobsID,clusterBlackListEventId )
 						VALUES ($id,\"$ref[1]\",$ref[2],$ref[0])");
+
+            # notify admin by email
+            mailer::sendMail("clusterBlackList = $ref[1] for the MJob $ref[2]; eventId = $ref[0]","");
 		}
 	}
 	$sth->finish();
@@ -440,7 +448,10 @@ sub check_events($){
 			}
 			$dbh->do("	INSERT INTO schedulerBlackList (schedulerBlackListNum,schedulerBlackListSchedulerId,schedulerBlackListEventId)
 						VALUES ($id,$ref[1],$ref[0])");
-		}
+
+            # notify admin by email
+            mailer::sendMail("schedulerBlackList = $ref[1]; eventId = $ref[0]","");
+        }
 	}
 	$sth->finish();
 
