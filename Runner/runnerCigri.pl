@@ -63,7 +63,7 @@ foreach my $j (keys(%clusterNames)){
                             "echo \"echo \\\"RET_CODE=\\\$CODE\\\" >> $resultFile\" >> $tmpRemoteFile;",
                             "echo \"echo \\\"NODE=\\\"\\`cat \\\$OAR_FILE_NODES | head -1\\` >> $resultFile\" >> $tmpRemoteFile;",
                             "echo \"echo \\\"FINISH=1\\\" >> $resultFile\" >> $tmpRemoteFile;",
-                            "echo rm ~$job{user}/$tmpRemoteFile >> $tmpRemoteFile;",
+                            # this line is not valid "echo rm ~$job{user}/$tmpRemoteFile >> $tmpRemoteFile;",
                             "chmod +x $tmpRemoteFile ;",
                             #"cd $job{execDir} ;",
                             "sudo -H -u $job{user} sh -c \"cp $tmpRemoteFile $job{execDir}/. \" ;",
