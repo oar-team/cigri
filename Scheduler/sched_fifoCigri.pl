@@ -23,6 +23,7 @@ use iolibCigri;
 use Data::Dumper;
 use colomboCigri;
 use integer;
+use ConfLibCigri qw(init_conf get_conf is_conf);
 
 
 my $base = iolibCigri::connect();
@@ -67,8 +68,13 @@ foreach my $i (sort(keys(%nbRemainedJobs))){
                 $k++;
             }
             if ($number > 0){
-                print("[Scheduler] add toLaunch MJob : $i; cluster : $j; nb jobs : $number\n");
-                iolibCigri::add_job_to_launch($base,$i,$j,$number);
+                my $flood_value = 0;
+                if (ConfLibCigri::is_conf("flood_parameter")){
+                    $flood_value = ConfLibCigri::get_conf("flood_parameter");
+                }
+                my $nb_jobs_to_launch = $number + ($number * $flood_value / 100);
+                print("[Scheduler] add toLaunch MJob : $i; cluster : $j; nb jobs : $nb_jobs_to_launch\n");
+                iolibCigri::add_job_to_launch($base,$i,$j,$nb_jobs_to_launch);
                 $nbRemainedJobs{$i} -= $number;
             }
         }
