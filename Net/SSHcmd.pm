@@ -106,7 +106,7 @@ sub submitCmd($$){
 			$closeConnection = 1;
 		}
 	}else{
-		print("[SSHcmd] I use an existing connection\n");
+		#print("[SSHcmd] I use an existing connection\n");
 	}
 	if ($closeConnection == 0){
 		# get connection filehandle to manage it

@@ -41,7 +41,6 @@ foreach my $i (@MjobsToCollect){
 	my @clusterVisited;
 	my @collectedJobs;
 	foreach my $j (@jobs){
-		print("[COLLECTOR] $$j{jobId}\n");
 		my %cmdResult;
 
 		if ($#clusterVisited < 0){
@@ -86,13 +85,13 @@ foreach my $i (@MjobsToCollect){
 		}
 	}
 
-	print("[COLLECTOR] rm all files of the MJob $i\n");
 	foreach my $j (@jobsBis){
 		my %cmdResult;
 		my @fileToDownload =(	"OAR.cigri.tmp.$$j{jobId}.$$j{jobBatchId}.stdout",
 								"OAR.cigri.tmp.$$j{jobId}.$$j{jobBatchId}.stderr"
 							);
 		foreach my $k (@fileToDownload){
+			print("[COLLECTOR] rm file ~$$j{userLogin}/$k on cluster $$j{nodeClusterName}\n");
 			%cmdResult = SSHcmd::submitCmd($$j{nodeClusterName}, "sudo -u $$j{userLogin} rm -f ~$$j{userLogin}/$k");
 			if ($cmdResult{STDERR} ne ""){
 				die("DIE --> SSHcmd::submitCmd($$j{nodeClusterName}, sudo -u $$j{userLogin} rm -f ~$$j{userLogin}/$k\n");
