@@ -406,8 +406,10 @@ sub update_nb_freeNodes($){
 	#en of verif
 
 	$sth = $dbh->prepare("	SELECT nodeClusterName, COUNT(*)
-							FROM nodes
+							FROM nodes,clusters
 							WHERE nodeState = \"FREE\"
+							AND nodeClusterName = clusterName
+							AND clusterState = \"Alive\"
 							GROUP BY nodeClusterName");
 	$sth->execute();
 

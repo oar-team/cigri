@@ -169,6 +169,9 @@ foreach my $i (keys(%jobRunningHash)){
 
 iolibCigri::check_end_MJobs($base);
 
+#check errors in the database
+iolibCigri::analyse_error($base);
+
 iolibCigri::update_nb_freeNodes($base);
 
 iolibCigri::disconnect($base);
