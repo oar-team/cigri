@@ -124,6 +124,7 @@ propertiesClusterName VARCHAR( 100 ) NOT NULL ,
 propertiesMJobsId INT UNSIGNED NOT NULL ,
 propertiesJobCmd VARCHAR( 255 ) NOT NULL ,
 propertiesErrorChecker VARCHAR( 255 ) ,
+propertiesActivated ENUM('ON','OFF') NOT NULL DEFAULT 'ON',
 PRIMARY KEY (propertiesClusterName,propertiesMJobsId)
 );
 
