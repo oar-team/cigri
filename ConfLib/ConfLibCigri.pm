@@ -42,7 +42,7 @@ my $file = undef;
 ## container pour les parametres...
 my %params;
 ## regex pour une ligne valide du fichier de conf.
-my $regex = qr{^\s*([^#=\s]+)\s*=\s*([^#]*)};
+my $regex = qr{^\s*([^#=\s]+)\s*=\s*"([^#]*)"};
 
 ## Initialisation de la configuration
 ## arg1 = fichier de conf ou rien
