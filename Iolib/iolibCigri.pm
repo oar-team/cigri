@@ -1085,7 +1085,12 @@ sub rollback_transaction($){
 	$dbh->rollback;
 }
 
-#sub lock_collector($){
-#	my $dbh = shift;
-#	$dbh->do("LO");
-#}
+sub lock_collector($){
+	my $dbh = shift;
+	$dbh->do("LOCK TABLES semaphoreCollector WRITE");
+}
+
+sub unlock_collector($){
+	my $dbh = shift;
+	$dbh->do("UNLOCK TABLES");
+}

@@ -24,6 +24,8 @@ use Data::Dumper;
 use SSHcmd;
 
 my $base = iolibCigri::connect();
+my $baseLock = iolibCigri::connect();
+iolibCigri::lock_collector($baseLock);
 
 my @MjobsToCollect;
 
@@ -137,6 +139,7 @@ foreach my $i (@MjobsToCollect){
 	iolibCigri::commit_transaction($base);
 }
 
+iolibCigri::unlock_collector($baseLock);
 iolibCigri::disconnect($base);
 
 sub get_file_names($){

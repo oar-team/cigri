@@ -179,6 +179,12 @@ currentSchedulerId INT UNSIGNED NOT NULL ,
 PRIMARY KEY (currentSchedulerId)
 )TYPE = InnoDB;
 
+DROP TABLE IF EXISTS semaphoreCollector;
+CREATE TABLE IF NOT EXISTS semaphoreCollector (
+semaphoreCollectorId INT UNSIGNED NOT NULL ,
+PRIMARY KEY (semaphoreCollectorId)
+)TYPE = InnoDB;
+
 
 INSERT INTO clusters (clusterName,clusterAdmin,clusterBatch) VALUES ("pawnee", "", "OAR");
 #INSERT INTO clusters (clusterName,clusterAdmin,clusterBatch) VALUES ("i4", "", "PBS");
