@@ -65,12 +65,16 @@ let execQuery dbd q =
       | Some s -> (Printf.printf "[SCHEDULER][SQLERROR] : %s\n" s; failwith "execQuery")
 	  
 let getInfoMjobs dbd = 
-  let resMJobs = execQuery dbd "SELECT multipleJobsRemainedMJobsId, multipleJobsRemainedNumber 
-                                        FROM multipleJobsRemained" in 
+  let resMJobs = execQuery dbd "SELECT parametersMJobsId, COUNT(*)
+                             FROM parameters,multipleJobs
+                             WHERE MJobsId = parametersMJobsId
+                             AND MJobsState = \"IN_TREATMENT\"
+                             GROUP BY parametersMJobsId
+                             ORDER BY parametersMJobsId DESC" in
   let getOneInfo a = 
     let id = Mysql.int2ml (get_option a.(0)) in
     let res_User_TSub = execQuery dbd 
-		 (Printf.sprintf "SELECT MJobsUser, MJobsTSub FROM multipleJobs WHERE MJobsId = %d" id) in
+			  (Printf.sprintf "SELECT MJobsUser, MJobsTSub FROM multipleJobs WHERE MJobsId = %d" id) in
     let res_ClName = execQuery dbd 
 		       (Printf.sprintf "SELECT propertiesClusterName FROM properties 
                                         WHERE propertiesMJobsId = %d" id) in
@@ -84,18 +88,20 @@ let getInfoMjobs dbd =
     let list_BlackList = Mysql.map res_BlackList
 			   (fun a -> get_option a.(0))  in
 
-    let array1 = get_option (Mysql.fetch res_User_TSub) in
+    let array_user_tsub = get_option (Mysql.fetch res_User_TSub) in
       { mjobId = id;
-	mjobUser = get_option (array1.(0));
-	mjobTsub = Mysql.datetime2ml (get_option (array1.(1)));
+	mjobUser = get_option (array_user_tsub.(0));
+	mjobTsub = Mysql.datetime2ml (get_option (array_user_tsub.(1)));
 	mjobLeftJobs = Mysql.int2ml (get_option a.(1));
 	mjobClusters = List.filter (fun c -> not (List.mem c list_BlackList)) list_ClName; } in  
     
     Mysql.map resMJobs getOneInfo
 
 let getFreeNodes dbd = 
-  let resFreeNodes = execQuery dbd "SELECT clusterFreeNodesClusterName, clusterFreeNodesNumber 
-                                                   FROM clusterFreeNodes" in 
+  let resFreeNodes = execQuery dbd "SELECT nodeClusterName,count(*)
+                                FROM nodes
+                                WHERE nodeState = \"FREE\"
+                                GROUP BY nodeClusterName" in
     Mysql.map resFreeNodes 
       (fun a -> { clusterName = get_option a.(0);
 		  clusterNodes = Mysql.int2ml (get_option a.(1)) }) 
@@ -112,10 +118,11 @@ let makeAssign dbd a =
 
 let conf_file = ref "/etc/cigri.conf"
 
-(* open Options
+open Options
 
 (* Version qui aurait pu marcher si Nico ne mettait pas des / de m...
    sans les protéger par des guillemets *)
+		  
 let read_conf file = 
   let opf = create_options_file file in 
   let db_host = define_option opf ["database_host"] "" string_option "localhost"
@@ -130,11 +137,15 @@ let read_conf file =
       Mysql.dbname = convert (!! db_name);
       Mysql.dbport = None;
       Mysql.dbpwd = convert (!! db_userpassword);
-      Mysql.dbuser = convert (!! db_username) } *)
+      Mysql.dbuser = convert (!! db_username) } 
+
+
 
 (* La vraie version. Y'a pas intérêt à ce que tu me mettes des mots finissant par un /.
    Sinon je te démonte *)
     
+(*
+
 let read_conf file = 
   let rec parse list = parser 
       [< _ = parse_assoc list; _ = parse list ?? "Beuh" >] -> ()
@@ -180,7 +191,10 @@ let read_conf file =
       Mysql.dbport = None;
       Mysql.dbpwd = convert (! db_userpasswd);
       Mysql.dbuser = convert (! db_username) }
-    
+  
+
+*)
+  
 (* Le programme principal *)    
 
 let main = 
