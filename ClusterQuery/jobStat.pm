@@ -85,7 +85,7 @@ sub oarstat($$$){
     }else{
         my $qstatStr = $cmdResult{STDOUT};
         chomp($qstatStr);
-        my @jobsStrs = split(/^s*\n/m,$qstatStr);
+        my @jobsStrs = split(/^\s*\n/m,$qstatStr);
         # for each job section, record its state
         foreach my $jobStr (@jobsStrs){
             $jobStr =~ /Job Id: (\d+).*job_state = (.).*/s;
