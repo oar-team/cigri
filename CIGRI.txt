@@ -1,0 +1,24 @@
+Hypotheses cote cluster:
+- acces a une grappe en temps que user non privilegie (user cigri)
+- pas d'acces direct aux noeuds, passage par le qsub local obligatoire
+- pas de modif profonde du systeme de batch
+- pas de modif profonde du comportement du cluster (job best effort)
+Hypotheses cote CIGRI:
+- pool de job parametrique, tolerant aux pannes
+
+Solution 1:
+- Proposition:
+pas de
+
+Solution 2:
+- Proposition:
+cigri accede aux noeuds du cluster via le qsub local, mais les jobs lances sont wrappes dans un meta-job qui assure le best-effort (ce meta job est independant des jobs):
+Ce wrapper est charge de detecter si le cluster se charge et de stopper le travail en cours le cas echeant.
+La fonction de detection est fournie sous forme de module.
+La fonction de stoppage tue simplement tous les processus du user cigri sur le noeud concerne
+- Pro:
+on ne touche pas au scheduler.
+les jobs cigri sont geres (monitores) normalement dans le batch scheduler
+- Con:
+
+Solution 3:
