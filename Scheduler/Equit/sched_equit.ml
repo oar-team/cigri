@@ -80,7 +80,7 @@ let getInfoMjobs dbd =
     let res_BlackList = execQuery dbd 
 			  (Printf.sprintf "SELECT clusterBlackListClusterName FROM clusterBlackList, events
                                            WHERE (clusterBlackListMJobsID = %d OR clusterBlackListMJobsID = 0)
-                                             AND (clusterBlackListEventId = eventId AND eventState = ToFIX)" id) in 
+                                             AND (clusterBlackListEventId = eventId AND eventState = \'ToFIX\')" id) in 
     let list_BlackList = Mysql.map res_BlackList
 			   (fun a -> get_option a.(0))  in
 
