@@ -103,7 +103,7 @@ let makeAssign dbd a =
 
 let conf_file = ref "/etc/cigri.conf"
 
-open Options
+(* open Options
 
 (* Version qui aurait pu marcher si Nico ne mettait pas des / de m...
    sans les protéger par des guillemets *)
@@ -121,7 +121,7 @@ let read_conf file =
       Mysql.dbname = convert (!! db_name);
       Mysql.dbport = None;
       Mysql.dbpwd = convert (!! db_userpassword);
-      Mysql.dbuser = convert (!! db_username) }
+      Mysql.dbuser = convert (!! db_username) } *)
 
 (* La vraie version. Y'a pas intérêt à ce que tu me mettes des mots finissant par un /.
    Sinon je te démonte *)
