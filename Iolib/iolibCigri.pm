@@ -643,3 +643,15 @@ sub update_att_job($$$$$){
 				WHERE jobId = $id");
 }
 
+# reschedule a job parameter
+# arg1 --> database parameter
+# arg2 --> idJob to resubmit
+sub resubmit_job($$){
+	my $dbh = shift;
+	my $jobId = shift;
+	$dbh->do("	INSERT INTO parameters (parametersMJobsId,parametersParam)
+				SELECT jobMJobsId, jobParam
+				FROM jobs
+				WHERE jobId = $jobId
+			");
+}
