@@ -111,6 +111,18 @@ EOF;
 // }}}
 
 // {{{ All jobs
+	case 'jobs':
+		cigri_register_menu_item($menu,$currentarray,"aj","All Jobs","account.php?submenu=stats&option=jobs",3,true);
+		$smarty->assign('login',$login);
+		$smarty->assign('contenttemplate',"account/stats/jobs.tpl");
+		// assign time repartition
+		if (isset($_GET['timerepartition'])) {
+			$smarty->assign('timerepartition',$_GET['timerepartition']);
+		}
+		else {
+			$smarty->assign('timerepartition',"week");
+		}
+		break;
 // }}}
 
         default:
