@@ -189,7 +189,7 @@ while (1){
 			}elsif ($command eq "Time"){
 				$state="Time update";
 			}else{
-				warn("unknown command found in queue\n");
+				warn("unknown command found in queue : $command\n");
 			}
 			last SWITCH;
 		}
