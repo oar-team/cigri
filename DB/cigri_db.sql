@@ -89,6 +89,7 @@ MJobsUser VARCHAR( 50 ) NOT NULL ,
 MJobsName VARCHAR( 255 ) ,
 MJobsTSub DATETIME ,
 INDEX MJOBsState (MJobsState),
+INDEX MJobsUser (MJobsUser),
 INDEX MJOBsId (MJobsId),
 PRIMARY KEY (MJobsId)
 )TYPE = InnoDB;
