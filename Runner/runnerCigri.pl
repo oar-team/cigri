@@ -67,7 +67,7 @@ foreach my $i (@jobList){
 					"cd ~$$i{user} ;",
 					"sudo -u $$i{user} /bin/cp ~/$tmpRemoteFile . ;",
 					"rm ~/$tmpRemoteFile ;",
-					"sudo -u $$i{user} $qsubCommand{$$i{batch}} -l nodes=1 `pwd`/$tmpRemoteFile;"
+					"sudo -u $$i{user} $qsubCommand{$$i{batch}} -l nodes=1 -q besteffort `pwd`/$tmpRemoteFile;"
 	);
 
 	my $cmdString = join(" ", @cmdSSH);
@@ -76,8 +76,10 @@ print(Dumper(%cmdResult));
 	if ($cmdResult{STDERR} ne ""){
 		print("[RUNNER_STDERR] $cmdResult{STDERR}");
 		iolibCigri::set_job_state($base,$jobId,"Error");
+		#
 		iolibCigri::insert_new_error($base,"RUNNER_SUBMIT",$jobId,$cmdResult{STDERR});
-	}elsif ($cmdResult{STDOUT} ne ""){
+		#
+	}else{
 		my @strTmp = split(/\n/, $cmdResult{STDOUT});
 		my $configured = 0;
 		foreach my $k (@strTmp){
@@ -90,12 +92,15 @@ print(Dumper(%cmdResult));
 		if ($configured == 1){
 			iolibCigri::set_job_state($base,$jobId,"Running");
 		}else{
-			print("[RUNNER] There is a mistake, the job $jobId state is unchanged, bad remote batch id\n");
-			iolibCigri::insert_new_error($base,"JOBID_PARSE","$jobId","There is a mistake, the job $jobId state is unchanged, bad remote batch id");
+			print("[RUNNER] There is a mistake, the job $jobId state = ERROR, bad remote batch id\n");
+			iolibCigri::set_job_state($base, $jobId, "Error");
+			iolibCigri::set_job_message($base, $jobId, "can t determine the remoteJobId");
+			#
+			iolibCigri::resubmit_job($base,$jobId);
+			iolibCigri::insert_new_error($base,"JOBID_PARSE","$jobId","There is a mistake, the job $jobId state = ERROR, bad remote batch id");
+			#
+
 		}
-	}else{
-		print("[RUNNER] There is a mistake, the job $jobId state is unchanged\n");
-		iolibCigri::insert_new_error($base,"JOBID_PARSE","$jobId","There is a mistake, the job $jobId state is unchanged, no STDERR no STDOUT");
 	}
 }
 iolibCigri::disconnect($base);
