@@ -44,12 +44,18 @@ sub qget($){
 	my $carac;
 
 	my $client=$server->accept();
-
+	my $remoteHost = $client->peerhost();
+	print("Connected host = $remoteHost\n");
+	if ("$remoteHost" ne "127.0.0.1"){
+		print("BAD PEER HOST\n");
+		close($client);
+		return 1;
+	}
 	vec($rin,fileno($client),1) = 1;
 	$res = select($rin, undef, undef, $readerTimeout);
 	$carac="A";
 	while (($res > 0) && ($carac ne "\n")){
-		die "Fin d'ecoute appendiciale" unless sysread($client, $carac, 1);
+		die "Fin d'ecoute" unless sysread($client, $carac, 1);
 		if ($carac ne "\n"){
 			$answer = $answer.$carac;
 			$res = select($rin, undef, undef, $readerTimeout);
@@ -75,10 +81,10 @@ sub qget($){
 		print $client "Bad request\n";
 	}
 	close($client);
-	return $answer;
+	return 0;
 }
 
 while (1){
-	my @answer = qget(1000);
+	qget(1000);
 }
 
