@@ -68,11 +68,9 @@ foreach my $j (keys(%clusterNames)){
                             "cd ~$job{user} ;",
                             "sudo -u $job{user} /bin/cp ~/$tmpRemoteFile . ;",
                             "rm ~/$tmpRemoteFile ;"
-                            #"sudo -u $job{user} $qsubCommand{$job{batch}} -l nodes=1 -q besteffort `pwd`/$tmpRemoteFile;"
                          );
 
             my $cmdString = join(" ", @cmdSSH);
-            #my %cmdResult = SSHcmdClient::submitCmd($job{clusterName},$cmdString);
             my %cmdResult = SSHcmd::submitCmd($job{clusterName},$cmdString);
             if ($cmdResult{STDERR} ne ""){
                 print("[RUNNER_STDERR] $cmdResult{STDERR}");

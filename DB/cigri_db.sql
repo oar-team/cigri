@@ -25,7 +25,6 @@ eventClass ENUM('CLUSTER','SCHEDULER','JOB','MJOB') NOT NULL ,
 eventState ENUM('ToFIX','FIXED') DEFAULT 'ToFIX' NOT NULL ,
 eventJobId BIGINT UNSIGNED ,
 eventClusterName VARCHAR( 100 ) ,
-#eventNodeId INT UNSIGNED ,
 eventSchedulerId INT UNSIGNED ,
 eventMJobsId INT UNSIGNED ,
 eventDate DATETIME NOT NULL ,
@@ -51,7 +50,6 @@ PRIMARY KEY (clusterName)
 
 DROP TABLE IF EXISTS nodes;
 CREATE TABLE IF NOT EXISTS nodes (
-#nodeId INT UNSIGNED NOT NULL AUTO_INCREMENT ,
 nodeName VARCHAR( 100 ) NOT NULL ,
 nodeClusterName VARCHAR( 100 ) NOT NULL ,
 nodeState ENUM('BUSY','FREE') DEFAULT 'BUSY' NOT NULL ,
@@ -68,7 +66,6 @@ jobMJobsId INT UNSIGNED ,
 jobParam VARCHAR( 255 ) ,
 jobName VARCHAR( 255 ) ,
 jobClusterName VARCHAR( 100 ) NOT NULL ,
-#jobNodeId INT UNSIGNED ,
 jobNodeName VARCHAR( 100 ) ,
 jobBatchId INT UNSIGNED ,
 jobRetCode INT ,
@@ -114,20 +111,6 @@ propertiesJobCmd VARCHAR( 255 ) NOT NULL ,
 INDEX propertiesMJobsId (propertiesMJobsId),
 PRIMARY KEY (propertiesClusterName,propertiesMJobsId)
 )TYPE = InnoDB;
-
-#DROP TABLE IF EXISTS clusterFreeNodes;
-#CREATE TABLE IF NOT EXISTS clusterFreeNodes (
-#clusterFreeNodesClusterName VARCHAR( 100 ) NOT NULL ,
-#clusterFreeNodesNumber INT UNSIGNED NOT NULL ,
-#PRIMARY KEY (clusterFreeNodesClusterName)
-#)TYPE = InnoDB;
-
-#DROP TABLE IF EXISTS multipleJobsRemained;
-#CREATE TABLE IF NOT EXISTS multipleJobsRemained (
-#multipleJobsRemainedMJobsId INT UNSIGNED NOT NULL ,
-#multipleJobsRemainedNumber INT NOT NULL ,
-#PRIMARY KEY (multipleJobsRemainedMJobsId)
-#)TYPE = InnoDB;
 
 DROP TABLE IF EXISTS jobsToSubmit;
 CREATE TABLE IF NOT EXISTS jobsToSubmit (
@@ -207,8 +190,7 @@ CREATE TABLE IF NOT EXISTS collectBlackList (
 collectBlackListNum INT UNSIGNED NOT NULL ,
 collectBlackListMJobsID INT UNSIGNED ,
 collectBlackListClusterName VARCHAR( 100 ) ,
-collectBlackListEventId INT UNSIGNED NOT NULL ,
-#PRIMARY KEY ()
+collectBlackListEventId INT UNSIGNED NOT NULL
 )TYPE = InnoDB;
 
 DROP TABLE IF EXISTS schedulerBlackList;
@@ -231,10 +213,10 @@ fragLogEventId INT UNSIGNED NOT NULL ,
 PRIMARY KEY (fragLogEventId)
 )TYPE = InnoDB;
 
-INSERT INTO clusters (clusterName,clusterAdmin,clusterBatch) VALUES ("pawnee", "", "OAR");
+#INSERT INTO clusters (clusterName,clusterAdmin,clusterBatch) VALUES ("pawnee", "", "OAR");
 #INSERT INTO clusters (clusterName,clusterAdmin,clusterBatch) VALUES ("i4", "", "PBS");
 
-INSERT INTO users (userGridName,userClusterName,userLogin) VALUES ("capitn", "pawnee", "capitn");
+#INSERT INTO users (userGridName,userClusterName,userLogin) VALUES ("capitn", "pawnee", "capitn");
 
 INSERT INTO schedulers (schedulerFile,schedulerPriority) VALUES ("sched_equitCigri",2);
 INSERT INTO schedulers (schedulerFile,schedulerPriority) VALUES ("sched_fifoCigri.pl",1);
