@@ -40,7 +40,7 @@
 		</table>
 		<table border="0" cellpadding="5" cellspacing="0">
 		<tr><td colspan="3">&nbsp;</td></tr>
-		<tr><td><input type="submit" name="fix" value="Fix errors"></td><td>&nbsp;</td><td><input type="submit" name="resub" value="Re-submit Jobs"></td></tr>
+		<tr><td><input type="submit" name="fix" value="Only fix errors"></td><td>&nbsp;</td><td><input type="submit" name="resub" value="Fix and re-submit Jobs"></td></tr>
 		</table>
 		</form>
 

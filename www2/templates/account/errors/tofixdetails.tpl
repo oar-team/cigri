@@ -44,7 +44,7 @@
 		<input type="hidden" name="errorid" value="{$eventid}">
 		<table border="0" cellpadding="5" cellspacing="0">
 			<tr><td colspan="3">&nbsp;</td></tr>
-			<tr><td><input type="submit" name="fix" value="Fix error"></td><td>&nbsp;</td><td><input type="submit" name="resub" value="Re-submit Job"></td></tr>
+			<tr><td><input type="submit" name="fix" value="Only fix error"></td><td>&nbsp;</td><td><input type="submit" name="resub" value="Fix and re-submit Job"></td></tr>
 		</table>
 		</form>
 

@@ -313,7 +313,7 @@ EOF;
 			}
 			else if (isset($_GET['resub'])) {
 				// Re submit job(s)
-				cigri_register_menu_item($menu,$currentarray,"aetofixaction","Job Resubmission","account.php?submenu=errors&option=fixaction&resub=ok",4,true);
+				cigri_register_menu_item($menu,$currentarray,"aetofixaction","Fix error and Job Resubmission","account.php?submenu=errors&option=fixaction&resub=ok",4,true);
 				$smarty->assign('action','Jobs resubmission');
 				$smarty->assign('shortaction','resub');
 			}
@@ -362,6 +362,17 @@ VALUES
 	({$res[$i][4]},'{$res[$i][5]}','{$res[$i][3]}',0)
 EOF;
 							mysql_query($query,$link);
+							if (mysql_affected_rows($link) > 0) {
+								$query = <<<EOF
+UPDATE
+	events
+SET
+	eventState = 'FIXED'
+WHERE
+	eventId = {$res[$i][0]}
+EOF;
+								mysql_query($query,$link);
+							}
 							$updates += mysql_affected_rows($link);
 						}
 						if ($updates < 0) $updates = 0;
