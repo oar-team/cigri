@@ -14,7 +14,7 @@ our (@ISA,@EXPORT,@EXPORT_OK);
 
 # line to print after a ssh command. With that we can know the end of the command
 my $endLineTag = "lacommandeestterminee";
-my $timeoutConnexion = 10;
+my $timeoutConnexion = 600;
 
 my %sshConnections;
 my $fileHandleId = 0;
