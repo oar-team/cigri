@@ -53,10 +53,10 @@ foreach my $i (@MjobsToCollect){
 
 		# clean the repository on the remote cluster
 		if (!defined($clusterVisited{$$j{nodeClusterName}})){
-			%cmdResult = SSHcmd::submitCmd($$j{nodeClusterName}, "if [ -d ~cigri/results ]; then rm -rf ~cigri/results/* ; else mkdir ~cigri/results ; fi");
+			%cmdResult = SSHcmd::submitCmd($$j{nodeClusterName}, "if [ -d ~cigri/results_tmp ]; then rm -rf ~cigri/results_tmp/* ; else mkdir ~cigri/results_tmp ; fi");
 			if ($cmdResult{STDERR} ne ""){
 				iolibCigri::rollback_transaction($base);
-				die("[COLLECTOR] DIE --> SSHcmd::submitCmd($$j{nodeClusterName}, \"if [ -d ~cigri/results ]; then rm -rf ~cigri/results/* ; else mkdir ~cigri/results ; fi\") -- $cmdResult{STDERR} \n");
+				die("[COLLECTOR] DIE --> SSHcmd::submitCmd($$j{nodeClusterName}, \"if [ -d ~cigri/results_tmp ]; then rm -rf ~cigri/results_tmp/* ; else mkdir ~cigri/results_tmp ; fi\") -- $cmdResult{STDERR} \n");
 			}
 		}
 
@@ -70,11 +70,11 @@ foreach my $i (@MjobsToCollect){
 		while((($k = pop(@fileToDownload)) ne "") and ($error == 0)){
 			if ($error == 0){
 				if ("$hashfileToDownload{$k}" ne ""){
-					print("[COLLECTOR] tar rf ~cigri/results/$i.tar -C ~$$j{userLogin} $hashfileToDownload{$k}  -- on $$j{nodeClusterName}\n");
-					%cmdResult = SSHcmd::submitCmd($$j{nodeClusterName}, "test ! -e ~$$j{userLogin}/$hashfileToDownload{$k} && test -e ~$$j{userLogin}/$k && sudo -u $$j{userLogin} mv ~$$j{userLogin}/$k ~$$j{userLogin}/$hashfileToDownload{$k} && tar rf ~cigri/results/$i.tar -C ~$$j{userLogin} $hashfileToDownload{$k} && echo nimportequoi");
+					print("[COLLECTOR] tar rf ~cigri/results_tmp/$i.tar -C ~$$j{userLogin} $hashfileToDownload{$k}  -- on $$j{nodeClusterName}\n");
+					%cmdResult = SSHcmd::submitCmd($$j{nodeClusterName}, "test ! -e ~$$j{userLogin}/$hashfileToDownload{$k} && test -e ~$$j{userLogin}/$k && sudo -u $$j{userLogin} mv ~$$j{userLogin}/$k ~$$j{userLogin}/$hashfileToDownload{$k} && tar rf ~cigri/results_tmp/$i.tar -C ~$$j{userLogin} $hashfileToDownload{$k} && echo nimportequoi");
 				}else{
-					print("[COLLECTOR] tar rf ~cigri/results/$i.tar -C ~$$j{userLogin} $k  -- on $$j{nodeClusterName}\n");
-					%cmdResult = SSHcmd::submitCmd($$j{nodeClusterName}, "test -e ~$$j{userLogin}/$k && tar rf ~cigri/results/$i.tar -C ~$$j{userLogin} $k && echo nimportequoi");
+					print("[COLLECTOR] tar rf ~cigri/results_tmp/$i.tar -C ~$$j{userLogin} $k  -- on $$j{nodeClusterName}\n");
+					%cmdResult = SSHcmd::submitCmd($$j{nodeClusterName}, "test -e ~$$j{userLogin}/$k && tar rf ~cigri/results_tmp/$i.tar -C ~$$j{userLogin} $k && echo nimportequoi");
 				}
 				#print(Dumper(%cmdResult));
 				if ($cmdResult{STDERR} ne ""){
@@ -82,12 +82,12 @@ foreach my $i (@MjobsToCollect){
 					foreach my $l (@jobTaredTmp){
 						undef(%cmdResult);
 						if ("$hashfileToDownload{$l}" ne ""){
-							%cmdResult = SSHcmd::submitCmd($$j{nodeClusterName}, "tar --delete -f ~cigri/results/$i.tar $hashfileToDownload{$l}");
+							%cmdResult = SSHcmd::submitCmd($$j{nodeClusterName}, "tar --delete -f ~cigri/results_tmp/$i.tar $hashfileToDownload{$l}");
 						}else{
-							%cmdResult = SSHcmd::submitCmd($$j{nodeClusterName}, "tar --delete -f ~cigri/results/$i.tar $l");
+							%cmdResult = SSHcmd::submitCmd($$j{nodeClusterName}, "tar --delete -f ~cigri/results_tmp/$i.tar $l");
 						}
 						if ($cmdResult{STDERR} ne ""){
-							warn("Can t delete $l in ~cigri/results/$i.tar\n");
+							warn("Can t delete $l in ~cigri/results_tmp/$i.tar\n");
 						}
 					}
 					$error = 1;
@@ -127,12 +127,12 @@ foreach my $i (@MjobsToCollect){
 			die("DIE exit_code=$?\n");
 		}
 
-		my %cmdResult = SSHcmd::submitCmd($j, "gzip ~cigri/results/$i.tar");
+		my %cmdResult = SSHcmd::submitCmd($j, "gzip ~cigri/results_tmp/$i.tar");
 		if ($cmdResult{STDERR} ne ""){
-			warn("ERREUR --> SSHcmd::submitCmd($j, \"gzip ~cigri/results/$i.tar\") -- $cmdResult{STDERR}\n");
+			warn("ERREUR --> SSHcmd::submitCmd($j, \"gzip ~cigri/results_tmp/$i.tar\") -- $cmdResult{STDERR}\n");
 		}else{
-			print("scp -q $j:~cigri/results/$i.tar.gz ~cigri/results/$userGridName/$i/$resColl[2].tar.gz \n");
-			system("scp -q $j:~cigri/results/$i.tar.gz ~cigri/results/$userGridName/$i/$resColl[2].tar.gz");
+			print("scp -q $j:~cigri/results_tmp/$i.tar.gz ~cigri/results/$userGridName/$i/$resColl[2].tar.gz \n");
+			system("scp -q $j:~cigri/results_tmp/$i.tar.gz ~cigri/results/$userGridName/$i/$resColl[2].tar.gz");
 			if( $? != 0 ){
 				warn("Error exit_code=$?\n");
 				undef(%collectedJobs);
