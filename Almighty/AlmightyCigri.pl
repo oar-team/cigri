@@ -39,6 +39,7 @@ if (is_conf("installPath")){
 #set paths of executables
 my $runner_command = $path."runnerCigri.pl";
 my $updator_command = $path."updatorCigri.pl";
+my $nikita_command = $path."nikitaCigri.pl";
 
 my $base = iolibCigri::connect();
 
@@ -88,11 +89,17 @@ sub updator(){
 	return launch_command($updator_command);
 }
 
+# launch nikita command
+sub nikita(){
+	return launch_command($nikita_command);
+}
+
 # core of the AlmightyCigri
 while (1){
 	updator();
 	scheduler();
 	runner();
+	nikita();
 	print("I make a pause of $timeout seconds :-)\n");
 	sleep($timeout);
 }
