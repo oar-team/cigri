@@ -469,7 +469,12 @@ sub update_nb_freeNodes($){
 # Penser a enlever egalement les noeuds de la blacklist
 	$dbh->do("TRUNCATE TABLE clusterFreeNodes");
 	foreach my $i (keys(%resultNode)){
-		my $tmpNumber = $resultNode{$i} - $resultJob{$i};
+		my $tmpNumber;
+		if (defined($resultJob{$i})){
+			$tmpNumber= $resultNode{$i} - $resultJob{$i};
+		}else{
+			$tmpNumber = $resultNode{$i};
+		}
 		$dbh->do("INSERT INTO clusterFreeNodes (clusterFreeNodesClusterName,clusterFreeNodesNumber)
 					VALUES (\"$i\",$tmpNumber)");
 	}
