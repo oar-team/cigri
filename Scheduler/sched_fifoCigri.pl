@@ -35,7 +35,7 @@ my %nbRemoteWaitingJobWeight = iolibCigri::get_cluster_remoteWaiting_job_weight(
 
 #print(Dumper(%nbFreeNodes));
 
-foreach my $i (keys(%nbRemainedJobs)){
+foreach my $i (sort(keys(%nbRemainedJobs))){
     my %propertiesClusterName = iolibCigri::get_MJobs_Properties($base, $i);
     foreach my $j (keys(%propertiesClusterName)){
         if (colomboCigri::is_cluster_active($base,$j,$i) == 0){
