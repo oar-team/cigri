@@ -763,8 +763,11 @@ sub get_MJobs_Properties($$){
     my $id = shift;
 
     my $sth = $dbh->prepare("   SELECT   propertiesClusterName,propertiesJobWeight
-                                FROM properties
+                                FROM properties, users, multipleJobs
                                 WHERE propertiesMJobsId = $id
+                                    AND propertiesClusterName = userClusterName
+                                    AND userGridName = MJobsUser
+                                    AND MJobsId = propertiesMJobsId
                             ");
     $sth->execute();
 
