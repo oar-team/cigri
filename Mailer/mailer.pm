@@ -50,11 +50,12 @@ sub sendMail($$){
             my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime;
             $year += 1900;
             $mon += 1;
-            open(FILE, ">> /tmp/ERROR_CIGRI_mailer.log");
-            my $str = "Can t send an email to $mailRecipientAddress from $mailSenderAddress; Object : $object ;; Body : $body";
-            print(FILE "[$year-$mon-$mday $hour:$min:$sec] $str\n");
-            #print("[ERROR MAILER] $str\n");
-            close(FILE);
+            if (open(FILE, ">> /tmp/ERROR_CIGRI_mailer.log")){
+                my $str = "Can t send an email to $mailRecipientAddress from $mailSenderAddress; Object : $object ;; Body : $body";
+                print(FILE "[$year-$mon-$mday $hour:$min:$sec] $str\n");
+                #print("[ERROR MAILER] $str\n");
+                close(FILE);
+            }
         }else{
             $smtp->mail($mailSenderAddress);
             $smtp->to($mailRecipientAddress);
