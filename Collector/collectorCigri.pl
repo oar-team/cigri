@@ -242,6 +242,10 @@ exit 0;
 sub get_file_names($){
     my $j = shift;
     my %result ;
+    #A modifier, mais pour le moment je ne sais pas interpreter des chemins
+    if ($$j{jobName} =~ m/.*\/.*/m){
+        $$j{jobName} = "";
+    }
     if($$j{jobName} ne ""){
         $result{"OAR.cigri.tmp.$$j{jobId}.$$j{jobBatchId}.stdout"} = "$$j{jobName}.$$j{jobId}.stdout";
         $result{"OAR.cigri.tmp.$$j{jobId}.$$j{jobBatchId}.stderr"} = "$$j{jobName}.$$j{jobId}.stderr";
