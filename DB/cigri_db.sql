@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS jobs (
 jobId BIGINT UNSIGNED NOT NULL AUTO_INCREMENT ,
 #jobType VARCHAR( 100 ) ,
 #jobJDL MEDIUMBLOB ,
-jobState ENUM('toLaunch', 'Running','Terminated', 'Error') NOT NULL ,
+jobState ENUM('toLaunch', 'Waiting', 'Running','Terminated', 'Error') NOT NULL ,
 #jobUser VARCHAR( 50 ) NOT NULL ,
 jobMJobsId INT UNSIGNED ,
 jobCmd VARCHAR( 255 ) ,
@@ -120,11 +120,11 @@ INDEX param (parametersMJobsId)
 
 DROP TABLE IF EXISTS properties;
 CREATE TABLE IF NOT EXISTS properties (
-clusterName VARCHAR( 100 ) NOT NULL ,
-MJobsId INT UNSIGNED NOT NULL ,
-executable VARCHAR( 255 ) NOT NULL ,
-errorChecker VARCHAR( 255 ) ,
-PRIMARY KEY (clusterName,MJobsId)
+propertiesClusterName VARCHAR( 100 ) NOT NULL ,
+propertiesMJobsId INT UNSIGNED NOT NULL ,
+propertiesExecutable VARCHAR( 255 ) NOT NULL ,
+propertiesErrorChecker VARCHAR( 255 ) ,
+PRIMARY KEY (propertiesClusterName,propertiesMJobsId)
 );
 
 INSERT INTO clusters (clusterName,clusterAdmin,clusterBatch) VALUES ("pawnee", "", "OAR");

@@ -95,7 +95,7 @@ sub add_mjobs($$) {
 			foreach my $j (@clusters){
 				if ($j ne "DEFAULT"){
 					if (defined($JDLParserCigri::clusterConf{$j}{execFile})){
-						$dbh->do("INSERT INTO properties (clusterName,MJobsId,executable) VALUES (\"$j\",$id,\"$JDLParserCigri::clusterConf{$j}{execFile}\")");
+						$dbh->do("INSERT INTO properties (propertiesClusterName,propertiesMJobsId,propertiesExecutable) VALUES (\"$j\",$id,\"$JDLParserCigri::clusterConf{$j}{execFile}\")");
 					}else{
 						return -3;
 					}
