@@ -298,14 +298,17 @@ sub get_node_cluster($$){
 # return an array of hashtables
 sub get_launching_job($) {
 	my $dbh = shift;
-	my $sth = $dbh->prepare("SELECT jobId,jobParam,nodeName,propertiesJobCmd,nodeClusterName,clusterBatch,MJobsUser
-							FROM jobs,nodes,clusters,multipleJobs,properties
+	my $sth = $dbh->prepare("SELECT jobId,jobParam,nodeName,propertiesJobCmd,nodeClusterName,clusterBatch,userLogin
+							FROM jobs,nodes,clusters,multipleJobs,properties,users
 							WHERE jobState=\"toLaunch\"
 								AND jobNodeId = nodeId
 								AND nodeClusterName = clusterName
 								AND MJobsId = jobMJobsId
 								AND propertiesClusterName = clusterName
-								And propertiesMJobsId = MJobsId");
+								And propertiesMJobsId = MJobsId
+								AND MJobsUser = userGridName
+								AND userClusterName = clusterName
+							");
 	$sth->execute();
 
 	my @result ;
@@ -360,10 +363,11 @@ sub set_job_batch_id($$$){
 # return a hashtable of array refs : ${${$resul{pawnee}}[0]}{batchJobId} --> give the first batchId for the cluster pawnee
 sub get_job_to_update_state($){
 	my $dbh = shift;
-	my $sth = $dbh->prepare("	SELECT jobBatchId,nodeClusterName,jobId,MJobsUser
-								FROM jobs,nodes,multipleJobs,clusters
+	my $sth = $dbh->prepare("	SELECT jobBatchId,nodeClusterName,jobId,userLogin
+								FROM jobs,nodes,multipleJobs,clusters,users
 								WHERE (jobState = \"Running\" or jobState = \"RemoteWaiting\") and jobNodeId = nodeId
 								and MJobsId = jobMJobsId and clusterName = nodeClusterName and clusterState = \"Alive\"
+								and MJobsUser = userGridName and clusterName = userClusterName
 								");
 	$sth->execute();
 
@@ -559,73 +563,74 @@ sub create_toLaunch_jobs($){
 	my $time;
 	my $query;
 	foreach my $i (@result){
-		# get parameters for this MJobs on this cluster
-		$sth = $dbh->prepare("SELECT parametersParam
-								FROM parameters
-								WHERE $i->{jobsToSubmitMJobsId} = parametersMJobsId
-								ORDER BY parametersPriority DESC
-								LIMIT 0,$i->{jobsToSubmitNumber}");
-		$sth->execute();
-		my @parametersTmp;
-		while (my @ref = $sth->fetchrow_array()) {
-			push(@parametersTmp, $ref[0]);
-		}
-		$sth->finish();
+		if ($i->{jobsToSubmitNumber} != 0){
+			# get parameters for this MJobs on this cluster
+			$sth = $dbh->prepare("SELECT parametersParam
+									FROM parameters
+									WHERE $i->{jobsToSubmitMJobsId} = parametersMJobsId
+									ORDER BY parametersPriority DESC
+									LIMIT 0,$i->{jobsToSubmitNumber}");
+			$sth->execute();
+			my @parametersTmp;
+			while (my @ref = $sth->fetchrow_array()) {
+				push(@parametersTmp, $ref[0]);
+			}
+			$sth->finish();
 
-		if (scalar(@parametersTmp) != $i->{jobsToSubmitNumber}){
-			warn("[Iolib] Erreur de choix du scheduler pour le nb de parametres\n");
-			insert_new_schedulerError($dbh,"NB_PARAMS"," Erreur de choix du scheduler pour le nb de parametres");
-			return 1;
-		}
+			if (scalar(@parametersTmp) != $i->{jobsToSubmitNumber}){
+				warn("[Iolib] Erreur de choix du scheduler pour le nb de parametres\n");
+				insert_new_schedulerError($dbh,"NB_PARAMS"," Erreur de choix du scheduler pour le nb de parametres");
+				return 1;
+			}
 
-		# get right nodes
-		$sth = $dbh->prepare("	SELECT nodeId
-								FROM nodes
-								WHERE nodeState = \"FREE\"
-								AND nodeClusterName = \"$i->{jobsToSubmitClusterName}\"
-								LIMIT $i->{jobsToSubmitNumber}
-								");
-		$sth->execute();
-		my @nodesTmp;
-		while (my @ref = $sth->fetchrow_array()) {
-			push(@nodesTmp, $ref[0]);
-		}
-		$sth->finish();
+			# get right nodes
+			$sth = $dbh->prepare("	SELECT nodeId
+									FROM nodes
+									WHERE nodeState = \"FREE\"
+									AND nodeClusterName = \"$i->{jobsToSubmitClusterName}\"
+									LIMIT $i->{jobsToSubmitNumber}
+									");
+			$sth->execute();
+			my @nodesTmp;
+			while (my @ref = $sth->fetchrow_array()) {
+				push(@nodesTmp, $ref[0]);
+			}
+			$sth->finish();
 
-		if (scalar(@nodesTmp) != $i->{jobsToSubmitNumber}){
-			warn("[Iolib] Erreur de choix du scheduler pour le nb de noeuds\n");
-			insert_new_schedulerError($dbh,"NB_NODES","Erreur de choix du scheduler pour le nb de noeuds");
-			return 1;
-		}
+			if (scalar(@nodesTmp) != $i->{jobsToSubmitNumber}){
+				warn("[Iolib] Erreur de choix du scheduler pour le nb de noeuds\n");
+				insert_new_schedulerError($dbh,"NB_NODES","Erreur de choix du scheduler pour le nb de noeuds");
+				return 1;
+			}
 
-		for (my $j=0; $j < $i->{jobsToSubmitNumber}; $j++){
-			#add jobs in jobs table
-			$time = get_date();
-			$dbh->do("	INSERT INTO jobs (jobState,jobMJobsId,jobParam,jobNodeId,jobTSub)
-						VALUES (\"toLaunch\",$i->{jobsToSubmitMJobsId},\"$parametersTmp[$j]\",$nodesTmp[$j],\"$time\")");
+			for (my $j=0; $j < $i->{jobsToSubmitNumber}; $j++){
+				#add jobs in jobs table
+				$time = get_date();
+				$dbh->do("	INSERT INTO jobs (jobState,jobMJobsId,jobParam,jobNodeId,jobTSub)
+							VALUES (\"toLaunch\",$i->{jobsToSubmitMJobsId},\"$parametersTmp[$j]\",$nodesTmp[$j],\"$time\")");
+			}
+			# delete used params
+			$query = "";
+			foreach my $k (@parametersTmp){
+				$query .= " OR parametersParam = \"$k\"";
+			}
+			#remove first OR or of the query
+			$query =~ /\sOR\s(.*)/;
+			$query = $1;
+			$dbh->do("	DELETE FROM parameters
+						WHERE parametersMJobsId = $i->{jobsToSubmitMJobsId}
+						AND ( $query )
+					");
+			# set to BUSY used nodes
+			$query = "";
+			foreach my $k (@nodesTmp){
+				$query .= " OR nodeId = $k";
+			}
+			#remove first OR or of the query
+			$query =~ /\sOR\s(.*)/;
+			$query = $1;
+			$dbh->do("UPDATE nodes SET nodeState = \"BUSY\" WHERE $query");
 		}
-		# delete used params
-		$query = "";
-		foreach my $k (@parametersTmp){
-			$query .= " OR parametersParam = \"$k\"";
-		}
-		#remove first OR or of the query
-		$query =~ /\sOR\s(.*)/;
-		$query = $1;
-		$dbh->do("	DELETE FROM parameters
-					WHERE parametersMJobsId = $i->{jobsToSubmitMJobsId}
-					AND ( $query )
-				");
-		# set to BUSY used nodes
-		$query = "";
-		foreach my $k (@nodesTmp){
-			$query .= " OR nodeId = $k";
-		}
-		#remove first OR or of the query
-		$query =~ /\sOR\s(.*)/;
-		$query = $1;
-		$dbh->do("UPDATE nodes SET nodeState = \"BUSY\" WHERE $query");
-
 	}
 }
 
@@ -865,3 +870,96 @@ sub is_cluster_down($$){
 	$sth->finish();
 	return $ref[0];
 }
+
+# return jobs to collect
+# arg1 --> database ref
+# return --> a hashtable (clusterName --> a hashtable (MJobsId --> an array (jobBatchId)))
+sub get_tocollect_filesTmp($){
+	my $dbh = shift;
+	my $sth = $dbh->prepare("	SELECT nodeClusterName, jobMJobsId, jobBatchId
+								FROM jobs, nodes
+								WHERE jobState = \"Terminated\"
+								AND jobCollected = \"NO\"
+								AND jobNodeId = nodeId
+							");
+	$sth->execute();
+	my %result;
+	my %clusterResult;
+
+	while (my @ref = $sth->fetchrow_array()) {
+		if (not defined($result{$ref[0]})){
+			my %initHash;
+			$result{$ref[0]} = \%initHash;
+		}
+		if (not defined(${$result{$ref[0]}}{$ref[1]})){
+			my @initArray;
+			${$result{$ref[0]}}{$ref[1]} = \@initArray;
+		}
+		push(@{${$result{$ref[0]}}{$ref[1]}}, $ref[2]);
+	}
+
+	$sth->finish();
+	return %result;
+}
+
+# return jobs to collect
+# arg1 --> database ref
+# return --> a hashtable (clusterName --> a hashtable (MJobsId --> an array (jobBatchId)))
+sub get_tocollect_files($){
+	my $dbh = shift;
+	my $sth = $dbh->prepare("	SELECT nodeClusterName, jobMJobsId, userLogin, jobBatchId, userGridName, clusterBatch, jobId
+								FROM jobs, nodes, multipleJobs, users, clusters
+								WHERE jobState = \"Terminated\"
+								AND jobCollectorId = 0
+								AND jobNodeId = nodeId
+								AND jobMJobsId = MJobsId
+								AND MJobsUser = userGridName
+								AND clusterName = nodeClusterName
+							");
+	$sth->execute();
+	my @result;
+
+	while (my $ref = $sth->fetchrow_hashref()) {
+		push(@result, $ref);
+	}
+
+	$sth->finish();
+	return @result;
+}
+
+# add a new collector entry
+# arg1 --> database ref
+# arg2 --> cluster name
+sub create_new_collector($$) {
+	my $dbh = shift;
+	my $cluster = shift;
+
+	my $sth = $dbh->prepare("SELECT MAX(collectorId)+1 FROM collector");
+	$sth->execute();
+	my $ref = $sth->fetchrow_hashref();
+	my @tmp = values(%$ref);
+	my $id = $tmp[0];
+	$sth->finish();
+	if($id eq "") {
+		$id = 1;
+	}
+
+	my $fileName = "$id.$cluster";
+	$dbh->do("INSERT INTO collector (collectorId,collectorFileName)
+				VALUES (\"$id\",\"$fileName\")");
+	my @res = ($id,$fileName);
+	return @res;
+}
+
+# set the collectedId cell of a job
+# arg1 --> database ref
+# arg2 --> jobId
+# arg3 --> collectorId
+sub set_job_collectedId($$$){
+	my $dbh = shift;
+	my $jobId = shift;
+	my $collectorId = shift;
+
+	$dbh->do("UPDATE jobs SET jobCollectorId = $collectorId where jobId = $jobId");
+}
+
