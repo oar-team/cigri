@@ -40,20 +40,22 @@ my %submitCmd = ('PBS' => \&pbssubmit,
 #arg3 --> user
 #arg4 --> jobFile to submit
 #arg5 --> walltime of the job
+#arg6 --> weight of the job
 #return jobBatchId or -1 or -2 if something wrong happens
-sub jobSubmit($$$$$){
+sub jobSubmit($$$$$$){
     my $cluster = shift;
     my $blackNodes = shift;
     my $user = shift;
     my $jobFile = shift;
     my $walltime = shift;
+    my $weight = shift;
 
     my $base = iolibCigri::connect();
     my %clusterProperties = iolibCigri::get_cluster_names_batch($base);
     my %result ;
     my $retCode = -1;
     if (defined($cluster) && defined($clusterProperties{$cluster})){
-        $retCode = &{$submitCmd{$clusterProperties{$cluster}}}($base,$cluster,$blackNodes,$user,$jobFile,$walltime);
+    $retCode = &{$submitCmd{$clusterProperties{$cluster}}}($base,$cluster,$blackNodes,$user,$jobFile,$walltime,$weight);
     }
     iolibCigri::disconnect($base);
     return($retCode);
@@ -80,13 +82,15 @@ sub endJobSubmissions($){
 #arg4 --> user
 #arg5 --> jobFile to submit
 #arg6 --> walltime
-sub pbssubmit($$$$$$){
+#arg7 --> weight
+sub pbssubmit($$$$$$$){
     my $dbh = shift;
     my $cluster = shift;
     my $blackNodes = shift;
     my $user = shift;
     my $jobFile = shift;
     my $walltime = shift;
+    my $weight = shift;
 
     print("PBS NOT IMPLEMENTED -- $cluster\n");
     return(-1);
@@ -98,19 +102,21 @@ sub pbssubmit($$$$$$){
 #arg4 --> user
 #arg5 --> jobFile to submit
 #arg6 --> walltime
+#arg7 --> weight
 #return jodBatchId or
 #   -1 : for a command execution error
 #   -2 : for a jobId parse error
-sub oarsubmit($$$$$$){
+sub oarsubmit($$$$$$$){
     my $dbh = shift;
     my $cluster = shift;
     my $blackNodes = shift;
     my $user = shift;
     my $jobFile = shift;
     my $walltime = shift;
+    my $weight = shift;
 
     print("$cluster --> OAR\n");
-    my $weight = iolibCigri::get_cluster_default_weight($dbh,$cluster);
+    #my $weight = iolibCigri::get_cluster_default_weight($dbh,$cluster);
     #my %cmdResult = SSHcmdClient::submitCmd($cluster,"cd ~$user; sudo -u $user oarsub -l nodes=1,weight=$weight -q besteffort ~$user/$jobFile");
 
     my $propertyString;
@@ -148,8 +154,9 @@ sub oarsubmit($$$$$$){
 #arg4 --> user
 #arg5 --> jobFile to submit
 #arg6 --> walltime
+#arg7 --> weight
 #return jodBatchId or -1 for an error
-sub oarsubmitMysql($$$$$$){
+sub oarsubmitMysql($$$$$$$){
     my $dbh = shift;
     my $cluster = shift;
     my $blackNodes = shift;
@@ -157,6 +164,7 @@ sub oarsubmitMysql($$$$$$){
     my $jobFile = shift;
     #not implemented
     my $walltime = shift;
+    my $weight = shift;
 
     print("OAR_mysql -- $cluster\n");
     my $OARdb = OARiolib::connect($dbh,$cluster);

@@ -164,11 +164,15 @@ sub add_mjobs($$) {
                 if ($j ne "DEFAULT"){
                     if (defined($JDLParserCigri::clusterConf{$j}{execFile})){
                         my $jobWalltime = "1:00:00";
+                        my $jobWeight = 1;
                         if (defined($JDLParserCigri::clusterConf{$j}{walltime})){
                             $jobWalltime = $JDLParserCigri::clusterConf{$j}{walltime};
                         }
-                        $dbh->do("INSERT INTO properties (propertiesClusterName,propertiesMJobsId,propertiesJobCmd,propertiesJobWalltime)
-                                  VALUES (\"$j\",$id,\"$JDLParserCigri::clusterConf{$j}{execFile}\",\"$jobWalltime\")");
+                        if (defined($JDLParserCigri::clusterConf{$j}{weight})){
+                            $jobWeight = $JDLParserCigri::clusterConf{$j}{weight};
+                        }
+                        $dbh->do("INSERT INTO properties (propertiesClusterName,propertiesMJobsId,propertiesJobCmd,propertiesJobWalltime,propertiesJobWeight)
+                                  VALUES (\"$j\",$id,\"$JDLParserCigri::clusterConf{$j}{execFile}\",\"$jobWalltime\",$jobWeight)");
                     }else{
                         rollback_transaction($dbh);
                         return -3;
@@ -277,7 +281,7 @@ sub get_cluster_default_weight($$){
 # arg1 --> database ref
 sub disable_all_nodes($){
     my $dbh = shift;
-    $dbh->do("UPDATE nodes SET nodeState = \'BUSY\'");
+    $dbh->do("UPDATE nodes SET nodeFreeWeight = 0");
 }
 
 # tests if the node exists in the database
@@ -316,26 +320,26 @@ sub add_node($$$) {
     print("[IoLib] I create the node $nodeName in the cluster $clusterName \n");
 }
 
-# set the state of the given cluster node
+# set the number of free weights for the given cluster node
 # arg1 --> database ref
 # arg2 --> cluster name
 # arg3 --> node name
-# arg4 --> state
-sub set_cluster_node_state($$$$){
+# arg4 --> nb free weights
+sub set_cluster_node_free_weight($$$$){
     my $dbh = shift;
     my $clusterName = shift;
     my $nodeName = shift;
-    my $state = shift;
+    my $freeWeight = shift;
     # Test if the node exists
     if (is_node_exist($dbh, $clusterName, $nodeName) == 0){
         # The node is created
         add_node($dbh, $clusterName, $nodeName);
     }
 
-    if ($state eq "free"){
-        my $sth = $dbh->prepare("UPDATE nodes SET nodeState = \'FREE\'
-                                    WHERE nodeClusterName = \"$clusterName\"
-                                        and nodeName = \"$nodeName\"");
+    if ($freeWeight > 0){
+        my $sth = $dbh->prepare("UPDATE nodes SET nodeFreeWeight = $freeWeight
+                                 WHERE nodeClusterName = \"$clusterName\"
+                                       and nodeName = \"$nodeName\"");
         $sth->execute();
         $sth->finish();
     }
@@ -420,7 +424,7 @@ sub get_MJobs_JDL($$){
 sub get_launching_job($$) {
     my $dbh = shift;
     my $clusterName = shift;
-    my $sth = $dbh->prepare("SELECT jobId,jobParam,propertiesJobCmd,jobClusterName,clusterBatch,userLogin,MJobsId,propertiesJobWalltime
+    my $sth = $dbh->prepare("SELECT jobId,jobParam,propertiesJobCmd,jobClusterName,clusterBatch,userLogin,MJobsId,propertiesJobWalltime,propertiesJobWeight 
                             FROM jobs,clusters,multipleJobs,properties,users
                             WHERE jobState=\"toLaunch\"
                                 AND clusterName = \"$clusterName\"
@@ -445,7 +449,8 @@ sub get_launching_job($$) {
         'batch'         => $ref[4],
         'user'          => $ref[5],
         'mjobid'        => $ref[6],
-        'walltime'      => $ref[7]
+        'walltime'      => $ref[7],
+        'weight'        => $ref[8]
     );
 
     return %result;
@@ -657,20 +662,21 @@ sub get_job_to_update_state($){
     # }
 # }
 
-# get the number of free nodes for each cluster
+# get the number of free nodes for each cluster and their free weights
 # arg1 --> database ref
+# return a hashtable : clusterName-->[[nodeName,nodeFreeWeight]]
 sub get_nb_freeNodes($){
     my $dbh = shift;
 
-    my $sth = $dbh->prepare("   SELECT nodeClusterName,count(*)
+    my $sth = $dbh->prepare("   SELECT nodeClusterName,nodeName,nodeFreeWeight
                                 FROM nodes
-                                WHERE nodeState = \"FREE\"
-                                GROUP BY nodeClusterName");
+                                WHERE nodeFreeWeight > 0
+                            ");
     $sth->execute();
 
     my %result;
     while (my @ref = $sth->fetchrow_array()) {
-        $result{$ref[0]} = $ref[1];
+        push(@{$result{$ref[0]}}, [$ref[1],$ref[2]]);
     }
 
     $sth->finish();
@@ -707,21 +713,21 @@ sub get_MJobs_Properties($$){
     my $dbh = shift;
     my $id = shift;
 
-    my $sth = $dbh->prepare("    SELECT   propertiesClusterName
+    my $sth = $dbh->prepare("   SELECT   propertiesClusterName,propertiesJobWeight
                                 FROM properties
                                 WHERE propertiesMJobsId = $id
                             ");
     $sth->execute();
 
-    my @result;
+    my %result;
     while (my @ref = $sth->fetchrow_array()) {
         if (colomboCigri::is_cluster_active($dbh,$ref[0],$id) == 0){
-            push(@result, $ref[0]);
+            $result{$ref[0]} = $ref[1];
         }
     }
     $sth->finish();
 
-    return @result;
+    return %result;
 }
 
 # Add a job to launch

@@ -40,7 +40,7 @@ clusterName VARCHAR( 100 ) NOT NULL ,
 clusterAdmin VARCHAR( 100 ) NOT NULL ,
 clusterBatch ENUM('PBS','OAR','OAR_mysql') DEFAULT 'OAR' NOT NULL ,
 clusterAlias VARCHAR( 20 ) ,
-clusterDefaultWeight INT UNSIGNED DEFAULT 1 ,
+#clusterDefaultWeight INT UNSIGNED DEFAULT 1 ,
 clusterMysqlUser VARCHAR( 50 ) ,
 clusterMysqlPassword VARCHAR( 50 ) ,
 clusterMysqlDatabase VARCHAR( 50 ) ,
@@ -52,8 +52,7 @@ DROP TABLE IF EXISTS nodes;
 CREATE TABLE IF NOT EXISTS nodes (
 nodeName VARCHAR( 100 ) NOT NULL ,
 nodeClusterName VARCHAR( 100 ) NOT NULL ,
-nodeState ENUM('BUSY','FREE') DEFAULT 'BUSY' NOT NULL ,
-INDEX nodeState (nodeState),
+nodeFreeWeight INT UNSIGNED DEFAULT 0 NOT NULL ,
 INDEX nodeClusterName (nodeClusterName),
 PRIMARY KEY (nodeName,nodeClusterName)
 )TYPE = InnoDB;
@@ -109,6 +108,7 @@ propertiesClusterName VARCHAR( 100 ) NOT NULL ,
 propertiesMJobsId INT UNSIGNED NOT NULL ,
 propertiesJobCmd VARCHAR( 255 ) NOT NULL ,
 propertiesJobWalltime TIME NOT NULL ,
+propertiesJobWeight INT UNSIGNED NOT NULL ,
 INDEX propertiesMJobsId (propertiesMJobsId),
 PRIMARY KEY (propertiesClusterName,propertiesMJobsId)
 )TYPE = InnoDB;

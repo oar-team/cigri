@@ -22,6 +22,7 @@ BEGIN {
 use iolibCigri;
 use Data::Dumper;
 use colomboCigri;
+use integer;
 
 
 my $base = iolibCigri::connect();
@@ -31,20 +32,28 @@ print "[SCHEDULER] Begining of scheduler FIFO\n";
 my %nbFreeNodes = iolibCigri::get_nb_freeNodes($base);
 my %nbRemainedJobs = iolibCigri::get_nb_remained_jobs($base);
 
+#print(Dumper(%nbFreeNodes));
+
 foreach my $i (keys(%nbRemainedJobs)){
-    my @propertiesClusterName = iolibCigri::get_MJobs_Properties($base, $i);
-    foreach my $j (@propertiesClusterName){
+    my %propertiesClusterName = iolibCigri::get_MJobs_Properties($base, $i);
+    foreach my $j (keys(%propertiesClusterName)){
         if (colomboCigri::is_cluster_active($base,$j,$i) == 0){
             my $number = 0 ;
-            if ($nbFreeNodes{$j} > 0){
-                if ($nbRemainedJobs{$i} <= $nbFreeNodes{$j}){
-                    $number = $nbRemainedJobs{$i};
-                }else{
-                    $number = $nbFreeNodes{$j};
+            my $k = 0;
+            while (($k <= $#{$nbFreeNodes{$j}}) && ($number < $nbRemainedJobs{$i})){
+                #print(Dumper(@{$nbFreeNodes{$j}})."\n---------------------------------------------------\n");
+                if (${${$nbFreeNodes{$j}}[$k]}[1] >= $propertiesClusterName{$j}){
+                    $number += ${${$nbFreeNodes{$j}}[$k]}[1] / $propertiesClusterName{$j};
+                    if ($number > $nbRemainedJobs{$i}){
+                        ${${$nbFreeNodes{$j}}[$k]}[1] += $number - $nbRemainedJobs{$i};
+                        $number = $nbRemainedJobs{$i};
+                    }
+                    ${${$nbFreeNodes{$j}}[$k]}[1] = ${${$nbFreeNodes{$j}}[$k]}[1] % $propertiesClusterName{$j};
                 }
+                $k++;
             }
             if ($number > 0){
-                print("[Scheduler] add toLaunch MJob : $i; cluster : $j; nb nodes : $number\n");
+                print("[Scheduler] add toLaunch MJob : $i; cluster : $j; nb jobs : $number\n");
                 iolibCigri::add_job_to_launch($base,$i,$j,$number);
                 $nbRemainedJobs{$i} -= $number;
             }

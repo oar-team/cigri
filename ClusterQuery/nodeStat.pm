@@ -77,26 +77,31 @@ sub oarnodes($$){
             my @lines = split(/\n/, $nodeStr);
             my $name = shift(@lines);
             $name =~ s/\s//g;
-            my $state;
+            my $currentWeight;
+            my $maxWeight;
             my $besteffort;
             my $lineTmp;
             my $key;
             # parse pbsnodes command
-            while ((! defined($state) || (! defined($besteffort))) && ($#lines >= 0)){
+            while ((! defined($currentWeight) || (! defined($maxWeight)) || (! defined($besteffort))) && ($#lines >= 0)){
                 $lineTmp = shift(@lines);
-                if ($lineTmp =~ /state =/){
-                    ($key, $state) = split("=", $lineTmp);
+                if ($lineTmp =~ /weight =/){
+                    ($key, $currentWeight) = split("=", $lineTmp);
                     # I drop spaces
-                    $state =~ s/\s//g;
+                    $currentWeight =~ s/\s//g;
+                }elsif ($lineTmp =~ /pcpus =/){
+                    ($key, $maxWeight) = split("=", $lineTmp);
+                    # I drop spaces
+                    $maxWeight =~ s/\s//g;
                 }elsif ($lineTmp =~ /properties =/){
                     $lineTmp =~ /^.+besteffort=(YES|NO).*$/;
                     $besteffort = $1;
                 }
             }
-            if (defined($name) && defined($state) && defined($besteffort)){
+            if (defined($name) && defined($maxWeight) && defined($currentWeight) && defined($besteffort)){
                 if ($besteffort eq "YES"){
                     # Databse update
-                    iolibCigri::set_cluster_node_state($dbh, $cluster, $name, $state);
+                    iolibCigri::set_cluster_node_free_weight($dbh, $cluster, $name, $maxWeight-$currentWeight);
                 }
             }else{
                 print("[UPDATOR] There is an error in the oarnodes command parse, node=$name;state=$state\n");

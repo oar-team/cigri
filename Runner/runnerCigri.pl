@@ -83,7 +83,7 @@ foreach my $j (keys(%clusterNames)){
                 exit(66);
             }else{
                 my @blackNodes = colomboCigri::get_blacklisted_nodes($base,$job{mjobid},$job{clusterName});
-                my $retCode = jobSubmit::jobSubmit($job{clusterName},\@blackNodes,$job{user},$tmpRemoteFile,$job{walltime});
+                my $retCode = jobSubmit::jobSubmit($job{clusterName},\@blackNodes,$job{user},$tmpRemoteFile,$job{walltime},$job{weight});
                 if ($retCode < 0){
                     if ($retCode == -2){
                         print("[RUNNER] There is a mistake, the job $jobId state = ERROR, bad remote batch id\n");
