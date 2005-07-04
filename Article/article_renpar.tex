@@ -9,11 +9,384 @@
 %--- Chargement de package ---
 \documentclass[11pt,twoside,a4paper]{article}
 
+\usepackage[frenchb]{babel}
+\usepackage[ansinew]{inputenc}
+\usepackage{graphicx}
+
+%\usepackage[T1]{fontenc}
+%\usepackage[latin1]{inputenc}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{isolatin1,epsfig,shadow,renpar2004,euler,palatino}
+%\usepackage[french]{babel}
+%===========================================================
+%                               Title
+%===========================================================
+\newcommand{\filet}{\noindent\rule[0mm]{\textwidth}{0.2mm}}
+\newcommand{\tab}{\makebox[1 cm][l]{}}
+\pagestyle{plain}
+
+\setlength{\textfloatsep}{.59cm}
+\setlength{\floatsep}{.4cm}
+%\setlength{\dblfloatsep}{4cm}
+
+
+\setlength{\intextsep}{0.3cm}
+\setlength{\headsep}{0cm}
+
+\setlength{\abovecaptionskip}{0mm}
+
+
+\begin{document}
+
+
+\parindent=0pt
+
+
+\title{\Large\bf {CIGRI : Expériences autour de l'exploitation d'une grille légère\footnote{Le travail a été effectué dans le cadre du projet APACHE (CNRS, INPG, INRIA et UJF), du projet LIPS (Bull et INRIA) et la CIFRE numéro 924/2003.}}}
+
+
+\author{Nicolas Capit, Estelle Gabarron\footnote{Prenom.Nom@imag.fr}}
+
+\address{Laboratoire Informatique et Distribution -IMAG\\Projet APACHE\\ENSIMAG - Antenne de Montbonnot ZIRST\\51, Avenue Jean Kuntzmann\\38330 Montbonnot Saint-Martin - FRANCE\\}
+
+%\address{BULL SA\\1 rue de Provence\\ BP 208\\ 38432 ECHIROLLES Cedex\\}
+
+\date{date}
+
+\maketitle
+
+%===========================================================         
+%R\'esum\'e
+%===========================================================  
+%\Resume{Résumé}
+\Resume{}
+
+Cet article présente le gestionnaire CIGRI, qui répond à une certaine problématique de la gestion de ressources en environnement de grappes de calcul. Cet outil permet de fédérer un ensemble de grappes exploitées par des gestionnaires de ressources (comme OAR \cite{oar}) et les utilisent pour contrôler l'exécution de campagnes importantes de programmes multi-paramétriques (sac de tâches de plusieurs dizaines de milliers). Dans ce contexte la grille est vue comme une fédération de grappes où l'administration est simplifiée, nous parlons alors de grille légère.\\
+Ce système utilise une base de données comme élément central d'échange et de stockage d'informations. La quantité importante de tâches soumises par le type d'applications visées nous amène à considérer la problématique des erreurs survenant dans un système complexe. L'analyse de la base de données montre que sur plus d'un million de tâches soumises, 32 d'entre elles, soit moins $0,01\%$, se sont terminées sans que le système ait su les gérer.
+
+\MotsCles{grille légère, exploitation des ressources inutilisées, gestion des erreurs, grande échelle}
+
+
+\section{Introduction}
+
+Les grilles tiennent à l'heure actuelle une place de plus en plus importante dans le monde de la recherche et bien des projets tournent autour de ce sujet. Une grille consiste à partager des ressources entre plusieurs utilisateurs ou communautés d'utilisateurs. On peut partager aussi bien l'espace de stockage que les cycles processeurs, la mémoire, certaines applications, ou bien encore une architecture matérielle se trouvant sur un autre site.\\
+Parmi les problématiques importantes liées à la mise en place d'une grille, on peut noter l'hétéro-généité des ressources, ou bien encore la volatilité de ces dernières. Se pose également un problème de sécurité, avec différentes politiques de sécurité sur les différents sites.\\
+
+Parmi les multiples projets dans ce domaine, on peut distinguer deux grands types d'architectures : l'architecture grille de type client/serveur et l'architecture pair à pair. Un des projets phare dans le premier cas est le logiciel Globus \cite{globus}. Ce logiciel a débuté en $1997$ avec Ian Foster du Argonne National Laboratory, et a déjà subi de nombreuses évolutions. Sa mise en place se compose en quatre piliers : la sécurité (GSI), l'allocation des ressources (GRAM), la découverte et l'indexation des ressources (MDS) et enfin la gestion des données (GridFTP et RFT). Ce système est fondé sur les services web et est très complexe. L'un des principaux modules qui gère la sécurité est lourd à mettre en place et n'est pas primordial dans la mise en place de la grille grenobloise. \\
+Les architectures pair à pair constituent le deuxième grand type de projets dans le domaine des grilles. Le plus populaire est \textit{seti@home} qui exécute du calcul réparti sur un ensemble de machines volontaires sur internet. On peut citer également d'autres projets comme XTremWeb dans le domaine de la recherche ou bien encore les systèmes d'échange de fichiers de type Kazaa. \\
+
+La notion de grille légère peut être présentée comme l'intermédiaire entre ces deux types d'architectures. Dans la suite de ce document, nous présentons le logiciel CIGRI développé au laboratoire ID-IMAG permettant de lancer des calculs sur un ensemble de grappes de PC.
+
+\section{Le gestionnaire pour grille légère CIGRI}
+
+CIGRI est le programme qui rassemble toutes les différentes grappes des différents sites et utilise leurs puissances respectives quand elles
+sont inutilisées.\\
+
+Le logiciel CIGRI est le résultat de l'ACI GRID CIGRI visant à développer une grille grenobloise au
+sein de la communauté CIMENT (Calcul Intensif, Modélisation, Expérimentation Numérique et Technologique). Cette communauté est composée de
+plusieurs laboratoires qui ont décidés de mettre en commun leurs différents moyens de calcul. Voici leur liste:
+\begin{itemize}
+\item \textit{\begin{scriptsize}Techniques de l'Imagerie de la Modélisation et de la Cognition \end{scriptsize}}(TIMC-IMAG).
+\item \textit{\begin{scriptsize}Informatique et Distribution \end{scriptsize}}(ID-IMAG).
+\item \textit{\begin{scriptsize}Laboratoire de Physique et Modélisation des Milieux Condensés \end{scriptsize}}(LPMMC).
+\item \textit{\begin{scriptsize}Laboratoire d'AstroPhysique de Grenoble \end{scriptsize}}(LAOG).
+\item \textit{\begin{scriptsize}Laboratoire de Modélisation et Calcul \end{scriptsize}}(LMC-IMAG, MIRAGE).
+\item \textit{\begin{scriptsize}Centre d'Expérimentation du Calcul Intensif en Chimie \end{scriptsize}}(CECIC).\\
+\end{itemize}
+
+\begin{figure}[!h]
+\begin{center}
+\includegraphics[scale=0.5]{images/topologie_ciment.eps}
+\caption{Récapitulatif des différentes machines de la communauté CIMENT. \label{Topoligie CIMENT}}
+\end{center}
+\end{figure}
+
+Ce qui caractérise le logiciel CIGRI est la notion de grille légère. En effet, tous les problèmes inhérents aux grilles de calcul ne sont
+pas traités (comme par exemple l'authentification des utilisateurs par une unité centralisée). D'un autre côté, les différents sites (de la figure \ref{Topoligie CIMENT}) sont relativement homogènes, pas forcément
+en terme de type de machines mais surtout en terme de choix d'administration. De plus la communauté CIMENT permet des échanges de
+compétences et de savoir faire entre les différents domaines (par exemple, le laboratoire ID-IMAG apporte son expertise
+et son savoir faire dans les grappes de PC). Donc les machines ne sont pas cloisonnées, leur administration est assez souple et
+elles sont ouvertes à l'expérimentation. La notion de grille légère découle de ce contexte de proximité et de souplesse.\\
+Dans sa première version, CIGRI vise les applications de type multi-paramétriques comme par exemple les programmes reposant sur un algorithme de type
+Monte Carlo (comme ceux de Pierre Valiron\cite{valiron} en chimie). Ce type de calcul est assez répandu et génère un nombre de tâches très important. Le but est de pouvoir traiter le flot
+d'exécution de sacs de tâches et de garantir que tout s'est bien passé (l'ordre de grandeur d'une campagne d'évaluation est de 100~000 tâches
+).\\
+
+L'utilisation de CIGRI nécessite la disponibilité d'un gestionnaire de ressources sur chacun des sites. OAR en est un exemple. Ce
+gestionnaire a été développé afin d'implémenter des fonctionnalités qui n'existent pas dans les systèmes existants tels que PBS\cite{pbs},
+Condor\cite{condor} ou bien encore SGE. Son but est de rester dans une complexité de code faible via une approche de haut niveau. Cela permet une
+spécialisation simplifiée du gestionnaire et par là de tester de nouveaux algorithmes d'ordonnancement ou de nouveaux modes d'exploitation.\\
+
+Dans la suite de ce paragraphe, l'architecture de CIGRI est présentée ainsi que son fonctionnement.
+
+\subsection{Architecture}
+
+L'architecture du logiciel CIGRI se compose d'un serveur qui communique avec tous les gestionnaires de ressources des grappes.
+L'objectif est d'être le moins intrusif possible sur les sites. Contrairement à des approches comme Globus\cite{globus}\cite{ogsa02} (qui
+utilise la notion de "GateKeeper"), aucun logiciel spécifique CIGRI n'est installé sur les grappes. Les outils système classiques sont
+utilisés (ssh, bash, cat,...).
+
+\begin{figure}[!h]
+\begin{center}
+\includegraphics[scale=0.5]{images/schemaArchitecture.eps}
+\caption{Modèle de communication avec les différents sites. \label{Architecture CIGRI}}
+\end{center}
+\end{figure}
+
+
+Un problème important à résoudre est celui de la politique d'utilisation des différentes grappes. En effet grâce à ce mode grille,
+des utilisateurs étrangers à un site peuvent utiliser la puissance de calcul de celui-ci.
+La notion de tâches "besteffort" a été introduite dans OAR pour résoudre ce problème.
+Elles ont la particularité d'avoir une priorité nulle, c'est-à-dire qu'elles s'exécutent quand l'occupation de la machine le permet et
+elles sont détruites si une soumission locale a besoin de leurs n\oe uds.
+Il est donc nécessaire d'avoir des programmes qui résistent à l'arrêt brutal et à la resoumission. Cette approche résout le problème
+de la cohabitation entre personnes de différentes communautés.\\
+
+Au niveau de la conception du logiciel nous avons choisi une conception de haut niveau articulée autour d'une base de données. Elle permet
+de gérer un grand nombre d'informations et apporte une certaine robustesse. Le logiciel CIGRI est conçu selon une décomposition en modules interagissant par l'intermédiaire d'une base de données. La base de données contient
+les informations suivantes:
+\begin{itemize}
+\item Etat de tous les n\oe uds de toutes les grappes.
+\item Etat des travaux soumis (pour le suivi).
+\item Evènements (erreurs, resoumissions, ...).
+\item "log" de tout ce qui se passe (permet de tracer et donc de faciliter le diagnostic d'une panne; permet également de sortir des statistiques d'utilisation)
+\item Informations sur les utilisateurs.\\
+\end{itemize}
+Les modules constituant CIGRI sont au nombre de 5, comme le montre la figure \ref{Modules CIGRI}:
+\begin{itemize}
+\item "Updator" : permet de mettre à jour la base de données (état des n\oe uds), de connaître l'état des tâches.
+\item "Scheduler" : détermine les tâches à soumettre (+localisation).
+\item "Runner" : lance les tâches sur les grappes comme un utilisateur standard.
+\item "Nikita" : module de nettoyage (tue les tâches).
+\item "Colombo" : gestion des évènements (erreurs, tâches tuées, ...), prises de décisions (retrait d'une application, d'une grappe, ...).\\
+\end{itemize}
+
+
+\begin{figure}[!h]
+\begin{center}
+\includegraphics[scale=0.5]{images/schemaFonctionnementTechnique.eps}
+\caption{Organisation des modules internes de CIGRI. \label{Modules CIGRI}}
+\end{center}
+\end{figure}
+
+
+\subsection{Fonctionnement}
+
+Les applications exécutées sont de type multi-paramétriques. La durée de chacune doit être relativement courte pour augmenter leur
+probabilité de terminaison.
+Bien entendu le système gère le caractère précaire des tâches (resoumission automatique si une tâche est détruite).\\
+CIGRI permet de soumettre des campagnes complètes d'exécution (de l'ordre de 100~000 tâches) et traite un certain nombre de cas
+d'erreurs.\\
+Différents dysfonctionnements sont détectés (code de retour $\neq$ de 0 des applications, pannes réseau, fin de temporisation sur
+exécution distante, incohérences...).
+Par exemple, si une communication avec une grappe est trop longue (toutes les actions
+distantes sont obligatoirement accompagnées d'un temps maximum d'exécution) alors cette dernière sera retirée et l'administrateur de la
+grille sera notifié que les tâches ne peuvent plus s'exécuter dessus (c'est le type de règles de décisions que l'on
+retrouve dans le module "Colombo").\\
+
+Une autre fonctionnalité importante est la collecte des fichiers résultats et le nettoyage des fichiers temporaires. En effet, le problème
+provient du grand nombre de tâches à exécuter. Il n'est pas souhaitable de laisser les données sur les grappes.
+Il existe donc un module auxiliaire au système qui est chargé de collecter périodiquement les fichiers résultats et de les archiver
+sur le serveur de la grille. Ainsi il n'y a plus de problème en terme de nombre de fichiers et l'utilisateur peut récupérer ses
+calculs à un seul endroit centralisé. Il faut noter que nous avons mis à disposition une solution de rapatriement des données. Mais l'efficacité de cette méthode n'a pas été validée.
+Des travaux sont en cours sur ce thème.\\
+
+Lors d'une soumission de type grille, l'utilisateur doit décrire sa campagne de tâches au système.
+Pour cela il écrit un fichier communément appelé "JDL" (\textit{Job Description Langage}).
+A l'intérieur il va définir quel programme sera exécuté sur quelle grappe ainsi que le nom du fichier contenant tous les paramètres à dérouler.
+Chacune des lignes de ce fichier correspond à une tâche à lancer. CIGRI décidera, lors de l'exécution, sur
+quelle grappe celle-ci sera effectivement traitée.\\
+
+L'utilisateur peut suivre l'évolution de sa campagne via un portail. Ses fonctionnalités sont:
+\begin{itemize}
+\item Affichage de statistique d'utilisation des grappes.
+\item Possibilité de suivre les tâches terminées, en cours d'exécutions et en attentes par utilisateur et par campagne.
+\item Possibilité de prendre des décisions concernant des tâches en erreurs (annulation ou resoumission).\\
+\end{itemize}
+
+
+Voici les étapes d'un scénario type d'utilisation de la grille avec le logiciel CIGRI:
+\begin{enumerate}
+\item Un utilisateur se manifeste avec une importante quantité de tâches à exécuter.
+\item Un compte est créé sur chacun des sites sur lesquels il veut lancer son application.
+\item Son application est validée par le responsable de la grille (vérification du bon fonctionnement du programme sur chacune des grappes
+et de la cohérence des résultats obtenus).
+\item L'utilisateur écrit son JDL ("Job Description Langage").
+\item L'utilisateur soumet son JDL et son fichier de paramètres à la grille (commande gridsub).
+\item Le gestionnaire CIGRI déroule tout, automatiquement.
+\item Un module auxiliaire collecte les fichiers résultat et les stocke sur le serveur hébergeant CIGRI\\
+\end{enumerate}
+Voici l'exemple d'un fichier "JDL" qu'un utilisateur peut soumettre à CIGRI:
+\begin{verbatim}
+DEFAULT{
+    paramFile = param.tmp;
+}
+idpot.imag.fr{
+    execFile = /users/home/capitn/test.sh ;
+}
+tomte.ujf-grenoble.fr{
+    execFile = /users/nis/capitn/test.sh ;
+}
+
+\end{verbatim}
+
+Le JDL est composé de plusieurs sections dont une première qui est nommée "DEFAULT" pour les paramètres communs à tous les sites. Les
+autres sections correspondent aux grappes sur lesquelles la campagne de tâches s'exécutera. "execFile" détermine
+le programme à lancer et "paramFile" le nom du fichier qui contient tous les paramètres de la campagne (une ligne de ce fichier
+correspondra à une tâche lancée sur une grappe).\\
+
+
+Bien entendu il existe une commande qui permet à l'utilisateur de tuer une campagne ou une tâche précise de la grille (griddel).\\
+Dans la suite nous allons nous intéresser plus particulièrement à la gestion des erreurs dans CIGRI, puis nous analyserons l'ensemble des tâches ayant déjà été soumises au système.
+
+
+\section{La problématique de l'erreur}
+
+Comme nous l'avons déjà mentionné, les applications multi-paramétriques entraînent une quantité importante de tâches soumises, et il est important de bien considérer la problématique des erreurs. Le système doit être capable de réagir efficacement en cas de tâche impossible à soumettre, en cas de problème de réseau, et être capable de ce fait de pouvoir dire si une tâche a bien été terminée afin de savoir s'il faut la resoumettre ou non. Plus généralement, il survient des évènements sur la grille que le système peut détecter, et il doit être capable de les traiter.\\
+Chaque projet a sa propre gestion des évènements. Le gestionnaire de ressource Condor\cite{condor} utilise un module externe utilisant un langage simple, \textit{Fault Tolerant Shel (ftsh)}, qui se base sur une approche de type ethernet. Largement utilisé dans les communications réseaux, ce protocole est tolérant aux pannes. Partant du principe qu'une tâche est soit réussie, soit erronée, chaque utilisateur peut selon ses critères et grâce à des boucles temporelles définir la manière de resoumettre ou bien le temps qu'il faut pour tenter la resoumission d'une tâche. Ce système est efficace et fiable puisqu'il a fait ses preuves dans les communications réseaux. Cependant ce principe ne permet pas de spécifier la nature des erreurs. Une tâche réussit ou échoue. Une tâche peut échouer pour de nombreuses raisons : l'exécutable est corrompu, les paramètres sont faux, ou un problème de réseau est survenu. Cette approche permet de faire face à de nombreuses erreurs dues à des problèmes temporaires, mais ne permet donc pas d'affiner efficacement la gestion des erreurs.\\
+
+Le projet pair à pair XTremWeb \cite{xtw} développé à l'université de Paris-Sud se place dans le cadre du desktop computing. Il s'agit de regrouper un ensemble de ressources de calcul à travers internet afin d'exécuter comme dans le cas de CIGRI des applications multi-paramétriques. Un client soumet un ensemble de tâches à un coordinateur qui se charge ensuite de les répartir sur les n\oe uds de calcul. Ces n\oe uds peuvent être aussi bien des grappes de calcul que des ressources individuelles réparties sur internet. Ce sont donc les n\oe uds de calcul qui demandent au coordinateur des tâches à exécuter. Lorsqu'une tâche est exécutée sur un n\oe ud de calcul, le résultat est ensuite retourné au coordinateur, et en cas d'erreur, la tâche est resoumise sur un autre n\oe ud. Pendant l'exécution d'une tâche, le n\oe ud de calcul envoie périodiquement au coordinateur un signal attestant qu'il est toujours en vie.
 
 
 
+\subsection*{La gestion des erreurs dans CIGRI}
+Dans un premier temps nous avons cherché à répertorier les différents types d'erreurs ou d'évènements qui pouvaient intervenir dans notre système et que nous pouvons détecter. Le tableau \ref{evts} présente le résultat de notre analyse. Ces erreurs doivent donc être traitées par le système. On distingue quatre classes : les erreurs relatives au scheduler, celles relatives à la grappe, celles relatives aux tâches soumises et enfin celles relatives aux sacs de tâches. Dans la suite nous nous intéressons essentiellement à ces deux derniers types d'erreurs. 
+\begin{figure}
+\begin{center}
+{\tiny
+\begin{tabular}{|c|c|p{35ex}|}
+\hline
+Type d'évènement&
+Classe&
+Description\tabularnewline
+\hline
+\hline
+EXIT\_VALUE&
+SCHEDULER&
+le scheduler ne se termine pas avec un code de retour = 0\tabularnewline
+\hline
+ALMIGHTY\_FILE&
+SCHEDULER&
+le AlmightyCigri ne trouve pas le fichier scheduler à exécuter\tabularnewline
+\hline
+UPDATOR\_PBSNODES\_PARSE&
+CLUSTER&
+l'updatorCigri n'arrive pas à parser le résultat de la commande pbsnodes\tabularnewline
+\hline
+UPDATOR\_PBSNODES\_CMD&
+CLUSTER&
+l'updatorCigri n'arrive pas à exécuter la commande pbsnodes\tabularnewline
+\hline
+UPDATOR\_QSTAT\_CMD&
+CLUSTER&
+l'updatorCigri n'arrive pas à exécuter la commande qstat\tabularnewline
+\hline
+UPDATOR\_RET\_CODE\_ERROR&
+JOB&
+l'updatorCigri détecte une mauvaise terminaison du job (return code
+$\neq$ 0)\tabularnewline
+\hline
+UPDATOR\_JOB\_KILLED&
+JOB&
+l'updatorCigri a détecté que le job a été tué\tabularnewline
+\hline
+RUNNER\_JOBID\_PARSE&
+JOB&
+le runnerCigri n'arrive pas à parser le retour de soumission\tabularnewline
+\hline
+RUNNER\_SUBMIT&
+JOB&
+le runnerCigri n'arrive pas à lancer le job\tabularnewline
+\hline
+FRAG&
+JOB&
+demande d'arrêt d'un job\tabularnewline
+\hline
+FRAG&
+MJOB&
+demande d'arrêt d'un multiple job\tabularnewline
+\hline
+SSH&
+CLUSTER&
+détection d'une erreur du canal SSH avec un cluster\tabularnewline
+\hline
+COLLECTOR&
+CLUSTER&
+erreur lors de la collecte d'un MJob\tabularnewline
+\hline
+MYSQL\_OAR\_CONNECT&
+CLUSTER&
+erreur lors de la connexion à la base de données OAR\tabularnewline
+\hline
+QDEL\_CMD&
+CLUSTER&
+erreur d'une commande oardel\tabularnewline
+\hline
+OAR\_OARSUB&
+CLUSTER&
+erreur d'une commande oarsub\tabularnewline
+\hline
+OAR\_NOTIFY&
+CLUSTER&
+erreur d'un oarnotify\tabularnewline
+\hline
+\end{tabular}
+}
+\vspace{0.5cm}
+\caption{Les différents évènements rencontrés dans CIGRI}
+\label{evts}
+\end{center}
+\end{figure}
+
+Afin de traiter ces erreurs nous avons envisagé dans un premier temps d'utiliser un module externe, utilisant un langage spécifique comme par exemple esterel\cite{esterel}. Esterel est un langage de programmation haut niveau, dédié à la spécification de systèmes réactifs, permettant par conséquent de maintenir une interaction continue avec son environnement. Ce type de langage est largement utilisé dans les systèmes temps réel. Cependant dans notre cas nous souhaitons un système simple et léger à mettre en place. Ce type d'approche dans un premier temps était trop complexe pour notre système. \\
+Le module colombo de CIGRI, comme on l'a vu dans l'architecture du système est une bibliothèque permettant de gérer les différents évènements. Ce module récupère les évènements du système retournés par les autres modules (Updator, Runner...) les insère dans la base de données dans un état \guillemotleft tofix \guillemotright. Ensuite, une fonction \textit{check\_event} du module permet de traiter les actions que ces évènements entraînent. C'est cette fonction qu'il serait intéressant de modifier pour la rendre paramétrable.\\
+
+Nous nous intéressons aux évènements de type JOB ou MJOB. Si l'erreur vient du fait que le système n'arrive pas à lancer une tâche ou bien que le code de retour de la tâche n'est pas correct, alors la grappe est indiquée comme inutilisable, soit pour toutes les applications, soit uniquement pour la campagne donc la tâche n'arrive pas à s'exécuter correctement. Par contre, si une tâche est tuée directement par le système en cas de demande de ressources sur la grappe (puisqu'on a une tâche besteffort), les paramètres de cette tâche sont remis dans l'ensemble des paramètres à soumettre. La tâche sera donc resoumise ultérieurement et pas nécessairement sur la même grappe, selon la disponibilité du moment et les choix de l'ordonnanceur de la grille. 
+
+
+\section{Analyse de l'utilisation de CIGRI}
+
+Essentiellement trois utilisateurs ont soumis sur CIGRI depuis le début, pour des expériences de plusieurs milliers de tâches. Dans le premier cas, il s'agit d'expérimentations centrées sur la simulation d'écho radar à la surface de mars. La surface de la planète a été quadrillée en de nombreuses zones, correspondant chacune à une tâche à effectuer. Les tâches sont assez courtes de l'ordre de 30 secondes ou une minute. Un deuxième utilisateur a quant à lui réalisé des tâches un peu plus longues de l'ordre de dix minutes. Dans ces expérimentations, l'étude portait sur l'énergie dissipée par la collision de deux molécules en fonction de leurs trajectoires.\\
+
+Le système CIGRI est comme on l'a dit centré autour d'une base de données. Ainsi toutes les informations relatives à l'exécution des tâches et au fonctionnement de CIGRI sont conservées. Une analyse de cette base permet de tirer de nombreux résultats.\\
+On constate que la répartition des tâches sur plusieurs mois est assez localisée sur certaines périodes qui varient bien évidement selon les utilisateurs. Les campagnes de tâches ne sont donc pas soumises en continue. Cela est dû au temps de traitement et d'analyse des résultats obtenus par l'utilisateur.\\
+
+Depuis plus d'un an et demi, 1~150~332 tâches ont été soumises dont seulement 6294 ne se sont pas terminées correctement et donc ont été resoumises. Ces tâches correspondent en fait à 5151 tâches différentes, c'est-à-dire ayant le même paramètre et appartenant à la même campagne de tâches. Parmi ceux-ci 1213 tâches ont été tuées volontairement par l'utilisateur. Plusieurs raisons peuvent inciter l'utilisateur à stopper son travail, notamment s'il se rend compte d'une erreur dans son application. \\
+Ainsi les courbes de la figure \ref{histo} montre une corrélation entre la soumission de tâches multiples et l'apparition de plusieurs évènements de type FRAG. Les erreurs de type UPDATOR\_JOB\_KILLED sont également très fréquentes sur la période que l'on considère dans cet exemple. Si on recoupe les informations du gestionnaire de ressources de la grappe associée (OAR dans notre cas) on s'aperçoit que ces tâches ont été effectivement tuées suite à une demande de ressources d'un autre utilisateur de la grappe. C'est comme nous l'avons vu précédemment dû à la politique de besteffort. En effet considérons une journées typique de fonctionnement : un utilisateur soumet une campagne de tâches sur un ensemble de grappes. On s'intéresse à la grappe Tomte, le 5 décembre 2004. On a 263 tâches terminées et 51 indiquées comme ayant provoqué un évènement. Parallèlement si on regarde l'exécution des tâches dans la base de données du scheduler, on observe : 314 tâches besteffort et 48 tâches soumises directement sur la grappe. CIGRI nous montre que les 51 évènements de la grille correspondent au type UPDATOR\_JOB\_KILLED c'est-à-dire que les tâches ont été tuées par le scheduler, les ressources étant demandées par des tâches plus prioritaires. Parmi ces tâches soumises directement à la grappe, on remarque que quatre de ces tâches ont un poids de deux, c'est-à-dire qu'elles demandent deux n\oe uds de calcul. Donc une telle tâche va provoquer l'arrêt de deux tâches besteffort. Reste donc une tâche soumise à la grappe qui a été exécutée sans provoquer d'arrêt de tâche besteffort.
+On retrouve également ces caractéristiques sur des périodes plus longues d'utilisation.\\
+
+Parmi les tâches non terminées correctement, la plupart ont donc été soit resoumises, soit tuées volontairement par l'utilisateur. Il reste néanmoins 656 tâches tuées par le scheduler et non resoumises. Cela s'explique simplement par le fait que lorsque qu'une tâche est tuée par le scheduler dû à la politique du besteffort, elle est replacée dans le sac de tâches à soumettre. Si avant qu'elle ne soit resoumise, l'utilisateur tue son application, celle-ci reste donc à l'état non resoumis. Plusieurs tâches terminent avec un code de retour différent de $0$. Dans ce cas, elles ne sont pas resoumises automatiquement par CIGRI, mais l'utilisateur peut au cas par cas resoumettre une tâche grâce à l'interface web de suivi. Parmi les tâches de ce type, la plupart correspondent à des sac de tâches que l'utilisateur a annulé.\\
+ Reste finalement 32 tâches ayant un code de retour non nul, qui n'ont pas été resoumises ni tuées par l'utilisateur et donc par conséquent que le système n'a pas su traiter, ce qui représente moins de $0,01\%$ des tâches soumises. 
+
+
+\begin{figure}
+\begin{center}
+\begin{tabular}{cc}
+\includegraphics[scale=0.6]{images/courbemjobsCouleurgmois9.eps}&
+\includegraphics[scale=0.6]{images/courbeeventsCouleurgmois9.eps}\\
+\end{tabular}
+\caption{Soumission des jobs multiples et apparition des évènements pour le mois d'octobre 2004}
+\label{histo}
+\end{center}
+\end{figure}
+
+
+\section{Conclusion et travaux futurs}
+
+A l'origine la communauté CIMENT souhaitait mutualiser les ressources inexploitées des grappes des différents partenaires.
+Le choix de Globus a été écarté à cause de sa lourdeur d'exploitation.
+Suite à la définition de grille légère, une approche exploitant la présence de gestionnaire de ressources sur site a été développé (CIGRI).\\
+
+En un an et demi d'exploitation, CIGRI a traité près de 1~200~000 tâches. Actuellement des campagnes de tâches sont soumises régulièrement. Les performances constatées nous amènent à penser que le système est fiable. Très peu de tâches ne réussissent à être exécutées de manière satisfaisante.\\
+
+Cependant de nombreuses améliorations sont possibles afin de gérer de manière plus optimale les évènements et les erreurs de la grille. De plus le système actuel ne propose qu'une gestion très sommaire des fichiers de résultats. Des travaux sont en cours dans ces domaines. \\
+CIGRI permet ainsi d'utiliser de manière efficace l'ensemble des ressources de l'agglomération grenobloise, et les performances de cet outil donne des résultats encourageants.  
+
+
+\bibliographystyle{plain} 
+\bibliography{renpar04}
 
 
 \end{document}
-
 
