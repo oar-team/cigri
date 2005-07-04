@@ -1,0 +1,214 @@
+%====================================
+% Title                 : Fichiers de styles pour TUNISIE'2002
+%= adapte' du fichier de style etr'97
+%====================================
+% Title                 : Fichiers de styles pour ETR'97
+% Copyright (C) 1997 by : GDR-PRS-TR
+% Last Version          : 1.0 (29 avril 1997)
+% Modification          : 7 avril 1997 mis a jour des styles par JMB.
+%                       : 29 avril 1997 auteur(s) unique/multiples.
+% Modification de Christophe Cérin le 11 février 2003
+%===========================================================
+% Bas\'e sur le fichier de style de Renpar'9, adapt\'e pour l'Ecole.
+% Cf. article.tex pour un exemple d'utilisation
+%===========================================================
+\typeout{Document Style `Renpar'2001' v1.0 <12 septembre 2000>}
+%\documentstyle[10pt,twoside,...,french,etr]{article}
+%%
+%A utiliser avec le style LaTeX version 2.09 ou Latex 2e
+%
+%===========================================================
+%                       Mise en page
+%===========================================================
+\newcommand{\toappear}[1]{\setcounter{page}{#1}}
+\newdimen\mathindent            % Pour ne pas utiliser fleqn.sty
+\oddsidemargin   -4mm           % 3cm a gauche des impaires
+\evensidemargin  4mm            % 2cm a gauche des paires
+\topmargin      -4mm            % 2.5cm en haut
+\headheight     13mm            % taille de l'entete (lignes)
+\headsep        24pt            % espace entre entete et texte
+\footskip       30pt            % espace entre pied de page et texte
+\textheight 230mm                 % longeur du texte
+\textwidth 160mm                  % largeur du texte
+\parskip 1pt                      % pas de sauts entre paragraphes
+\parindent 0pt                    % largeur de l'indentation
+\newdimen\@bls                    % \@b(ase)l(ine)s(kip)
+\@bls=\baselineskip               % \@bls ~= \baselineskip for \normalsize
+\advance\@bls -1ex                % (fudge term)
+\newdimen\@eps                    %
+\@eps=0.0001pt                    % \eps = very small positive quantity
+
+\def\section{\@startsection{section}{1}{\z@}
+  {1.5\@bls plus 0.5\@bls}{1\@bls}{\normalsize\bf}}
+\def\subsection{\@startsection{subsection}{2}{\z@}
+  {1\@bls plus 0.25\@bls}{\@eps}{\normalsize\bf}}
+\def\subsubsection{\@startsection{subsubsection}{3}{\z@}
+  {1\@bls plus 0.25\@bls}{\@eps}{\normalsize\bf}}
+\def\paragraph{\@startsection{paragraph}{4}{\parindent}
+  {1\@bls plus 0.25\@bls}{0.5em}{\normalsize\bf}}
+\def\subparagraph{\@startsection{subparagraph}{4}{\parindent}
+  {1\@bls plus 0.25\@bls}{0.5em}{\normalsize\bf}}
+
+\def\@sect#1#2#3#4#5#6[#7]#8{\ifnum #2>\c@secnumdepth
+  \def\@svsec{}\else 
+  \refstepcounter{#1}\edef\@svsec{\csname the#1\endcsname.\hskip0.5em}\fi
+  \@tempskipa #5\relax
+  \ifdim \@tempskipa>\z@
+    \begingroup 
+      #6\relax
+      \@hangfrom{\hskip #3\relax\@svsec}{\interlinepenalty \@M #8\par}%
+    \endgroup
+    \csname #1mark\endcsname{#7}\addcontentsline
+      {toc}{#1}{\ifnum #2>\c@secnumdepth \else
+        \protect\numberline{\csname the#1\endcsname}\fi #7}%
+  \else
+    \def\@svsechd{#6\hskip #3\@svsec #8\csname #1mark\endcsname
+      {#7}\addcontentsline{toc}{#1}{\ifnum #2>\c@secnumdepth \else
+        \protect\numberline{\csname the#1\endcsname}\fi #7}}%
+  \fi \@xsect{#5}}
+
+% FIGURES AND TABLES
+\floatsep 10mm plus 4pt minus 4pt % Space between adjacent floats moved
+                                  % to top or bottom of text page.
+\textfloatsep=\floatsep           % Space between main text and floats
+                                  % at top or bottom of page.
+\intextsep=\floatsep              % Space between in-text figures and 
+                                  % text.
+
+% FOOTNOTE
+%\long\def\@makefntext#1{\parindent 1em\noindent\hbox{${}^{\@thefnmark}$} #1}
+%
+% Nouvelle version Christophe Cérin
+%
+%\long\def\@makefntext#1{\parindent 1em\noindent\raise5pt\hbox{\tiny\thefootnote} #1}
+
+% EQUATION
+\mathindent=0em 
+
+%===========================================================
+%                               Titre
+%===========================================================
+\newcommand{\shorttitle}[1]{\newcommand{\@shorttitle}{#1}}
+\def\maketitle{\begingroup        % Initialize generation of front-matter
+%   \let\thanks\@gobble
+    \def\thefootnote{\fnsymbol{footnote}}%
+    \newpage \global\@topnum\z@ 
+    \@maketitle \thispagestyle{crcplain}\@thanks
+  \endgroup
+  \let\maketitle\relax \let\@maketitle\relax
+  \gdef\@thanks{}\let\thanks\relax
+  \gdef\@address{}\gdef\@author{}\gdef\@title{}\let\address\relax}
+
+
+\def\@maketitle{\null             % Actual formatting of \maketitle
+  \vskip 2ex                     % Vertical space above title.
+  \raggedright                    % Front-matter text is ragged right
+  \hyphenpenalty\@M               % and is not hyphenated.
+  {\LARGE \@title \par}           % Title set in larger font. 
+  \vskip\@bls                     % One line of vertical space after title.
+  {\normalsize                    % each author set in the normal 
+   \@author \par}                 % typeface size 
+  \vskip\@bls                     % One line of vertical space after author.
+  \@address                       % all addresses
+  \par}                           % One line of vertical space at the end.
+
+\newcounter{address} 
+\def\theaddress{\alph{address}}
+\def\@makeadmark#1{\hbox{$^{\rm #1}$}}   
+
+\def\address#1{\begingroup
+  \xdef\@tempa{\theaddress}\let\\=\relax
+  \def\protect{\noexpand\protect\noexpand}\xdef\@address{\@address
+  \protect\addresstext{#1}}\endgroup}
+\def\@address{}
+
+\def\twoaddress#1{\addressmark\begingroup
+  \xdef\@tempa{\theaddress}\let\\=\relax
+  \def\protect{\noexpand\protect\noexpand}\xdef\@address{\@address
+  \protect\twoaddresstext{\@tempa}{#1}}\endgroup}
+\def\@address{}
+
+\def\addressmark{\stepcounter{address}%
+  \xdef\@tempa{\theaddress}\@makeadmark{\@tempa}}
+
+\def\addresstext#1{\leavevmode \begingroup
+  \raggedright \hyphenpenalty\@M #1\par \endgroup
+  \vskip\@bls}
+
+\def\twoaddresstext#1#2{\leavevmode \begingroup
+  \raggedright \hyphenpenalty\@M \@makeadmark{#1}#2\par \endgroup
+  \vskip\@bls}
+
+%===========================================================
+%                               Bibliographie
+%===========================================================
+\def\thebibliography#1{\section*{Bibliographie}\list
+ {\arabic{enumi}.}
+  {\settowidth\labelwidth{#1.}\leftmargin=1.67em
+   \labelsep\leftmargin \advance\labelsep-\labelwidth
+   \itemsep\z@ \parsep\z@
+   \usecounter{enumi}}\def\makelabel##1{\rlap{##1}\hss}%
+   \def\newblock{\hskip 0.11em plus 0.33em minus -0.07em}
+   \sloppy \clubpenalty=4000 \widowpenalty=4000 \sfcode`\.=1000\relax}
+
+%===========================================================
+%                               Entete/Pied de page
+%===========================================================
+\newcommand{\regle}{\noindent\rule[0mm]{\textwidth}{0.2mm}}
+
+\def\ps@crcplain{%\let\@mkboth\@gobbletwo
+     \def\@oddhead{\renpardixnotice\hfil}%
+     \def\@evenhead{\hfil \renpardixnotice}%
+     \let\@oddfoot\@empty
+     \let\@evenfoot\@oddfoot}
+\ps@crcplain                      % modified 'plain' page style
+
+\makeatletter
+
+%===========================================================
+%                       R\'esum\'e / Mots Cl\'es
+%===========================================================
+\def\Resume#1{\regle\vskip 0ex plus 2ex % extra glue after \maketitle
+\subsection*{R\'esum\'e}
+#1
+}         
+
+\def\MotsCles#1{
+\begin{description} % 5 mots cl\'es seulement!!!
+\item[Mots-cl\'es :]{#1}
+\end{description}
+\regle}
+
+
+\def\maketitle{\begingroup        % Initialize generation of front-matter
+%   \let\thanks\@gobble
+    \def\thefootnote{\fnsymbol{footnote}}%
+    \newpage \global\@topnum\z@ 
+    \@maketitle \thispagestyle{crcfirstpage}\@thanks
+  \endgroup
+%  \let\maketitle\relax \let\@maketitle\relax
+  \gdef\@thanks{}%\let\thanks\relax
+  \gdef\@address{}\gdef\@author{}\gdef\@title{}%\let\address\relax}
+}
+
+%===========================================================
+%                               Titre de la confe'rence
+%===========================================================
+\def\renpardixnotice{\small
+{\bf
+\begin{tabular}[b]{l}
+%--------------------------------------------------
+% RENPAR'15 / CFSE'3 / SympAAA'2003\\
+% La Colle sur Loup, France, 15 au 17 octobre 2003\\
+%-------------------------------------------------- 
+\end{tabular}
+}
+}
+\def\ps@crcfirstpage{\let\@mkboth\@gobbletwo
+     \def\@oddhead{\renpardixnotice\hfil}%
+     \def\@evenhead{\hfil\renpardixnotice}%
+     \let\@oddfoot\@empty
+     \let\@evenfoot\@oddfoot}
+\ps@crcplain
+
+\makeatother
