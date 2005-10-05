@@ -169,13 +169,14 @@ A l'intérieur il va définir quel programme sera exécuté sur quelle grappe ainsi 
 Chacune des lignes de ce fichier correspond à une tâche à lancer. CIGRI décidera, lors de l'exécution, sur
 quelle grappe celle-ci sera effectivement traitée.\\
 
-L'utilisateur peut suivre l'évolution de sa campagne via un portail. Ses fonctionnalités sont:
+L'utilisateur peut suivre l'évolution de sa campagne via un portail (Figure \ref{suiviWeb}). Ses fonctionnalités sont:
 \begin{itemize}
 \item Affichage de statistique d'utilisation des grappes.
 \item Possibilité de suivre les tâches terminées, en cours d'exécutions et en attentes par utilisateur et par campagne.
 \item Possibilité de prendre des décisions concernant des tâches en erreurs (annulation ou resoumission).\\
 \end{itemize}
 
+\Figure {Suivi web d'une campagne de tâches.} {suiviWeb} {wwwMJob} {0.9}
 
 Voici les étapes d'un scénario type d'utilisation de la grille avec le logiciel CIGRI:
 \begin{enumerate}
@@ -212,7 +213,7 @@ Bien entendu il existe une commande qui permet à l'utilisateur de tuer une campa
 Dans la suite nous allons analyser dans quelle mesure les tâches soumises par CIGRI interfèrent avec les tâches soumises localement.
 
 \section{L'occupation des grappes par CIGRI}
-\subsection*{La priorité dite \textit{best-effort}}
+\subsection{La priorité dite \textit{best-effort}}
 Les tâches soumises par CIGRI sur les grappes des différents laboratoires ne doivent pas perturber l'utilsation de ces grappes par les utilisateurs locaux. En effet l'idée de CIGRI est d'utiliser seulement les cycles processeurs non utilisés sur la grappe. Un site ne souhaite effectivement pas donner des cycles processeur dont il aurait besoin. Ainsi les tâches soumises par CIGRI sur les grappes locales sont soumises au gestionnaire de tâche dans une queue dite \guillemotleft best-effort\guillemotright. Cette tâche possède une priorité d'exécution de 0 et ne sera donc lancée que lorsque une ressource sera disponible et non demandée par une tâche soumise par un utilisateur local. En outre, si au cours de l'exécution de cette tâche la ressource est demandée par un utilisateur local, la tâche de CIGRI est tuée et replacée dans le sac de tâches à effectuer de CIGRI.\\
  Il est donc intéressant dans ce contexte de s'intéresser à l'occupation des tâches CIGRI sur une grappe locale, afin de voir d'une part si les tâches locales ne sont pas perturbées, et d'autre part si la grappe est bien utilisée au mieux pour utiliser le maximum de cycles
  processeur.\\
@@ -227,10 +228,11 @@ cycles du processeur qui sont utilisés ou bien disponibles. Une machine est  dis
 étude est réalisée avec le système Entropia\cite{entropia}, auquel
 on soumet un grand nombre de tâches simples. Ces tâches consistent en un grand nombre de boucles de temps fini d'exécution, qui effectuent des opérations sur des nombres entiers ou flottants. A intervalles réguliers, une tâche évalue la quantité de boucles traitées. Cette quantité est rapportée à une valeur de référence qui permet de déterminer le pourcentage de CPU utilisé.
 
-\subsection*{La démarche et les résultats}
+\subsection{La démarche et les résultats}
 
 Dans notre cas nous avons donc étudié chaque sac de tâches. Rappelons qu'un sac de tâches peut contenir de l'ordre de 100~000 tâches. En pratique, la majorité des sacs de tâches contiennent de l'ordre de 5~000 tâches. Nous avons choisi de considérer une période pendant laquelle les tâches de CIGRI et les tâches locales sont en concurence. Nous avons concentré notre analyse sur une grappe. Une grappe contient des machines homogènes. On peut donc se limiter à regarder le temps d'exécution des tâches puisque les différents n\oe uds fournissent la même puissance de calcul. Nous avons considéré sur la grappe locale la période comprise entre la date de soumission de ce sac de tâches et la date de fin d'exécution de la dernière tâche contenue dans cet ensemble. Considérer des périodes plus étendues n'a pas beaucoup d'intérêt dans la mesure où CIGRI ne serait pas demandeur de ressources.\\
 Nous avons regardé le temps occupé par les tâches locales (donc dans la queue dite \textit{default}) qui ont donc priorité sur les tâches CIGRI, et le temps occupé par les tâches de CIGRI qui, elles, sont tuées si la ressource est demandée. \\
+
 Un effort de filtrage a été nécessaire pour rendre cohérentes les deux bases de données, celle de CIGRI et celle du gestionnaire de ressources sur la grappe locale,les dates de soumissions et de fin de tâches n'étant pas toujours synchronisées entre ces deux bases.\\
 On observe que les tâches locales ont toujours une part plus importante que les tâches CIGRI en terme de temps de calcul. Un exemple typique de mesure de comportement du système sur une journée montre dans la base CIGRI 263 tâches terminées et 51 indiquées comme ayant provoqué un évènement. Parallèlement si on regarde l'exécution des tâches dans la base de données du gestionnaire de tâches de la grappe locale, on observe : 314 tâches besteffort et 48 tâches soumises localement sur la grappe. Les 51 évènements dans la base CIGRI correspondent au type UPDATOR\_JOB\_KILLED, c'est-à-dire que les tâches ont été tuées par le gestionnaire de tâches, les ressources étant demandées par des tâches plus prioritaires. Il est à noter que si des tâches locales ont un poids de deux ou plus, c'est-à-dire qu'elles demandent deux noeuds de calcul ou plus, elle vont provoquer l'arrêt d'autant de tâches best-effort.
 On retrouve également ces caractéristiques sur des périodes plus longues d'utilisation.\\
