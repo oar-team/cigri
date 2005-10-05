@@ -1,0 +1,1 @@
+pdflatex jres05-article.tex; pdflatex jres05-article.tex; bibtex jres05-article; pdflatex jres05-article.tex; bibtex jres05-article; pdflatex jres05-article.tex; xpdf jres05-article.pdf&

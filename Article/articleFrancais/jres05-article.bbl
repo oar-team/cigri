@@ -1,0 +1,116 @@
+\begin{thebibliography}{10}
+\makeatletter
+\ifx\fonteauteurs\@undefined
+\def\fonteauteurs{}\fi
+\makeatother
+
+\bibitem{oar}
+\bgroup\fonteauteurs\bgroup OAR\egroup\egroup{}.
+\newblock \url{http://oar.imag.fr}.
+
+\bibitem{scooped-again}
+J.~\bgroup\fonteauteurs\bgroup Ledlie\egroup\egroup{},
+  J.~\bgroup\fonteauteurs\bgroup Shneidman\egroup\egroup{},
+  M.~\bgroup\fonteauteurs\bgroup Seltzer\egroup\egroup{}, et
+  J.~\bgroup\fonteauteurs\bgroup Huth\egroup\egroup{}.
+\newblock Scooped again.
+\newblock Dans {\em 2nd International Workshop on Peer-to-Peer Systems
+  (IPTPS'03)}, Berkeley, CA, USA, February 2003.
+
+\bibitem{globus}
+\bgroup\fonteauteurs\bgroup Globus\egroup\egroup{}.
+\newblock \url{http://www.globus.org}.
+
+\bibitem{seti}
+\bgroup\fonteauteurs\bgroup Seti@home\egroup\egroup{}.
+\newblock \url{http://setiathome.ssl.berkeley.edu}.
+
+\bibitem{valiron}
+J.~\bgroup\fonteauteurs\bgroup Noga\egroup\egroup{} et
+  P.~\bgroup\fonteauteurs\bgroup Valiron\egroup\egroup{}.
+\newblock Explicitly correlated coupled cluster r12 calculations.
+\newblock Dans {\em Computational Chemistry: Reviews of Current Trends}, 2002.
+
+\bibitem{pbs}
+{\em PBS Technical Overview}.
+\newblock http://www.openpbs.org/overview.html.
+
+\bibitem{condor}
+D.~\bgroup\fonteauteurs\bgroup Thain\egroup\egroup{} et
+  M.~\bgroup\fonteauteurs\bgroup Livny\egroup\egroup{}.
+\newblock Condor and the grid.
+\newblock Dans Fran \bgroup\fonteauteurs\bgroup Berman\egroup\egroup{},
+  Anthony~J.G. \bgroup\fonteauteurs\bgroup Hey\egroup\egroup{}, et Geoffrey
+  \bgroup\fonteauteurs\bgroup Fox\egroup\egroup{}, {\'e}diteurs, {\em Grid
+  Computing: Making The Global Infrastructure a Reality}. John Wiley, 2003.
+
+\bibitem{ogsa02}
+I.~\bgroup\fonteauteurs\bgroup Foster\egroup\egroup{},
+  C.~\bgroup\fonteauteurs\bgroup Kesselman\egroup\egroup{},
+  J.~\bgroup\fonteauteurs\bgroup Nick\egroup\egroup{}, et
+  S.~\bgroup\fonteauteurs\bgroup Tuecke.\egroup\egroup{}.
+\newblock Grid services for distributed systems integration.
+\newblock {\em IEEE Computer}, 35(6), 2002.
+
+\bibitem{casanova}
+Derrick \bgroup\fonteauteurs\bgroup Kondo\egroup\egroup{}, Michela
+  \bgroup\fonteauteurs\bgroup Taufer\egroup\egroup{}, III
+  \bgroup\fonteauteurs\bgroup Charles L.~Brooks\egroup\egroup{}, Henri
+  \bgroup\fonteauteurs\bgroup Casanova\egroup\egroup{}, et Andrew
+  \bgroup\fonteauteurs\bgroup Chien\egroup\egroup{}.
+\newblock Characterizing and evaluating desktop grids: An empirical study.
+\newblock Dans {\em Proceedings of International Parallel and Distributed
+  Processing Symposium (IPDPS 2004)}. IEEE Press, 2004.
+
+\bibitem{entropia}
+A.~\bgroup\fonteauteurs\bgroup Chien\egroup\egroup{},
+  S.~\bgroup\fonteauteurs\bgroup Marlin\egroup\egroup{}, et
+  S.~\bgroup\fonteauteurs\bgroup Elbert\egroup\egroup{}.
+\newblock Ressource management in the entropia system.
+\newblock Dans {\em Grid Resource Management : State of the Art and Future
+  Trends}, pages 431--450, 2003.
+
+\bibitem{xtw}
+O.~\bgroup\fonteauteurs\bgroup Lodygensky\egroup\egroup{},
+  G.~\bgroup\fonteauteurs\bgroup Fedak\egroup\egroup{},
+  V.~\bgroup\fonteauteurs\bgroup Néri\egroup\egroup{},
+  A.~\bgroup\fonteauteurs\bgroup Cordier\egroup\egroup{}, et
+  F.~\bgroup\fonteauteurs\bgroup Capello\egroup\egroup{}.
+\newblock Auger \& xtremweb : Monte carlos computation on a global computing
+  platform.
+\newblock Dans {\em Computing in High Energy and Nuclear Physics}, 2003.
+
+\bibitem{ourgrid}
+R.~\bgroup\fonteauteurs\bgroup Medeiros\egroup\egroup{},
+  W.~\bgroup\fonteauteurs\bgroup Cirne\egroup\egroup{},
+  F.~\bgroup\fonteauteurs\bgroup Brasileiro\egroup\egroup{}, et
+  J.~\bgroup\fonteauteurs\bgroup Sauvé\egroup\egroup{}.
+\newblock Faults in grids: Why are they so bad and what can be done about it ?
+\newblock Dans {\em 4th International Workshop on Grid Computing (Grid 2003)},
+  November 2003.
+
+\bibitem{JohanssonS05}
+Andr{\'e}as \bgroup\fonteauteurs\bgroup Johansson\egroup\egroup{} et Neeraj
+  \bgroup\fonteauteurs\bgroup Suri\egroup\egroup{}.
+\newblock Error propagation profiling of operating systems.
+\newblock Dans {\em DSN '05: Proceedings of the 2005 International Conference
+  on Dependable Systems and Networks (DSN'05)}, pages 86--95, Washington, DC,
+  USA, 2005. IEEE Computer Society.
+
+\bibitem{LiangZSSMG05}
+Yinglung \bgroup\fonteauteurs\bgroup Liang\egroup\egroup{}, Yanyong
+  \bgroup\fonteauteurs\bgroup Zhang\egroup\egroup{}, Anand
+  \bgroup\fonteauteurs\bgroup Sivasubramaniam\egroup\egroup{}, Ramendra~K.
+  \bgroup\fonteauteurs\bgroup Sahoo\egroup\egroup{}, Jos{\'e}~E.
+  \bgroup\fonteauteurs\bgroup Moreira\egroup\egroup{}, et Manish
+  \bgroup\fonteauteurs\bgroup Gupta\egroup\egroup{}.
+\newblock Filtering failure logs for a bluegene/l prototype.
+\newblock Dans {\em DSN '05: Proceedings of the 2005 International Conference
+  on Dependable Systems and Networks (DSN'05)}, pages 476--485, Washington, DC,
+  USA, 2005. IEEE Computer Society.
+
+\bibitem{esterel}
+{\em Esterel}.
+\newblock \url{http://www-sop.inria.fr/esterel.org}.
+
+\end{thebibliography}
