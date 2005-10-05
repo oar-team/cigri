@@ -48,13 +48,12 @@ Ce système utilise une base de données comme élément central d'échange et de sto
 Les grilles tiennent à l'heure actuelle une place de plus en plus importante dans le monde de la recherche et bien des projets tournent autour de ce sujet. Une grille consiste à partager des ressources entre plusieurs utilisateurs ou communautés d'utilisateurs. On peut partager aussi bien l'espace de stockage que les cycles processeurs, la mémoire, certaines applications, ou bien encore une architecture matérielle se trouvant sur un autre site. Il est ainsi possible pour un centre disposant de peu de moyens de pouvoir accéder à des ressources plus importantes ou dont il n'aurait pas pu disposer autrement.\\
 Parmi les problématiques importantes liées à la mise en place d'une grille, on peut noter l'hétérogénéité des ressources, ou bien encore la volatilité de ces dernières. Se pose également un problème de sécurité. Chaque site dispose en effet généralement des sa propre politique de sécurité afin de protéger la confidentialité de ses données, ce qui empêche souvent une communication simple et efficace entre les sites.\\
 
-Parmi les multiples projets dans ce domaine, on peut distinguer deux grands types d'architectures\cite{scooped-again} : l'architecture grille de type client/serveur et l'architecture pair à pair. Un des projets phare est le logiciel Globus \cite{globus}. Ce logiciel a débuté en $1997$ avec Ian Foster du Argonne National Laboratory, et a déjà subi de nombreuses évolutions. Sa mise en place se compose de quatre piliers : la sécurité (GSI), l'allocation des ressources (GRAM), la découverte et l'indexation des ressources (MDS) et enfin la gestion des données (GridFTP et RFT). Ce système très complexe est fondé dans sa dernière version sur les services web normalisés. GSI est reconnu comme efficace dans la gestion de la sécurité, mais relativement lourd à mettre en place et n'est pas primordial dans la mise en place de la grille grenobloise comme on l'expliquera par la suite. \\
-Les architectures pair à pair constituent le deuxième grand type de projets dans le domaine des grilles.  Comme ces architectures sont décentralisées, il n'y a donc plus
+Parmi les multiples projets dans ce domaine, on peut distinguer plusieurs types d'architectures\cite{scooped-again} : l'architecture de type grille qui reunit un ensemble de grappes reparties sur plusieurs sites. Avec un profil plus applicatif, on peut s'appuyer également sur un modèle de type client/serveur ou MPI avec des architectures hétérogènes. Un des projets phare est le logiciel Globus \cite{globus}. Ce logiciel a débuté en $1997$ avec Ian Foster du Argonne National Laboratory, et a déjà subi de nombreuses évolutions. Sa mise en place se compose de quatre piliers : la sécurité (GSI), l'allocation des ressources (GRAM), la découverte et l'indexation des ressources (MDS) et enfin la gestion des données (GridFTP et RFT). Ce système très complexe est fondé dans sa dernière version sur les services web normalisés. GSI est reconnu comme efficace dans la gestion de la sécurité, mais relativement lourd à mettre en place et n'est pas primordial dans la mise en place de la grille grenobloise comme on l'expliquera par la suite. \\
+Les architectures de type desktop computing  constituent le deuxième grand type de projets dans ce domaine. Ces architectures sont décentralisées, il n'y a donc plus
 de structure hiérarchique comme c'est le cas pour le type
 client/serveur. Le plus populaire est \textit{seti@home} \cite{seti}
 qui consiste à répartir l'exécution de tâches sur un ensemble de
-machines volontaires reliées à l'Internet. On peut également citer les
-systèmes d'échange de fichiers de type Kazaa.\\
+machines volontaires reliées à l'Internet.\\
 
 Ce papier étudie la mise en {\oe}uvre de CIGRI, une grille dite
 \guillemotleft légère\guillemotright, où certains problèmes complexes à mettre en {\oe}uvre (comme
@@ -218,24 +217,22 @@ Les tâches soumises par CIGRI sur les grappes des différents laboratoires ne doi
  Il est donc intéressant dans ce contexte de s'intéresser à l'occupation des tâches CIGRI sur une grappe locale, afin de voir d'une part si les tâches locales ne sont pas perturbées, et d'autre part si la grappe est bien utilisée au mieux pour utiliser le maximum de cycles
  processeur.\\
 
-D'autres analyses porté sur l'occupation des ressources. Dans le
+D'autres analyses ont porté sur l'occupation des ressources. Dans le
 cadre de \cite{casanova}, la disponibilité
 de la grille en terme de puissance de calcul est mesurée suivant deux aspects : d'une part le temps d'utilisation des cycles processeur
 (comme dans notre cas) et leur répartition sur les
-ressources, et d'autre part la disponibilité des ressources. La
-différence est notée entre la disponibilité d'une machine et la
+ressources, et d'autre part la disponibilité des ressources. Il faut différencier d'un coté la disponibilité d'une machine et d'un autre  la
 disponibilité d'un processeur, c'est-à-dire le pourcentage des
-cycles du processeur qui sont utilisés ou bien disponibles. Cette
+cycles du processeur qui sont utilisés ou bien disponibles. Une machine est  disponible pour une application, mais cette application ne peut par exemple utiliser qu'un pourcentage des cycles CPU.Cette
 étude est réalisée avec le système Entropia\cite{entropia}, auquel
-on soumet un grand nombre de tâches simples. Régulièrement le
-système envoie la quantité de tâches traitées.
+on soumet un grand nombre de tâches simples. Ces tâches consistent en un grand nombre de boucles de temps fini d'exécution, qui effectuent des opérations sur des nombres entiers ou flottants. A intervalles réguliers, une tâche évalue la quantité de boucles traitées. Cette quantité est rapportée à une valeur de référence qui permet de déterminer le pourcentage de CPU utilisé.
 
 \subsection*{La démarche et les résultats}
 
-Dans notre cas nous avons donc étudié chaque sac de tâches. Rappelons qu'un sac de tâches peut contenir de l'ordre de 100~000 tâches. En pratique, la majorité des sacs de tâches contiennent de l'ordre de 5~000 tâches. Nous avons considéré sur la grappe locale la période comprise entre la date de soumission de ce sac de tâches et la date de fin d'exécution de la dernière tâche contenue dans cet ensemble. Pendant cette période, les tâches de CIGRI et les tâches locales sont donc en concurrence. Nous avons concentré notre analyse sur une grappe. Une grappe contient des machines homogènes. On peut donc se limiter à regarder le temps d'exécution des tâches puisque les différents n\oe uds fournissent la même puissance de calcul.\\
+Dans notre cas nous avons donc étudié chaque sac de tâches. Rappelons qu'un sac de tâches peut contenir de l'ordre de 100~000 tâches. En pratique, la majorité des sacs de tâches contiennent de l'ordre de 5~000 tâches. Nous avons choisi de considérer une période pendant laquelle les tâches de CIGRI et les tâches locales sont en concurence. Nous avons concentré notre analyse sur une grappe. Une grappe contient des machines homogènes. On peut donc se limiter à regarder le temps d'exécution des tâches puisque les différents n\oe uds fournissent la même puissance de calcul. Nous avons considéré sur la grappe locale la période comprise entre la date de soumission de ce sac de tâches et la date de fin d'exécution de la dernière tâche contenue dans cet ensemble. Considérer des périodes plus étendues n'a pas beaucoup d'intérêt dans la mesure où CIGRI ne serait pas demandeur de ressources.\\
 Nous avons regardé le temps occupé par les tâches locales (donc dans la queue dite \textit{default}) qui ont donc priorité sur les tâches CIGRI, et le temps occupé par les tâches de CIGRI qui, elles, sont tuées si la ressource est demandée. \\
-Un effort de filtrage a été nécessaire pour rendre cohérentes les deux bases de données,les dates de soumissions et de fin de tâches n'étant pas toujours synchronisées entre les deux bases de données.\\
-On observe que les tâches locales ont toujours une part plus importante que les tâches CIGRI. Un exemple typique de mesure de comportement du système sur une journée montre dans la base CIGRI 263 tâches terminées et 51 indiquées comme ayant provoqué un évènement. Parallèlement si on regarde l'exécution des tâches dans la base de données du gestionnaire de tâches de la grappe locale, on observe : 314 tâches besteffort et 48 tâches soumises localement sur la grappe. Les 51 évènements dans la base CIGRI correspondent au type UPDATOR\_JOB\_KILLED, c'est-à-dire que les tâches ont été tuées par le gestionnaire de tâches, les ressources étant demandées par des tâches plus prioritaires. Il est à noter que si des tâches locales ont un poids de deux ou plus, c'est-à-dire qu'elles demandent deux noeuds de calcul ou plus, elle vont provoquer l'arrêt d'autant de tâches best-effort.
+Un effort de filtrage a été nécessaire pour rendre cohérentes les deux bases de données, celle de CIGRI et celle du gestionnaire de ressources sur la grappe locale,les dates de soumissions et de fin de tâches n'étant pas toujours synchronisées entre ces deux bases.\\
+On observe que les tâches locales ont toujours une part plus importante que les tâches CIGRI en terme de temps de calcul. Un exemple typique de mesure de comportement du système sur une journée montre dans la base CIGRI 263 tâches terminées et 51 indiquées comme ayant provoqué un évènement. Parallèlement si on regarde l'exécution des tâches dans la base de données du gestionnaire de tâches de la grappe locale, on observe : 314 tâches besteffort et 48 tâches soumises localement sur la grappe. Les 51 évènements dans la base CIGRI correspondent au type UPDATOR\_JOB\_KILLED, c'est-à-dire que les tâches ont été tuées par le gestionnaire de tâches, les ressources étant demandées par des tâches plus prioritaires. Il est à noter que si des tâches locales ont un poids de deux ou plus, c'est-à-dire qu'elles demandent deux noeuds de calcul ou plus, elle vont provoquer l'arrêt d'autant de tâches best-effort.
 On retrouve également ces caractéristiques sur des périodes plus longues d'utilisation.\\
 
 
@@ -251,19 +248,16 @@ Chaque projet a sa propre gestion des évènements. Le gestionnaire de ressource C
 Le projet pair à pair XTremWeb \cite{xtw} développé à l'université de Paris-Sud se place dans le cadre du desktop computing. Il s'agit de regrouper un ensemble de ressources de calcul à travers internet afin d'exécuter comme dans le cas de CIGRI des applications multi-paramétriques. Un client soumet un ensemble de tâches à un coordinateur qui se charge ensuite de les répartir sur les n\oe uds de calcul. Ces n\oe uds peuvent être aussi bien des grappes de calcul que des ressources individuelles réparties sur internet. Ce sont donc les n\oe uds de calcul qui demandent au coordinateur des tâches à exécuter. Lorsqu'une tâche est exécutée sur un n\oe ud de calcul, le résultat est ensuite retourné au coordinateur, et en cas d'erreur, la tâche est resoumise sur un autre n\oe ud. Pendant l'exécution d'une tâche, le n\oe ud de calcul envoie périodiquement au coordinateur un signal attestant qu'il est toujours en vie.\\
 
 %Mesures faites avec l'environnement entropia. Tâches soumises au système
-Le système Entropia\cite{entropia} se place dans un cadre similaire à notre étude. Ce système permet d'exécuter un ensemble de tâches composées de sous-tâches dans le cadre d'un réseau d'entreprise. Dans la mesure où le système ne s'intéresse qu'aux ressources locales, la problématique de la sécurité est également moins importante, dans la mesure où les communications ne vont pas vers l'extérieur et n'ont pas à passer le firewall. Le logiciel DCGrig associé à se projet intègre la gestion des erreurs. Le système est composé de trois modules :
+Le système Entropia\cite{entropia} se place dans un cadre similaire à notre étude. Ce système permet d'exécuter un ensemble de tâches composées de sous-tâches dans le cadre d'un réseau d'entreprise. Dans la mesure où le système ne s'intéresse qu'aux ressources locales, la problématique de la sécurité est également moins importante, puisque les communications ne vont pas vers l'extérieur et n'ont pas à passer le firewall. Le logiciel DCGrig associé à se projet intègre la gestion des erreurs. Le système est composé de trois modules :
 \begin{itemize}
 \item Le gestionnaire de tâches (correspondantes aux sacs de tâches
 dans notre cas)
 \item Le gestionnaire de sous-tâches (correspondantes à ce que nous avons appelé tâches)
 \item Le gestionnaire de ressources
 \end{itemize}
-Chaque module gère les erreurs le concernant. Les
-tâches ont des priorités différentes et la priorité est donnée aux
-tâches ayant déjà échoué le plus de fois, contrairement à notre
-cas où toutes les tâches ont la même priorité pour CIGRI. Et c'est
-à la ressource de manifester au gestionnaire de tâches qu'elle est
-toujours active.
+Chacun de ces trois modules gère les erreurs le concernant. Dans ce système, chaque sous-tâche a une priorité différente et plus une sous-tâche a échoué, plus elle aura une priorité élévée à la prochaine exécution. Et c'est
+la ressource qui doit manifester au gestionnaire de tâches qu'elle est
+toujours active. Au niveau de CIGRI, il n'y a pas d'échelle de priorité. Dans l'ensemble des tâches à (re)soumettre, il n'y pas de différence entre une tâche jamais exécutée et une tâche ayant échoué et qu'il faut resoumettre.  
 
 Dans le cas du projet Ourgrid\cite{ourgrid}, une étude
 particulière a été réalisée afin de déterminer les différents types
@@ -294,7 +288,7 @@ Dans notre cas, nous avons adopté une approche proche de ce dernier exemple.
 
 
 \subsection{La gestion des erreurs dans CIGRI}
-Dans un premier temps, nous avons cherché à répertorier les différents types d'erreurs ou d'évènements qui pouvaient intervenir dans notre système et que nous pouvons détecter. Le tableau \ref{evts} présente le résultat de notre analyse. Ces erreurs sont traitées par le système en quatre classes : les erreurs relatives au gestionnaire de tâches, celles relatives à la grappe, celles relatives aux tâches soumises et enfin celles relatives aux sacs de tâches. Dans la suite nous nous intéresserons essentiellement à ces deux derniers types d'erreurs, dans la mesure où elles sont directement liées à l'utilisateur et donc à CIGRI. Les deux autres types (gestionnaire de tâches et grappe) ne sont pas liées à l'exécution des tâches mais au fonctionnement du site distant qui est géré par le site distant. On ne peut donc à notre niveau pas effectuer d'action directe.
+Dans un premier temps, nous avons cherché à répertorier les différents types d'erreurs ou d'évènements qui pouvaient intervenir dans notre système et que nous pouvons détecter. Le tableau \ref{evts} présente le résultat de notre analyse. Ces erreurs sont traitées par le système en quatre classes : les erreurs relatives au gestionnaire de tâches, celles relatives à la grappe, celles relatives aux tâches soumises et enfin celles relatives aux sacs de tâches. Dans la suite nous nous intéresserons essentiellement à ces deux derniers types d'erreurs, dans la mesure où elles sont directement liées à l'utilisateur et donc à CIGRI. Les deux autres types (gestionnaire de tâches et grappe) ne sont pas liées à l'exécution des tâches mais au fonctionnement du site distant qui est géré par le site distant. On ne peut donc à notre niveau pas effectuer d'action directe pour remettre un n\oe ud ou la grappe en état. Chaque site distant gère ses machines. Pour CIGRI, si une erreur revient trop souvent sur un n\oe ud, on émet l'hypothèse que l'erreur est dûe au n\oe ud et non à l'application et le n\oe ud est banni. De même pour une grappe, si trop de n\oe uds sont bannis, la grappe toute entière est bannie.
 \begin{figure}
 \begin{center}
 
@@ -422,7 +416,7 @@ Suite à la définition de grille légère, une approche exploitant la présence de g
 En deux ans d'exploitation, CIGRI a traité plus de 1~500~000 tâches. Actuellement des campagnes de tâches sont soumises régulièrement. Les performances constatées nous amènent à penser que le système est fiable. Très peu de tâches ne réussissent à être exécutées de manière satisfaisante.\\
 
 Des travaux sont toujours en cours pour améliorer l'analyse du taux d'occupation des ressources. Il s'agit par la suite de considérer l'ensemble des grappes, et donc de prendre en compte la puissance des machines qui peut varier d'une grappe à l'autre.\\
-D'autres améliorations sont en outre possibles afin de gérer de manière plus optimale les évènements et les erreurs de la grille. D'autre part le système actuel ne prend pas compte l'environnement de l'utilisateur. Pour soumettre sur plusieurs grappes, l'utilisateur doit s'assurer du bon fonctionnement de son application sur chacune des grappes. Plusieurs approches sont envisageables pour un déploiement de l'environnement, qui constitue un point important de notre recherche. Les fichiers de résultats sont également pris en compte dans ces travaux. \\
+D'autres améliorations sont en outre possibles afin de gérer de manière plus optimale les évènements et les erreurs de la grille. D'autre part le système actuel ne prend pas compte l'environnement de l'utilisateur. Son application peut par exemple nécessiter des librairies particulières à l'exécution. Pour soumettre sur plusieurs grappes, l'utilisateur doit actuellement s'assurer du bon fonctionnement de son application en installant ce qui est nécessaire sur chacune des grappes. Plusieurs approches sont envisageables pour un déploiement de l'environnement, qui constitue un point important de notre recherche. Les fichiers de résultats sont également pris en compte dans ces travaux. \\
 
 CIGRI permet ainsi d'utiliser de manière efficace l'ensemble des ressources de l'agglomération grenobloise, et les performances de cet outil sur une période d'expérimentation suffisament longue donnent des résultats encourageants.
 
