@@ -66,7 +66,7 @@ foreach my $j (keys(%clusterNames)){
                             # this line is not valid "echo rm ~$job{user}/$tmpRemoteFile >> $tmpRemoteFile;",
                             "chmod +x $tmpRemoteFile ;",
                             #"cd $job{execDir} ;",
-                            "sudo -H -u $job{user} sh -c \"cp $tmpRemoteFile $job{execDir}/. \" ;",
+                            "sudo -H -u $job{user} bash -c \"cp $tmpRemoteFile $job{execDir}/. \" ;",
                             "rm $tmpRemoteFile ;"
                          );
 
