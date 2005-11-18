@@ -74,10 +74,10 @@ foreach my $i (@MjobsToCollect){
             my $cmd = "if [ -d ~cigri/results_tmp ]; then rm -rf ~cigri/results_tmp/* ; else mkdir ~cigri/results_tmp ; fi";
             %cmdResult = SSHcmd::submitCmd($$j{jobClusterName}, $cmd);
             if ($cmdResult{STDERR} ne ""){
+                iolibCigri::commit_transaction($base);
                 if (NetCommon::checkSshError($base,$$j{jobClusterName},$cmdResult{STDERR}) != 1){
                     colomboCigri::add_new_cluster_event($base,$$j{jobClusterName},0,"COLLECTOR","There is an error in the collector : SSHcmd::submitCmd($$j{jobClusterName}, $cmd) -- $cmdResult{STDERR}");
                 }
-                iolibCigri::commit_transaction($base);
                 iolibCigri::begin_transaction($base);
                 print("[COLLECTOR] ERROR --> SSHcmd::submitCmd($$j{jobClusterName}, $cmd)  -- $cmdResult{STDERR} \n");
                 next;
@@ -95,21 +95,20 @@ foreach my $i (@MjobsToCollect){
             if ($error == 0){
                 my $cmd = "";
                 if ("$hashfileToDownload{$k}" ne ""){
-                    $cmd = "test ! -e $execDir/$hashfileToDownload{$k} && test -e $execDir/$k && sudo -u $$j{userLogin} mv $execDir/$k $execDir/$hashfileToDownload{$k} ; test -e $execDir/$hashfileToDownload{$k} && tar rf ~cigri/results_tmp/$i.tar -C $execDir $hashfileToDownload{$k} && echo nimportequoi";
+                    $cmd = "test ! -e $execDir/$hashfileToDownload{$k} && test -e $execDir/$k && sudo -u $$j{userLogin} mv $execDir/$k $execDir/$hashfileToDownload{$k} ; test -e $execDir/$hashfileToDownload{$k} && touch ~cigri/results_tmp/$i.tar && tar rf ~cigri/results_tmp/$i.tar -C $execDir $hashfileToDownload{$k} && echo nimportequoi";
                     print("[COLLECTOR] tar rf ~cigri/results_tmp/$i.tar -C $execDir $hashfileToDownload{$k}  -- on $$j{jobClusterName}\n");
                 }else{
-                    $cmd = "test -e $execDir/$k && tar rf ~cigri/results_tmp/$i.tar -C $execDir $k && echo nimportequoi";
+                    $cmd = "test -e $execDir/$k && touch ~cigri/results_tmp/$i.tar && tar rf ~cigri/results_tmp/$i.tar -C $execDir $k && echo nimportequoi";
                     print("[COLLECTOR] tar rf ~cigri/results_tmp/$i.tar -C $execDir $k  -- on $$j{jobClusterName}\n");
                 }
                 %cmdResult = SSHcmd::submitCmd($$j{jobClusterName}, $cmd);
                 #print(Dumper(%cmdResult));
                 if ($cmdResult{STDERR} ne ""){
                     warn("ERREUR -- $cmdResult{STDERR}\n");
-
+                    iolibCigri::commit_transaction($base);
                     if (NetCommon::checkSshError($base,$$j{jobClusterName},$cmdResult{STDERR}) != 1){
                         colomboCigri::add_new_cluster_event($base,$$j{jobClusterName},$i,"COLLECTOR","There is a tar  error in the collector : SSHcmd::submitCmd($$j{jobClusterName}, $cmd) -- $cmdResult{STDERR}");
                     }
-                    iolibCigri::commit_transaction($base);
                     iolibCigri::begin_transaction($base);
 
                     # Delete previous files in the tarball
@@ -179,17 +178,17 @@ foreach my $i (@MjobsToCollect){
         system("ssh $j gzip \"~cigri/results_tmp/$i.tar\"");
         if ($? != 0){
             iolibCigri::rollback_transaction($base);
-            iolibCigri::begin_transaction($base);
             colomboCigri::add_new_cluster_event($base,$j,0,"COLLECTOR","There is a GZIP  error in the collector : system(ssh $j gzip ~cigri/results_tmp/$i.tar) -- retCode=$?");
+            iolibCigri::begin_transaction($base);
             warn("Error exit_code=$?\n");
         }else{
             print("scp -q $j:~cigri/results_tmp/$i.tar.gz ~cigri/results/$userGridName/$i/$resColl[2].tar.gz \n");
             system("scp -q $j:~cigri/results_tmp/$i.tar.gz ~cigri/results/$userGridName/$i/.$resColl[2].tar.gz");
             if( $? != 0 ){
                 iolibCigri::rollback_transaction($base);
-                iolibCigri::begin_transaction($base);
                 colomboCigri::add_new_cluster_event($base,$j,0,"COLLECTOR","There is a SCP  error in the collector : system(scp -q $j:~cigri/results_tmp/$i.tar.gz ~cigri/results/$userGridName/$i/$resColl[2].tar.gz) -- retCode=$?");
                 #colomboCigri::add_new_cluster_event($base,$j,0,"COLLECTOR","There is a SCP  error in the collector");
+                iolibCigri::begin_transaction($base);
                 warn("Error scp exit_code=$?\n");
             }else{
                 system("mv ~cigri/results/$userGridName/$i/.$resColl[2].tar.gz ~cigri/results/$userGridName/$i/$resColl[2].tar.gz");
@@ -238,7 +237,9 @@ foreach my $i (@MjobsToCollect){
             if ($cmdResult{STDERR} ne ""){
                 warn("ERROR -- $cmdResult{STDERR}\n");
                 if (NetCommon::checkSshError($base,$$j{jobClusterName},$cmdResult{STDERR}) != 1){
+                    iolibCigri::commit_transaction($base);
                     colomboCigri::add_new_cluster_event($base,$$j{jobClusterName},0,"COLLECTOR","There is a RM error in the collector : SSHcmd::submitCmd($$j{jobClusterName}, $cmd) -- $cmdResult{STDERR}");
+    		    iolibCigri::begin_transaction($base);
                 }
             }
         }
