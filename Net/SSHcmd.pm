@@ -67,7 +67,7 @@ sub initSSHConnection($){
     $sshConnections{$server} = [ $i, $j, $k, $pid, $currentTime];
     #init connection
 
-    if (!(print($i "/bin/sh -c \"echo ; echo $endLineTag\"\n"))){
+    if (!(print($i "/bin/bash -c \"echo ; echo $endLineTag\"\n"))){
         #can t write data on the channel --> error
         $closeConnection = 1;
     }else{
@@ -151,8 +151,8 @@ sub submitCmd($$){
         my $fd0 = $sshConnections{$clusterName}->[0];
         my $fd1 = $sshConnections{$clusterName}->[1];
         my $fd2 = $sshConnections{$clusterName}->[2];
-#print("----------- /bin/sh -c '$command' ----------\n");
-        if (!(print($fd0 "/bin/sh -c '$command'; echo ; echo $endLineTag\n"))){
+#print("----------- /bin/bash -c '$command' ----------\n");
+        if (!(print($fd0 "/bin/bash -c '$command'; echo ; echo $endLineTag\n"))){
             # can t write on the channel --> error
             $ERRORStr = "$sshErrorPrefix can t send command\n";
             $closeConnection = 1;
