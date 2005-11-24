@@ -821,10 +821,10 @@ sub check_end_MJobs($){
         $sth = $dbh->prepare("    SELECT jobMJobsId, count( * )
                                 FROM jobs, events
                                 WHERE jobMJobsId = $i
-                                AND jobState = \"Event\"
-                                AND (eventJobId = jobId
-                                    OR eventMJobsId = $i)
                                 AND eventState = \"ToFIX\"
+                                AND jobState = \"Event\"
+                                AND eventMJobsId = jobMJobsId
+                                AND eventJobId = jobId
                                 GROUP BY jobMJobsId
                             ");
         $sth->execute();
