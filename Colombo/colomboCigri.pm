@@ -72,6 +72,7 @@ sub add_new_cluster_event($$$$$){
 
     #my $id = calculate_event_id($dbh);
     my $time = get_date();
+    $eventMessage = $dbh->quote($eventMessage);
     $dbh->do("    INSERT INTO events (eventId,eventType,eventClass,eventClusterName,eventMJobsId,eventDate,eventMessage)
                 VALUES (NULL,\"$eventType\",\"CLUSTER\",\"$clusterName\",$MJobsId,\"$time\",\"$eventMessage\")");
     

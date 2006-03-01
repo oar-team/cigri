@@ -29,7 +29,7 @@ eventClusterName VARCHAR( 100 ) ,
 eventSchedulerId INT UNSIGNED ,
 eventMJobsId INT UNSIGNED ,
 eventDate DATETIME NOT NULL ,
-eventMessage VARCHAR( 255 ) ,
+eventMessage TEXT ,
 eventAdminNote VARCHAR( 255 ) ,
 INDEX eventState (eventState),
 PRIMARY KEY (eventId)

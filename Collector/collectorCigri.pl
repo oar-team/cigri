@@ -192,7 +192,8 @@ foreach my $i (@MjobsToCollect){
                 warn("Error scp exit_code=$?\n");
             }else{
                 system("mv ~cigri/results/$userGridName/$i/.$resColl[2].tar.gz ~cigri/results/$userGridName/$i/$resColl[2].tar.gz");
-                system("sudo chown $userGridName ~cigri/results/$userGridName/$i/$resColl[2].tar.gz");
+                #system("sudo chown $userGridName ~cigri/results/$userGridName/$i/$resColl[2].tar.gz");
+                system("sudo chown -R $userGridName ~cigri/results/$userGridName/$i");
                 foreach my $k (keys(%collectedJobs)){
                     if("${$collectedJobs{$k}}{jobClusterName}" eq "$j"){
                         print("set collectedJobId de $k = $resColl[1]\n");
