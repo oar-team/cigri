@@ -1,0 +1,87 @@
+                                    INSTALLING CIGRI
+
+REQUIREMENTS
+============
+
+    - Perl
+    - Perl-MySql
+    - Perl-suid (Debian)
+    - php
+    - php-mysql
+
+    - mysql-server
+    - mysql-client
+
+    - phpmyadmin
+
+CONFIGURATION
+=============
+
+    1. Create a "cigri" user on the CIGRI server and each cluster frontal.
+
+    2. Configure ssh connections between CIGRI server and each clusters:
+        * create a set of ssh keys for the user "cigri" with ssh-keygen (for
+          instance 'id_dsa.pub' and 'id_dsa')
+        * append the contents of 'id_dsa.pub' to the file
+          "~/.ssh/authorized_keys" on each cluster frontal
+        * in "~/.ssh/config" on the CIGRI server add the lines:
+            Host *
+                ForwardX11 no
+                StrictHostKeyChecking no
+                PasswordAuthentication no
+        * test ssh connections with (every) clusters; there should not
+          be any prompt.
+
+    3. Copy cvs repository of CIGRI in "cigri" user home.
+
+    4. Copy the file 'Tools/cigri.conf' in '/etc' and edit it to suit your configuration.
+       Be carefull, permissions must be "600" and this file must be owned by cigri user.
+
+    5. Do a "chmod +s" on file 'Qfunctions/gridsub.pl' and 'Qfunctions/griddel.pl'.
+       These scripts will be executed with cigri user id instead of real user one.
+       (So these scripts will be allowed to read '/etc/cigri.conf')
+
+    6. Create CIGRI database:
+        mysql -uroot -p < DB/cigri_db.sql
+       This file creates a user "cigri" and all tables in the database "cigri".
+
+    7. Copy 'www2' directory in your web base repository (be carefull
+       with right permissions).
+
+    8. Edit '/etc/sudoers' and add lines:
+        * on cigri server 
+            
+            cigri   ALL=(ALL) NOPASSWD : ALL
+            
+        * on each cluster frontal
+            
+            Runas_Alias     GRID = gridUser1, gridUser2, ...
+            cigri   ALL=(GRID) NOPASSWD : ALL
+          
+          where gridUser* are grid user login name on the cluster.
+
+FIRST STEPS
+===========
+
+    1. If you had set the tag "SSH_SERVER_PORT" with a right port value then
+       launch the SSH server:
+            Become cigri and launch 'Net/SSHcmdServer.pl'
+
+    2. You can launch CIGRI:
+            Become cigri and launch 'Almighty/AlmightyCigri.pl'
+
+    3. Now you have to insert some informations in the database:
+            * Clusters:
+                Thanks to phpmyadmin, go to "clusters" table and insert
+                every working clusters. Only clusterName field is needed.
+
+            * Users:
+                Go to "users" table and add each grid user with their
+                cluster login (all fields are needed). Thus CIGRI system
+                can know what is the login on a cluster for a grid user.
+
+    4. In web interface, you have to go to "...../admin/index.php" URL; type on
+       "connect" and change admin password. You can add an account for each grid
+       user with a password ("Login" must be the same with "userGridName" in
+       the users table).
+
