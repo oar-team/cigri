@@ -1,10 +1,10 @@
 #!/usr/bin/perl
 
-use JDLParser ;
+use JDLParserCigri ;
 
 #my $file = "ConfTest.conf";
 
-my $toto = JDLParser::init_jdl("DEFAULT{
+my $toto = JDLParserCigri::init_jdl("DEFAULT{
 	toto = titi;
 	dd = tt;
 }
@@ -15,11 +15,11 @@ i4{
 
 print("Retour function : $toto \n");
 
-foreach my $i (keys(%JDLParser::clusterConf)){
-	my $t = $JDLParser::clusterConf{$i};
+foreach my $i (keys(%JDLParserCigri::clusterConf)){
+	my $t = $JDLParserCigri::clusterConf{$i};
 	print("$i : \n");
 	foreach my $j (keys(%$t)){
-		print("\t$j --> $JDLParser::clusterConf{$i}{$j} \n");
+		print("\t$j --> $JDLParserCigri::clusterConf{$i}{$j} \n");
 	}
 
 }

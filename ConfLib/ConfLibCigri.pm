@@ -55,8 +55,8 @@ sub init_conf {
     unless ( defined $file and -r $file ) {
       if ( defined $ENV{CIGRIDIR} and -r $ENV{CIGRIDIR}."/cigri.conf" ){
 	$file = $ENV{CIGRIDIR}."/cigri.conf";
-      } elsif ( -r "/etc/cigri.conf" ) {
-	$file = "/etc/cigri.conf";
+      } elsif ( -r "cigri.conf" ) {
+	$file = "cigri.conf";
       } else {
 	die "cigri.conf file not found";
       }

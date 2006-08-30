@@ -1,0 +1,186 @@
+
+
+				DATA SYNCHRONIZATION OF CLUSTERS
+
+
+
+Automatic data transfer with the submission of a multijob for cluster data synchronization.
+
+
+				
+INTRODUCTION 
+		
+In case that a  multijob needs specific data installed on every cluster of the grid we have created a funcionality that provides automatic data synchronization of clusters when the user submits the multijob.
+The functionality is implemented as a different module that is called by the scheduler.The whole process ensures that the simple job scheduling on each cluster will proceed according to the data synchronization state of each cluster. Therefore a cluster is permited to execute a simple job only when the data synchronization (data transfer) is terminated succesfully.
+
+The data that need to be synchronized (tranfered) have to be initially copied by the user on the CIGRI server and the specific path has to be specified on the .jdl multijob file. In more detail to specify the path on the .jdl file we use the "data_to_transfer" title. The user can also specify the data_synchronization timeout by using the "transfer_timeout" title. In case this is not specified on the .jdl file the default timeout value is 10min. 
+
+The data are transfered to a specific path, for each cluster. This path is specified by the user with the title "execDir" in the relevant section of each cluster.
+
+
+A multijob example that uses this functionality looks like following:
+
+Multijob example:
+------------
+#example.jdl
+
+DEFAULT{
+        paramFile = demoHalf.param;
+        data_to_transfer = /home/g5k/data/;
+        transfer_timeout = 20;
+	#        paramFile = demoHalf.param;
+	#        paramFile = demoDoubleHalf.param;
+}
+node-3.sophia.grid5000.fr{
+        execFile = /home/g5k/demo_povray/scripts/generateImage.sh ;
+        execDir = /home/g5k/demo_povray/tmp ;
+}
+node-18.sophia.grid5000.fr{
+        execFile = /home/g5k/demo_povray/scripts/generateImage.sh ;
+        execDir = /home/g5k/demo_povray/tmp ;
+}
+node-14.sophia.grid5000.fr{
+        execFile = /home/g5k/demo_povray/scripts/generateImage.sh ;
+        execDir = /home/g5k/demo_povray/tmp ;
+}
+-------------
+
+If the user comments the titles "data_to_transfer" and "transfer_timeout" it is supposed that no data synchronization is needed for the execution of the multijob.
+
+
+
+
+FUNCIONALITY DESCRIPTION
+
+
+1)Database Modifications
+
+In order to store the relevant information to the data synchronization, specified on the .jdl file and  to gurrantee a correct scheduling we had to perform the following modifications to the database:
+
+--Create Table "data_synchron"  --->to store the JobId of the multijob along with the path of the data to be transfered, the relevant timeout and a field that shows the state of the data synchronizations on the grid level ('ISSUED','INITIATED','IN_TREATMENT','ERROR','TERMINATED').
+
+--Create the field "propertiesData_synchronState" on Table properties ---> that shows the state of the data synchronization of a specific multijob for a specific cluster ('','IN_TREATMENT','ERROR','TERMINATED')
+
+
+
+2)Scheduler Modifications
+
+Initially the scheduler checks if the submitted multijob needs data synchronization by checking the state on the grid level (data_synchronState=="ISSUED"). In this case it calls the module responsible for the synchronization named hermesCigri.pl which is described on section 4).
+
+The data synchronization of cluster adds an extra complexity on the scheduler. It needs to consider if the synchronization of the specific cluster has terminated succesfully and only in this case it permits the cluster to proceed with a job execution (propertiesData_synchronState=="TERMINATED")
+
+
+
+3)JDL Extension
+
+No modifications were needed to be made on JDLParserCigri.pm for the parsing of the new extended .jdl file. 
+The treatment of the .jdl file is made on the central part of the iolibCigri.pm module, where the relevant information {DEFAULT}{data_to_transfer} and {DEFAULT}{transfer_timeout} are stored on the database.
+
+
+
+4)Main module
+
+The module that does all the work is in the /Hermes directory and is called hermesCigri.pl. 
+
+HERMES (Greek [her'me:s]), in Greek mythology, is the god of boundaries and of the travelers who cross them, of shepherds and cowherds, of orators, literature and poets, of athletics, of weights and measures and invention and commerce in general, of liars, and of the cunning of thieves. As a translator, he is the messenger from the gods to humans.
+
+Briefly hermesCigri.pl when called executes one rsync at the time from the CIGRI server on each cluster server. The rsync is called with a different process (fork) to gurantee that the scheduling is going to continue throught the data transfer.
+
+In more detail, this module as already mentioned is called by the scheduler if a multijob needs data synchronization for its execution.The module deals one multijob per time and this is assured by the check made on the scheduler (data_synchronState=='ISSUED' then set_data_synchronState='INITIATED' and call hermesCigri.pl).
+
+While on hermesCigri.pl module deal the one job that its state is (data_synchronState=='INITIATED') and (set_data_synchronState="IN_TREATMENT"). Then the process iniciates all the clusters that involve in the multijob (properties_datasynchronState="INITIATED"). Then it treats its cluster case seperately setting (propertiesData_synchronState="IN_TREATMENT") and executing the function rsync_data with the specified values. 
+
+The function rsync_data is used to transfer data using the rsync command in a new process created by fork. The arguments of the function are:
+#arg1 -> source_directory
+#arg2 -> destination_directory
+#arg3 -> user
+#arg4 -> destination cluster server hostname
+#arg5 -> transfer_timeout
+#arg6 -> mode =0 transfer from local to local, or =1 from local to remote
+
+For the source_directory we use the value stored on the database (data_synchronSrc) which is same for all clusters for a specific multijob. The destination_directory is relevant to its cluster (propertiesExecDirectory). For the user we (get_userLogin4cluster) because the (userGridName) who executes the multijob can have different values on each cluster (userLoginName). Finally the function proposes 2 different modes: local to local and local to remote. The first mode is used only in the case the CIGRI server plays also the role of a cluster server.
+
+The rsync_data function as already mentioned, forks an rsync. 
+Rsync copies only the diffs of files that have actually changed, compressed and through ssh for security.
+Rsync copies files either to or from a remote host, or locally  on  the current  host  (it  does  not  support copying files between two remote hosts).
+
+Initially the command that is executed is called by changing the user from cigri on the cluster user (userLoginName). For the rsync we use the following options:
+
+--rsh=/usr/bin/ssh 
+	      This option allows you to choose  an  alternative  remote  shell
+              program  to  use  for communication between the local and remote
+              copies of rsync. Typically, rsync is configured to  use  ssh  by
+              default, but you may prefer to use rsh on a local network.
+
+--rsync-path=/usr/bin/rsync 
+	      Use  this  to  specify  what  program is to be run on the remote
+              machine to start-up rsync.
+--recursive 
+	      This tells rsync to  copy  directories  recursively.
+--checksum
+	      This forces the sender to checksum all files using a 128-bit MD4
+              checksum  before  transfer.  The  checksum  is  then  explicitly
+              checked  on  the  receiver  and any files of the same name which
+              already exist and  have  the  same  checksum  and  size  on  the
+              receiver are not transferred.  This option can be quite slow.
+--verbose 
+	      This option increases the amount of information the daemon  logs
+              during  its  startup phase.  After the client connects, the dae-
+              mon's verbosity level will be controlled by the options that the
+              client used and the "max verbosity" setting in the module's con-
+              fig section.
+--compress 
+      	      With this option, rsync compresses the file data as it  is  sent
+              to  the  destination  machine,  which reduces the amount of data
+              being transmitted -- something that is useful over a  slow  con-
+              nection.
+
+              Note  this  this  option  typically  achieves better compression
+              ratios that can be achieved by using a compressing remote  shell
+              or  a  compressing  transport  because it takes advantage of the
+              implicit information in the matching data blocks  that  are  not
+              explicitly sent over the connection.
+--archive 
+	      It is a quick way of saying you
+              want recursion and want to preserve almost everything.
+
+--timeout=
+	      This  option allows you to set a maximum I/O timeout in seconds.
+              If no data is transferred for the specified time then rsync will
+              exit. The default is 0, which means no timeout.
+
+
+After the end of the rsync process if the process terminates successfully for the cluster we (set_propertiesData_synchronState="TERMINATED") and the cluster grants permissions to execute jobs on the scheduler. In case of error code we deal separately each code as explained on section 5) and we (set_data_synchronState="ERROR") so the cluster cannot execute jobs for the specific multijob on the scheduler. Depending on the result of all the cluster transfers we set the state of the data synchronization on grid level either (data_synchronState="TERMINATED") if all transfers terminated successfully or (data_synchronState="ERROR") if one cluster failed to terminate.
+
+
+
+5)Dealing with Errors
+
+The Colombo module is responsible for the error events. In case of error return code of the rsync_data function we add_new_cluster_event on the colombo events to blacklist the cluster for the specific multijob.
+
+In our case we deal with the following error exit values of the rsync command.
+
+1      Syntax or usage error
+5      Error starting client-server protocol
+10     Error in socket I/O
+11     Error in file I/O
+12     Error in rsync protocol data stream
+23     Partial transfer due to error
+24     Partial transfer due to vanished source files
+30     Timeout in data send/receive
+
+For each case we store the relevant message on the events table by using the colombo module.
+The most common error is the 
+
+23     Partial transfer due to error
+
+which deals with 2 different error cases:
+- if (data_synchronSrc) is a valid file or directory 
+- if the user has appropriate permissions to write on the (propertiesExecDirectory) 
+
+			
+
+
+
+
+

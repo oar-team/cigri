@@ -33,12 +33,20 @@ print "[SCHEDULER] Begining of scheduler FIFO\n";
 my %nbFreeNodes = iolibCigri::get_nb_freeNodes($base);
 my %nbRemainedJobs = iolibCigri::get_nb_remained_jobs($base);
 my %nbRemoteWaitingJobWeight = iolibCigri::get_cluster_remoteWaiting_job_weight($base);
-
 #print(Dumper(%nbFreeNodes));
 
+
 foreach my $i (sort(keys(%nbRemainedJobs))){
+    if(iolibCigri::get_data_synchronState($base, $i) eq 'ISSUED'){   
+        iolibCigri::set_data_synchronState($base, $i, "INITIATED");
+	my $user = "cigri";
+	my $command ="sudo -u " . $user . " /home/cigri/CIGRI/Hermes/hermesCigri.pl ";
+	print"Initiating data synchronization... Executing: $command\n";
+	exec"$command";	
+    }
     my %propertiesClusterName = iolibCigri::get_MJobs_Properties($base, $i);
     foreach my $j (keys(%propertiesClusterName)){
+      if((iolibCigri::get_propertiesData_synchronState($base, $i, $j) eq 'TERMINATED') || (iolibCigri::get_propertiesData_synchronState($base, $i, $j) eq '')){
         if (colomboCigri::is_cluster_active($base,$j,$i) == 0){
             my $number = 0 ;
             my $k = 0;
@@ -80,6 +88,7 @@ foreach my $i (sort(keys(%nbRemainedJobs))){
                 $nbRemainedJobs{$i} -= $number;
             }
         }
+      }	                       
     }
 }
 

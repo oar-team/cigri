@@ -168,7 +168,17 @@ sub add_mjobs($$) {
             rollback_transaction($dbh);
             return -1;
         }
-        # Update the properties table
+	##added for rsync data synchronization of clusters##
+	if ((defined($JDLParserCigri::clusterConf{DEFAULT}{data_to_transfer})) && !($JDLParserCigri::clusterConf{DEFAULT}{data} =~ m/.*\~.*/m)){
+                  my $DataSrc = $JDLParserCigri::clusterConf{DEFAULT}{data_to_transfer};
+		  $dbh->do("INSERT INTO data_synchron (data_synchronMJobsId,data_synchronSrc) VALUES ($id,\"$DataSrc\")");
+		  }															     	
+	if ((defined($JDLParserCigri::clusterConf{DEFAULT}{transfer_timeout})) && !($JDLParserCigri::clusterConf{DEFAULT}{data_to_transfer} =~ m/.*\~.*/m)){
+	        my $Timeout = $JDLParserCigri::clusterConf{DEFAULT}{transfer_timeout};
+		$dbh->do("UPDATE data_synchron SET data_synchronTimeout = \"$Timeout\" WHERE data_synchronMJobsId = $id");
+        }
+	
+	# Update the properties table
         my @clusters = keys(%JDLParserCigri::clusterConf);
         if ($#clusters > 0){
             foreach my $j (@clusters){
@@ -219,6 +229,316 @@ sub add_mjobs($$) {
     mailer::sendMail("New MJob $id from user $lusr","Insert new MJob $id.\nJDL:\n$jdl");
 
     return $id;
+}
+
+# get the data_synchronization source directroy 
+# # # # arg1 --> database
+# # # # arg2 --> MJobId
+sub get_source_data_synchron($$){
+   my $dbh = shift;
+   my $MjobId = shift;
+   my $sth = $dbh->prepare("    SELECT data_synchronSrc
+                                FROM data_synchron
+                                WHERE data_synchronMJobsId = $MjobId;                                
+                          ");
+   $sth->execute();
+   my @src  = $sth->fetchrow_array();
+   $sth->finish();
+	return @src[0];
+}
+# get the data_synchronization parameters 
+# # # # # arg1 --> database
+sub get_data_synchron_param($){
+  my $dbh = shift;
+  my $sth = $dbh->prepare(" SELECT data_synchronMJobsId,data_synchronSrc,data_synchronTimeout
+                            FROM data_synchron
+                            WHERE data_synchronState = \'INITIATED\';
+                          ");
+ $sth->execute();
+# my %result;
+# while (my @ref = $sth->fetchrow_array()) {
+#      $result{$ref[0]} = $ref[1];
+# }
+# $sth->finish();
+# return %result;
+
+  my %resul;
+
+  while (my @ref = $sth->fetchrow_array()) {
+     my $tmp = {
+    #              "user" => $ref[1],
+    #              "host" => $ref[2],
+                  "src" => $ref[1],
+		  "timeout" => $ref[2]
+                };
+      push(@{$resul{$ref[0]}},$tmp);
+   }
+										        $sth->finish();
+   return %resul;
+}
+
+# set the state of data synchronization of a multijob
+# # arg1 --> database ref
+# # arg2 --> MjobId
+# # arg3 --> state
+sub set_data_synchronState($$$) {
+    my $dbh = shift;
+    my $MidJob = shift;
+    my $state = shift;
+    my $sth = $dbh->prepare("UPDATE data_synchron SET data_synchronState = \"$state\"
+                             WHERE data_synchronMJobsId =\"$MidJob\"");
+    $sth->execute();
+    $sth->finish();
+}
+  
+# get the userLogin of a specific cluster
+# # # arg1 --> database ref
+# # # arg2 --> clusterName
+   
+sub get_userLogin4cluster($$$) {
+    my $dbh = shift;
+    my $cluster = shift;
+    my $MidJob = shift;
+    my $sth = $dbh->prepare("SELECT userLogin
+    			     FROM users,multipleJobs
+                             WHERE userClusterName = \"$cluster\"
+			     AND MJobsId = \"$MidJob\"
+			     AND MJobsUser = userGridName");
+    $sth->execute();
+    my @state  = $sth->fetchrow_array();
+    $sth->finish();
+    
+    return @state[0];    
+}
+
+# get the the data synchronization state of a multijob
+# # # # arg1 --> database ref
+# # # # arg2 --> MjobId
+
+sub get_data_synchronState($$) {
+    my $dbh = shift;
+    my $MidJob = shift;
+    my $sth = $dbh->prepare("SELECT data_synchronState
+                             FROM users, data_synchron
+                             WHERE data_synchronMJobsId =\"$MidJob\"");
+    $sth->execute();
+    my @state  = $sth->fetchrow_array();
+    $sth->finish();
+    return @state[0];
+}
+
+# get the the data synchronization user of a multijob
+# # # # arg1 --> database ref
+# # # # arg2 --> MjobId
+		
+sub get_data_synchronUser($$) {
+    my $dbh = shift;
+    my $MidJob = shift;
+    my $sth = $dbh->prepare("SELECT data_synchronUser
+                             FROM data_synchron
+                             WHERE data_synchronMJobsId =\"$MidJob\"");
+    $sth->execute();
+    my @User  = $sth->fetchrow_array();
+    $sth->finish();
+    return @User[0];
+}
+
+# get the the number of multijobs for data synchronization in IN_TREATMENT state
+# # # # # arg1 --> database ref
+# # # # # arg2 --> MjobId
+
+sub get_nb_data_synchronTREATstate($) {
+    my $dbh = shift;
+    my $sth = $dbh->prepare("SELECT COUNT(*)
+                             FROM data_synchron
+                             WHERE data_synchronState=\'IN_TREATMENT\'");
+    $sth->execute();
+    my @result = $sth->fetchrow_array();
+
+
+    $sth->finish();
+    return $result[0];
+}
+# get the the number of clusters that the specific user is registered
+# # # # # # arg1 --> database ref
+# # # # # # arg2 --> user
+sub get_nbclusters_4user($$) {
+    my $dbh = shift;
+    my $user = shift;
+    my $sth = $dbh->prepare("SELECT COUNT(*)
+                             FROM users
+                             WHERE userGridName=\"$user\"");
+    $sth->execute();
+    my @result = $sth->fetchrow_array();
+    $sth->finish();
+    return $result[0];
+}
+
+# get the registered user of localhost cluster
+# # # # # # # arg1 --> database ref
+
+sub get_localhost_user($) {
+    my $dbh = shift;
+    my $sth = $dbh->prepare("SELECT userGridName
+                             FROM users
+                             WHERE userClusterName =\'localhost\'");
+    $sth->execute();
+    my @state  = $sth->fetchrow_array();
+    $sth->finish();
+    return @state[0];
+}
+
+# set the state of data synchronization of a cluster for a specific multijob 
+# # # arg1 --> database ref
+# # # arg2 --> MjobId
+# # # arg3 --> cluster
+# # # arg4 --> state
+sub set_propertiesData_synchronState($$$$) {
+     my $dbh = shift;
+     my $MidJob = shift;
+     my $cluster = shift;
+     my $state = shift;
+     my $sth = $dbh->prepare("UPDATE properties SET propertiesData_synchronState = \"$state\"
+                              WHERE propertiesMJobsId =\"$MidJob\"
+			      AND propertiesClusterName =\"$cluster\"");
+     $sth->execute();
+     $sth->finish();
+}
+
+# get the state of data synchronization of a cluster for a specific multijob 
+# # # # arg1 --> database ref
+# # # # arg2 --> MjobId
+# # # # arg3 --> cluster
+sub get_propertiesData_synchronState($$$) {
+    my $dbh = shift;
+    my $MidJob = shift;
+    my $cluster = shift;
+    my $sth = $dbh->prepare("SELECT  propertiesData_synchronState
+                             FROM properties
+                             WHERE propertiesMJobsId =\"$MidJob\"
+			     AND propertiesClusterName =\"$cluster\""
+			   );
+    $sth->execute();
+    my @state  = $sth->fetchrow_array();
+    $sth->finish();
+    return @state[0];
+}
+
+# get the execDirectory of a cluster for a specific multijob 
+# # # # # arg1 --> database ref
+# # # # # arg2 --> MjobId
+# # # # # arg3 --> cluster
+sub get_properties_ExecDirectory($$$) {
+    my $dbh = shift;
+    my $MidJob = shift;
+    my $cluster = shift;
+    my $sth = $dbh->prepare("SELECT  propertiesExecDirectory
+                             FROM properties
+                             WHERE propertiesMJobsId =\"$MidJob\"
+                             AND propertiesClusterName =\"$cluster\""
+                           );
+    $sth->execute();
+    my @state  = $sth->fetchrow_array();
+    $sth->finish();
+    return @state[0];
+}
+
+# get if a cluster for a specific multijob 
+# # # # # # arg1 --> database ref
+# # # # # # arg2 --> MjobId
+# # # # # # arg3 --> state
+sub get_properties_cluster_existance($$$){
+    my $dbh = shift;
+    my $MJobId = shift;
+    my $cluster = shift;
+    my $sth = $dbh->prepare("SELECT COUNT(*)
+                             FROM properties
+                             WHERE propertiesMJobsId = \"$MJobId\"
+                             AND propertiesClusterName = \"$cluster\"");
+    $sth->execute();
+    my @result = $sth->fetchrow_array();
+    $sth->finish();
+													        return $result[0];
+}
+
+# get the number of clusters that their synchronization state is 'TERMINATED' for a specific MJob
+# # arg1 --> database ref
+# # arg2 --> MjobId
+sub get_nb_synchronTERM_clusters($$){
+    my $dbh = shift;
+    my $MJobId = shift;
+    my $sth = $dbh->prepare("SELECT COUNT(*)
+                             FROM properties
+                             WHERE propertiesMJobsId = \"$MJobId\"
+                             AND (propertiesData_synchronState = \"TERMINATED\"
+			     OR propertiesData_synchronState = \"\")");
+    $sth->execute();
+    my @result = $sth->fetchrow_array(); 
+       
+    
+    $sth->finish();
+    return $result[0];
+}
+# get the number of clusters that their synchronization state is 'ERROR' for a specific MJob
+# # arg1 --> database ref
+# # arg2 --> MjobId
+sub get_nb_synchronERR_clusters($$){
+    my $dbh = shift;
+    my $MJobId = shift;
+    my $sth = $dbh->prepare("SELECT COUNT(*)
+    			     FROM properties
+                             WHERE propertiesMJobsId = \"$MJobId\"
+			     AND propertiesData_synchronState = \"ERROR\"");
+    $sth->execute();
+    my @result = $sth->fetchrow_array();
+
+
+    $sth->finish();
+    return $result[0];
+
+}
+
+# get the number of clusters that their synchronization state is 'IN_TREATMENT' for a specific MJob
+# # # arg1 --> database ref
+# # # arg2 --> MjobId
+sub get_nb_synchronTREAT_clusters($$){
+    my $dbh = shift;
+    my $MJobId = shift;
+    my $sth = $dbh->prepare("SELECT COUNT(*)
+                             FROM properties
+                             WHERE propertiesMJobsId = \"$MJobId\"
+                             AND propertiesData_synchronState = \"IN_TREATMENT\"");
+    $sth->execute();
+    my @result = $sth->fetchrow_array();
+    $sth->finish();
+    return $result[0];
+}
+
+# get the number of clusters for a specific MJob
+# # # arg1 --> database ref
+# # # arg2 --> MjobId
+sub get_nb_Mjob_clusters($$){
+    my $dbh = shift;
+    my $MJobId = shift;
+    my $sth = $dbh->prepare("SELECT COUNT(*)
+                             FROM properties
+                             WHERE propertiesMJobsId = \"$MJobId\"");
+    $sth->execute();
+    my @result = $sth->fetchrow_array();
+    $sth->finish();
+    return $result[0];
+}
+
+# set INITIATED state for all clusters
+# arg1 --> database ref
+# arg2 --> MjobId
+# arg3 --> cluster synchronizer
+sub set_properties_datasynchron_initstate($$){
+     my $dbh = shift;
+     my $MidJob = shift;
+     
+         $dbh->do("UPDATE properties SET propertiesData_synchronState = \"INITIATED\"	          
+		   WHERE propertiesMJobsId =\"$MidJob\"");
 }
 
 # get the cluster names in an array

@@ -96,6 +96,22 @@ INDEX MJOBsId (MJobsId),
 PRIMARY KEY (MJobsId)
 )TYPE = InnoDB;
 
+#####add for rsync data synchronization of clusters####
+DROP TABLE IF EXISTS data_synchron;
+CREATE TABLE IF NOT EXISTS data_synchron(
+data_synchronMJobsId INT UNSIGNED NOT NULL ,
+data_synchronState ENUM('ISSUED','INITIATED','IN_TREATMENT','ERROR','TERMINATED') NOT NULL DEFAULT 'ISSUED' ,
+#data_synchronUser VARCHAR( 100 ) NOT NULL ,
+#data_synchronHost VARCHAR( 100 ) NOT NULL ,
+data_synchronSrc VARCHAR( 255 ) DEFAULT "~" ,
+data_synchronTimeout INT UNSIGNED NOT NULL DEFAULT 600,
+INDEX data_synchronMJobsId (data_synchronMJobsId),
+PRIMARY KEY (data_synchronMJobsId)
+)TYPE = InnoDB;
+#data_synchronDest VARCHAR( 255 ) DEFAULT "~" ,
+##################################
+
+
 DROP TABLE IF EXISTS parameters;
 CREATE TABLE IF NOT EXISTS parameters (
 parametersMJobsId INT UNSIGNED NOT NULL ,
@@ -115,6 +131,7 @@ propertiesMJobsId INT UNSIGNED NOT NULL ,
 propertiesJobCmd VARCHAR( 255 ) NOT NULL ,
 propertiesJobWalltime TIME NOT NULL ,
 propertiesJobWeight INT UNSIGNED NOT NULL ,
+propertiesData_synchronState ENUM('','IN_TREATMENT','ERROR','TERMINATED') NOT NULL DEFAULT '' ,
 propertiesExecDirectory VARCHAR( 255 ) DEFAULT "~" ,
 INDEX propertiesMJobsId (propertiesMJobsId),
 PRIMARY KEY (propertiesClusterName,propertiesMJobsId)
