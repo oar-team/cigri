@@ -879,6 +879,7 @@ sub get_cluster_job_toLaunch($$$) {
         $dbh->do("DELETE FROM parameters
                   WHERE parametersMJobsId = $MJobtoSubmit[0]
                   AND parametersParam = \"$$parameter{parametersParam}\"
+                  LIMIT 1
                  ");
 
         # delete used entry in jobToSubmit
