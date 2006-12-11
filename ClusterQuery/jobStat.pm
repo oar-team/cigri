@@ -31,6 +31,7 @@ use OARiolib;
 
 my %qstatCmd = ('PBS' => \&pbsstat,
                 'OAR' => \&oarstat,
+                'OAR2' => \&oarstat2,
                 'OAR_mysql' => \&oarstatMysql);
 
 #arg1 --> cluster name
@@ -90,6 +91,41 @@ sub oarstat($$$){
         # for each job section, record its state
         foreach my $jobStr (@jobsStrs){
             $jobStr =~ /Job Id: (\d+).*job_state = (.).*/s;
+            #print("[UPDATOR_DEBUG] $jobStr\n");
+            $jobState{$1} = $2;
+        }
+    }
+
+    %{$resRefHash} = %jobState;
+    return(1);
+}
+
+#arg1 --> db ref
+#arg2 --> cluster name
+#arg3 --> ref to the result hash
+sub oarstat2($$$){
+    my $dbh = shift;
+    my $cluster = shift;
+    my $resRefHash = shift;
+
+    print("$cluster --> OAR2\n");
+    my %jobState;
+    my %cmdResult = SSHcmdClient::submitCmd($cluster,"oarstat -f");
+    #print(Dumper(%cmdResult));
+    if ($cmdResult{STDERR} ne ""){
+        print("\t[UPDATOR_ERROR] $cmdResult{STDERR}\n");
+        # test if this is a ssh error
+        if (NetCommon::checkSshError($dbh,$cluster,$cmdResult{STDERR}) != 1){
+            colomboCigri::add_new_cluster_event($dbh,$cluster,0,"UPDATOR_QSTAT_CMD","$cmdResult{STDERR}");
+        }
+        return(-1);
+    }else{
+        my $qstatStr = $cmdResult{STDOUT};
+        chomp($qstatStr);
+        my @jobsStrs = split(/^\s*\n/m,$qstatStr);
+        # for each job section, record its state
+        foreach my $jobStr (@jobsStrs){
+            $jobStr =~ /Job_Id: (\d+).*state = (.).*/s;
             #print("[UPDATOR_DEBUG] $jobStr\n");
             $jobState{$1} = $2;
         }

@@ -34,6 +34,7 @@ use oarNotify;
 
 my %submitCmd = ('PBS' => \&pbssubmit,
                   'OAR' => \&oarsubmit,
+                  'OAR2' => \&oarsubmit2,
                   'OAR_mysql' => \&oarsubmitMysql);
 
 #arg1 --> cluster name
@@ -150,6 +151,61 @@ sub oarsubmit($$$$$$$$){
     foreach my $k (@strTmp){
         # search cluster batchId of the job
         if ($k =~ /\s*IdJob\s=\s(\d+)/){
+            return($1);
+        }
+    }
+    return(-2);
+}
+
+#arg1 --> db ref
+#arg2 --> cluster name
+#arg3 --> blacklisted nodes
+#arg4 --> user
+#arg5 --> jobFile to submit
+#arg6 --> walltime
+#arg7 --> weight
+#arg8 --> execDir
+#return jodBatchId or
+#   -1 : for a command execution error
+#   -2 : for a jobId parse error
+sub oarsubmit2($$$$$$$$){
+    my $dbh = shift;
+    my $cluster = shift;
+    my $blackNodes = shift;
+    my $user = shift;
+    my $jobFile = shift;
+    my $walltime = shift;
+    my $weight = shift;
+    my $execDir = shift;
+
+    print("$cluster --> OAR2\n");
+    #my $weight = iolibCigri::get_cluster_default_weight($dbh,$cluster);
+    #my %cmdResult = SSHcmdClient::submitCmd($cluster,"cd ~$user; sudo -u $user oarsub -l nodes=1,weight=$weight -q besteffort ~$user/$jobFile");
+
+    my $propertyString;
+    foreach my $i (@$blackNodes){
+        $propertyString .= " network_address != '\\'$i\\'' AND";
+    }
+    if (defined($propertyString)){
+        $propertyString =~ s/^(.+)AND$/$1/g;
+    }else{
+        $propertyString = "";
+    }
+    print("Property String = $propertyString\n");
+    #my %cmdResult = SSHcmd::submitCmd($cluster,"cd ~$user; sudo -H -u $user oarsub -l nodes=1,weight=$weight,walltime=$walltime -p \"$propertyString\" -q besteffort $jobFile");
+    my %cmdResult = SSHcmd::submitCmd($cluster,"sudo -H -u $user bash -c \"cd $execDir; oarsub -l nodes=1/cpu=$weight,walltime=$walltime -p \\\"$propertyString\\\" -t besteffort $jobFile\"");
+    #print(Dumper(%cmdResult));
+    if ($cmdResult{STDERR} ne ""){
+        # test if this is a ssh error
+        if (NetCommon::checkSshError($dbh,$cluster,$cmdResult{STDERR}) != 1){
+            colomboCigri::add_new_cluster_event($dbh,$cluster,0,"OAR_OARSUB","$cmdResult{STDERR}");
+        }
+        return(-1);
+    }
+    my @strTmp = split(/\n/, $cmdResult{STDOUT});
+    foreach my $k (@strTmp){
+        # search cluster batchId of the job
+        if ($k =~ /\s*JOB_ID\s=\s(\d+)/){
             return($1);
         }
     }

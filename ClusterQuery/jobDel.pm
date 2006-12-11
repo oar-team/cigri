@@ -30,8 +30,9 @@ use OARiolib;
 use oarNotify;
 
 
-my %qdelCmd = ('PBS' => \&pbsdel,
+my %qdelCmd = ( 'PBS' => \&pbsdel,
                 'OAR' => \&oardel,
+                'OAR2' => \&oardel2,
                 'OAR_mysql' => \&oardelMysql);
 
 #arg1 --> cluster name
@@ -91,6 +92,30 @@ sub oardel($$$){
     my $jobBatchId = shift;
 
     print("$cluster --> OAR\n");
+    my %cmdResult = SSHcmdClient::submitCmd($cluster,"sudo -u $user oardel $jobBatchId");
+    print(Dumper(%cmdResult));
+    if ($cmdResult{STDERR} ne ""){
+        # test if this is a ssh error
+        if (NetCommon::checkSshError($dbh,$cluster,$cmdResult{STDERR}) != 1){
+            colomboCigri::add_new_cluster_event($dbh,$cluster,0,"QDEL_CMD","$cmdResult{STDERR}");
+        }
+        return(-1);
+    }
+
+    return(1);
+}
+
+#arg1 --> db ref
+#arg2 --> cluster name
+#arg3 --> user
+#arg4 --> jobBatchId to delete
+sub oardel2($$$){
+    my $dbh = shift;
+    my $cluster = shift;
+    my $user = shift;
+    my $jobBatchId = shift;
+
+    print("$cluster --> OAR2\n");
     my %cmdResult = SSHcmdClient::submitCmd($cluster,"sudo -u $user oardel $jobBatchId");
     print(Dumper(%cmdResult));
     if ($cmdResult{STDERR} ne ""){
