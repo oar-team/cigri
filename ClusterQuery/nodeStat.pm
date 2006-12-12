@@ -69,7 +69,7 @@ sub oarnodes($$){
     print("$cluster --> OAR\n");
     my %nodeState;
 
-    my %cmdResult = SSHcmdClient::submitCmd($cluster,"oarnodes --backward");
+    my %cmdResult = SSHcmdClient::submitCmd($cluster,"oarnodes -a");
     my $pbsnodesStr = $cmdResult{STDOUT};
     if ($cmdResult{STDERR} eq ""){
         chomp($pbsnodesStr);
@@ -137,7 +137,7 @@ sub oarnodes2($$){
     print("$cluster --> OAR2\n");
     my %nodeState;
 
-    my %cmdResult = SSHcmdClient::submitCmd($cluster,"oarnodes -a");
+    my %cmdResult = SSHcmdClient::submitCmd($cluster,"oarnodes --backward");
     my $pbsnodesStr = $cmdResult{STDOUT};
     if ($cmdResult{STDERR} eq ""){
         chomp($pbsnodesStr);
