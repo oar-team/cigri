@@ -25,7 +25,7 @@ use colomboCigri;
 use integer;
 use ConfLibCigri qw(init_conf get_conf is_conf);
 
-
+my $path = get_conf("INSTALL_PATH");
 my $base = iolibCigri::connect();
 
 print "[SCHEDULER] Begining of scheduler FIFO\n";
@@ -40,7 +40,7 @@ foreach my $i (sort(keys(%nbRemainedJobs))){
     if(iolibCigri::get_data_synchronState($base, $i) eq 'ISSUED'){   
         iolibCigri::set_data_synchronState($base, $i, "INITIATED");
 	my $user = "cigri";
-	my $command ="sudo -u " . $user . " /home/cigri/CIGRI/Hermes/hermesCigri.pl ";
+	 my $command ="sudo -u " . $user . $path."/Hermes/hermesCigri.pl ";
 	print"Initiating data synchronization... Executing: $command\n";
 	exec"$command";	
     }
