@@ -46,7 +46,7 @@ my $regex = qr{^\s*([^#=\s]+)\s*=\s*"([^#]*)"};
 
 ## Initialisation de la configuration
 ## arg1 = fichier de conf ou rien
-## si rien -> essaie $CIGRIDIR/oar.conf puis /etc/oar.conf
+## si rien -> essaie $CIGRIDIR/cigri.conf puis /etc/cigri.conf
 ## Attention $CIGRIDIR est une variable de SHELL non de Perl
 ## Result: 1 if conf file actually loaded, else 0.
 sub init_conf {
@@ -55,8 +55,8 @@ sub init_conf {
     unless ( defined $file and -r $file ) {
       if ( defined $ENV{CIGRIDIR} and -r $ENV{CIGRIDIR}."/cigri.conf" ){
 	$file = $ENV{CIGRIDIR}."/cigri.conf";
-      } elsif ( -r "cigri.conf" ) {
-	$file = "cigri.conf";
+      } elsif ( -r "/etc/cigri.conf" ) {
+	$file = "/etc/cigri.conf";
       } else {
 	die "cigri.conf file not found";
       }

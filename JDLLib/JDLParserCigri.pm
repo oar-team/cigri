@@ -96,19 +96,17 @@ sub init_jdl($) {
     }
 }
 
-sub data_synchron_parser($){
-        my $data_string = shift;
-	        my @dataArray;
+#sub data_synchron_parser($){
+#        my $data_string = shift;
+#        my @dataArray;
 
-		        my @temp = split(/@/, $string);
-			        push(@dataArray, @temp[0]);
-				        @temp = split(/:/,$temp[1]);
-					        push(@dataArray, @temp[0]);
-						        push(@dataArray, @temp[1]);
+#        my @temp = split(/@/, $string);
+#        push(@dataArray, @temp[0]);
+#        @temp = split(/:/,$temp[1]);
+#        push(@dataArray, @temp[0]);
+#        push(@dataArray, @temp[1]);
 
-							        return @dataArray;
+#         return @dataArray;
 
-								}
-
-
+#}
 return 1;
