@@ -34,6 +34,8 @@ my $base = iolibCigri::connect();
 # lock for 12H
 iolibCigri::lock_collector($base,43200);
 
+my %clusterProperties = iolibCigri::get_cluster_names_batch($base);
+
 # id of MJobs to collect
 my @MjobsToCollect;
 
@@ -87,7 +89,7 @@ foreach my $i (@MjobsToCollect){
         # make the tar on remote cluster
         undef(%cmdResult);
         my $error = 0;
-        my %hashfileToDownload = get_file_names($j);
+        my %hashfileToDownload = get_file_names($j,$clusterProperties{$$j{jobClusterName}});
         my @fileToDownload = keys(%hashfileToDownload);
         my $k;
         my @jobTaredTmp;
@@ -223,7 +225,7 @@ foreach my $i (@MjobsToCollect){
         }
 
         print("\n");
-        my %hashfileToDownload = get_file_names($j);
+        my %hashfileToDownload = get_file_names($j,$clusterProperties{$$j{jobClusterName}});
         my @fileToDownload = keys(%hashfileToDownload);
         foreach my $k (@fileToDownload){
             my $cmd = "";
@@ -257,20 +259,33 @@ exit 0;
 
 # get files to collect for a job
 # arg1 --> struct of the job
-sub get_file_names($){
+# arg2 --> cluster type
+sub get_file_names($$){
     my $j = shift;
+    my $clusterType = shift;
+
     my %result ;
     #A modifier, mais pour le moment je ne sais pas interpreter des chemins
     if ($$j{jobName} =~ m/.*\/.*/m){
         $$j{jobName} = "";
     }
     if($$j{jobName} ne ""){
-        $result{"OAR.cigri.tmp.$$j{jobId}.$$j{jobBatchId}.stdout"} = "$$j{jobName}.$$j{jobId}.stdout";
-        $result{"OAR.cigri.tmp.$$j{jobId}.$$j{jobBatchId}.stderr"} = "$$j{jobName}.$$j{jobId}.stderr";
+        if ($clusterType eq "OAR2"){
+            $result{"OAR.$$j{jobBatchId}.stdout"} = "$$j{jobName}.$$j{jobId}.stdout";
+            $result{"OAR.$$j{jobBatchId}.stderr"} = "$$j{jobName}.$$j{jobId}.stderr";
+        }else{
+            $result{"OAR.cigri.tmp.$$j{jobId}.$$j{jobBatchId}.stdout"} = "$$j{jobName}.$$j{jobId}.stdout";
+            $result{"OAR.cigri.tmp.$$j{jobId}.$$j{jobBatchId}.stderr"} = "$$j{jobName}.$$j{jobId}.stderr";
+        }
         $result{"$$j{jobName}"} = "";
     }else{
-        $result{"OAR.cigri.tmp.$$j{jobId}.$$j{jobBatchId}.stdout"} = "";
-        $result{"OAR.cigri.tmp.$$j{jobId}.$$j{jobBatchId}.stderr"} = "";
+        if ($clusterType eq "OAR2"){
+            $result{"OAR.$$j{jobBatchId}.stdout"} = "";
+            $result{"OAR.$$j{jobBatchId}.stderr"} = "";
+        }else{
+            $result{"OAR.cigri.tmp.$$j{jobId}.$$j{jobBatchId}.stdout"} = "";
+            $result{"OAR.cigri.tmp.$$j{jobId}.$$j{jobBatchId}.stderr"} = "";
+        }
     }
 
     return %result;
