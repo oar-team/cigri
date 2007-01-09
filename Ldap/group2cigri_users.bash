@@ -5,7 +5,7 @@
 # A special group defines the cigri users that are to be automaticaly
 # included into the cigri user's table
 
-CIGRI_GROUP=oar
+CIGRI_GROUP=cigri-user
 CIGRI_CONFIGFILE=/etc/cigri.conf
 
 
