@@ -1,5 +1,10 @@
 <?php
 
+$LDAP=0;
+$LDAP_HOST=localhost;
+$LDAP_USERS="ou=People,ou=platforms,o=ciment,dc=ujf-grenoble,dc=fr";
+
+
 function dbconnect() {
     $link = mysql_connect("localhost", "cigri", "cigri")
         or die("Connection failed : " . mysql_error());

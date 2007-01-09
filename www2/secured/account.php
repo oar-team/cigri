@@ -22,10 +22,42 @@ $headername = "CiGri -- My Account";
 session_start();
 $link = dbconnect();
 
+function ldap_checkpass($ds,$login,$pass) // check the password against ldap server
+{
+   global $LDAP_USERS;
+   if(!$pass) { $pass = crypt(microtime()); }
+   if (!($r=@ldap_bind($ds,"uid=$login,$LDAP_USERS","$pass"))) {
+     sleep (3);
+   }
+   return !$r;
+}
+
 if (!isset($_SESSION['auth']) || $_SESSION['auth'] == false) {
 	// check if user sent log informations
 	if (isset($_POST['login']) && isset($_POST['pass'])) {
-		// right login & pass?
+
+	    // Check login (LDAP method)
+	    if ($LDAP) {
+            	$ds=ldap_connect("$LDAP_HOST");
+		ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
+                if (! $ds) {
+	            print "Unable to contact LDAP server $LDAP_HOST!";
+		    $_SESSION['auth'] = false;
+                }
+		else {
+	 	    $checkpass = ldap_checkpass($ds,$_POST['login'],$_POST['pass']);
+	            if($checkpass == 0) {
+			$_SESSION['auth'] = true;
+			$_SESSION['login'] = $_POST['login'];
+		    }
+		    else {
+		        $_SESSION['auth'] = false;
+		    }
+		}						       
+	    }
+
+	    // Check login (MYSQL method)
+	    else {
 		$templog = addslashes($_POST['login']);
 		$query = <<<EOF
 SELECT
@@ -54,6 +86,7 @@ EOF;
 		else {
 			$_SESSION['auth'] = false;
 		}
+	    }
 	}
 	else {
 		$_SESSION['auth'] = false;
