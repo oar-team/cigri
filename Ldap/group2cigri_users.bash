@@ -16,16 +16,22 @@ sed "s/ = /=/" /etc/cigri.conf > $CONF
 rm -f $CONF
 
 # Get the cluster list
-OPTS="-h $DATABASE_HOST -u $DATABASE_USER_NAME -p$DATABASE_USER_PASSWORD -D $DATABASE_NAME --skip-column-names" 
-echo $OPTS
-mysql $OPTS -e "select * from clusters"
+OPTS="-B -h $DATABASE_HOST -u $DATABASE_USER_NAME -p$DATABASE_USER_PASSWORD -D $DATABASE_NAME --skip-column-names" 
+CLUSTERS=`mysql $OPTS -e "select clusterName from clusters" |awk '{print $1}'`
 
 
 # Get the users of the cigri group
 USERS=`getent group $CIGRI_GROUP |cut -f 4 -d:|sed "s/,/ /g"`
 for user in $USERS
 do
-  echo $user
+  # If user is already in database, do nothing
+  ALREADY=`mysql $OPTS -e "select * from users where userLogin='$user'"`
+  if [ "$ALREADY" = "" ]
+  then
+    for cluster in $CLUSTERS
+    do
+      echo "Adding user $user to cluster $cluster."
+      mysql $OPTS -e "insert into users (userGridName,userClusterName,userLogin) values ('$user','$cluster','$user');"
+    done
+  fi
 done
-
-# To be continued...
