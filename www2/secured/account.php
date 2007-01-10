@@ -49,6 +49,11 @@ if (!isset($_SESSION['auth']) || $_SESSION['auth'] == false) {
 	            if($checkpass == 0) {
 			$_SESSION['auth'] = true;
 			$_SESSION['login'] = $_POST['login'];
+			if ($_POST['login'] == 'admin') {
+			    $_SESSION['adminauth'] = true;
+			    header("Location: ../admin/index.php");
+			    exit;
+			}
 		    }
 		    else {
 		        $_SESSION['auth'] = false;
