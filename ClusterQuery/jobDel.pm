@@ -86,7 +86,7 @@ sub pbsdel($$$$){
 #arg2 --> cluster name
 #arg3 --> user
 #arg4 --> jobBatchId to delete
-sub oardel($$$){
+sub oardel($$$$){
     my $dbh = shift;
     my $cluster = shift;
     my $user = shift;
