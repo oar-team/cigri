@@ -47,8 +47,9 @@ sub jobDel($$$){
     my %clusterProperties = iolibCigri::get_cluster_names_batch($base);
     my %result ;
     my $retCode = -1;
+    print "clusterProperties:" . $clusterProperties{$cluster} ."\n";
     if (defined($cluster) && defined($clusterProperties{$cluster})){
-        $retCode = &{$qdelCmd{$clusterProperties{$cluster}}}($base,$cluster,$user,$jobBatchId);
+	$retCode = &{$qdelCmd{$clusterProperties{$cluster}}}($base,$cluster,$user,$jobBatchId);
     }
     iolibCigri::disconnect($base);
     return($retCode);
@@ -109,14 +110,14 @@ sub oardel($$$){
 #arg2 --> cluster name
 #arg3 --> user
 #arg4 --> jobBatchId to delete
-sub oardel2($$$){
+sub oardel2($$$$){
     my $dbh = shift;
     my $cluster = shift;
     my $user = shift;
     my $jobBatchId = shift;
 
     print("$cluster --> OAR2\n");
-    my %cmdResult = SSHcmdClient::submitCmd($cluster,"sudo -u $user oardel $jobBatchId");
+    my %cmdResult = SSHcmdClient::submitCmd($cluster,"sudo -u $user oardel $jobBatchId 2>&1");
     print(Dumper(%cmdResult));
     if ($cmdResult{STDERR} ne ""){
         # test if this is a ssh error
