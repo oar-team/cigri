@@ -20,7 +20,7 @@ BEGIN {
     unshift(@INC, $relativePath."Iolib");
     unshift(@INC, $relativePath."Colombo");
 }
-use String;
+#use String;
 use iolibCigri;
 use Data::Dumper;
 use colomboCigri;
