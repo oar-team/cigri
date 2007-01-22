@@ -131,7 +131,7 @@ propertiesMJobsId INT UNSIGNED NOT NULL ,
 propertiesJobCmd VARCHAR( 255 ) NOT NULL ,
 propertiesJobWalltime TIME NOT NULL ,
 propertiesJobWeight INT UNSIGNED NOT NULL ,
-propertiesData_synchronState ENUM('','IN_TREATMENT','ERROR','TERMINATED') NOT NULL DEFAULT '' ,
+propertiesData_synchronState ENUM('','INITIATED','IN_TREATMENT','ERROR','TERMINATED') NOT NULL DEFAULT '' ,
 propertiesExecDirectory VARCHAR( 255 ) DEFAULT "~" ,
 INDEX propertiesMJobsId (propertiesMJobsId),
 PRIMARY KEY (propertiesClusterName,propertiesMJobsId)
