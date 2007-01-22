@@ -170,7 +170,7 @@ sub rsync_data($$$$$$){
     my $exit_value = -1;
     
 
-    my $rsync_command = "sudo -u ". $user . " rsync --rsh=/usr/bin/ssh --rsync-path=/usr/bin/rsync --recursive --checksum --verbose --compress --archive --timeout=" . $timeout . " ";
+    my $rsync_command = "sudo -u ". $user . " rsync --rsh=/usr/bin/ssh --rsync-path=/usr/bin/rsync --recursive --checksum --compress --archive --timeout=" . $timeout . " ";
     
     if ($mode == 1){
     	 $dest = $user . "@" . $host . ":" . $dest;    
