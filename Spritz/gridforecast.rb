@@ -134,7 +134,7 @@ def forecast(dbh,mjob)
  
 	mean = total.to_f / nb.to_f
 #puts "\n std_dev.to_f: #{std_dev.to_f} nb.to_f: #{nb.to_f} mean: #{mean}"
-	std_dev = Math.sqrt((std_dev.to_f / nb.to_f - mean * mean).abs)
+	std_dev = Math.sqrt(std_dev.to_f / nb.to_f - mean * mean)
 	forcasted = (nb_waiting * mean).to_i if !mean.nan?
 
 	res = { 'mjob_id' => mjob_id, 'forcaster' => 'average', 'duration' => 0, 'end_time' => 0, 
