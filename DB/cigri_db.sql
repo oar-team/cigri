@@ -245,6 +245,16 @@ pass varchar(20) default NULL,
 PRIMARY KEY  (`login`)
 )TYPE = InnoDB;
 
+
+# Forecasting table
+CREATE TABLE `forecasts` (
+`MjobsId` INT( 10 ) NOT NULL ,
+`average` FLOAT NOT NULL ,
+`stddev` FLOAT NOT NULL ,
+`end` INT NOT NULL ,
+PRIMARY KEY ( `MjobsId` )
+)
+
 INSERT IGNORE INTO webusers VALUES ("admin", "");
 
 #INSERT INTO clusters (clusterName,clusterAdmin,clusterBatch) VALUES ("pawnee", "", "OAR");

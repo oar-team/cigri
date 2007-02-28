@@ -43,6 +43,7 @@ if (is_conf("INSTALL_PATH")){
 my $runner_command = $path."/Runner/runnerCigri.pl";
 my $updator_command = $path."/Updator/updatorCigri.pl";
 my $nikita_command = $path."/Nikita/nikitaCigri.pl";
+my $spritz_command = $path."/Spritz/spritzCigri.pl";
 
 my $scheduler_path = $path."/Scheduler/";
 
@@ -111,6 +112,11 @@ sub nikita(){
     return launch_command($nikita_command);
 }
 
+# launch spritz, the weather man
+sub spritz(){
+    return launch_command($spritz_command);
+}
+
 # core of the AlmightyCigri
 my $exitValue;
 LBL:while (1){
@@ -126,6 +132,7 @@ LBL:while (1){
         $exitValue = runner();
 #        sleep(5);
         next LBL if ($exitValue != 0);
+	$exitValue =  spritz();
         print("I make a pause of $timeout seconds :-)\n");
         sleep($timeout);
 }

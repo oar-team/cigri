@@ -403,6 +403,7 @@ sub set_propertiesData_synchronState($$$$) {
 			      AND propertiesClusterName =\"$cluster\"");
      $sth->execute();
      $sth->finish();
+     print "UPDATE properties $state $MidJob $cluster\n";
 }
 
 # get the state of data synchronization of a cluster for a specific multijob 
@@ -1520,5 +1521,45 @@ sub get_job_user($$){
 
     return($ref[0]);
 }
+
+# update the forcecast for a given multijob
+# arg1 --> database ref
+# arg2 --> MjobsId
+# arg3 --> average
+# arg4 --> stddev
+# arg5 --> end time
+sub update_mjob_forecast($$$$$){
+    my $dbh = shift;
+    my $MjobsId = shift;
+    my $average = shift;
+    my $stddev = shift;
+    my $endtime = shift;
+
+    my $sth = $dbh->prepare(" SELECT MjobsId
+                              FROM forecasts
+                              WHERE
+                                     MjobsId = $MjobsId
+                            ");
+    $sth->execute();
+
+    if ($sth->fetchrow_array()) {
+        my $sth = $dbh->prepare(" UPDATE forecasts
+	                          SET 
+				    average='$average',
+                                    stddev='$stddev',
+				    end='$endtime'
+	                          WHERE
+				    MjobsId='$MjobsId'
+				");
+        $sth->execute(); 
+    }else {
+        my $sth = $dbh->prepare(" INSERT INTO forecasts
+	                          (MjobsId,average,stddev,end)
+				  VALUES
+				  ('$MjobsId','$average','$stddev','$endtime')
+				");
+        $sth->execute();
+    }
+}    
 
 return 1;

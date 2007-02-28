@@ -90,6 +90,22 @@ EOF;
 		if (isset($_GET['id'])) {
 			if (is_numeric($_GET['id'])) {
 				$jobid = $_GET['id'];
+                                $query = <<<EOF
+SELECT
+        *
+FROM
+        forecasts
+WHERE
+        MjobsId = '{$jobid}'
+LIMIT 1
+EOF;
+				list($res,$nb) = sqlquery($query,$link);
+				if ($res[0][1]) { $smarty->assign("ForecastAvg",$res[0][1]);}
+				else { $smarty->assign("ForecastAvg","na");}
+				if ($res[0][2]) { $smarty->assign("ForecastStddev",$res[0][2]);}
+				else { $smarty->assign("ForecastStddev","na");}
+				if ($res[0][3]) { $smarty->assign("ForecastEnd",date("Y-m-d H:i:s",$res[0][3]));}
+				else { $smarty->assign("ForecastEnd","na");}
 				$query = <<<EOF
 SELECT
 	*

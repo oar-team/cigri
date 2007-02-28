@@ -6,6 +6,7 @@ REQUIREMENTS
     - Perl
     - Perl-MySql
     - Perl-suid (Debian)
+
     - php
     - php-mysql
 
@@ -13,6 +14,13 @@ REQUIREMENTS
     - mysql-client
 
     - phpmyadmin
+
+And for the forecaster to work (Spritz):
+    - libyaml-perl
+    - ruby1.8 (or greater)
+    - libdbi-ruby
+    - libdbd-mysql-ruby or libdbd-pg-ruby
+    - libyaml-ruby
 
 CONFIGURATION
 =============
