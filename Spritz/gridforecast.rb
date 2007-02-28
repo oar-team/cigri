@@ -126,7 +126,8 @@ def forecast(dbh,mjob)
 			end		
 	end
 
-	std_dev = 0 
+	std_dev = terminated.first * terminated.first 
+
   nb = terminated.length
 	# Sum some numbers
 	total = terminated.inject {|sum, n| std_dev += n * n; sum + n }
@@ -154,7 +155,8 @@ def forecast(dbh,mjob)
 		puts "Mjob: #{mjob_id} Terminated jobs: nb: #{nb}  time: #{total} mean: #{mean} std dev: #{std_dev}" if $verbose
 		puts "Mjob: #{mjob_id} Remains 	 jobs: nb: #{nb_waiting} forcasted time: #{forcasted} sec or 	#{stodhm(forcasted)}"  if $verbose
 		res['status'] = "ok"
-		res['end_time'] =  sprintf("%.0f",Time.now.to_f + forcasted) 
+		res['end_time'] =  sprintf("%.0f",Time.now.to_f + forcasted)
+		res['duration'] = forcasted
 		res['data'] =  {'average' => sprintf("%.2f",mean) , 'standard_deviation' => sprintf("%.2f",std_dev) } 
 
 	end
