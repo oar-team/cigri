@@ -104,8 +104,25 @@ EOF;
 				else { $smarty->assign("ForecastAvg","na");}
 				if ($res[0][2]) { $smarty->assign("ForecastStddev",$res[0][2]);}
 				else { $smarty->assign("ForecastStddev","na");}
-				if ($res[0][3]) { $smarty->assign("ForecastEnd",date("Y-m-d H:i:s",$res[0][3]));}
-				else { $smarty->assign("ForecastEnd","na");}
+				if ($res[0][3]) { 
+				   $smarty->assign("ForecastEnd",date("Y-m-d H:i:s",$res[0][3]));
+				   if (($res[0][3]-time(localtime)) > 0) { 
+				     $duration=$res[0][3]-time(localtime);
+				     $days=floor($duration/86400);
+				     $modulo=$duration-($days*86400);
+				     $hours=floor($modulo/3600);
+				     $modulo=$modulo-($hours*3600);
+				     $min=floor($modulo/60);
+				     $sec=$modulo-($min*60);
+				     $smarty->assign("ForecastDuration","in ". $days ."d,". $hours ."h,". $min ."m,". $sec ."s");
+				   }else {
+				     $smarty->assign("ForecastDuration","terminated");
+				   }
+				}
+				else { 
+				   $smarty->assign("ForecastEnd","na");
+				   $smarty->assign("ForecastDuration","na");
+				}
 				$query = <<<EOF
 SELECT
 	*
