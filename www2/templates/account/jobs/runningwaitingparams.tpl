@@ -1,6 +1,7 @@
 <table border="0" cellpadding="10" cellspacing="0" width="100%">
 <tr><td align="center">
 	<h5>MultiJob #{$jobid} - Running</h5>
+        <p><b>FORECAST</b>: Avg:<b>{$ForecastAvg}</b> / Stddev:<b>{$ForecastStddev}</b> / End:<b> {$ForecastDuration} ({$ForecastEnd})</b><p>
 	<table border="0">
 	<tr>
 		{if $nbrunning > 0}<td><a href="account.php?submenu=jobs&option=runningparams&id={$jobid}">Running Jobs</a>{else}<td style="font-style: italic;">Running Jobs{/if}</td>

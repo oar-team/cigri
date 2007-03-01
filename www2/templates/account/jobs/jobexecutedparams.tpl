@@ -1,9 +1,14 @@
 <table border="0" cellpadding="10" cellspacing="0" width="100%">
 <tr><td align="center">
 	<h5>MultiJob #{$jobid}</h5>
+	{if $MJstate eq 'Running'}
+	<p><b>FORECAST</b>: Avg:<b>{$ForecastAvg}</b> / Stddev:<b>{$ForecastStddev}</b> / End:<b> {$ForecastDuration} ({$ForecastEnd})</b><p>
+	{/if}
 	<table border="0">
 	<tr>
-		{if $MJstate eq 'Running' and $nbrunning > 0}<td><a href="account.php?submenu=jobs&option=runningparams&id={$jobid}">Running Jobs</a>{else}<td style="font-style: italic;">Running Jobs{/if}</td>
+		{if $MJstate eq 'Running' and $nbrunning > 0}<td><a href="account.php?submenu=jobs&option=runningparams&id={$jobid}">Running Jobs</a>
+		{else}<td style="font-style: italic;">Running Jobs
+		{/if}</td>
 		<td>&nbsp;-&nbsp;</td>
 		<td style="font-weight: bold;">Executed Jobs</td>
 		<td>&nbsp;-&nbsp;</td>

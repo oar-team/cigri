@@ -1,7 +1,8 @@
 <table border="0" cellpadding="10" cellspacing="0" width="100%">
 <tr><td align="center">
 	<h5>MultiJob #{$jobid} - Running</h5>
-	<table border="0">
+        <p><b>FORECAST</b>: Avg:<b>{$ForecastAvg}</b> / Stddev:<b>{$ForecastStddev}</b> / End:<b> {$ForecastDuration} ({$ForecastEnd})</b><p>
+		<table border="0">
 	<tr>
 		<td style="font-weight: bold;">Running Jobs</td>
 		<td>&nbsp;-&nbsp;</td>
