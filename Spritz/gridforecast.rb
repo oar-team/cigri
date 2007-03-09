@@ -1,64 +1,44 @@
 #!/usr/bin/ruby -w
-#
-# gridforecast is a simple multiple_job termination time forecasting tool for cigri middleware
 # 
-# forcasting use an extrapolation based on jobs terminated average  
+####################################################################################
+# CIGRI Forecaster.
+# It is based on the job troughput (a number of jobs per time unit on a time window)
+# At the beginning of the campain, as the troughput is not relevant, it is based on 
+# the average duration of jobs divided by the current number of running jobs.
 #
-#####################################################
-# 
-# USAGE
+# Output: in YAML format
 #
-#####################################################
-#
-# gridforecast [multiple_job_id]
-#
-# output: in YAML format
-#
-# example:
-# :mjob_id: 11 
-# :status: ok
-# :data: 
-#  :average: "18.19"
-#  :standard_deviation: "12.66"
-# :forcaster: average
-# :duration: 0
-# :end_time: 1168353337
+# Requirements:
+#        ruby1.8 (or greater)
+#        libdbi-ruby
+#        libdbd-mysql-ruby or libdbd-pg-ruby
+#        libyaml-ruby
+# ###################################################################################
 
-# status forcaster duration_to_completion time_to_completion [complementary_forecasters_information] 
-#  
-#  mjob_id = mjob identifier
-#  status= ok | none | error  (none means that it's not possible to forecast, typically mjob is not started) 
-#  forcaster =  name of forcaster, (only average)
-#  duration = duration_to_completion (in second)
-#  end_time = time to completion (unix time in sec)
-#  data = complementary forecaster's information  
-#  		for average forcaster: 
-#  			average and standard deviation
-#
-#################################@
-#
-# requirements:
-# 	ruby1.8 (or greater)
-# 	libdbi-ruby
-# 	libdbd-mysql-ruby or libdbd-pg-ruby
-# 	libyaml-ruby
-#####################################################
+#####################################################################################
 #
 # CONFIGURATION
 #
-#####################################################
+#####################################################################################
 
+# You can store the configuration on a separate file or comment out the configuration
+# variables below
 load "/etc/gridforecast.conf"
 
+# Database configuration
 #$cigri_db = 'cigri'
 #$host = 'localhost'
 #$login = 'root'
 #$passwd = ''
 
-#$verbose = true
-$verbose = false
+# Size of the window in seconds on wich the job throughput is calculated
+# time_window_size = 3600
 
-#####################################################
+# Verbosity (for debuging purpose)
+$verbose = false
+#$verbose = true
+
+#######################################################################################
 
 require 'dbi'
 require 'time'
@@ -66,118 +46,266 @@ require 'optparse'
 require 'yaml'
 require 'pp'
 
+#########################################################################
+# Job class
+#########################################################################
+class Job
+    attr_reader :mjobid, :state, :tsub, :tstart, :tstop
+
+    # Creation
+    def initialize(id,mjobid,state,tsub,tstart,tstop)
+        @id=id
+        @mjobid=mjobid
+        @state=state
+        @tsub=tsub
+        @tstart=tstart
+        @tstop=tstop
+    end
+
+    # Printing
+    def to_s
+        puts "Job #{id}:#{state},#{tsub},#{tstart},#{tstop}"
+    end
+
+    # Calculate the job duration (from submission to end or now)
+    def duration
+        if state == 'Terminated'
+            return tstop - tsub
+        else
+            return Time.now.to_i - tsub
+        end
+     end
+end
+
+#########################################################################
+# MultipleJob class
+#########################################################################
+class MultipleJob
+    attr_reader :mjobid, :jobs, :last_terminated_date, :status, :n_running, :n_terminated
+
+    # Creation
+    # Yes, this constructor is a bit big, but it is for optimum performance
+    #  (not too much sql requests or array parsing)
+    def initialize(dbh,id)
+        @dbh=dbh
+        @mjobid=id
+        @jobs=[]
+        @durations=[]
+        @last_terminated_date=0
+        @first_submited_date=0
+        @n_running=0
+        @n_terminated=0
+        @n_trans=0
+
+        # Status of this multiple job
+        query = "SELECT MJobsState, MJobsTSub FROM multipleJobs where MJobsId=#{mjobid}"
+        sql_mjob=dbh.select_all(query)
+	if sql_mjob.empty?
+	    raise "Could not find multiplejob #{mjobid}"
+	end
+        @status=sql_mjob[0]['MJobsState']
+        @tsub=to_unix_time(sql_mjob[0]['MJobsTSub'])
+
+        # SQL query to get the jobs
+        query = "SELECT jobId, jobMJobsId, jobState, jobTSub, jobTStart, jobTStop \
+                 FROM jobs \
+                 WHERE jobMJobsId=#{mjobid}"
+        sql_jobs=dbh.select_all(query)
+
+        # Job objects creation and parsing
+        sql_jobs.each do |sql_job|
+            job=Job.new(sql_job['jobId'],\
+                        id,\
+                        sql_job['jobState'],\
+                        to_unix_time(sql_job['jobTSub']),\
+                        to_unix_time(sql_job['jobTStart']),\
+                        to_unix_time(sql_job['jobTStop']))
+            @jobs << job
+
+            case job.state
+                when  'Terminated'
+                    # Get the date of the last terminated job and the number of terminated jobs
+                    @last_terminated_date = job.tstop if @last_terminated_date < job.tstop
+                    @n_terminated+=1
+
+                    # Make an array of jobs durations
+                    @durations << job.duration
+
+                when 'Running'
+                    # Get the number of running jobs
+                    @n_running+=1
+                when 'toLaunch', 'RemoteWaiting'
+                    # Get the number of jobs in a transitional status
+                    @n_trans+=1
+            end
+
+            # Get the date of the first submited job
+            @first_submited_date = job.tsub if @first_submited_date > job.tsub
+        end
+    end
+
+    # Number of waiting parameters
+    def n_waiting
+        query = "SELECT count(*) as n FROM parameters WHERE parametersMJobsId=#{@mjobid}"
+        return @dbh.select_all(query)[0]['n'].to_i + @n_trans
+    end
+
+    # Duration of this multiple job
+    def duration
+        return Time.now.to_i - @tsub if @status != 'TERMINATED'
+        return @last_terminated_date - @tsub else 
+    end
+
+    # Job troughput during the time window
+    def troughput(time_window_size)
+        return @n_terminated.to_f/duration.to_f if @status == 'TERMINATED'
+        n=0
+        first_submited_date = Time.now.to_i
+        jobs.each do |job|
+            if job.state == 'Terminated' && job.tsub > (Time.now - time_window_size).to_i
+                n+=1
+                first_submited_date = job.tsub if job.tsub < first_submited_date
+            end
+        end
+        if n != 0
+            return n.to_f / (Time.now.to_i - first_submited_date).to_f
+        else
+            return 0.0
+        end
+    end
+
+    # Mean and stddev duration of terminated jobs
+    def average
+        if !@durations.empty?
+            std_dev = @durations.first **2
+            total = @durations.inject {|sum, d| std_dev += d * d; sum + d }
+            n = @durations.length.to_f
+            mean = total.to_f / n
+            std_dev = Math.sqrt(std_dev.to_f / n - mean **2)
+            return [mean,std_dev]
+        else
+            return [0.0,0.0]
+        end
+    end
+
+    # Printing
+    def to_s
+        sprintf("Multiple job %i 
+        Status:                 %s
+        Submited:               %s
+        Last terminated job:    %s 
+        Running:                %i 
+        Waiting:                %i 
+        Terminated:             %i 
+        Troughput (last hour):  %i jobs/hour 
+        Duration:               %i s 
+        Average:                %i s 
+        Stddev:                 %.2f", \
+        @id,@status,Time.at(@tsub),Time.at(@last_terminated_date),@n_running,n_waiting,@n_terminated,\
+	troughput(3600)*3600.to_i,duration,average[0].to_i,average[1])
+    end
+end
+
+#########################################################################
+# Functions
+#########################################################################
+
+# Convert a MySQL date into a unix timestamp
+#
 def to_unix_time(time)
- 	year, month, day, hour, minute, sec = time.to_s.split(/ |:|-/)
-	unix_sec = Time.local(year, month, day, hour, minute, sec).to_i
-	return unix_sec
+    if time.nil?
+      return 0
+    else
+      year, month, day, hour, minute, sec = time.to_s.split(/ |:|-/)
+      unix_sec = Time.local(year, month, day, hour, minute, sec).to_i
+      return unix_sec
+    end
 end
 
+# Convert a time into number of seconds
+#
 def hmstos(hms)
-	h,m,s = hms.to_s.split(/:/)
-	return 3600*h.to_i + 60*m.to_i + s.to_i
+    h,m,s = hms.to_s.split(/:/)
+    return 3600*h.to_i + 60*m.to_i + s.to_i
 end
 
+# Convert a number of seconds into a duration in days, hours and minutes
+#
 def stodhm(s)
-	d = s/(24*3600)
-	s -= d * (24*3600)
-	h = s / 3600
-	m = (s- h * 3600) / 60
-	return "#{d} days #{h}:#{m}"
+    d = s/(24*3600)
+    s -= d * (24*3600)
+    h = s / 3600
+    m = (s- h * 3600) / 60
+    return "#{d} days #{h}:#{m}"
 end
 
+# Connect to the database
+#
 def base_connect(dbname_host,login,passwd)
-#$conf['DB_BASE_NAME']}:#{$conf['DB_HOSTNAME']}
-	return DBI.connect("dbi:Mysql:#{dbname_host}", login,passwd)
+    return DBI.connect("dbi:Mysql:#{dbname_host}",login,passwd)
 end
 
-def get_all_multiplejobs(dbh)
-	puts "Get all multiplejobs" if $verbose	
-	q = "SELECT MJobsId, MJobsUser, MJobsName, MJobsTSub FROM multipleJobs"
-	return dbh.select_all(q)
+# Make a forecast based on the average job duration and number 
+# of currently running jobs. Returns a number of seconds
+def forecast_average(mjob)
+    if mjob.n_running != 0 
+        return ( ((mjob.n_waiting + mjob.n_running/2) * mjob.average[0]) / mjob.n_running ).to_i
+    else
+        return 0
+    end
 end
 
-def get_jobs(dbh,multiple_job_id)
-	puts "Get jobs of #{multiple_job_id} multiple job" if $verbose	
-	q = "SELECT jobId, jobState, jobMJobsId, jobClusterName, jobNodeName, jobRetCode, jobTSub, jobTStart, jobTStop FROM jobs WHERE jobMJobsId=#{multiple_job_id}"
-  return dbh.select_all(q)
+# Make a forecast based on the job troughput in the last window seconds
+# Returns a number of seconds
+def forecast_troughput(mjob,window)
+    if mjob.troughput(window) != 0
+        return ( (mjob.n_waiting + mjob.n_running/2) / mjob.troughput(window) ).to_i
+    else
+        return 0
+    end
 end
 
-def nb_parameters(dbh,multiple_job_id)
-	puts "Get jobs of #{multiple_job_id} multiple job" if $verbose	
-	q = "SELECT parametersMJobsId FROM parameters WHERE parametersMJobsId=#{multiple_job_id}"
-	return dbh.select_all(q).length
-end
+#########################################################################
+# MAIN
+#########################################################################
 
-def forecast(dbh,mjob)
-	mjob_id = mjob['MJobsId']
-	nb_waiting = nb_parameters(dbh,mjob_id)
-	jobs = get_jobs(dbh,mjob_id)
-	terminated = []
-	last_terminated = 0
-	forcasted = 0
-	jobs.each do |job|
-			case job['jobState'] 
-				when 'Terminated'
-					job_stop = to_unix_time(job['jobTStop'])
-					last_terminated = job_stop if last_terminated < job_stop  
-					terminated << job_stop -to_unix_time(job['jobTStart'])
-				when 'Running', 'toLaunch', 'RemoteWaiting', 'Terminated'
-					nb_waiting += 1
-			end		
-	end
-
-	std_dev = terminated.first * terminated.first 
-
-  nb = terminated.length
-	# Sum some numbers
-	total = terminated.inject {|sum, n| std_dev += n * n; sum + n }
- 
-	mean = total.to_f / nb.to_f
-#puts "\n std_dev.to_f: #{std_dev.to_f} nb.to_f: #{nb.to_f} mean: #{mean}"
-	std_dev = Math.sqrt(std_dev.to_f / nb.to_f - mean * mean)
-	forcasted = (nb_waiting * mean).to_i if !mean.nan?
-
-	res = { 'mjob_id' => mjob_id, 'forcaster' => 'average', 'duration' => 0, 'end_time' => 0, 
-					'data'=> {'average' => "0.0", 'standard_deviation' => "0.0"} }
-
-	if (nb == 0) 
-		puts  "Mjob: #{mjob_id} is not started  Remains jobs: nb: #{nb_waiting}" if $verbose
-
-		res['status'] = "none"
-
-	elsif (nb_waiting == 0)
-		puts "Mjob: #{mjob_id} is terminated jobs: nb: #{nb}  time: #{total} sec or #{stodhm(total)} mean: #{mean} std dev: #{std_dev}" if $verbose
-
-		res['status'] = "ok"
-		res['end_time'] = last_terminated  
-		res['data'] =  {'average' => sprintf("%.2f",mean).to_f , 'standard_deviation' => sprintf("%.2f",std_dev).to_f }
-		res['duration'] = total
-
-	else
-		puts "Mjob: #{mjob_id} Terminated jobs: nb: #{nb}  time: #{total} mean: #{mean} std dev: #{std_dev}" if $verbose
-		puts "Mjob: #{mjob_id} Remains 	 jobs: nb: #{nb_waiting} forcasted time: #{forcasted} sec or 	#{stodhm(forcasted)}"  if $verbose
-		res['status'] = "ok"
-		res['end_time'] =  sprintf("%.0f",Time.now.to_f + forcasted).to_i
-		res['duration'] = forcasted
-		res['data'] =  {'average' => sprintf("%.2f",mean).to_f , 'standard_deviation' => sprintf("%.2f",std_dev).to_f } 
-
-	end
-		puts YAML.dump(res)
-end
-
-############################################
-
-puts "\n Grid Foracaster for CIGRI middleware" if $verbose
-
+# Connect to database
 dbh = base_connect("#{$cigri_db}:#{$host}",$login,$passwd)
 
-#multiple_jobs = get_active_multiplejobs(dbh)
-
-if (ARGV.length != 0)
-	forecast(dbh, 'MJobsId' => ARGV[0].to_i )
-else
-	get_all_multiplejobs(dbh).each do |mjob|
-		forecast(dbh,mjob)
-	end
+# Check args
+if ARGV.empty?
+    puts "Usage: #{$0} <multiple_job_id>"
+    exit 1
 end
 
+# Get the multiple job
+mjob=MultipleJob.new(dbh,ARGV[0])
+
+puts mjob if $verbose
+puts "Forecast (average method): #{forecast_average(mjob)}" if $verbose
+puts "Forecast (troughput method): #{forecast_troughput(mjob,$time_window_size)}" if $verbose
+
+# Use the average forcaster at the beginning of the job
+# and use the troughput forecaster after
+#  TODO....
+forecasted=forecast_troughput(mjob,$time_window_size)
+forecaster='troughput'
+
+# Make an array with the forecast
+result = { 'mjob_id' => mjob.mjobid.to_i,
+           'forcaster' => forecaster,
+	   'status' => mjob.status,
+	   'duration' => mjob.duration
+         }
+if mjob.status == 'TERMINATED'
+    result['end_time'] = mjob.last_terminated_date if mjob.status == 'TERMINATED'
+else 
+    result['end_time'] = Time.now.to_i + forecasted
+end
+average=mjob.average
+result['data'] = { 'jobs_per_hour' => sprintf("%.2f",mjob.troughput($time_window_size)).to_f,
+                   'average' => sprintf("%.2f",average[0]).to_f,
+                   'standard_deviation' => sprintf("%.2f",average[1]).to_f
+                 }
+# YAML Output
+puts YAML.dump(result)
