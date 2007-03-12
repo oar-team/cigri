@@ -251,6 +251,7 @@ CREATE TABLE `forecasts` (
 `MjobsId` INT( 10 ) NOT NULL ,
 `average` FLOAT NOT NULL ,
 `stddev` FLOAT NOT NULL ,
+`throughput` FLOAT NOT NULL ,
 `end` INT NOT NULL ,
 PRIMARY KEY ( `MjobsId` )
 )

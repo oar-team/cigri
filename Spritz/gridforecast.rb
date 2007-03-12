@@ -2,8 +2,8 @@
 # 
 ####################################################################################
 # CIGRI Forecaster.
-# It is based on the job troughput (a number of jobs per time unit on a time window)
-# At the beginning of the campain, as the troughput is not relevant, it is based on 
+# It is based on the job throughput (a number of jobs per time unit on a time window)
+# At the beginning of the campain, as the throughput is not relevant, it is based on 
 # the average duration of jobs divided by the current number of running jobs.
 #
 # Output: in YAML format
@@ -156,8 +156,8 @@ class MultipleJob
         return @last_terminated_date - @tsub else 
     end
 
-    # Job troughput during the time window
-    def troughput(time_window_size)
+    # Job throughput during the time window
+    def throughput(time_window_size)
         return @n_terminated.to_f/duration.to_f if @status == 'TERMINATED'
         n=0
         first_submited_date = Time.now.to_i
@@ -202,7 +202,7 @@ class MultipleJob
         Average:                %i s 
         Stddev:                 %.2f", \
         @id,@status,Time.at(@tsub),Time.at(@last_terminated_date),@n_running,n_waiting,@n_terminated,\
-	troughput(3600)*3600.to_i,duration,average[0].to_i,average[1])
+	throughput(3600)*3600.to_i,duration,average[0].to_i,average[1])
     end
 end
 
@@ -255,11 +255,11 @@ def forecast_average(mjob)
     end
 end
 
-# Make a forecast based on the job troughput in the last window seconds
+# Make a forecast based on the job throughput in the last window seconds
 # Returns a number of seconds
-def forecast_troughput(mjob,window)
-    if mjob.troughput(window) != 0
-        return ( (mjob.n_waiting + mjob.n_running/2) / mjob.troughput(window) ).to_i
+def forecast_throughput(mjob,window)
+    if mjob.throughput(window) != 0
+        return ( (mjob.n_waiting + mjob.n_running/2) / mjob.throughput(window) ).to_i
     else
         return 0
     end
@@ -283,13 +283,13 @@ mjob=MultipleJob.new(dbh,ARGV[0])
 
 puts mjob if $verbose
 puts "Forecast (average method): #{forecast_average(mjob)}" if $verbose
-puts "Forecast (troughput method): #{forecast_troughput(mjob,$time_window_size)}" if $verbose
+puts "Forecast (throughput method): #{forecast_throughput(mjob,$time_window_size)}" if $verbose
 
 # Use the average forcaster at the beginning of the job
-# and use the troughput forecaster after
+# and use the throughput forecaster after
 #  TODO....
-forecasted=forecast_troughput(mjob,$time_window_size)
-forecaster='troughput'
+forecasted=forecast_throughput(mjob,$time_window_size)
+forecaster='throughput'
 
 # Make an array with the forecast
 result = { 'mjob_id' => mjob.mjobid.to_i,
@@ -303,7 +303,7 @@ else
     result['end_time'] = Time.now.to_i + forecasted
 end
 average=mjob.average
-result['data'] = { 'jobs_per_hour' => sprintf("%.2f",mjob.troughput($time_window_size)).to_f,
+result['data'] = { 'throughput' => sprintf("%.2f",mjob.throughput($time_window_size)).to_f,
                    'average' => sprintf("%.2f",average[0]).to_f,
                    'standard_deviation' => sprintf("%.2f",average[1]).to_f
                  }

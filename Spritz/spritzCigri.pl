@@ -59,6 +59,7 @@ foreach my $i (@MjobsToForecast){
     iolibCigri::update_mjob_forecast($base,$i,
                                      $hashref->{data}->{average},
 				     $hashref->{data}->{standard_deviation},
+				     $hashref->{data}->{throughput},
 				     $hashref->{end_time}
 				    );
     iolibCigri::commit_transaction($base);

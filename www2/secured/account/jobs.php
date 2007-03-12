@@ -751,13 +751,15 @@ LIMIT 1
 EOF;
 	list($res,$nb) = sqlquery($query,$link);
 	if ($res[0][1]) { $smarty->assign("ForecastAvg",$res[0][1]);}
-	else { $smarty->assign("ForecastAvg","na");}
+	else { $smarty->assign("ForecastAvg","--");}
 	if ($res[0][2]) { $smarty->assign("ForecastStddev",$res[0][2]);}
-	else { $smarty->assign("ForecastStddev","na");}
-	if ($res[0][3]) { 
-	   $smarty->assign("ForecastEnd",date("Y-m-d H:i:s",$res[0][3]));
-	   if (($res[0][3]-time(localtime)) > 0) { 
-	     $duration=$res[0][3]-time(localtime);
+	else { $smarty->assign("ForecastStddev","--");}
+	if ($res[0][3]) { $smarty->assign("ForecastThroughput",$res[0][3]*3600);}
+	else { $smarty->assign("ForecastThroughput","--");}
+	if ($res[0][4]) { 
+	   $smarty->assign("ForecastEnd",date("Y-m-d H:i:s",$res[0][4]));
+	   if (($res[0][4]-time(localtime)) > 0) { 
+	     $duration=$res[0][4]-time(localtime);
 	     $days=floor($duration/86400);
 	     $modulo=$duration-($days*86400);
 	     $hours=floor($modulo/3600);
@@ -766,12 +768,12 @@ EOF;
 	     $sec=$modulo-($min*60);
 	     $smarty->assign("ForecastDuration","in ". $days ."d,". $hours ."h,". $min ."m,". $sec ."s");
 	   }else {
-	     $smarty->assign("ForecastDuration","terminated");
+	     $smarty->assign("ForecastDuration","");
 	   }
 	}
 	else { 
-	   $smarty->assign("ForecastEnd","na");
-	   $smarty->assign("ForecastDuration","na");
+	   $smarty->assign("ForecastEnd","--");
+	   $smarty->assign("ForecastDuration","--");
 	}
 }
 

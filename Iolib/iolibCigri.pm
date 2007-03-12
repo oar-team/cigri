@@ -1527,12 +1527,14 @@ sub get_job_user($$){
 # arg2 --> MjobsId
 # arg3 --> average
 # arg4 --> stddev
+# arg4 --> throughput
 # arg5 --> end time
-sub update_mjob_forecast($$$$$){
+sub update_mjob_forecast($$$$$$){
     my $dbh = shift;
     my $MjobsId = shift;
     my $average = shift;
     my $stddev = shift;
+    my $throughput = shift;
     my $endtime = shift;
 
     my $sth = $dbh->prepare(" SELECT MjobsId
@@ -1547,6 +1549,7 @@ sub update_mjob_forecast($$$$$){
 	                          SET 
 				    average='$average',
                                     stddev='$stddev',
+                                    throughput='$throughput',
 				    end='$endtime'
 	                          WHERE
 				    MjobsId='$MjobsId'
@@ -1554,9 +1557,9 @@ sub update_mjob_forecast($$$$$){
         $sth->execute(); 
     }else {
         my $sth = $dbh->prepare(" INSERT INTO forecasts
-	                          (MjobsId,average,stddev,end)
+	                          (MjobsId,average,stddev,throughput,end)
 				  VALUES
-				  ('$MjobsId','$average','$stddev','$endtime')
+				  ('$MjobsId','$average','$stddev','$throughput','$endtime')
 				");
         $sth->execute();
     }
