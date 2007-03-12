@@ -285,11 +285,17 @@ puts mjob if $verbose
 puts "Forecast (average method): #{forecast_average(mjob)}" if $verbose
 puts "Forecast (throughput method): #{forecast_throughput(mjob,$time_window_size)}" if $verbose
 
+average=mjob.average
+
 # Use the average forcaster at the beginning of the job
 # and use the throughput forecaster after
-#  TODO....
-forecasted=forecast_throughput(mjob,$time_window_size)
-forecaster='throughput'
+if average[0] == 0 || mjob.duration < (2 * average[0])
+    forecasted=forecast_average(mjob)
+    forecaster='average'
+else
+    forecasted=forecast_throughput(mjob,$time_window_size)
+    forecaster='throughput'
+end
 
 # Make an array with the forecast
 result = { 'mjob_id' => mjob.mjobid.to_i,
@@ -302,7 +308,6 @@ if mjob.status == 'TERMINATED'
 else 
     result['end_time'] = Time.now.to_i + forecasted
 end
-average=mjob.average
 result['data'] = { 'throughput' => sprintf("%.2f",mjob.throughput($time_window_size)).to_f,
                    'average' => sprintf("%.2f",average[0]).to_f,
                    'standard_deviation' => sprintf("%.2f",average[1]).to_f
