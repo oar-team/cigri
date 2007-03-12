@@ -70,9 +70,9 @@ class Job
     # Calculate the job duration (from submission to end or now)
     def duration
         if state == 'Terminated'
-            return tstop - tsub
+            return tstop - tstart
         else
-            return Time.now.to_i - tsub
+            return Time.now.to_i - tstart
         end
      end
 end
