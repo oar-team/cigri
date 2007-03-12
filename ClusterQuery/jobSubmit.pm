@@ -194,7 +194,7 @@ sub oarsubmit2($$$$$$$$){
     print("Property String = $propertyString\n");
     #my %cmdResult = SSHcmd::submitCmd($cluster,"cd ~$user; sudo -H -u $user oarsub -l nodes=1,weight=$weight,walltime=$walltime -p \"$propertyString\" -q besteffort $jobFile");
     my %cmdResult = SSHcmd::submitCmd($cluster,"sudo -H -u $user bash -c \"cd $execDir; oarsub -l nodes=1/cpu=$weight,walltime=$walltime -p \\\"$propertyString\\\" -t besteffort $jobFile\"");
-    #print(Dumper(%cmdResult));
+    print(Dumper(%cmdResult));
     if ($cmdResult{STDERR} ne ""){
         # test if this is a ssh error
         if (NetCommon::checkSshError($dbh,$cluster,$cmdResult{STDERR}) != 1){
@@ -205,7 +205,7 @@ sub oarsubmit2($$$$$$$$){
     my @strTmp = split(/\n/, $cmdResult{STDOUT});
     foreach my $k (@strTmp){
         # search cluster batchId of the job
-        if ($k =~ /\s*JOB_ID\s=\s(\d+)/){
+        if ($k =~ /\s*JOB_ID\s*=\s*(\d+)/){
             return($1);
         }
     }
