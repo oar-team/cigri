@@ -201,7 +201,7 @@ class MultipleJob
         Duration:               %i s 
         Average:                %i s 
         Stddev:                 %.2f", \
-        @id,@status,Time.at(@tsub),Time.at(@last_terminated_date),@n_running,n_waiting,@n_terminated,\
+        @mjobid,@status,Time.at(@tsub),Time.at(@last_terminated_date),@n_running,n_waiting,@n_terminated,\
 	throughput(3600)*3600.to_i,duration,average[0].to_i,average[1])
     end
 end
