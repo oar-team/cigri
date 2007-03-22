@@ -24,14 +24,14 @@ CLUSTERS=`mysql $OPTS -e "select clusterName from clusters" |awk '{print $1}'`
 USERS=`getent group $CIGRI_GROUP |cut -f 4 -d:|sed "s/,/ /g"`
 for user in $USERS
 do
-  # If user is already in database, do nothing
-  ALREADY=`mysql $OPTS -e "select * from users where userLogin='$user'"`
-  if [ "$ALREADY" = "" ]
-  then
     for cluster in $CLUSTERS
     do
-      echo "Adding user $user to cluster $cluster."
-      mysql $OPTS -e "insert into users (userGridName,userClusterName,userLogin) values ('$user','$cluster','$user');"
+      ALREADY=`mysql $OPTS -e "select * from users where userGridName='$user' and userClusterName='$cluster'"`
+      # If user is already in database, do nothing
+      if [ "$ALREADY" = "" ]
+      then
+          echo "Adding user $user to cluster $cluster."
+          mysql $OPTS -e "insert into users (userGridName,userClusterName,userLogin) values ('$user','$cluster','$user');"
+      fi
     done
-  fi
 done
