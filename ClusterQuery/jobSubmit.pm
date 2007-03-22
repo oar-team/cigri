@@ -56,10 +56,11 @@ sub jobSubmit($$$$$$$){
 
     my $base = iolibCigri::connect();
     my %clusterProperties = iolibCigri::get_cluster_names_batch($base);
+    my %clusterResourceUnit = iolibCigri::get_cluster_names_resource_unit($base);
     my %result ;
     my $retCode = -1;
     if (defined($cluster) && defined($clusterProperties{$cluster})){
-        $retCode = &{$submitCmd{$clusterProperties{$cluster}}}($base,$cluster,$blackNodes,$user,$jobFile,$walltime,$weight,$execDir);
+        $retCode = &{$submitCmd{$clusterProperties{$cluster}}}($base,$cluster,$blackNodes,$user,$jobFile,$walltime,$weight,$execDir,$clusterResourceUnit{$cluster});
     }
     iolibCigri::disconnect($base);
     return($retCode);
@@ -88,7 +89,8 @@ sub endJobSubmissions($){
 #arg6 --> walltime
 #arg7 --> weight
 #arg8 --> execDir
-sub pbssubmit($$$$$$$$){
+#arg9 --> resrouce unit (cpu or core, or...)
+sub pbssubmit($$$$$$$$$){
     my $dbh = shift;
     my $cluster = shift;
     my $blackNodes = shift;
@@ -97,6 +99,7 @@ sub pbssubmit($$$$$$$$){
     my $walltime = shift;
     my $weight = shift;
     my $execDir = shift;
+    my $resourceUnit = shift;
 
     print("PBS NOT IMPLEMENTED -- $cluster\n");
     return(-1);
@@ -110,10 +113,11 @@ sub pbssubmit($$$$$$$$){
 #arg6 --> walltime
 #arg7 --> weight
 #arg8 --> execDir
+#arg9 --> resrouce unit (cpu or core, or...)
 #return jodBatchId or
 #   -1 : for a command execution error
 #   -2 : for a jobId parse error
-sub oarsubmit($$$$$$$$){
+sub oarsubmit($$$$$$$$$){
     my $dbh = shift;
     my $cluster = shift;
     my $blackNodes = shift;
@@ -122,6 +126,7 @@ sub oarsubmit($$$$$$$$){
     my $walltime = shift;
     my $weight = shift;
     my $execDir = shift;
+    my $resourceUnit = shift;
 
     print("$cluster --> OAR\n");
     #my $weight = iolibCigri::get_cluster_default_weight($dbh,$cluster);
@@ -165,6 +170,7 @@ sub oarsubmit($$$$$$$$){
 #arg6 --> walltime
 #arg7 --> weight
 #arg8 --> execDir
+#arg9 --> resrouce unit (cpu or core, or...)
 #return jodBatchId or
 #   -1 : for a command execution error
 #   -2 : for a jobId parse error
@@ -177,6 +183,8 @@ sub oarsubmit2($$$$$$$$){
     my $walltime = shift;
     my $weight = shift;
     my $execDir = shift;
+    my $resourceUnit = shift;
+    if ($resourceUnit eq '') {$resourceUnit="cpu";}
 
     print("$cluster --> OAR2\n");
     #my $weight = iolibCigri::get_cluster_default_weight($dbh,$cluster);
@@ -193,7 +201,7 @@ sub oarsubmit2($$$$$$$$){
     }
     print("Property String = $propertyString\n");
     #my %cmdResult = SSHcmd::submitCmd($cluster,"cd ~$user; sudo -H -u $user oarsub -l nodes=1,weight=$weight,walltime=$walltime -p \"$propertyString\" -q besteffort $jobFile");
-    my %cmdResult = SSHcmd::submitCmd($cluster,"sudo -H -u $user bash -l -c \"cd $execDir; oarsub -l nodes=1/cpu=$weight,walltime=$walltime -p \\\"$propertyString\\\" -t besteffort $jobFile\"");
+    my %cmdResult = SSHcmd::submitCmd($cluster,"sudo -H -u $user bash -l -c \"cd $execDir; oarsub -l nodes=1/$resourceUnit=$weight,walltime=$walltime -p \\\"$propertyString\\\" -t besteffort $jobFile\"");
     print(Dumper(%cmdResult));
     if ($cmdResult{STDERR} ne ""){
         # test if this is a ssh error
