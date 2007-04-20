@@ -754,7 +754,7 @@ EOF;
 	else { $smarty->assign("ForecastAvg","--");}
 	if ($res[0][2]) { $smarty->assign("ForecastStddev",$res[0][2]);}
 	else { $smarty->assign("ForecastStddev","--");}
-	if ($res[0][3]) { $smarty->assign("ForecastThroughput",$res[0][3]*3600);}
+	if ($res[0][3]) { $smarty->assign("ForecastThroughput",round($res[0][3]*3600,2));}
 	else { $smarty->assign("ForecastThroughput","--");}
 	if ($res[0][4]) { 
 	   $smarty->assign("ForecastEnd",date("Y-m-d H:i:s",$res[0][4]));
