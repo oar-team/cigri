@@ -54,7 +54,7 @@ class Job
 
     # Creation
     def initialize(id,mjobid,state,tsub,tstart,tstop)
-        @id=id
+        @jid=id
         @mjobid=mjobid
         @state=state
         @tsub=tsub
@@ -64,7 +64,7 @@ class Job
 
     # Printing
     def to_s
-        puts "Job #{id}:#{state},#{tsub},#{tstart},#{tstop}"
+        sprintf "Job #{@jid}:#{@state},#{@tsub},#{@tstart},#{@tstop}"
     end
 
     # Calculate the job duration (from submission to end or now)
@@ -168,7 +168,9 @@ class MultipleJob
             end
         end
         if n != 0
-            return n.to_f / (Time.now.to_i - first_submited_date).to_f
+	    t = n.to_f / (Time.now.to_i - first_submited_date).to_f
+	    puts "Calculated troughtput: #{t} (#{t*3600} j/h) - #{n} jobs during window" if $verbose 
+            return t
         else
             return 0.0
         end
@@ -197,12 +199,12 @@ class MultipleJob
         Running:                %i 
         Waiting:                %i 
         Terminated:             %i 
-        Troughput (last hour):  %i jobs/hour 
+        Troughput (last hour):  %.2f jobs/hour 
         Duration:               %i s 
         Average:                %i s 
         Stddev:                 %.2f", \
         @mjobid,@status,Time.at(@tsub),Time.at(@last_terminated_date),@n_running,n_waiting,@n_terminated,\
-	throughput(3600)*3600.to_i,duration,average[0].to_i,average[1])
+	throughput(3600)*3600,duration,average[0].to_i,average[1])
     end
 end
 
@@ -258,8 +260,9 @@ end
 # Make a forecast based on the job throughput in the last window seconds
 # Returns a number of seconds
 def forecast_throughput(mjob,window)
-    if mjob.throughput(window) != 0
-        return ( (mjob.n_waiting + mjob.n_running/2) / mjob.throughput(window) ).to_i
+    throughtput=mjob.throughput(window)
+    if throughtput != 0
+        return ( (mjob.n_waiting + mjob.n_running/2) / throughtput ).to_i
     else
         return 0
     end
@@ -308,7 +311,7 @@ if mjob.status == 'TERMINATED'
 else 
     result['end_time'] = Time.now.to_i + forecasted
 end
-result['data'] = { 'throughput' => sprintf("%.2f",mjob.throughput($time_window_size)).to_f,
+result['data'] = { 'throughput' => sprintf("%.6f",mjob.throughput($time_window_size)).to_f,
                    'average' => sprintf("%.2f",average[0]).to_f,
                    'standard_deviation' => sprintf("%.2f",average[1]).to_f
                  }
