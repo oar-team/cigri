@@ -1,8 +1,8 @@
 <?php
 include("../../dbfunctions.inc");
-require_once("../../jpgraph-1.12.2/src/jpgraph.php");
-require_once("../../jpgraph-1.12.2/src/jpgraph_pie.php");
-require_once("../../jpgraph-1.12.2/src/jpgraph_pie3d.php");
+require_once("../../jpgraph/src/jpgraph.php");
+require_once("../../jpgraph/src/jpgraph_pie.php");
+require_once("../../jpgraph/src/jpgraph_pie3d.php");
 
 $link = dbconnect();
 
