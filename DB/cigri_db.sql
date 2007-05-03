@@ -56,6 +56,7 @@ CREATE TABLE IF NOT EXISTS nodes (
 nodeName VARCHAR( 100 ) NOT NULL ,
 nodeClusterName VARCHAR( 100 ) NOT NULL ,
 nodeFreeWeight INT UNSIGNED DEFAULT 0 NOT NULL ,
+nodeMaxWeight INT UNSIGNED DEFAULT 0 NOT NULL ,
 INDEX nodeClusterName (nodeClusterName),
 PRIMARY KEY (nodeName,nodeClusterName)
 )TYPE = InnoDB;

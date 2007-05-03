@@ -85,7 +85,7 @@ class Cluster
 
     # Calculates the maximum resource units this cluster have
     def max_resources
-        query = "SELECT sum(nodeMaxWeight) as max_resources FROM nodes where nodeClusterName='{@name}'"
+        query = "SELECT sum(nodeMaxWeight) as max_resources FROM nodes where nodeClusterName='#{@name}'"
 	sql_sum=@dbh.select_all(query)
 	return sql_sum[0]['max_resources']
     end
@@ -126,6 +126,7 @@ clusters.each do |cluster|
   puts cluster.to_s
   puts "    BLACKLISTED! (#{cluster.status_reason})" if cluster.status
   puts "    Free #{cluster.unit}s: #{cluster.free_resources}"
+  puts "    Max #{cluster.unit}s:  #{cluster.max_resources}"
 end
 
 

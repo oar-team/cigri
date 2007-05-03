@@ -109,6 +109,7 @@ sub oarnodes($$){
                 if (($besteffort eq "YES") && (($state eq "job") || ($state eq "free"))){
                     # Databse update
                     iolibCigri::set_cluster_node_free_weight($dbh, $cluster, $name, $maxWeight-$currentWeight);
+                    iolibCigri::set_cluster_node_max_weight($dbh, $cluster, $name, $maxWeight);
                 }
             }else{
                 print("[UPDATOR] There is an error in the oarnodes command parse, node=$name;state=$state\n");
@@ -145,8 +146,10 @@ sub oarnodes2($$){
         foreach my $node (keys(%{$oarnodes})) {
            my $jobs=0;
            my $maxWeight=0;
+           my $totalWeight=0;
            foreach my $resource (keys(%{$oarnodes->{$node}})) {
              if ("$oarnodes->{$node}->{$resource}->{network_address}" ne "") {
+               $totalWeight++ ;
                $maxWeight++ if ($oarnodes->{$node}->{$resource}->{state} eq "Alive"
                                  && $oarnodes->{$node}->{$resource}->{properties}->{besteffort} eq "YES");
                  foreach my $line (keys(%{$oarnodes->{$node}->{$resource}})) {
@@ -161,6 +164,7 @@ sub oarnodes2($$){
            }
            # database update
            iolibCigri::set_cluster_node_free_weight($dbh, $cluster, $node, $maxWeight-$jobs);
+           iolibCigri::set_cluster_node_max_weight($dbh, $cluster, $node, $totalWeight);
            #print "$node: $maxWeight-$jobs\n";
         }
       }else{

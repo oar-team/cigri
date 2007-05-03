@@ -702,6 +702,32 @@ sub set_cluster_node_free_weight($$$$){
     }
 }
 
+# set the number of max weight for the given cluster node
+# arg1 --> database ref
+# arg2 --> cluster name
+# arg3 --> node name
+# arg4 --> max weight
+sub set_cluster_node_max_weight($$$$){
+    my $dbh = shift;
+    my $clusterName = shift;
+    my $nodeName = shift;
+    my $maxWeight = shift;
+    # Test if the node exists
+    if (is_node_exist($dbh, $clusterName, $nodeName) == 0){
+        # The node is created
+        add_node($dbh, $clusterName, $nodeName);
+    }
+
+    if ($maxWeight > 0){
+        my $sth = $dbh->prepare("UPDATE nodes SET nodeMaxWeight = $maxWeight
+                                 WHERE nodeClusterName = \"$clusterName\"
+                                       and nodeName = \"$nodeName\"");
+        $sth->execute();
+        $sth->finish();
+    }
+}
+
+
 # give the id of IN_TREATMENT state MJobs
 # arg1 --> database ref
 # return an array of id
