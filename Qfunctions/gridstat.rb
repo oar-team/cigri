@@ -32,13 +32,15 @@ $verbose = false
 
 #######################################################################################
 
+$:.replace([$iolib_dir] | $:)
+
 require 'dbi'
 require 'time'
 require 'optparse'
 require 'yaml'
 require 'pp'
 
-require '../Iolib/cigriJobs.rb'
+require 'cigriJobs.rb'
 
 module ExtendedJob
     attr_reader :jid, :param, :cluster, :batchid, :node
