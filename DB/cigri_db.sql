@@ -258,6 +258,16 @@ CREATE TABLE `forecasts` (
 PRIMARY KEY ( `MjobsId` )
 )
 
+# Gridstatus table
+CREATE TABLE `gridstatus` (
+`timestamp` INT NOT NULL ,
+`clusterName` VARCHAR( 100 ) NOT NULL ,
+`maxResources` INT NOT NULL ,
+`freeResources` INT NOT NULL ,
+`usedResources` INT NOT NULL ,
+PRIMARY KEY ( `timestamp`,`clusterName` )
+)
+
 INSERT IGNORE INTO webusers VALUES ("admin", "");
 
 #INSERT INTO clusters (clusterName,clusterAdmin,clusterBatch) VALUES ("pawnee", "", "OAR");

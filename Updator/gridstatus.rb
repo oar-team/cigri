@@ -2,9 +2,8 @@
 # 
 ####################################################################################
 # CIGRI Status reporter.
-# It prints out the resources status of every cluster
-#
-# Output: in YAML format
+# It updates the "gridstatus" table
+# It prints out the resources status of every cluster if $verbose is true
 #
 # Requirements:
 #        ruby1.8 (or greater)
@@ -87,14 +86,26 @@ class Cluster
     def max_resources
         query = "SELECT sum(nodeMaxWeight) as max_resources FROM nodes where nodeClusterName='#{@name}'"
 	sql_sum=@dbh.select_all(query)
-	return sql_sum[0]['max_resources']
+	return sql_sum[0]['max_resources'].to_i || 0
     end
 
     # Calculates the free resource units this cluster have
     def free_resources
         query = "SELECT sum(nodeFreeWeight) as free_resources FROM nodes where nodeClusterName='#{@name}'"
         sql_sum=@dbh.select_all(query)
-        return sql_sum[0]['free_resources']
+        return sql_sum[0]['free_resources'].to_i || 0
+    end
+
+    # Claculate the number of resources used by cigri on this cluster
+    def used_resources
+       query = "SELECT sum(propertiesJobWeight) as count 
+                       FROM jobs,properties 
+		       WHERE jobClusterName='#{@name}'
+                       AND jobState='Running'
+		       AND propertiesClusterName='#{@name}'
+		       AND propertiesMJobsId=jobMJobsId"
+       sql_count=@dbh.select_all(query)
+       return sql_count[0]['count'].to_i || 0
     end
 end
 
@@ -121,12 +132,40 @@ sql_clusters.each do |sql_cluster|
   clusters << cluster
 end
 
-# Printing
+# Updating and printing
+total_max=0
+total_free=0
+total_used=0
+n_clusters=0
+n_blacklisted=0
+timestamp=Time.now.to_i
 clusters.each do |cluster|
-  puts cluster.to_s
-  puts "    BLACKLISTED! (#{cluster.status_reason})" if cluster.status
-  puts "    Free #{cluster.unit}s: #{cluster.free_resources}"
-  puts "    Max #{cluster.unit}s:  #{cluster.max_resources}"
+  n_clusters+=1
+  max=cluster.max_resources
+  free=cluster.free_resources
+  used=cluster.used_resources
+  total_max+=max
+  total_free+=free
+  total_used+=used
+  puts cluster.to_s if $verbose
+  if cluster.status
+    puts "    BLACKLISTED! (#{cluster.status_reason})" if $verbose
+    n_blacklisted+=1
+  end
+  puts "    Max #{cluster.unit}s:  #{max}" if $verbose
+  puts "    Free #{cluster.unit}s: #{free}" if $verbose
+  puts "    Used by cigri : #{used}" if $verbose
+  query = "INSERT INTO gridstatus (timestamp,clusterName,maxResources,freeResources,usedResources)
+                                  VALUES
+				  ('#{timestamp}','#{cluster.name}','#{max}','#{free}','#{used}')"
+  dbh.do(query)  
 end
-
-
+if $verbose
+  puts
+  puts "TOTAL:"
+  puts "    Total clusters: #{n_clusters}"
+  puts "    Blacklisted clusters: #{n_blacklisted}"
+  puts "    Max resources:  #{total_max}"
+  puts "    Free resources: #{total_free}"
+  puts "    Used resources: #{total_used}"
+end

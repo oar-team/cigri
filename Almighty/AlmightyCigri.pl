@@ -42,6 +42,7 @@ if (is_conf("INSTALL_PATH")){
 #set paths of executables
 my $runner_command = $path."/Runner/runnerCigri.pl";
 my $updator_command = $path."/Updator/updatorCigri.pl";
+my $gridstatus_command = $path."/Updator/gridstatus.rb";
 my $nikita_command = $path."/Nikita/nikitaCigri.pl";
 my $spritz_command = $path."/Spritz/spritzCigri.pl";
 
@@ -104,6 +105,7 @@ sub runner(){
 
 # launch updator command
 sub updator(){
+    launch_command($gridstatus_command);
     return launch_command($updator_command);
 }
 
