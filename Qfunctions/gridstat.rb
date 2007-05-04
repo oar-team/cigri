@@ -38,7 +38,7 @@ require 'optparse'
 require 'yaml'
 require 'pp'
 
-require 'cigriJobs'
+require '../Iolib/cigriJobs.rb'
 
 module ExtendedJob
     attr_reader :jid, :param, :cluster, :batchid, :node
