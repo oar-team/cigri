@@ -42,40 +42,6 @@ require 'pp'
 
 require 'cigriJobs.rb'
 
-module ExtendedJob
-    attr_reader :jid, :param, :cluster, :batchid, :node
-   
-    def set_properties(param,cluster,batchid,node)
-        @param=param
-        @cluster=cluster
-        @batchid=batchid
-        @node=node
-    end
-end
-
-module ExtendedMjob
-    def update_jobs
-        query = "SELECT jobId, jobMJobsId,jobState,jobTSub,jobTStart,jobTStop,jobParam,jobClusterName,jobBatchid,jobNodeName\
-                 FROM jobs \
-                 WHERE jobMJobsId=#{@mjobid}"
-        sql_jobs=@dbh.select_all(query)
-
-        # Job objects creation and parsing
-        @jobs=[]
-        sql_jobs.each do |sql_job|
-            job=Job.new(sql_job['jobId'],\
-                        @mjobid,\
-                        sql_job['jobState'],\
-                        to_unix_time(sql_job['jobTSub']),\
-                        to_unix_time(sql_job['jobTStart']),\
-                        to_unix_time(sql_job['jobTStop']))
-            job.extend ExtendedJob
-            job.set_properties(sql_job['jobParam'],sql_job['jobClusterName'],sql_job['jobBatchid'],sql_job['jobNodeName'])
-            @jobs << job
-        end
-    end
-end
-
 #########################################################################
 # MAIN
 #########################################################################
@@ -95,8 +61,6 @@ end
 
 # Get the multiple job
 mjob=MultipleJob.new(dbh,ARGV[0])
-mjob.extend ExtendedMjob
-mjob.update_jobs
 
 if not csv
   puts mjob.to_s

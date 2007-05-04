@@ -5,16 +5,20 @@
 # Job class
 #########################################################################
 class Job
-    attr_reader :mjobid, :state, :tsub, :tstart, :tstop
+    attr_reader :jid, :mjobid, :state, :tsub, :tstart, :tstop, :param, :cluster, :batchid, :node
 
     # Creation
-    def initialize(id,mjobid,state,tsub,tstart,tstop)
+    def initialize(id,mjobid,state,tsub,tstart,tstop,param,cluster,batchid,node)
         @jid=id
         @mjobid=mjobid
         @state=state
         @tsub=tsub
         @tstart=tstart
         @tstop=tstop
+	@param=param
+	@cluster=cluster
+	@batchid=batchid
+	@node=node
     end
 
     # Printing
@@ -62,8 +66,8 @@ class MultipleJob
         @tsub=to_unix_time(sql_mjob[0]['MJobsTSub'])
 
         # SQL query to get the jobs
-        query = "SELECT jobId, jobMJobsId, jobState, jobTSub, jobTStart, jobTStop \
-                 FROM jobs \
+        query = "SELECT jobId,jobMJobsId,jobState,jobTSub,jobTStart,jobTStop,jobParam,jobClusterName,jobBatchid,jobNodeName \
+	         FROM jobs \
                  WHERE jobMJobsId=#{mjobid}"
         sql_jobs=dbh.select_all(query)
 
@@ -74,7 +78,11 @@ class MultipleJob
                         sql_job['jobState'],\
                         to_unix_time(sql_job['jobTSub']),\
                         to_unix_time(sql_job['jobTStart']),\
-                        to_unix_time(sql_job['jobTStop']))
+                        to_unix_time(sql_job['jobTStop']),\
+                        sql_job['jobParam'],\
+                        sql_job['jobClusterName'],\
+                        sql_job['jobBatchid'],\
+                        sql_job['jobNodeName'])
             @jobs << job
 
             case job.state
