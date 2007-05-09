@@ -136,6 +136,7 @@ else {
 //		cigri_register_menu_item($menu,$currentarray,"ainfo","Main","account.php",2,false);
 		cigri_register_menu_item($menu,$currentarray,"ajobs","MultiJobs","account.php?submenu=jobs",2,false);
 		cigri_register_menu_item($menu,$currentarray,"astats","Statistics","account.php?submenu=stats",2,false);
+                cigri_register_menu_item($menu,$currentarray,"astatus","Status","account.php?submenu=status",2,false);
 		cigri_register_menu_item($menu,$currentarray,"aerrors","Errors","account.php?submenu=errors",2,false);
 		cigri_register_menu_item($menu,$currentarray,"alogout",$login.": logout","account.php?submenu=logout",2,false);
 		$smarty->assign('contenttemplate',"account.tpl");
@@ -146,6 +147,7 @@ else {
 //			cigri_register_menu_item($menu,$currentarray,"ainfo","Main","account.php",2,false);
 			cigri_register_menu_item($menu,$currentarray,"ajobs","MultiJobs","account.php?submenu=jobs",2,true);
 			cigri_register_menu_item($menu,$currentarray,"astats","Statistics","account.php?submenu=stats",2,false);
+                        cigri_register_menu_item($menu,$currentarray,"astatus","Status","account.php?submenu=status",2,false);
 			cigri_register_menu_item($menu,$currentarray,"aerrors","Errors","account.php?submenu=errors",2,false);
 			cigri_register_menu_item($menu,$currentarray,"alogout",$login.": logout","account.php?submenu=logout",2,false);
 			include("account/jobs.php");
@@ -154,6 +156,7 @@ else {
 //			cigri_register_menu_item($menu,$currentarray,"ainfo","Main","account.php",2,false);
 			cigri_register_menu_item($menu,$currentarray,"ajobs","MultiJobs","account.php?submenu=jobs",2,false);
 			cigri_register_menu_item($menu,$currentarray,"astats","Statistics","account.php?submenu=stats",2,true);
+                        cigri_register_menu_item($menu,$currentarray,"astatus","Status","account.php?submenu=status",2,false);
 			cigri_register_menu_item($menu,$currentarray,"aerrors","Errors","account.php?submenu=errors",2,false);
 			cigri_register_menu_item($menu,$currentarray,"alogout",$login.": logout","account.php?submenu=logout",2,false);
 			include("account/stats.php");
@@ -162,6 +165,7 @@ else {
 //			cigri_register_menu_item($menu,$currentarray,"ainfo","Main","account.php",2,false);
 			cigri_register_menu_item($menu,$currentarray,"ajobs","MultiJobs","account.php?submenu=jobs",2,false);
 			cigri_register_menu_item($menu,$currentarray,"astats","Statistics","account.php?submenu=stats",2,false);
+                        cigri_register_menu_item($menu,$currentarray,"astatus","Status","account.php?submenu=status",2,false);
 			cigri_register_menu_item($menu,$currentarray,"aerrors","Errors","account.php?submenu=errors",2,true);
 			cigri_register_menu_item($menu,$currentarray,"alogout",$login.": logout","account.php?submenu=logout",2,false);
 			include("account/errors.php");
@@ -170,6 +174,7 @@ else {
 //                      cigri_register_menu_item($menu,$currentarray,"ainfo","Main","account.php",2,false);
                         cigri_register_menu_item($menu,$currentarray,"ajobs","MultiJobs","account.php?submenu=jobs",2,false);
                         cigri_register_menu_item($menu,$currentarray,"astats","Statistics","account.php?submenu=stats",2,false);
+                        cigri_register_menu_item($menu,$currentarray,"astatus","Status","account.php?submenu=status",2,true);
                         cigri_register_menu_item($menu,$currentarray,"aerrors","Errors","account.php?submenu=errors",2,false);
                         cigri_register_menu_item($menu,$currentarray,"alogout",$login.": logout","account.php?submenu=logout",2,false);
                         include("account/status.php");
