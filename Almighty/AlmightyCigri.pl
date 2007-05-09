@@ -105,8 +105,12 @@ sub runner(){
 
 # launch updator command
 sub updator(){
-    launch_command($gridstatus_command);
     return launch_command($updator_command);
+}
+
+# Launch gridstatus command
+sub gridstatus(){
+    return launch_command($gridstatus_command);
 }
 
 # launch nikita command
@@ -126,6 +130,9 @@ LBL:while (1){
 #        sleep(5);
         next LBL if ($exitValue != 0);
         $exitValue = updator();
+#        sleep(5);
+	next LBL if ($exitValue != 0);
+	$exitValue =  gridstatus();
 #        sleep(5);
         next LBL if ($exitValue != 0);
         $exitValue = scheduler();

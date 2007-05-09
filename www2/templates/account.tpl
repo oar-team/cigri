@@ -14,6 +14,11 @@
 		<tr><td colspan="2" class="menutitleclass">Errors</td></tr>
 		<tr><td></td><td><a href="account.php?submenu=errors&option=fixed">Fixed errors</a></td></tr>
 		<tr><td></td><td><a href="account.php?submenu=errors&option=tofix">Errors to fix</a></td></tr>
+		<tr><td colspan="2">&nbsp;</td></tr>
+
+		<tr><td colspan="2" class="menutitleclass">Grid Status</td></tr>
+		<tr><td></td><td><a href="account.php?submenu=status&option=current">Current status</a></td></tr>
+		<tr><td></td><td><a href="account.php?submenu=status&option=graph">Historical graph</a></td></tr>
 	</table>
 </td></tr>
 </table>

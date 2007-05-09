@@ -166,6 +166,14 @@ else {
 			cigri_register_menu_item($menu,$currentarray,"alogout",$login.": logout","account.php?submenu=logout",2,false);
 			include("account/errors.php");
 		}
+		else if ($_GET['submenu'] == 'status') {
+//                      cigri_register_menu_item($menu,$currentarray,"ainfo","Main","account.php",2,false);
+                        cigri_register_menu_item($menu,$currentarray,"ajobs","MultiJobs","account.php?submenu=jobs",2,false);
+                        cigri_register_menu_item($menu,$currentarray,"astats","Statistics","account.php?submenu=stats",2,false);
+                        cigri_register_menu_item($menu,$currentarray,"aerrors","Errors","account.php?submenu=errors",2,false);
+                        cigri_register_menu_item($menu,$currentarray,"alogout",$login.": logout","account.php?submenu=logout",2,false);
+                        include("account/status.php");
+                }
 		else {
 			// unknown parameter
 			$smarty->assign('contenttemplate',"error.tpl");
