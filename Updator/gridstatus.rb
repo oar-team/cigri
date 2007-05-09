@@ -84,21 +84,22 @@ class Cluster
 
     # Calculates the maximum resource units this cluster have
     def max_resources
-        query = "SELECT sum(nodeMaxWeight) as max_resources FROM nodes where nodeClusterName='#{@name}'"
+        puts "searching max resources of #{@name}" if $verbose
+        query = "SELECT cast(sum(nodeMaxWeight) as unsigned) as max_resources FROM nodes where nodeClusterName='#{@name}'"
 	sql_sum=@dbh.select_all(query)
 	return sql_sum[0]['max_resources'].to_i || 0
     end
 
     # Calculates the free resource units this cluster have
     def free_resources
-        query = "SELECT sum(nodeFreeWeight) as free_resources FROM nodes where nodeClusterName='#{@name}'"
+        query = "SELECT cast(sum(nodeFreeWeight) as unsigned) as free_resources FROM nodes where nodeClusterName='#{@name}'"
         sql_sum=@dbh.select_all(query)
         return sql_sum[0]['free_resources'].to_i || 0
     end
 
     # Claculate the number of resources used by cigri on this cluster
     def used_resources
-       query = "SELECT sum(propertiesJobWeight) as count 
+       query = "SELECT cast(sum(propertiesJobWeight) as unsigned) as count 
                        FROM jobs,properties 
 		       WHERE jobClusterName='#{@name}'
                        AND jobState='Running'
