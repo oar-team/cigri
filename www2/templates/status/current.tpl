@@ -1,12 +1,11 @@
 <table border="0" cellpadding="10" cellspacing="0">
 <tr><td>
-
+econdkey[6
     <h3>Current grid status</h3>
     {if $Timestamp neq 0}
         <!-- display graph -->
 	<center>
         <img src="../stats/gridstatusgraph.php" alt="graph">
-	</center>
 	<p>
 	<!-- display table -->
         <table border="0" cellpadding="5" cellspacing="3">
@@ -41,6 +40,37 @@
     {else}
         No gridstatus data found!<BR>
     {/if}
+    <p>
+    {if $nbjobs neq 0}
+        <table border="0" cellpadding="5" cellspacing="3">
+        <caption>Current multiple-jobs :</caption>
+        <tr class="titlerow">
+                        <th>MjobId</th>
+                        <th>Status</th>
+                        <th>User</th>
+                        <th>Average job duration (s)</th>
+                        <th>Job throughput (j/h)</th>
+			<th>term/run/wait</th>
+			<th>resubmissions</th>
+        </tr>
+        {foreach from=$jobarray item=secondkey}
+             <tr class="evenrow">
+                                <td align="center"><a href="account.php?submenu=jobs&option=details&id={$secondkey[0]}">{$secondkey[0]}</a></td>
+                                <td align="center">{$secondkey[1]}</td>
+                                <td align="center">{$secondkey[2]}</td>
+                                <td align="center">{$secondkey[3]}</td>
+                                <td align="center">{$secondkey[5]}</td>
+                                <td align="center">{$secondkey[8]}/{$secondkey[9]}/{$secondkey[7]}</td>
+                                <td align="center">{$secondkey[6]}%</td>
+            </tr>
+        {/foreach}
+
+      </table>
+    {else}
+        No running mjob found.<BR>
+    {/if}
+    </center>
+
 </td></tr>
 </table>
 
