@@ -48,8 +48,8 @@ econdkey[6
                         <th>MjobId</th>
                         <th>Status</th>
                         <th>User</th>
-                        <th>Average job duration (s)</th>
-                        <th>Job throughput (j/h)</th>
+                        <th>Average job duration</th>
+                        <th>Job throughput</th>
 			<th>term/run/wait</th>
 			<th>resubmissions</th>
         </tr>
@@ -58,8 +58,8 @@ econdkey[6
                                 <td align="center"><a href="account.php?submenu=jobs&option=details&id={$secondkey[0]}">{$secondkey[0]}</a></td>
                                 <td align="center">{$secondkey[1]}</td>
                                 <td align="center">{$secondkey[2]}</td>
-                                <td align="center">{$secondkey[3]}</td>
-                                <td align="center">{$secondkey[5]}</td>
+                                <td align="center">{$secondkey[3]} s</td>
+                                <td align="center">{$secondkey[5]} j/h</td>
                                 <td align="center">{$secondkey[8]}/{$secondkey[9]}/{$secondkey[7]}</td>
                                 <td align="center">{$secondkey[6]}%</td>
             </tr>
