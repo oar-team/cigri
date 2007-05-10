@@ -131,11 +131,11 @@ LBL:while (1){
         next LBL if ($exitValue != 0);
         $exitValue = updator();
 #        sleep(5);
-	next LBL if ($exitValue != 0);
-	$exitValue =  gridstatus();
-#        sleep(5);
         next LBL if ($exitValue != 0);
         $exitValue = scheduler();
+#        sleep(5);
+	next LBL if ($exitValue != 0);
+	$exitValue =  gridstatus();
 #        sleep(5);
         next LBL if ($exitValue != 0);
         $exitValue = runner();

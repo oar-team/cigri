@@ -108,6 +108,18 @@ class Cluster
        sql_count=@dbh.select_all(query)
        return sql_count[0]['count'].to_i || 0
     end
+
+    # Claculate the number of resources that will be used in a near futur
+    def tolaunch_resources
+       query = "SELECT cast(sum(propertiesJobWeight*jobsToSubmitNumber) as unsigned) as count 
+                       FROM jobsToSubmit,properties 
+		       WHERE jobsToSubmitClusterName='#{@name}'
+		       AND propertiesClusterName='#{@name}'
+		       AND propertiesMJobsId=jobsToSubmitMJobsId"
+       sql_count=@dbh.select_all(query)
+       return sql_count[0]['count'].to_i || 0
+    end
+
 end
 
 
@@ -145,6 +157,7 @@ clusters.each do |cluster|
   max=cluster.max_resources
   free=cluster.free_resources
   used=cluster.used_resources
+  tolaunch=cluster.tolaunch_resources
   total_max+=max
   total_free+=free
   total_used+=used
@@ -156,9 +169,10 @@ clusters.each do |cluster|
   puts "    Max #{cluster.unit}s:  #{max}" if $verbose
   puts "    Free #{cluster.unit}s: #{free}" if $verbose
   puts "    Used by cigri : #{used}" if $verbose
+  puts "    To launch : #{tolaunch}" if $verbose
   query = "INSERT INTO gridstatus (timestamp,clusterName,maxResources,freeResources,usedResources)
                                   VALUES
-				  ('#{timestamp}','#{cluster.name}','#{max}','#{free}','#{used}')"
+				  ('#{timestamp}','#{cluster.name}','#{max}','#{free-tolaunch}','#{used+tolaunch}')"
   dbh.do(query)  
 end
 if $verbose
