@@ -19,7 +19,11 @@ econdkey[6
                         <th>Free resources</th>
         </tr>
         {foreach from=$array item=secondkey}
-            <tr class="evenrow">
+	     {if $secondkey[6] eq "no"}
+             <tr class="evenrow">
+	     {else}
+             <tr class="disabled">
+	     {/if}
                                 <td align="center">{$secondkey[1]}</td>
 				<td align="center">{$secondkey[6]}</td>
                                 <td align="center">{$secondkey[2]}</td>
@@ -54,7 +58,7 @@ econdkey[6
 			<th>resubmissions</th>
         </tr>
         {foreach from=$jobarray item=secondkey}
-             <tr class="evenrow">
+            <tr  class="evenrow">
                                 <td align="center"><a href="account.php?submenu=jobs&option=details&id={$secondkey[0]}">{$secondkey[0]}</a></td>
                                 <td align="center">{$secondkey[1]}</td>
                                 <td align="center">{$secondkey[2]}</td>

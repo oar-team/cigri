@@ -118,6 +118,13 @@ a:visited {
 	color: #000000;
 	font-size: 11px;
 }
+.disabled {
+	font-family: Sans-Serif;
+	background-color: #FFCC88;
+	color: #555555;
+	font-size: 11px;
+	font-style: italic;
+}
 .titlerow {
 	font-family: Sans-Serif;
 	background-color: #AA2200;
