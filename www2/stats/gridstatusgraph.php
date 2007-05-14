@@ -61,6 +61,7 @@ if ($res[0][0]) {
 	$p1->SetCenter(0.35,0.65);
 	$p1->SetTheme("sand");
 	$p1->SetLegends($legend);
+	$p1->SetSliceColors(array('brown','lightred','gray','gray9@0.5'));
 
 	$graph->Add($p1);
 	$graph->Stroke();
