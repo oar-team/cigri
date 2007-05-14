@@ -7,7 +7,7 @@
 		{* parity var *}
 		{assign var="even" value=true}
 		{include file="pages.tpl"}
-		<form action="account.php" method="get">
+		<form action="account.php" method="get" name="errors">
 		<input type="hidden" name="submenu" value="errors">
 		<input type="hidden" name="option" value="fixaction">
 		<table border="0" cellpadding="5" cellspacing="3">
@@ -39,8 +39,8 @@
 		{/foreach}
 		</table>
 		<table border="0" cellpadding="5" cellspacing="0">
-		<tr><td colspan="3">&nbsp;</td></tr>
-		<tr><td><input type="submit" name="fix" value="Only fix errors"></td><td>&nbsp;</td><td><input type="submit" name="resub" value="Fix and re-submit Jobs"></td></tr>
+		<tr><td colspan="4">&nbsp;</td></tr>
+		<tr><td><INPUT onclick=doCheckAll() type=button value="Check all"></td><td><input type="submit" name="fix" value="Only fix errors"></td><td>&nbsp;</td><td><input type="submit" name="resub" value="Fix and re-submit Jobs"></td></tr>
 		</table>
 		</form>
 
@@ -50,3 +50,20 @@
 	{/if}
 </td></tr>
 </table>
+
+{literal}
+
+<SCRIPT language=JavaScript><!-- 
+
+function doCheckAll()
+{
+  with (document.errors) {
+    for (var i=0; i < elements.length; i++) {
+        if (elements[i].type == 'checkbox' && elements[i].name == 'errorcb[]')
+           elements[i].checked = true;
+    }
+  }
+}
+
+ --></SCRIPT>
+{/literal}
