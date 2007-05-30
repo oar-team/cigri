@@ -1,6 +1,5 @@
 <table border="0" cellpadding="10" cellspacing="0">
 <tr><td>
-econdkey[6
     <h3>Current grid status</h3>
     {if $Timestamp neq 0}
         <!-- display graph -->
