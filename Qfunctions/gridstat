@@ -1,0 +1,2 @@
+#!/bin/sh
+sudo -u cigri /usr/local/bin/gridstat.sh $@
