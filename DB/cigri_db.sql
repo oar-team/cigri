@@ -256,7 +256,7 @@ CREATE TABLE `forecasts` (
 `throughput` FLOAT NOT NULL ,
 `end` INT NOT NULL ,
 PRIMARY KEY ( `MjobsId` )
-)
+);
 
 # Gridstatus table
 CREATE TABLE `gridstatus` (
@@ -266,7 +266,7 @@ CREATE TABLE `gridstatus` (
 `freeResources` INT NOT NULL ,
 `usedResources` INT NOT NULL ,
 PRIMARY KEY ( `timestamp`,`clusterName` )
-)
+);
 
 INSERT IGNORE INTO webusers VALUES ("admin", "");
 
