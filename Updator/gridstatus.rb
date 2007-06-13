@@ -99,10 +99,10 @@ class Cluster
 
     # Claculate the number of resources used by cigri on this cluster
     def used_resources
-       query = "SELECT cast(sum(propertiesJobWeight) as unsigned) as count 
+       query = "SELECT cast(sum(propertiesJobNcpus*propertiesJobNnodes) as unsigned) as count 
                        FROM jobs,properties 
 		       WHERE jobClusterName='#{@name}'
-                       AND jobState='Running'
+                       AND (jobState='Running' OR jobState='RemoteWaiting')
 		       AND propertiesClusterName='#{@name}'
 		       AND propertiesMJobsId=jobMJobsId"
        sql_count=@dbh.select_all(query)
@@ -111,7 +111,7 @@ class Cluster
 
     # Claculate the number of resources that will be used in a near futur
     def tolaunch_resources
-       query = "SELECT cast(sum(propertiesJobWeight*jobsToSubmitNumber) as unsigned) as count 
+       query = "SELECT cast(sum((propertiesJobNcpus*propertiesJobNnodes)*jobsToSubmitNumber) as unsigned) as count 
                        FROM jobsToSubmit,properties 
 		       WHERE jobsToSubmitClusterName='#{@name}'
 		       AND propertiesClusterName='#{@name}'
