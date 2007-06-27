@@ -132,9 +132,11 @@ propertiesClusterName VARCHAR( 100 ) NOT NULL ,
 propertiesMJobsId INT UNSIGNED NOT NULL ,
 propertiesJobCmd VARCHAR( 255 ) NOT NULL ,
 propertiesJobWalltime TIME NOT NULL ,
-propertiesJobWeight INT UNSIGNED NOT NULL ,
-propertiesData_synchronState ENUM('','INITIATED','IN_TREATMENT','ERROR','TERMINATED') NOT NULL DEFAULT '' ,
+propertiesJobWeight INT UNSIGNED NOT NULL , 
+propertiesJobNcpus INT UNSIGNED NOT NULL ,
+propertiesJobNnodes INT UNSIGNED NOT NULL ,
 propertiesExecDirectory VARCHAR( 255 ) DEFAULT "~" ,
+propertiesData_synchronState ENUM('','INITIATED','IN_TREATMENT','ERROR','TERMINATED') NOT NULL DEFAULT '' ,
 INDEX propertiesMJobsId (propertiesMJobsId),
 PRIMARY KEY (propertiesClusterName,propertiesMJobsId)
 )TYPE = InnoDB;
