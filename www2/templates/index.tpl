@@ -9,28 +9,12 @@
         </li>
       </ul>
       <p>Pour utiliser la grille de calcul cigri, Il faut cr&eacute;er
-un compte sur le serveur cigri central (pawnee) et sur chaque cluster
+un compte sur le serveur cigri central et sur chaque cluster
 que vous voulez utiliser (sauf sur ceux sur lesquels vous en
 poss&eacute;dez d&eacute;j&agrave; un).<br>
 Pour cela, contactez les administrateurs syst&egrave;mes des clusters
 ainsi que le responsable grille.<br>
       <br>
-      <b>Responsable grille : </b>Nicolas Capit, Laboratoire, tel : 04
-76 61 20 31, <a href="mailto:nicolas.capit@imag.fr">nicolas.capit@imag.fr</a><br>
-      <br>
-Les clusters disponibles en mode grille sont :<br>
-      </p>
-      <ul>
-        <li><b>Bioimage : </b><a
- href="http://bioimage.ujf-grenoble.fr/">http://bioimage.ujf-grenoble.fr
-          </a> </li>
-        <li><b>Tomte : </b><a href="http://cecic.cermav.cnrs.fr/">http://cecic.cermav.cnrs.fr/</a><br>
-          <a href="mailto:%20sebastien.morin@ujf-grenoble.fr"></a></li>
-        <li><b>Icluster2 :</b> http://icluster2.imag.fr/</li>
-        <li><b>IDPOT :</b> http://idpot.imag.fr/</li>
-        <li><b>PhyNum :</b> http://phynum.ujf-grenoble.fr/<br>
-        </li>
-      </ul>
       <p> <a href="#top">Haut de page</a> </p>
       <ul>
         <li>
