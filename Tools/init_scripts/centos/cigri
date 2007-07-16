@@ -1,0 +1,48 @@
+#! /bin/bash
+#
+# cigri:	Starts the CIGRI daemons
+#
+# chkconfig: 345 90 10
+# description:  This service causes the programs used during startup \
+#		to be loaded into memory before they are needed,\
+#		thus improving startup performance 
+#
+#
+
+CIGRI_UNIX_USER="cigri"
+CIGRI_CONF_FILE="/etc/cigri.conf"
+
+id "$CIGRI_UNIX_USER" &>/dev/null || exit 0
+
+CIGRI_INSTALL_PATH=$(grep "INSTALL_PATH" $CIGRI_CONF_FILE  | sed -e 's/.*= *"\(.*\)"/\1/g')
+[ "$CIGRI_INSTALL_PATH" ] || exit 0
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+start() {
+	action $"Starting CIGRI: " "su '$CIGRI_UNIX_USER' -c '$CIGRI_INSTALL_PATH/start_cigri.sh'"
+}
+stop() {
+	action $"Stopping CIGRI: " "su '$CIGRI_UNIX_USER' -c '$CIGRI_INSTALL_PATH/stop_cigri.sh'"
+}
+status() {
+	echo -n $"CIGRI status: "
+	su "$CIGRI_UNIX_USER" -c "$CIGRI_INSTALL_PATH/status_cigri.sh"
+}
+# See how we were called.
+case "$1" in
+    start)
+	start
+	;;
+    stop)
+	stop
+	;;
+    status)
+	status
+        ;;
+    *)
+	echo "Usage: $0 {start|stop|status}"
+	;;
+esac
+exit $RETVAL
