@@ -149,7 +149,7 @@ sub oarnodes2($$){
            my $totalWeight=0;
            foreach my $resource (keys(%{$oarnodes->{$node}})) {
              if ("$oarnodes->{$node}->{$resource}->{network_address}" ne "") {
-               $totalWeight++ ;
+               $totalWeight++ if ($oarnodes->{$node}->{$resource}->{properties}->{besteffort} eq "YES");
                $maxWeight++ if ($oarnodes->{$node}->{$resource}->{state} eq "Alive"
                                  && $oarnodes->{$node}->{$resource}->{properties}->{besteffort} eq "YES");
                  foreach my $line (keys(%{$oarnodes->{$node}->{$resource}})) {

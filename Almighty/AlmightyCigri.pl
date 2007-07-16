@@ -127,6 +127,11 @@ sub spritz(){
 my $exitValue;
 LBL:while (1){
         $exitValue = nikita();
+	if ($exitValue != 0) { 
+	   print "WARNING! Nikita exited abnormaly!\n"; 
+	   sleep(5);
+	}
+	$exitValue = 0;
 #        sleep(5);
         next LBL if ($exitValue != 0);
         $exitValue = updator();

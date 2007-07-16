@@ -47,8 +47,8 @@ sub jobDel($$$){
     my %clusterProperties = iolibCigri::get_cluster_names_batch($base);
     my %result ;
     my $retCode = -1;
-    print "clusterProperties:" . $clusterProperties{$cluster} ."\n";
     if (defined($cluster) && defined($clusterProperties{$cluster})){
+        print "clusterProperties ($cluster):" . $clusterProperties{$cluster} ."\n";
 	$retCode = &{$qdelCmd{$clusterProperties{$cluster}}}($base,$cluster,$user,$jobBatchId);
     }
     iolibCigri::disconnect($base);
