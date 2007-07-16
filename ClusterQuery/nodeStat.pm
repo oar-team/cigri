@@ -134,26 +134,32 @@ sub oarnodes($$){
 sub oarnodes2($$){
     my $dbh = shift;
     my $cluster = shift;
-    print("$cluster --> OAR2\n");
+    my %clusterResourceUnit = iolibCigri::get_cluster_names_resource_unit($dbh);
+    my $resourceUnit=$clusterResourceUnit{$cluster};
+    print("$cluster --> OAR2, unit:$resourceUnit\n");
     my %nodeState;
     my $cmd="oarnodes -D";
-    my %cmdResult = SSHcmdClient::submitCmd($cluster,"oarnodes --backward");
+   # my %cmdResult = SSHcmdClient::submitCmd($cluster,"oarnodes --backward");
     my %cmdDump = SSHcmdClient::submitCmd($cluster,$cmd);
     my $oarnodesStr = $cmdDump{STDOUT};
     if ($cmdDump{STDERR} eq ""){
       my $oarnodes=eval($oarnodesStr);
       if (defined %{$oarnodes}) {
         foreach my $node (keys(%{$oarnodes})) {
-           my $jobs=0;
-           my $maxWeight=0;
-           my $totalWeight=0;
+           my %jobs;
+           my %maxWeight;
+           my %totalWeight;
            foreach my $resource (keys(%{$oarnodes->{$node}})) {
              if ("$oarnodes->{$node}->{$resource}->{network_address}" ne "") {
-               $totalWeight++ if ($oarnodes->{$node}->{$resource}->{properties}->{besteffort} eq "YES");
-               $maxWeight++ if ($oarnodes->{$node}->{$resource}->{state} eq "Alive"
+	       # Get the id of the "cpu" or "core"
+	       $resourceUnitId=$oarnodes->{$node}->{$resource}->{properties}->{$resourceUnit};
+	       # Count resources per cpu or core (yes, we can have several resources per core sometimes
+	       # on shared memory computers were we have several routers for example)
+               $totalWeight{$resourceUnitId}++ if ($oarnodes->{$node}->{$resource}->{properties}->{besteffort} eq "YES");
+               $maxWeight{$resourceUnitId}++ if ($oarnodes->{$node}->{$resource}->{state} eq "Alive"
                                  && $oarnodes->{$node}->{$resource}->{properties}->{besteffort} eq "YES");
                  foreach my $line (keys(%{$oarnodes->{$node}->{$resource}})) {
-                     if ($line eq "jobs") { $jobs++; }
+                     if ($line eq "jobs") { $jobs{$resourceUnitId}++; }
                  }
              }else{
                print("[UPDATOR_ERROR] There is an error in the oarnodes command ($cmd) parsing: network_address not found\n");
@@ -162,6 +168,15 @@ sub oarnodes2($$){
                return(-1);
              }
            }
+	   # We only want the real resources, so we count unique resourceUnit
+	   my $jobs=0;
+	   my $maxWeight=0;
+	   my $totalWeight=0;	    
+	   foreach my $resource (keys(%totalWeight)) { 
+	     $jobs++ if($jobs{$resource});
+	     $maxWeight++ if ($maxWeight{$resource});
+	     $totalWeight++ if ($totalWeight{$resource});
+	   }
            # database update
            iolibCigri::set_cluster_node_free_weight($dbh, $cluster, $node, $maxWeight-$jobs);
            iolibCigri::set_cluster_node_max_weight($dbh, $cluster, $node, $totalWeight);

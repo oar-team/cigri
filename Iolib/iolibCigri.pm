@@ -576,7 +576,12 @@ sub get_cluster_names_resource_unit($){
 
     while (my @ref = $sth->fetchrow_array()) {
         if (colomboCigri::is_cluster_active($dbh,$ref[0],0) == 0){
-            $resulHash{$ref[0]} = $ref[1];
+	    if ($ref[1]) {
+              $resulHash{$ref[0]} = $ref[1];
+	      }
+	    else {
+              $resulHash{$ref[0]} = "cpu";
+	    }
         }
     }
     $sth->finish();
