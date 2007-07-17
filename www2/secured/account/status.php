@@ -129,6 +129,11 @@ EOF;
 	    $smarty->assign('contenttemplate','status/current.tpl');
 	    break;
 
+	case 'history':
+	    $smarty->assign('login',$login);
+	    $smarty->assign('contenttemplate','status/history.tpl');
+	    break;
+
         default:
 	    // Unknown option -> error
 	    $smarty->assign('contenttemplate','error.tpl');

@@ -18,7 +18,7 @@
 
 		<tr><td colspan="2" class="menutitleclass">Grid Status</td></tr>
 		<tr><td></td><td><a href="account.php?submenu=status&option=current">Current status</a></td></tr>
-		<tr><td></td><td><a href="account.php?submenu=status&option=graph">Historical graph</a></td></tr>
+		<tr><td></td><td><a href="account.php?submenu=status&option=history">Historical graph</a></td></tr>
 	</table>
 </td></tr>
 </table>

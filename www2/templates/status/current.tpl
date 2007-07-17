@@ -1,6 +1,11 @@
 <table border="0" cellpadding="10" cellspacing="0">
 <tr><td>
-    <h3>Current grid status</h3>
+
+<div align=right>
+<a href=account.php?submenu=status&option=history>go to grid history >></a>
+</div>
+    <h3>Current grid status </h3>
+
     {if $Timestamp neq 0}
         <!-- display graph -->
 	<center>
