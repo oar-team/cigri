@@ -13,7 +13,15 @@ if (isset($_GET['end'])) $end = $_GET['end'];
 else {
   $end=time();
 }
-  
+if (isset($_GET['cluster'])) {
+  $cluster_query="and clusterName='".$_GET['cluster']."' ";
+  $title="Grid status history: ".$_GET['cluster']." details";;
+}
+else {
+  $cluster_query="";
+  $title="Grid status history";
+}
+
 # Connection
 $link = dbconnect();
 if (!isset($_GET['login'])) exit(1);
@@ -39,11 +47,11 @@ $graph->yaxis->scale->SetAutoMin(0);
 $graph->yaxis->SetTitle("Resources");
 $graph->xaxis->SetTitle("Time");
 $graph->xaxis->HideLastTickLabel();
-$graph->tabtitle->Set('Grid status history');
+$graph->tabtitle->Set($title);
 
 
 # Get the data to plot
-$query = "select timestamp,sum(maxResources),sum(maxResources -freeResources),sum(maxResources - freeResources - usedResources) from gridstatus where timestamp < $end and timestamp > $begin group by timestamp";
+$query = "select timestamp,sum(maxResources),sum(maxResources -freeResources),sum(maxResources - freeResources - usedResources) from gridstatus where timestamp < $end and timestamp > $begin $cluster_query group by timestamp";
 $result = mysql_query($query,$link);
 $i=0; $j=0;
 $step=(mysql_result($result,mysql_num_rows($result)-1,0)-mysql_result($result,0,0))/600;
