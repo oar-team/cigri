@@ -130,6 +130,22 @@ EOF;
 	    break;
 
 	case 'history':
+	    if (isset($_GET['day'])) {
+	      $smarty->assign('begin',time()-86400);
+	      $smarty->assign('day',1);
+	    }
+	    if (isset($_GET['week'])) {
+	      $smarty->assign('begin',time()-604800);
+	      $smarty->assign('week',1);
+	    }
+	    if (isset($_GET['month'])) {
+	      $smarty->assign('begin',time()-2678400);
+	      $smarty->assign('month',1);
+	    }
+	    if (isset($_GET['year'])) {
+	      $smarty->assign('begin',time()-31622400);
+	      $smarty->assign('year',1);
+	    }
 	    $smarty->assign('login',$login);
 	    $smarty->assign('contenttemplate','status/history.tpl');
 	    break;

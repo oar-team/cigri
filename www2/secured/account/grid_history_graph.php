@@ -7,7 +7,7 @@ require_once("../../jpgraph/src/jpgraph_line.php");
 # Get the begin and end timestamps
 if (isset($_GET['begin'])) $begin = $_GET['begin'];
 else {
-  $begin=time()-43200;
+  $begin=time()-86400;
 }
 if (isset($_GET['end'])) $end = $_GET['end'];
 else {
