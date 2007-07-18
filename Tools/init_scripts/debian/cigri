@@ -1,0 +1,64 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:          cigri
+# Required-Start:    $networking $apache2 $sendmail
+# Required-Stop:     $networking
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 6
+# Short-Description: CiGri (Ciment Grid) server
+### END INIT INFO
+
+# Kill me on all errors
+set -e
+
+# Cigri environment
+CIGRI_UNIX_USER="cigri"
+CIGRI_CONF_FILE="/etc/cigri.conf"
+[ -e /etc/cigri.conf ] || exit 0
+id "$CIGRI_UNIX_USER" &>/dev/null || exit 0
+CIGRI_INSTALL_PATH=$(grep "INSTALL_PATH" $CIGRI_CONF_FILE  | sed -e 's/.*= *"\(.*\)"/\1/g')
+[ "$CIGRI_INSTALL_PATH" ] || exit 0
+
+
+# Start the CiGri daemons
+start() {
+	echo -n "Starting CiGri:"
+	cd "$CIGRI_INSTALL_PATH"
+	su "$CIGRI_UNIX_USER" -c "nohup ./Almighty/AlmightyCigri.pl > cigri.log 2>/dev/null" &
+        if [ "$?" -eq 0 ] ; then
+	  cd Collector
+	  su "$CIGRI_UNIX_USER" -c "nohup ./automatic_collect.sh > cigri_collector.log 2>/dev/null" &
+          exit 0
+        else
+          exit 1
+        fi
+}
+
+# Stop the CiGri daemons
+stop() {
+	echo -n "Stopping CiGri:"
+        killall AlmightyCigri.pl 2>/dev/null
+	killall automatic_collect.sh 2>/dev/null
+        sleep 2
+        killall -0 AlmightyCigri.pl 2>/dev/null
+        if [ "$?" -ne 0 ] ; then
+          exit 0
+        else
+          exit 1
+        fi
+}
+
+case "$1" in
+  start)
+  	start ;;
+  stop)
+  	stop ;;
+  restart|force-reload)
+  	stop
+	start
+	;;
+  *)
+  	echo "Usage: $0 {start|stoprestart|force-reload}"
+	exit 1
+	;;
+esac
