@@ -2,8 +2,12 @@
 <tr><td align="center">
 	{if $nbitems neq 0}
 		<h5>MultiJob #{$jobid} Properties - {$MJstate} MultiJob</h5>
-		<p><b>FORECAST</b>: Avg:<b>{$ForecastAvg}</b> / Stddev:<b>{$ForecastStddev}</b> / Troughput:<b>{$ForecastThroughput} j/h</b> / End:<b> {$ForecastDuration} ({$ForecastEnd})</b><p>
-		<table border="0">
+		<p><b>FORECAST</b>: Avg:<b>{$ForecastAvg}</b> / Stddev:<b>{$ForecastStddev}</b> / Troughput:<b>{$ForecastThroughput} j/h</b> / End:<b> {$ForecastDuration} ({$ForecastEnd})</b>
+        <br>
+        <b>STATUS</b>: Term: <b>{$n_term}</b> / Run: <b>{$n_run}</b> / Wait: <b>{$n_wait}</b> / resubmissions: <b>{$resubmissions}</b>%
+        <p>
+
+                <table border="0">
 		<tr>
 			{if $MJstate eq 'Running' and $nbrunning > 0}<td><a href="account.php?submenu=jobs&option=runningparams&id={$jobid}">Running Jobs</a>{else}<td style="font-style: italic;">Running Jobs{/if}</td>
 			<td>&nbsp;-&nbsp;</td>

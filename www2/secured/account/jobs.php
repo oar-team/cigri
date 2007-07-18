@@ -740,6 +740,7 @@ EOF;
 function get_forecast($link,$jobid) {
 	global $smarty;
 
+  # Forecast
         $query = <<<EOF
 SELECT
         *
@@ -775,6 +776,37 @@ EOF;
 	   $smarty->assign("ForecastEnd","--");
 	   $smarty->assign("ForecastDuration","--");
 	}
+
+   # Numbers
+                    # Calculate the resubmission number
+                    $mjobid=$jobid;
+                    $query="SELECT count(*) FROM events,resubmissionLog
+                            WHERE eventMjobsId='$mjobid'
+                            AND resubmissionLogEventId=eventId";
+                    list($r,$n)=sqlquery($query,$link);
+                    if ($n) { $resubmited=$r[0][0];}
+                    else {$resubmited=0;}
+                    # Count the waiting jobs
+                    $query="SELECT count(*) FROM parameters
+                            WHERE parametersMjobsId='$mjobid'
+                            ";
+                    list($r,$n)=sqlquery($query,$link);
+                    if ($n) { $smarty->assign("n_wait",htmlentities($r[0][0]));}
+                    # Count the running jobs
+                    $query="SELECT count(*) FROM jobs
+                            WHERE jobMjobsId='$mjobid'
+                            AND jobState='Running' OR jobState = 'toLaunch' OR jobState = 'RemoteWaiting'";
+                    list($r,$n)=sqlquery($query,$link);
+                    if ($n) { $smarty->assign("n_run",htmlentities($r[0][0]));}
+                    # Count the terminated jobs
+                    $query="SELECT count(*) FROM jobs
+                            WHERE jobMjobsId='$mjobid'
+                            AND jobState='Terminated'";
+                    list($r,$n)=sqlquery($query,$link);
+                    if ($n) { $smarty->assign("n_term",htmlentities($r[0][0]));}
+                    # Calculate the resubmission percentage
+                    $smarty->assign("resubmissions",htmlentities(floor($resubmited*100/($r[0][0]+$resubmited))));
+
 }
 
 	mysql_close($link);
