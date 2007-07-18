@@ -103,7 +103,7 @@ $graph->Add($barplot);
 $barplot = new BarPlot($blacklisted,$x);
 $barplot->SetFillColor('darkgray');
 $barplot->SetColor('darkgray');
-$barplot->SetLegend('Blacklisted');
+$barplot->SetLegend('Blacklisted (cluster unavailable)');
 $barplot->SetWidth(2);
 $graph->Add($barplot);
 
