@@ -30,7 +30,6 @@ load "/etc/cigri_rb.conf"
 
 # Verbosity (for debuging purpose)
 $verbose = false
-$verbose = true
 
 #######################################################################################
 

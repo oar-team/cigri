@@ -44,8 +44,9 @@ my %submitCmd = ('PBS' => \&pbssubmit,
 #arg5 --> walltime of the job
 #arg6 --> weight of the job
 #arg7 --> execution directory
+#arg8 --> jobId
 #return jobBatchId or -1 or -2 if something wrong happens
-sub jobSubmit($$$$$$$){
+sub jobSubmit($$$$$$$$){
     my $cluster = shift;
     my $blackNodes = shift;
     my $user = shift;
@@ -53,6 +54,7 @@ sub jobSubmit($$$$$$$){
     my $walltime = shift;
     my $weight = shift;
     my $execDir = shift;
+    my $jobId = shift;
 
     my $base = iolibCigri::connect();
     my %clusterProperties = iolibCigri::get_cluster_names_batch($base);
@@ -60,7 +62,7 @@ sub jobSubmit($$$$$$$){
     my %result ;
     my $retCode = -1;
     if (defined($cluster) && defined($clusterProperties{$cluster})){
-        $retCode = &{$submitCmd{$clusterProperties{$cluster}}}($base,$cluster,$blackNodes,$user,$jobFile,$walltime,$weight,$execDir,$clusterResourceUnit{$cluster});
+        $retCode = &{$submitCmd{$clusterProperties{$cluster}}}($base,$cluster,$blackNodes,$user,$jobFile,$walltime,$weight,$execDir,$clusterResourceUnit{$cluster},$jobId);
     }
     iolibCigri::disconnect($base);
     return($retCode);
@@ -90,7 +92,8 @@ sub endJobSubmissions($){
 #arg7 --> weight
 #arg8 --> execDir
 #arg9 --> resrouce unit (cpu or core, or...)
-sub pbssubmit($$$$$$$$$){
+#arg10 -> jobId
+sub pbssubmit($$$$$$$$$$){
     my $dbh = shift;
     my $cluster = shift;
     my $blackNodes = shift;
@@ -100,6 +103,7 @@ sub pbssubmit($$$$$$$$$){
     my $weight = shift;
     my $execDir = shift;
     my $resourceUnit = shift;
+    my $jobId = shift;
 
     print("PBS NOT IMPLEMENTED -- $cluster\n");
     return(-1);
@@ -114,10 +118,11 @@ sub pbssubmit($$$$$$$$$){
 #arg7 --> weight
 #arg8 --> execDir
 #arg9 --> resrouce unit (cpu or core, or...)
+#arg10 -> jobId
 #return jodBatchId or
 #   -1 : for a command execution error
 #   -2 : for a jobId parse error
-sub oarsubmit($$$$$$$$$){
+sub oarsubmit($$$$$$$$$$){
     my $dbh = shift;
     my $cluster = shift;
     my $blackNodes = shift;
@@ -127,6 +132,7 @@ sub oarsubmit($$$$$$$$$){
     my $weight = shift;
     my $execDir = shift;
     my $resourceUnit = shift;
+    my $jobId = shift;
 
     print("$cluster --> OAR\n");
     #my $weight = iolibCigri::get_cluster_default_weight($dbh,$cluster);
@@ -171,10 +177,11 @@ sub oarsubmit($$$$$$$$$){
 #arg7 --> weight
 #arg8 --> execDir
 #arg9 --> resrouce unit (cpu or core, or...)
+#arg10 -> jobId
 #return jodBatchId or
 #   -1 : for a command execution error
 #   -2 : for a jobId parse error
-sub oarsubmit2($$$$$$$$){
+sub oarsubmit2($$$$$$$$$){
     my $dbh = shift;
     my $cluster = shift;
     my $blackNodes = shift;
@@ -185,6 +192,7 @@ sub oarsubmit2($$$$$$$$){
     my $execDir = shift;
     my $resourceUnit = shift;
     if ($resourceUnit eq '') {$resourceUnit="cpu";}
+    my $jobId = shift;
 
     print("$cluster --> OAR2\n");
     #my $weight = iolibCigri::get_cluster_default_weight($dbh,$cluster);
@@ -206,7 +214,9 @@ sub oarsubmit2($$$$$$$$){
     if ($cmdResult{STDERR} ne ""){
         # test if this is a ssh error
         if (NetCommon::checkSshError($dbh,$cluster,$cmdResult{STDERR}) != 1){
-            colomboCigri::add_new_cluster_event($dbh,$cluster,0,"OAR_OARSUB","$cmdResult{STDERR}");
+            #colomboCigri::add_new_cluster_event($dbh,$cluster,iolibCigri::get_MjobsId($dbh,$jobId),"OAR_OARSUB","$cmdResult{STDERR}");
+            iolibCigri::set_job_state($dbh, $jobId, "Event");
+            colomboCigri::add_new_job_event($dbh,$jobId,"OAR_OARSUB","$cmdResult{STDERR}");
         }
         return(-1);
     }

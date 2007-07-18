@@ -1618,4 +1618,21 @@ sub update_mjob_forecast($$$$$$){
     }
 }    
 
+# get the MjobsId of a jobId
+# arg1 --> database ref
+# arg2 --> jobId
+
+sub get_MjobsId($$) {
+    my $dbh = shift;
+    my $jobId = shift;
+    my $sth = $dbh->prepare("SELECT jobMJobsId
+                             FROM jobs
+                             WHERE jobId = $jobId");
+    $sth->execute();
+    my @res  = $sth->fetchrow_array();
+    $sth->finish();
+    if (defined($res[0])) { return $res[0]; }
+    else { return 0; }
+}
+
 return 1;

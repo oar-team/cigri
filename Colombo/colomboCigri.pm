@@ -390,7 +390,6 @@ sub check_events($){
                                     OR eventType = \"COLLECTOR\"
                                     OR eventType = \"MYSQL_OAR_CONNECT\"
                                     OR eventType = \"QDEL_CMD\"
-                                    OR eventType = \"OAR_OARSUB\"
                                     OR eventType = \"OAR_NOTIFY\"
                                     OR eventType = \"RUNNER_SUBMIT\"
                                     OR eventType = \"RUNNER_JOBID_PARSE\"
@@ -421,7 +420,7 @@ sub check_events($){
     $sth = $dbh->prepare("    SELECT eventId, eventClusterName, eventMJobsId, eventMessage
                             FROM events
                             WHERE eventState = \"ToFIX\"
-                                AND (eventType = \"UPDATOR_RET_CODE_ERROR\"
+                                AND (eventType = \"UPDATOR_RET_CODE_ERROR\" or eventType = \"OAR_OARSUB\"
                                     )
                             ");
     $sth->execute();

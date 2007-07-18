@@ -41,7 +41,7 @@ WHERE
 	mj.MJobsUser = '$login'
 	AND j.jobMJobsId = mj.MJobsId
 	AND e.eventJobId = j.jobId
-	AND e.eventType = 'UPDATOR_RET_CODE_ERROR'
+	AND (e.eventType = 'UPDATOR_RET_CODE_ERROR' or e.eventType = 'OAR_OARSUB')
 ORDER BY
 	e.eventDate DESC
 LIMIT 0,20
@@ -85,7 +85,7 @@ WHERE
 	AND j.jobMJobsId = mj.MJobsId
 	AND e.eventJobId = j.jobId
 	AND e.eventState = 'FIXED'
-	AND e.eventType = 'UPDATOR_RET_CODE_ERROR'
+	AND (e.eventType = 'UPDATOR_RET_CODE_ERROR' or e.eventType = 'OAR_OARSUB')
 EOF;
 
 		list($res,$nb) = sqlquery($query,$link);
@@ -105,7 +105,7 @@ WHERE
 	AND j.jobMJobsId = mj.MJobsId
 	AND e.eventJobId = j.jobId
 	AND e.eventState = 'FIXED'
-	AND e.eventType = 'UPDATOR_RET_CODE_ERROR'
+	AND (e.eventType = 'UPDATOR_RET_CODE_ERROR' or e.eventType = 'OAR_OARSUB')
 EOF;
 		$query .= $orderby;
 		$query .= <<<EOF
@@ -196,7 +196,7 @@ WHERE
 	mj.MJobsUser = '$login'
 	AND j.jobMJobsId = mj.MJobsId
 	AND e.eventState = 'ToFIX'
-	AND e.eventType = 'UPDATOR_RET_CODE_ERROR'
+	AND (e.eventType = 'UPDATOR_RET_CODE_ERROR' or e.eventType = 'OAR_OARSUB')
 	AND e.eventJobId = j.jobId
 EOF;
 		list($res,$nb) = sqlquery($query,$link);
@@ -214,7 +214,7 @@ WHERE
 	mj.MJobsUser = '$login'
 	AND j.jobMJobsId = mj.MJobsId
 	AND e.eventState = 'ToFIX'
-	AND e.eventType = 'UPDATOR_RET_CODE_ERROR'
+	AND (e.eventType = 'UPDATOR_RET_CODE_ERROR' or e.eventType = 'OAR_OARSUB')
 	AND e.eventJobId = j.jobId
 EOF;
 		$query .= $orderby;
@@ -332,7 +332,7 @@ WHERE
 	AND mj.MJobsUser = '$login'
 	AND j.jobMJobsId = mj.MJobsId
 	AND e.eventState = 'ToFIX'
-	AND e.eventType = 'UPDATOR_RET_CODE_ERROR'
+	AND (e.eventType = 'UPDATOR_RET_CODE_ERROR' or e.eventType = 'OAR_OARSUB')
 	AND e.eventJobId = j.jobId
 EOF;
 					list($res,$nb) = sqlquery($query,$link);
@@ -402,7 +402,7 @@ WHERE
 	AND mj.MJobsUser = '$login'
 	AND j.jobMJobsId = mj.MJobsId
 	AND e.eventState = 'ToFIX'
-	AND e.eventType = 'UPDATOR_RET_CODE_ERROR'
+	AND (e.eventType = 'UPDATOR_RET_CODE_ERROR' or e.eventType = 'OAR_OARSUB')
 	AND e.eventJobId = j.jobId
 EOF;
 
