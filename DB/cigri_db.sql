@@ -267,6 +267,7 @@ CREATE TABLE `gridstatus` (
 `maxResources` INT NOT NULL ,
 `freeResources` INT NOT NULL ,
 `usedResources` INT NOT NULL ,
+`blacklisted` BOOLEAN DEFAULT 0 ,
 PRIMARY KEY ( `timestamp`,`clusterName` )
 );
 

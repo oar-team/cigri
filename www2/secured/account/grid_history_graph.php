@@ -43,7 +43,7 @@ $graph->xaxis->SetLabelFormatCallback('xLabelFormat');
 $graph->SetTickDensity(TICKD_DENSE,TICKD_VERYSPARSE);
 $graph->xaxis->HideTicks(true,false); 
 $graph->legend->Pos(0.1,0.01);
-$graph->SetMargin(45,45,55,55);
+$graph->SetMargin(45,45,75,55);
 $graph->yaxis->scale->SetAutoMin(0);
 $graph->yaxis->SetTitle("Resources");
 $graph->xaxis->SetTitle("Time");
@@ -51,7 +51,7 @@ $graph->xaxis->HideLastTickLabel();
 
 
 # Get the data to plot
-$query = "select timestamp,sum(maxResources),sum(maxResources -freeResources),sum(maxResources - freeResources - usedResources) from gridstatus where timestamp < $end and timestamp > $begin $cluster_query group by timestamp order by timestamp";
+$query = "select timestamp,sum(maxResources),sum(maxResources -freeResources),sum(maxResources - freeResources - usedResources),sum(blacklisted*maxResources) from gridstatus where timestamp < $end and timestamp > $begin $cluster_query group by timestamp order by timestamp";
 $result = mysql_query($query,$link);
 $i=0; $j=0;
 $step=(mysql_result($result,mysql_num_rows($result)-1,0)-mysql_result($result,0,0))/600;
@@ -62,6 +62,7 @@ while ($row = mysql_fetch_row($result)) {
       $max[$i]=$row[1];
       $cigriused[$i]=$row[2];
       $localyused[$i]=$row[3];
+      $blacklisted[$i]=$row[4];
       $i++;
       $j=0;
     }
@@ -75,25 +76,44 @@ $graph->tabtitle->Set($title);
 
 # Bargraph of total resources
 mysql_free_result($result);
-$barplot = new LinePlot($max,$x);
+$barplot = new BarPlot($max,$x);
 $barplot->SetFillColor('khaki1');
 $barplot->SetColor('khaki1');
 $barplot->SetLegend('Total resources');
+$barplot->SetWidth(2);
 $graph->Add($barplot);
 
 # Bargraph of resources used by cigri
-$barplot = new LinePlot($cigriused,$x);
+$barplot = new BarPlot($cigriused,$x);
 $barplot->SetFillColor('brown');
 $barplot->SetColor('brown');
 $barplot->SetLegend('Used by CiGri (cumul)');
+$barplot->SetWidth(2);
 $graph->Add($barplot);
 
 # Bargraph of resources localy used
-$barplot = new LinePlot($localyused,$x);
+$barplot = new BarPlot($localyused,$x);
 $barplot->SetFillColor('chocolate3');
 $barplot->SetColor('chocolate3');
 $barplot->SetLegend('Localy used or unavailable');
+$barplot->SetWidth(2);
 $graph->Add($barplot);
+
+# Bargraph of blacklisted resources
+$barplot = new BarPlot($blacklisted,$x);
+$barplot->SetFillColor('darkgray');
+$barplot->SetColor('darkgray');
+$barplot->SetLegend('Blacklisted');
+$barplot->SetWidth(2);
+$graph->Add($barplot);
+
+# null bargraph for the white legend
+$null[0]=0;
+$barplot = new BarPlot($null);
+$barplot->SetFillColor('white');
+$barplot->SetColor('white');
+$barplot->SetLegend('No status data');
+#$graph->Add($barplot);
 
 # Graph creation
 $graph->SetImgFormat('jpeg',90);

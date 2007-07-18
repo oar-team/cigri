@@ -165,14 +165,17 @@ clusters.each do |cluster|
   if cluster.status
     puts "    BLACKLISTED! (#{cluster.status_reason})" if $verbose
     n_blacklisted+=1
+    blacklisted=1
+  else
+    blacklisted=0
   end
   puts "    Max #{cluster.unit}s:  #{max}" if $verbose
   puts "    Free #{cluster.unit}s: #{free}" if $verbose
   puts "    Used by cigri : #{used}" if $verbose
   puts "    To launch : #{tolaunch}" if $verbose
-  query = "INSERT INTO gridstatus (timestamp,clusterName,maxResources,freeResources,usedResources)
+  query = "INSERT INTO gridstatus (timestamp,clusterName,maxResources,freeResources,usedResources,blacklisted)
                                   VALUES
-				  ('#{timestamp}','#{cluster.name}','#{max}','#{free-tolaunch}','#{used+tolaunch}')"
+				  ('#{timestamp}','#{cluster.name}','#{max}','#{free-tolaunch}','#{used+tolaunch}','#{blacklisted}')"
   dbh.do(query)  
 end
 if $verbose
