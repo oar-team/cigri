@@ -22,6 +22,7 @@ else {
   $title="Grid status history";
 }
 
+
 # Connection
 $link = dbconnect();
 if (!isset($_GET['login'])) exit(1);
@@ -47,11 +48,10 @@ $graph->yaxis->scale->SetAutoMin(0);
 $graph->yaxis->SetTitle("Resources");
 $graph->xaxis->SetTitle("Time");
 $graph->xaxis->HideLastTickLabel();
-$graph->tabtitle->Set($title);
 
 
 # Get the data to plot
-$query = "select timestamp,sum(maxResources),sum(maxResources -freeResources),sum(maxResources - freeResources - usedResources) from gridstatus where timestamp < $end and timestamp > $begin $cluster_query group by timestamp";
+$query = "select timestamp,sum(maxResources),sum(maxResources -freeResources),sum(maxResources - freeResources - usedResources) from gridstatus where timestamp < $end and timestamp > $begin $cluster_query group by timestamp order by timestamp";
 $result = mysql_query($query,$link);
 $i=0; $j=0;
 $step=(mysql_result($result,mysql_num_rows($result)-1,0)-mysql_result($result,0,0))/600;
@@ -68,6 +68,10 @@ while ($row = mysql_fetch_row($result)) {
     if ($prev_timestamp) $j=$j+$row[0]-$prev_timestamp;
     $prev_timestamp=$row[0];
 }
+
+# Set the title (containing timestamps)
+$title .= "\nfrom ".date("Y/m/d H:i",mysql_result($result,0,0)). " to ".date("Y/m/d H:i",mysql_result($result,mysql_num_rows($result)-1,0));
+$graph->tabtitle->Set($title);
 
 # Bargraph of total resources
 mysql_free_result($result);

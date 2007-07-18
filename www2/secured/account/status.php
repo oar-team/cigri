@@ -130,19 +130,27 @@ EOF;
 	    break;
 
 	case 'history':
-	    if (isset($_GET['day'])) {
+	    $query ="select clusterName from clusters";
+	    list($res,$nb) = sqlquery($query,$link);
+	    $smarty->assign('clusters',$res);
+	    $smarty->assign('n_clusters',$res);
+	    if ($_GET['cluster'] != '') {
+	      $smarty->assign('cluster',$_GET['cluster']);
+	    }
+
+	    if ($_GET['day'] == '1') {
 	      $smarty->assign('begin',time()-86400);
 	      $smarty->assign('day',1);
 	    }
-	    elseif (isset($_GET['week'])) {
+	    elseif ($_GET['week'] == '1') {
 	      $smarty->assign('begin',time()-604800);
 	      $smarty->assign('week',1);
 	    }
-	    elseif (isset($_GET['month'])) {
+	    elseif ($_GET['month'] == '1') {
 	      $smarty->assign('begin',time()-2678400);
 	      $smarty->assign('month',1);
 	    }
-	    elseif (isset($_GET['year'])) {
+	    elseif ($_GET['year'] == '1') {
 	      $smarty->assign('begin',time()-31622400);
 	      $smarty->assign('year',1);
 	    }
