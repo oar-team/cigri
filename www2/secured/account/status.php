@@ -48,6 +48,12 @@ EOF;
 		$TotalLocal=0;
 		$TotalBlacklisted=0;
                 for($i = 0; $i < $nb;$i++) {
+		#	if (is_blacklisted($res[$i][1],$link) != 0) {
+			if ($res[$i][5] == "1") {
+			  $res[$i][6]="<b>YES</b>";
+			  $TotalBlacklisted+=1;
+			}
+                        else {$res[$i][6]="no";}
 		        $TotalLocal+=($res[$i][2] - $res[$i][3] - $res[$i][4]);
                         $res[$i][5] = htmlentities($res[$i][2] - $res[$i][3] - $res[$i][4]) ;
                         $res[$i][1] = htmlentities($res[$i][1]) ;
@@ -57,11 +63,6 @@ EOF;
                         $res[$i][3] = htmlentities($res[$i][3]) ;
 			$TotalUsed+=$res[$i][4];
                         $res[$i][4] = htmlentities($res[$i][4]) ;
-			if (is_blacklisted($res[$i][1],$link) != 0) {
-			  $res[$i][6]="<b>YES</b>";
-			  $TotalBlacklisted+=1;
-			}
-                        else {$res[$i][6]="no";}
                 }
 
                 $smarty->assign('nb',$nb);

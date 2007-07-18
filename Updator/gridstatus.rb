@@ -55,7 +55,7 @@ class Cluster
 	@dbh=dbh
         query = "SELECT eventType FROM events WHERE eventState='ToFIX' 
 	                                        AND eventClusterName='#{@name}'
-						AND eventMJobsId is null"
+						AND (eventMJobsId is null or eventMJobsId=0) "
 	@sql_status=@dbh.select_all(query)
     end
 
