@@ -805,7 +805,9 @@ EOF;
                     list($r,$n)=sqlquery($query,$link);
                     if ($n) { $smarty->assign("n_term",htmlentities($r[0][0]));}
                     # Calculate the resubmission percentage
-                    $smarty->assign("resubmissions",htmlentities(floor($resubmited*100/($r[0][0]+$resubmited))));
+		    if (($r[0][0]+$resubmited) > 0) { 
+                      $smarty->assign("resubmissions",htmlentities(floor($resubmited*100/($r[0][0]+$resubmited))));
+		    }
 
 }
 
