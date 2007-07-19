@@ -119,7 +119,11 @@ EOF;
 	            list($r,$n)=sqlquery($query,$link);
 		    if ($n) { $res[$i][8]=htmlentities($r[0][0]);}
 		    # Calculate the resubmission percentage
-		    $res[$i][6]=htmlentities(floor($resubmited*100/($r[0][0]+$resubmited)));
+		    if (($r[0][0]+$resubmited) != 0) {
+		      $res[$i][6]=htmlentities(floor($resubmited*100/($r[0][0]+$resubmited)));
+		    }
+		    else { $res[$i][6]=0; }
+
 	        }
 		$smarty->assign('jobarray',$res);
 	    }
