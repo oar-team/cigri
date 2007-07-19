@@ -55,6 +55,11 @@ foreach my $j (keys(%clusterNames)){
             print("[RUNNER] The job $jobId is in treatment...\n");
 
             # command to launch on the frontal of the cluster
+
+	    #print "JOB PARAM: ". $job{param} ."\n";
+	    #protect variables into parameters and cmd
+	    $job{param}=~s/\$/\\\$/g;
+	    $job{cmd}=~s/\$/\\\$/g;
             my @cmdSSH = (  "echo \\#\\!/bin/bash > $tmpRemoteFile;",
                             "echo \"echo \\\"BEGIN_DATE=\\\"\\`date +\%Y-\%m-\%d\\ \%H:\%M:\%S\\` >> $resultFile\" >> $tmpRemoteFile;",
                             "echo $job{cmd} $job{param} >> $tmpRemoteFile;",
