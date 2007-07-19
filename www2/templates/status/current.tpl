@@ -2,7 +2,7 @@
 <tr><td>
 
 <div align=right>
-<a href=account.php?submenu=status&option=history>go to grid history >></a>
+<a href=../secured/account.php?submenu=status&option=history>go to grid history >></a>
 </div>
     <h3>Current grid status </h3>
 
@@ -63,7 +63,7 @@
         </tr>
         {foreach from=$jobarray item=secondkey}
             <tr  class="evenrow">
-                                <td align="center"><a href="account.php?submenu=jobs&option=details&id={$secondkey[0]}">{$secondkey[0]}</a></td>
+                                <td align="center"><a href="../secured/account.php?submenu=jobs&option=details&id={$secondkey[0]}">{$secondkey[0]}</a></td>
                                 <td align="center">{$secondkey[1]}</td>
                                 <td align="center">{$secondkey[2]}</td>
                                 <td align="center">{$secondkey[3]} s</td>
