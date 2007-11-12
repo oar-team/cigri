@@ -65,6 +65,13 @@ class MultipleJob
         @status=sql_mjob[0]['MJobsState']
         @tsub=to_unix_time(sql_mjob[0]['MJobsTSub'])
 
+        # Get the blacklisted clusters for this job
+	query = "SELECT clusterBlackListClusterName \
+	         FROM clusterBlackList, events \
+		 WHERE clusterBlackListEventId = eventId \
+		   AND eventState = \"ToFIX\" AND clusterBlackListMJobsID = #{mjobid};"
+        bl_clusters=dbh.select_all(query)
+
         # SQL query to get the jobs
         query = "SELECT jobId,jobMJobsId,jobState,jobTSub,jobTStart,jobTStop,jobParam,jobClusterName,jobBatchid,jobNodeName \
 	         FROM jobs \
@@ -96,7 +103,13 @@ class MultipleJob
 
                 when 'Running'
                     # Get the number of running jobs
-                    @n_running+=1
+		    bl=1
+		    bl_clusters.each do |bl_cluster|
+		      if bl_cluster['clusterBlackListClusterName'] == sql_job['jobClusterName']
+		        bl=nil
+	              end
+		    end
+                    @n_running+=1 if bl
                 when 'toLaunch', 'RemoteWaiting'
                     # Get the number of jobs in a transitional status
                     @n_trans+=1

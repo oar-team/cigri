@@ -1032,6 +1032,9 @@ sub get_job_to_update_state($){
             };
             push(@{$resul{$ref[1]}},$tmp);
         }
+	else {
+	  print "Job $ref[2] from Mjob $ref[4] is in the blaklisted cluster $ref[1]\n";
+	}
     }
     $sth->finish();
 

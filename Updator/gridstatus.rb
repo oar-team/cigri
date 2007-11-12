@@ -98,12 +98,21 @@ class Cluster
 
     # Claculate the number of resources used by cigri on this cluster
     def used_resources
-       query = "SELECT cast(sum(propertiesJobWeight) as unsigned) as count 
-                       FROM jobs,properties 
-		       WHERE jobClusterName='#{@name}'
-                       AND jobState='Running'
-		       AND propertiesClusterName='#{@name}'
-		       AND propertiesMJobsId=jobMJobsId"
+       query = "SELECT cast(sum(propertiesJobWeight) as unsigned) as count
+                   FROM (
+		           SELECT propertiesJobWeight
+                           FROM properties,jobs 
+		              LEFT JOIN clusterBlackList 
+			      ON jobs.jobMJobsId = clusterBlackListMJobsID AND jobClusterName=clusterBlackListClusterName 
+			      LEFT JOIN events 
+			      ON eventId=clusterBlackListEventId
+		           WHERE jobClusterName='#{@name}' 
+		           AND jobState='Running'
+		           AND propertiesClusterName=jobClusterName 
+		           AND propertiesMJobsId=jobMJobsId 
+		           AND (eventState != \"ToFIX\" OR eventState is null) 
+		           GROUP BY jobId
+		       ) AS T;"
        sql_count=@dbh.select_all(query)
        return sql_count[0]['count'].to_i || 0
     end
