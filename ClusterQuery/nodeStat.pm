@@ -156,8 +156,23 @@ sub oarnodes2($$){
 	       # Count resources per cpu or core (yes, we can have several resources per core sometimes
 	       # on shared memory computers were we have several routers for example)
                $totalWeight{$resourceUnitId}++ if ($oarnodes->{$node}->{$resource}->{properties}->{besteffort} eq "YES");
-               $maxWeight{$resourceUnitId}++ if ($oarnodes->{$node}->{$resource}->{state} eq "Alive"
-                                 && $oarnodes->{$node}->{$resource}->{properties}->{besteffort} eq "YES");
+               $maxWeight{$resourceUnitId}++ if (
+	                                         (
+						  $oarnodes->{$node}->{$resource}->{state} eq "Alive"
+	                                             ||
+	                                          (
+						   $oarnodes->{$node}->{$resource}->{state} eq "Absent" 
+						     &&
+						   (
+						    defined($oarnodes->{$node}->{$resource}->{properties}->{cm_availability})
+						       &&
+						    $oarnodes->{$node}->{$resource}->{properties}->{cm_availability} > time()   
+						   )
+						  )
+						 )
+                                                   && 
+				                  $oarnodes->{$node}->{$resource}->{properties}->{besteffort} eq "YES"
+						);
                  foreach my $line (keys(%{$oarnodes->{$node}->{$resource}})) {
                      if ($line eq "jobs") { $jobs{$resourceUnitId}++; }
                  }
