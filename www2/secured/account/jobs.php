@@ -795,9 +795,15 @@ EOF;
                     # Count the running jobs
                     $query="SELECT count(*) FROM jobs
                             WHERE jobMjobsId='$mjobid'
-                            AND ( jobState='Running' OR jobState = 'toLaunch' OR jobState = 'RemoteWaiting' )";
+                            AND ( jobState='Running' OR jobState = 'toLaunch' )";
                     list($r,$n)=sqlquery($query,$link);
                     if ($n) { $smarty->assign("n_run",htmlentities($r[0][0]));}
+                    # Count the remote waiting
+                    $query="SELECT count(*) FROM jobs
+                            WHERE jobMjobsId='$mjobid'
+                            AND ( jobState = 'RemoteWaiting' )";
+                    list($r,$n)=sqlquery($query,$link);
+                    if ($n) { $smarty->assign("n_rwait",htmlentities($r[0][0]));}
                     # Count the terminated jobs
                     $query="SELECT count(*) FROM jobs
                             WHERE jobMjobsId='$mjobid'
