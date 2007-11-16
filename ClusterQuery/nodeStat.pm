@@ -166,7 +166,9 @@ sub oarnodes2($$){
 						   (
 						    defined($oarnodes->{$node}->{$resource}->{properties}->{cm_availability})
 						       &&
-						    $oarnodes->{$node}->{$resource}->{properties}->{cm_availability} > time()   
+						    $oarnodes->{$node}->{$resource}->{properties}->{cm_availability} > time() 
+						       &&
+						    $oarnodes->{$node}->{$resource}->{properties}->{cm_availability} != 2147483647
 						   )
 						  )
 						 )
