@@ -127,7 +127,14 @@ foreach my $i (keys(%jobRunningHash)){
                     iolibCigri::set_job_state($base, ${$j}{jobId}, "Running");
                 }
             }
+	    # Check for RemotWaiting timeouts
+	    if ((${$j}{jobState} eq "RemoteWaiting") && (time() - ${$j}{jobTSub} >= ConfLibCigri::get_conf("REMOTE_WAITING_TIMEOUT"))) {
+                colomboCigri::add_new_job_event($base,${$j}{jobId},"FRAG","RemoteWaiting too long frag");
+		colomboCigri::resubmit_job($base,${$j}{jobId});
+		print "[UPDATOR] Frag-resubmit job ${$j}{jobId} because of RemoteWaiting for tool long.\n";
+	    }
         }
+
     }
 }
 
