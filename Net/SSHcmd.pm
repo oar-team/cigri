@@ -110,10 +110,10 @@ sub initSSHConnection($){
         }
     }
     if ($closeConnection == 0){
-        print("[SSH] SSH connection to $server is established\n");
+        print("[SSH]         SSH connection to $server is established\n");
         return 0;
     }else{
-        print("[SSH] BAD SSH connection with $server\n");
+        print("[SSH]         BAD SSH connection with $server\n");
         delete($sshConnections{$server});
         close($i);
         close($j);

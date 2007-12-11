@@ -28,7 +28,7 @@ use NetCommon;
 
 my %cmdResult = SSHcmdClient::submitCmd($ARGV[0],"id");
 if ($cmdResult{STDERR} ne ""){
-  print("[AUTOFIX_SSH_STDERR] $cmdResult{STDERR}");
+  print("[AUTOFIX]     STDERR: $cmdResult{STDERR}");
   exit(1);
 }else{
   exit(0);

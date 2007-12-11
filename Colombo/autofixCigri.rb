@@ -34,6 +34,8 @@ load "/etc/cigri_rb.conf"
 #$verbose = false
 $verbose = true
 
+$tag="[AUTOFIX]     "
+
 #######################################################################################
 # Includes loading
 #######################################################################################
@@ -52,18 +54,18 @@ require 'cigriJobs'
 #########################################################################
 
 def check_ssh(cluster)
-  puts "[AUTOFIX] Checking SSH on cluster #{cluster}" if $verbose
+  puts "#{$tag}Checking SSH on cluster #{cluster}" if $verbose
   return system(File.dirname($0)+"/autofixCheckSSH.pl",cluster)
 end
 
 def fix_event(dbh,eventId)
-  puts "[AUTOFIX] Fixing event #{eventId}" if $verbose
+  puts "#{$tag}Fixing event #{eventId}" if $verbose
   query = "UPDATE events SET eventState='FIXED' where eventId=#{eventId}"
   dbh.do(query)
 end
 
 def update_lastcheked_event(dbh,eventId)
-  puts "[AUTOFIX] Updating last checked date for non-fixed event #{eventId}" if $verbose
+  puts "#{$tag}Updating last checked date for non-fixed event #{eventId}" if $verbose
   date = Time.now.to_i
   query = "UPDATE events SET eventAdminNote='LastCheck:#{date}' where eventId=#{eventId}"
   dbh.do(query)
@@ -107,11 +109,11 @@ if !sql_events.empty?
       end
     end
     if checked == 0 && $verbose
-      puts "[AUTOFIX] SSH events will be checked later (less than #{$autofix_delay} seconds)"
+      puts "#{$tag}SSH events will be checked later (less than #{$autofix_delay} seconds)"
     end
   end
 
 # No event
 else
-  puts "[AUTOFIX] No SSH event to check, good." if $verbose
+  puts "#{$tag}No SSH event to check, good." if $verbose
 end

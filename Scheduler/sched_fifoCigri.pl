@@ -38,7 +38,7 @@ if (is_conf("INSTALL_PATH")){
 
 my $base = iolibCigri::connect();
 
-print "[SCHEDULER] Begining of scheduler FIFO\n";
+print "[SCHEDULER]   Begining of scheduler FIFO\n";
 
 my %nbFreeNodes = iolibCigri::get_nb_freeNodes($base);
 my %nbRemainedJobs = iolibCigri::get_nb_remained_jobs($base);
@@ -92,7 +92,7 @@ foreach my $i (sort(keys(%nbRemainedJobs))){
                 #}
                 #my $nb_jobs_to_launch = $number + ($number * $flood_value / 100);
                 #print("[Scheduler] add toLaunch MJob : $i; cluster : $j; nb jobs : $nb_jobs_to_launch\n");
-                print("[Scheduler] add toLaunch MJob : $i; cluster : $j; nb jobs : $number\n");
+                print("[SCHEDULER]   add toLaunch MJob : $i; cluster : $j; nb jobs : $number\n");
                 #iolibCigri::add_job_to_launch($base,$i,$j,$nb_jobs_to_launch);
                 iolibCigri::add_job_to_launch($base,$i,$j,$number);
                 $nbRemainedJobs{$i} -= $number;
@@ -102,6 +102,6 @@ foreach my $i (sort(keys(%nbRemainedJobs))){
     }
 }
 
-print "[SCHEDULER] End of scheduler FIFO\n";
+print "[SCHEDULER]   End of scheduler FIFO\n";
 iolibCigri::disconnect($base);
 exit(0);

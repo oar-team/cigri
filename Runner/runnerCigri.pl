@@ -39,7 +39,7 @@ my %clusterNames = iolibCigri::get_cluster_names_batch($base);
 iolibCigri::disconnect($base);
 my %job;
 foreach my $j (keys(%clusterNames)){
-    print("[RUNNER] check for cluster $j\n");
+    print("[RUNNER]      check for cluster $j\n");
     my $pid=fork;
     if ($pid == 0){
         $base = iolibCigri::connect() ;
@@ -52,7 +52,7 @@ foreach my $j (keys(%clusterNames)){
             my $tmpRemoteFile = "~cigri/".iolibCigri::get_cigri_remote_script_name($jobId);
             my $resultFile = "$job{execDir}/".iolibCigri::get_cigri_remote_file_name($jobId);
 
-            print("[RUNNER] The job $jobId is in treatment...\n");
+            print("[RUNNER]      The job $jobId is in treatment...\n");
 
             # command to launch on the frontal of the cluster
 
@@ -92,7 +92,7 @@ foreach my $j (keys(%clusterNames)){
                 my $retCode = jobSubmit::jobSubmit($job{clusterName},\@blackNodes,$job{user},$remoteScript,$job{walltime},$job{weight},$job{execDir},$jobId);
                 if ($retCode < 0){
                     if ($retCode == -2){
-                        print("[RUNNER] There is a mistake, the job $jobId state = ERROR, bad remote batch id\n");
+                        print("[RUNNER]      There is a mistake, the job $jobId state = ERROR, bad remote batch id\n");
                         iolibCigri::set_job_state($base, $jobId, "Event");
                         colomboCigri::add_new_job_event($base,$jobId,"RUNNER_JOBID_PARSE","There is a mistake, the job $jobId state = ERROR, bad remote batch id");
                     }

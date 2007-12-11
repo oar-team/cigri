@@ -42,7 +42,7 @@ my $base = iolibCigri::connect();
 
 # Test the forecaster
 if (!-x $forecaster) {
-  print "\n[SPRITZ] ERROR: forecaster $forecaster not found or not executable!\n";
+  print "\n[SPRITZ]      ERROR: forecaster $forecaster not found or not executable!\n";
   exit 1;
 }
 
@@ -51,10 +51,10 @@ my @MjobsToForecast;
 @MjobsToForecast = iolibCigri::get_IN_TREATMENT_MJobs($base);
 
 foreach my $i (@MjobsToForecast){
-    print("[SPRITZ] I'm forecasting the MJob $i\n");
+    print("[SPRITZ]      I'm forecasting the MJob $i\n");
     my $cmd = "$forecaster $i";
     my $output = `$cmd`;
-    my ($hashref, $arrayref, $string) = YAML::Load($output) || die "[SPRITZ] Could not parse output of $forecaster";
+    my ($hashref, $arrayref, $string) = YAML::Load($output) || die "[SPRITZ]      Could not parse output of $forecaster";
     iolibCigri::begin_transaction($base);
     iolibCigri::update_mjob_forecast($base,$i,
                                      $hashref->{data}->{average},

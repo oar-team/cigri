@@ -31,6 +31,8 @@ init_conf();
 # number of seconds between two updates
 my $timeout = 5;
 
+my $tag = "[ALMIGHTY]   ";
+
 my $path;
 if (is_conf("INSTALL_PATH")){
     #$path = get_conf("INSTALL_PATH")."/bin/";
@@ -55,13 +57,13 @@ my $scheduler_path = $path."/Scheduler/";
 # arg1 --> command name
 sub launch_command($){
     my $command = shift;
-    print "Launching command : [$command]\n";
+    print "$tag [".localtime()."] Launching command : [$command]\n";
     system $command;
     my $exit_value  = $? >> 8;
     my $signal_num  = $? & 127;
     my $dumped_core = $? & 128;
     if ($exit_value > 0 || $signal_num > 0 || $dumped_core > 0) {
-      print "$command terminated :\n";
+      print "$tag $command terminated :\n";
       print "Exit value : $exit_value\n";
       print "Signal num : $signal_num\n";
       print "Core dumped : $dumped_core\n";
@@ -91,11 +93,11 @@ sub scheduler(){
             #iolibCigri::disconnect($base);
             return $exitValue;
         }else{
-            print("Bad scheduler file\n");
+            print("$tag Bad scheduler file\n");
             colomboCigri::add_new_scheduler_event($base,$$sched{schedulerId},"ALMIGHTY_FILE","Can t find the file $scheduler_path$$sched{schedulerFile}");
         }
     }else{
-        print("NO SCHEDULER TO LAUNCH :-(\n");
+        print("$tag NO SCHEDULER TO LAUNCH :-(\n");
     }
     #iolibCigri::disconnect($base);
 }
@@ -136,7 +138,7 @@ my $exitValue;
 LBL:while (1){
         $exitValue = nikita();
 	if ($exitValue != 0) { 
-	   print "WARNING! Nikita exited abnormaly!\n"; 
+	   print "$tag WARNING! Nikita exited abnormaly!\n"; 
 	   sleep(5);
 	}
 	$exitValue = 0;
@@ -157,6 +159,6 @@ LBL:while (1){
 #        sleep(5);
         next LBL if ($exitValue != 0);
 	$exitValue =  spritz();
-        print("\nI make a pause of $timeout seconds :-)\n");
+        print("\n$tag I make a pause of $timeout seconds :-)\n");
         sleep($timeout);
 }
