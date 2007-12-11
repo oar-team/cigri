@@ -1,0 +1,15 @@
+# A default configuration for spc to work by default on Debian.
+# I choose blue for terminals because most people would have a
+# white or black background on their terminals.
+
+#  HTML COLOR NAME   COL A N T STRING or REGULAR EXPRESSION
+#################### ### # # # ################################################################
+Cyan                 cya       (\[ALMIGHTY\].*)
+Green                grn       (\[SCHEDULER\].*)
+Green                grn       (\[UPDATOR\].*)
+Green                grn       (\[RUNNER\].*)
+Brown                yel       (\[SSH\].*)
+Magenta              mag       (\[AUTOFIX\].*)
+Magenta              mag       (\[COLOMBO\].*)
+Magenta              mag       (\[SPRITZ\].*)
+Red                  red b      (.*ERROR.*)
