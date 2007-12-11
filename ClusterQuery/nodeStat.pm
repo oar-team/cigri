@@ -118,8 +118,8 @@ sub oarnodes($$){
             }
         }
     }else{
-        print("[UPDATOR_ERROR] There is an error in the execution of the oarnodes command via SSH \n--> I disable all nodes of the cluster $cluster \n");
-        print("[UPDATOR_ERROR] $cmdResult{STDERR}\n");
+        print("[UPDATOR]     ERROR: There is an error in the execution of the oarnodes command via SSH \n--> I disable all nodes of the cluster $cluster \n");
+        print("[UPDATOR]     ERROR: $cmdResult{STDERR}\n");
         # test if this is a ssh error
         if (NetCommon::checkSshError($dbh,$cluster,$cmdResult{STDERR}) != 1){
             colomboCigri::add_new_cluster_event($dbh,$cluster,0,"UPDATOR_PBSNODES_CMD","There is an error in the execution of the oarnodes command via SSH-->I disable all nodes of the cluster $cluster;$cmdResult{STDERR}");
@@ -179,7 +179,7 @@ sub oarnodes2($$){
                      if ($line eq "jobs") { $jobs{$resourceUnitId}++; }
                  }
              }else{
-               print("[UPDATOR_ERROR] There is an error in the oarnodes command ($cmd) parsing: network_address not found\n");
+               print("[UPDATOR]     ERROR: There is an error in the oarnodes command ($cmd) parsing: network_address not found\n");
                colomboCigri::add_new_cluster_event($dbh,$cluster,0,"UPDATOR_PBSNODES_PARSE",
                            "There is an error in the oarnodes command ($cmd) parsing: network_address not found");
                return(-1);
@@ -200,15 +200,15 @@ sub oarnodes2($$){
            #print "$node: $maxWeight-$jobs\n";
         }
       }else{
-        print("[UPDATOR_ERROR] There is an error in the oarnodes command ($cmd) parsing\n");
+        print("[UPDATOR]     ERROR: There is an error in the oarnodes command ($cmd) parsing\n");
         colomboCigri::add_new_cluster_event($dbh,$cluster,0,"UPDATOR_PBSNODES_PARSE",
                            "There is an error in the oarnodes command ($cmd) parsing");
         return(-1);
       }
     }else{
-      print("[UPDATOR_ERROR] There is an error in the execution of the oarnodes command ($cmd) via SSH\n");
+      print("[UPDATOR]     ERROR: There is an error in the execution of the oarnodes command ($cmd) via SSH\n");
       print("  --> I disable all nodes of the cluster $cluster \n");
-      print("[UPDATOR_ERROR] $cmdDump{STDERR}\n");
+      print("[UPDATOR]     ERROR: $cmdDump{STDERR}\n");
       # Test if this is an SSH error
       if (NetCommon::checkSshError($dbh,$cluster,$cmdDump{STDERR}) != 1){
          colomboCigri::add_new_cluster_event($dbh,$cluster,0,"UPDATOR_PBSNODES_CMD",

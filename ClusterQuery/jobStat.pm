@@ -78,7 +78,7 @@ sub oarstat($$$){
     my %cmdResult = SSHcmdClient::submitCmd($cluster,"oarstat -f");
     #print(Dumper(%cmdResult));
     if ($cmdResult{STDERR} ne ""){
-        print("\t[UPDATOR_ERROR] $cmdResult{STDERR}\n");
+        print("\t[UPDATOR]     ERROR: $cmdResult{STDERR}\n");
         # test if this is a ssh error
         if (NetCommon::checkSshError($dbh,$cluster,$cmdResult{STDERR}) != 1){
             colomboCigri::add_new_cluster_event($dbh,$cluster,0,"UPDATOR_QSTAT_CMD","$cmdResult{STDERR}");
@@ -113,7 +113,7 @@ sub oarstat2($$$){
     my %cmdResult = SSHcmdClient::submitCmd($cluster,"oarstat -f");
     #print(Dumper(%cmdResult));
     if ($cmdResult{STDERR} ne ""){
-        print("\t[UPDATOR_ERROR] $cmdResult{STDERR}\n");
+        print("\t[UPDATOR]     ERROR: $cmdResult{STDERR}\n");
         # test if this is a ssh error
         if (NetCommon::checkSshError($dbh,$cluster,$cmdResult{STDERR}) != 1){
             colomboCigri::add_new_cluster_event($dbh,$cluster,0,"UPDATOR_QSTAT_CMD","$cmdResult{STDERR}");
