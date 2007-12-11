@@ -69,11 +69,11 @@ foreach my $i (keys(%jobRunningHash)){
             # Check the result file on the cluster
             my $remoteFile = "${$j}{execDir}/".iolibCigri::get_cigri_remote_file_name(${$j}{jobId});
             my $tmpRemoteScript = "${$j}{execDir}/".iolibCigri::get_cigri_remote_script_name(${$j}{jobId});
-            print("[Updator] Check the job ${$j}{jobId} \n");
+            print("[UPDATOR]     Check the job ${$j}{jobId} \n");
             my %cmdResult = SSHcmdClient::submitCmd($i,"sudo -H -u ${$j}{user} bash -c \"cat $remoteFile\"");
             if ($cmdResult{STDERR} ne ""){
-                print("\t[UPDATOR_ERROR] Can t check the remote file\n");
-                print("\t[UPDATOR_STDERR] $cmdResult{STDERR}");
+                print("\t[UPDATOR]     ERROR: Can t check the remote file\n");
+                print("\t[UPDATOR]     ERROR STDERR: $cmdResult{STDERR}");
                 # Can t read the file
                 # test if this is a ssh error
                 if (NetCommon::checkSshError($base,$i,$cmdResult{STDERR}) != 1){
