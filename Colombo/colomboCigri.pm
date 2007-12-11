@@ -357,7 +357,7 @@ sub check_events($){
     #JOB
         # FRAG, UPDATOR_RET_CODE_ERROR, UPDATOR_JOB_KILLED, RUNNER_SUBMIT, RUNNER_JOBID_PARSE
 
-    print("I check events\n");
+    print("[COLOMBO]     I check events\n");
 
     #lock tables
     my $dbh = shift;
