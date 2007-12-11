@@ -62,7 +62,13 @@ sub initSSHConnection($){
     my $ERRORStr = "";
     my $closeConnection = 0;
 
-    my $pid = open3( $i, $j, $k, "ssh -T $server");
+    if (!defined(ConfLibCigri::get_conf("SSH_CMD"))) {
+      $SSH_CMD="ssh -T -o \"NumberOfPasswordPrompts 0\" -o \"StrictHostKeyChecking no\"";
+    }else{
+      $SSH_CMD=ConfLibCigri::get_conf("SSH_CMD");
+    }
+
+    my $pid = open3( $i, $j, $k, "$SSH_CMD $server");
     my $currentTime = time();
     $sshConnections{$server} = [ $i, $j, $k, $pid, $currentTime];
     #init connection
