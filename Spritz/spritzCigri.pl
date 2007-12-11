@@ -51,7 +51,7 @@ my @MjobsToForecast;
 @MjobsToForecast = iolibCigri::get_IN_TREATMENT_MJobs($base);
 
 foreach my $i (@MjobsToForecast){
-    print("\n[SPRITZ] I'm forecasting the MJob $i\n");
+    print("[SPRITZ] I'm forecasting the MJob $i\n");
     my $cmd = "$forecaster $i";
     my $output = `$cmd`;
     my ($hashref, $arrayref, $string) = YAML::Load($output) || die "[SPRITZ] Could not parse output of $forecaster";
@@ -66,5 +66,4 @@ foreach my $i (@MjobsToForecast){
 }
 iolibCigri::disconnect($base);
 
-print("\n");
 exit 0;

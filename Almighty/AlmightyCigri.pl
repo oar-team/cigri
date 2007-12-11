@@ -157,6 +157,6 @@ LBL:while (1){
 #        sleep(5);
         next LBL if ($exitValue != 0);
 	$exitValue =  spritz();
-        print("I make a pause of $timeout seconds :-)\n");
+        print("\nI make a pause of $timeout seconds :-)\n");
         sleep($timeout);
 }
