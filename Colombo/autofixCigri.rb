@@ -109,7 +109,7 @@ if !sql_events.empty?
       end
     end
     if checked == 0 && $verbose
-      puts "#{$tag}SSH events will be checked later (less than #{$autofix_delay} seconds)"
+      puts "#{$tag}SSH event #{event['eventId']} will be checked later (less than #{$autofix_delay} seconds)"
     end
   end
 
