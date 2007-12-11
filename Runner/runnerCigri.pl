@@ -44,7 +44,7 @@ foreach my $j (keys(%clusterNames)){
     if ($pid == 0){
         $base = iolibCigri::connect() ;
         while (iolibCigri::get_cluster_job_toLaunch($base,$j,\%job) == 0){
-            print("[Runner] Launch the job $job{id} on the cluster $job{clusterName}\n");
+            print("[RUNNER]      Launch the job $job{id} on the cluster $job{clusterName}\n");
             #print(Dumper(%job));
 
             my $jobId = $job{id};
@@ -78,7 +78,7 @@ foreach my $j (keys(%clusterNames)){
             my $cmdString = join(" ", @cmdSSH);
             my %cmdResult = SSHcmd::submitCmd($job{clusterName},$cmdString);
             if ($cmdResult{STDERR} ne ""){
-                print("[RUNNER_STDERR] $cmdResult{STDERR}");
+                print("[RUNNER] ERROR: $cmdResult{STDERR}");
                 # test if this is a ssh error
                 if (NetCommon::checkSshError($base,$job{clusterName},$cmdResult{STDERR}) != 1){
                     iolibCigri::set_job_state($base,$jobId,"Event");
