@@ -45,6 +45,7 @@ my $updator_command = $path."/Updator/updatorCigri.pl";
 my $gridstatus_command = $path."/Updator/gridstatus.rb";
 my $nikita_command = $path."/Nikita/nikitaCigri.pl";
 my $spritz_command = $path."/Spritz/spritzCigri.pl";
+my $autofix_command = $path."/Colombo/autofixCigri.rb";
 
 my $scheduler_path = $path."/Scheduler/";
 
@@ -59,11 +60,12 @@ sub launch_command($){
     my $exit_value  = $? >> 8;
     my $signal_num  = $? & 127;
     my $dumped_core = $? & 128;
-    print "$command terminated :\n";
-    print "Exit value : $exit_value\n";
-    print "Signal num : $signal_num\n";
-    print "Core dumped : $dumped_core\n";
-    
+    if ($exit_value > 0 || $signal_num > 0 || $dumped_core > 0) {
+      print "$command terminated :\n";
+      print "Exit value : $exit_value\n";
+      print "Signal num : $signal_num\n";
+      print "Core dumped : $dumped_core\n";
+    }
     if ($signal_num || $dumped_core){
         mailer::sendMail("/!\\ Signal or core dumped","The command ($command) can not be executed correctly :\n\tExit value = $exit_value\n\tSignal num = $signal_num\n\tCore dumped = $dumped_core");
         die "Something wrong occured (signal or core dumped) !!!\n";
@@ -123,6 +125,12 @@ sub spritz(){
     return launch_command($spritz_command);
 }
 
+# launch autofix, the checker for fixable events
+sub autofix(){
+    return launch_command($autofix_command);
+}
+
+
 # core of the AlmightyCigri
 my $exitValue;
 LBL:while (1){
@@ -133,6 +141,8 @@ LBL:while (1){
 	}
 	$exitValue = 0;
 #        sleep(5);
+        next LBL if ($exitValue != 0);
+	$exitValue =  autofix();
         next LBL if ($exitValue != 0);
         $exitValue = updator();
 #        sleep(5);
