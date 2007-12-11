@@ -66,7 +66,7 @@ sub oarnodes($$){
     my $dbh = shift;
     my $cluster = shift;
 
-    print("$cluster --> OAR\n");
+    #print("$cluster --> OAR\n");
     my %nodeState;
 
     my %cmdResult = SSHcmdClient::submitCmd($cluster,"oarnodes -a");
@@ -136,7 +136,7 @@ sub oarnodes2($$){
     my $cluster = shift;
     my %clusterResourceUnit = iolibCigri::get_cluster_names_resource_unit($dbh);
     my $resourceUnit=$clusterResourceUnit{$cluster};
-    print("$cluster --> OAR2, unit:$resourceUnit\n");
+    #print("$cluster --> OAR2, unit:$resourceUnit\n");
     my %nodeState;
     my $cmd="oarnodes -D";
    # my %cmdResult = SSHcmdClient::submitCmd($cluster,"oarnodes --backward");

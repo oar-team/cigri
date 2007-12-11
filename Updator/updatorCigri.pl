@@ -54,7 +54,7 @@ foreach my $i (keys(%clusterNames)){
 
 # Update jobs which are in the Running state
 my %jobRunningHash = iolibCigri::get_job_to_update_state($base);
-print("[UPDATOR] Verify if Running jobs are still running:\n");
+print("[UPDATOR] Verify if Running jobs are still running\n");
 # Exec qstat cmd for all clusters which have a running job
 foreach my $i (keys(%jobRunningHash)){
     print("\tcluster = $i\n");

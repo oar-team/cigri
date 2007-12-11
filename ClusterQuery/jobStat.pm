@@ -73,7 +73,7 @@ sub oarstat($$$){
     my $cluster = shift;
     my $resRefHash = shift;
 
-    print("$cluster --> OAR\n");
+    #print("$cluster --> OAR\n");
     my %jobState;
     my %cmdResult = SSHcmdClient::submitCmd($cluster,"oarstat -f");
     #print(Dumper(%cmdResult));
@@ -108,7 +108,7 @@ sub oarstat2($$$){
     my $cluster = shift;
     my $resRefHash = shift;
 
-    print("$cluster --> OAR2\n");
+    #print("$cluster --> OAR2\n");
     my %jobState;
     my %cmdResult = SSHcmdClient::submitCmd($cluster,"oarstat -f");
     #print(Dumper(%cmdResult));
@@ -144,7 +144,7 @@ sub oarstatMysql($$$){
     my $resRefHash = shift;
     my $nodeRefHash = shift;
 
-    print("OAR_mysql -- $cluster\n");
+    #print("OAR_mysql -- $cluster\n");
     my $OARdb = OARiolib::connect($dbh,$cluster);
     if (!defined($OARdb)){
         return(-1);
