@@ -1,8 +1,8 @@
 <?php
 include("../dbfunctions.inc");
-require_once("../jpgraph-1.12.2/src/jpgraph.php");
-require_once("../jpgraph-1.12.2/src/jpgraph_bar.php");
-require_once("../jpgraph-1.12.2/src/jpgraph_pie.php");
+require_once("../jpgraph/src/jpgraph.php");
+require_once("../jpgraph/src/jpgraph_bar.php");
+require_once("../jpgraph/src/jpgraph_pie.php");
 define('MAX_BARS',40);
 
 function timestep($timestamp) {
