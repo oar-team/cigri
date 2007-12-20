@@ -20,7 +20,12 @@
 
 # You can store the configuration on a separate file or comment out the configuration
 # variables below
-load "/etc/cigri_rb.conf"
+if ENV['CIGRIDIR']
+then
+  load "#{ENV['CIGRIDIR']}/cigri_rb.conf"
+else
+  load "/etc/cigri_rb.conf"
+end
 
 # Database configuration
 #$cigri_db = 'cigri'
