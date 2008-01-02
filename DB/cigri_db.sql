@@ -137,6 +137,8 @@ propertiesJobNcpus INT UNSIGNED NOT NULL ,
 propertiesJobNnodes INT UNSIGNED NOT NULL ,
 propertiesExecDirectory VARCHAR( 255 ) DEFAULT "~" ,
 propertiesData_synchronState ENUM('','INITIATED','IN_TREATMENT','ERROR','TERMINATED') NOT NULL DEFAULT '' ,
+propertiesCheckpointType VARCHAR(32) ,
+propertiesCheckpointPeriod INT ,
 INDEX propertiesMJobsId (propertiesMJobsId),
 PRIMARY KEY (propertiesClusterName,propertiesMJobsId)
 )TYPE = InnoDB;

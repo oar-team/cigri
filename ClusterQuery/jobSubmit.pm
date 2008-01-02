@@ -209,7 +209,7 @@ sub oarsubmit2($$$$$$$$$){
     }
     #print("Property String = $propertyString\n");
     #my %cmdResult = SSHcmd::submitCmd($cluster,"cd ~$user; sudo -H -u $user oarsub -l nodes=1,weight=$weight,walltime=$walltime -p \"$propertyString\" -q besteffort $jobFile");
-    my %cmdResult = SSHcmd::submitCmd($cluster,"sudo -H -u $user bash -l -c \"cd $execDir; oarsub -d $execDir -l nodes=1/$resourceUnit=$weight,walltime=$walltime -p \\\"$propertyString\\\" -t besteffort $jobFile\"");
+    my %cmdResult = SSHcmd::submitCmd($cluster,"sudo -H -u $user bash -l -c \"cd $execDir; oarsub --signal=3 -d $execDir -l nodes=1/$resourceUnit=$weight,walltime=$walltime -p \\\"$propertyString\\\" -t besteffort $jobFile\"");
     #print(Dumper(%cmdResult));
     if ($cmdResult{STDERR} ne ""){
         # test if this is a ssh error

@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# This program launch the jobs on remote clusters
+# This program launches the jobs on the remote clusters
 
 use strict;
 use Data::Dumper;
@@ -60,7 +60,51 @@ foreach my $j (keys(%clusterNames)){
 	    #protect variables into parameters and cmd
 	    $job{param}=~s/\$/\\\$/g;
 	    $job{cmd}=~s/\$/\\\$/g;
-            my @cmdSSH = (  "echo \\#\\!/bin/bash > $tmpRemoteFile;",
+	    my @cmdSSH;
+            my $checkpoint_function;
+
+	    # BLCR checkpoint submission script
+	    if ($job{checkpointType}=="blcr") {
+	      print("[RUNNER]      This is a BLCR checkpoint type job\n");
+	      @cmdSSH = (  "echo \\#\\!/bin/bash > $tmpRemoteFile;",
+                            "echo \"echo \\\"BEGIN_DATE=\\\"\\`date +\%Y-\%m-\%d\\ \%H:\%M:\%S\\` >> $resultFile\" >> $tmpRemoteFile;",
+			    "echo \"function checkpoint() {\" >> $tmpRemoteFile;",
+                            "echo \"  echo \\\"CHECKPOINT_START=\\\"\\`date +\%Y-\%m-\%d\\ \%H:\%M:\%S\\` >> $resultFile\" >> $tmpRemoteFile;",
+			    "echo \"  cr_checkpoint -T -f ckpt.tmp.\\\$\\\$ \\\$PID\" >> $tmpRemoteFile;",
+			    "echo \"  if [ \\\$? = 0 ]\" >> $tmpRemoteFile;",
+			    "echo \"    then mv -f ckpt.tmp.\\\$\\\$ $job{name}.ckpt\" >> $tmpRemoteFile;",
+                            "echo \"      echo \\\"CHECKPOINT_END=\\\"\\`date +\%Y-\%m-\%d\\ \%H:\%M:\%S\\` >> $resultFile\" >> $tmpRemoteFile;",
+			    "echo \"    else rm -f ckpt.tmp.\\\$\\\$\" >> $tmpRemoteFile;",
+                            "echo \"      echo \\\"CHECKPOINT_ERROR=\\\"\\`date +\%Y-\%m-\%d\\ \%H:\%M:\%S\\` >> $resultFile\" >> $tmpRemoteFile;",
+			    "echo \"  fi\" >> $tmpRemoteFile;",
+			    "echo \"}\" >> $tmpRemoteFile;",
+			    "echo \"trap checkpoint SIGQUIT\" >> $tmpRemoteFile;",
+			    "echo \"if [ -f $job{name}.ckpt ]\" >> $tmpRemoteFile;", 
+			    "echo \"  then nohup cr_run cr_restart $job{name}.ckpt &\" >> $tmpRemoteFile;",
+                            "echo \"    echo \\\"CHECKPOINT_RESTART=\\\"\\`date +\%Y-\%m-\%d\\ \%H:\%M:\%S\\` >> $resultFile\" >> $tmpRemoteFile;",
+			    "echo \"  else nohup cr_run $job{cmd} $job{param} &\" >> $tmpRemoteFile;",
+                            "echo \"    echo \\\"INITIAL_START=\\\"\\`date +\%Y-\%m-\%d\\ \%H:\%M:\%S\\` >> $resultFile\" >> $tmpRemoteFile;",
+			    "echo \"fi\" >> $tmpRemoteFile;",
+			    "echo \"PID=\\\$!\" >> $tmpRemoteFile;",
+			    "echo \"while jobs %1 >/dev/null 2>&1\" >> $tmpRemoteFile;",
+			    "echo \"  do sleep 1\" >> $tmpRemoteFile;",
+			    "echo \"done\" >> $tmpRemoteFile;",
+			    "echo \"wait \\\$PID\" >> $tmpRemoteFile;",
+                            "echo CODE=\\\$? >> $tmpRemoteFile;",
+			    "echo \"rm -f $job{name}.ckpt\" >> $tmpRemoteFile;",
+                            "echo \"echo \\\"END_DATE=\\\"\\`date +\%Y-\%m-\%d\\ \%H:\%M:\%S\\` >> $resultFile\" >> $tmpRemoteFile;",
+                            "echo \"echo \\\"RET_CODE=\\\$CODE\\\" >> $resultFile\" >> $tmpRemoteFile;",
+                            "echo \"echo \\\"NODE=\\\"\\`cat \\\$OAR_FILE_NODES | head -1\\` >> $resultFile\" >> $tmpRemoteFile;",
+                            "echo \"echo \\\"FINISH=1\\\" >> $resultFile\" >> $tmpRemoteFile;",
+                            "chmod +x $tmpRemoteFile ;",
+                            "sudo -H -u $job{user} bash -c \"cp $tmpRemoteFile $job{execDir}/. \" ;",
+                            "rm $tmpRemoteFile ;"
+                        );
+
+            # No checkpoint submission script
+	    }else{
+	      print("[RUNNER]      No checkpointing requiered for this job.\n");
+              @cmdSSH = (  "echo \\#\\!/bin/bash > $tmpRemoteFile;",
                             "echo \"echo \\\"BEGIN_DATE=\\\"\\`date +\%Y-\%m-\%d\\ \%H:\%M:\%S\\` >> $resultFile\" >> $tmpRemoteFile;",
                             "echo $job{cmd} $job{param} >> $tmpRemoteFile;",
                             "echo CODE=\\\$? >> $tmpRemoteFile;",
@@ -73,9 +117,11 @@ foreach my $j (keys(%clusterNames)){
                             #"cd $job{execDir} ;",
                             "sudo -H -u $job{user} bash -c \"cp $tmpRemoteFile $job{execDir}/. \" ;",
                             "rm $tmpRemoteFile ;"
-                         );
+                           );
+            }
 
             my $cmdString = join(" ", @cmdSSH);
+	    #print "$cmdString\n";
             my %cmdResult = SSHcmd::submitCmd($job{clusterName},$cmdString);
             if ($cmdResult{STDERR} ne ""){
                 print("[RUNNER]      ERROR: $cmdResult{STDERR}");

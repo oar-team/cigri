@@ -177,7 +177,9 @@ sub add_mjobs($$) {
 	        my $Timeout = $JDLParserCigri::clusterConf{DEFAULT}{transfer_timeout};
 		$dbh->do("UPDATE data_synchron SET data_synchronTimeout = \"$Timeout\" WHERE data_synchronMJobsId = $id");
         }
-	
+
+
+
 	# Update the properties table
         my @clusters = keys(%JDLParserCigri::clusterConf);
         if ($#clusters > 0){
@@ -187,6 +189,8 @@ sub add_mjobs($$) {
                         my $jobWalltime = "1:00:00";
                         my $jobWeight = 1;
                         my $execDir = "~";
+			my $checkpoint_type="";
+			my $checkpoint_period=0;
                         if (defined($JDLParserCigri::clusterConf{$j}{walltime})){
                             $jobWalltime = $JDLParserCigri::clusterConf{$j}{walltime};
                         }
@@ -195,9 +199,20 @@ sub add_mjobs($$) {
                         }
                         if ((defined($JDLParserCigri::clusterConf{$j}{execDir})) && !($JDLParserCigri::clusterConf{$j}{execDir} =~ m/.*\~.*/m)){
                             $execDir = $JDLParserCigri::clusterConf{$j}{execDir};
-                        }
-                        $dbh->do("INSERT INTO properties (propertiesClusterName,propertiesMJobsId,propertiesJobCmd,propertiesJobWalltime,propertiesJobWeight,propertiesExecDirectory)
-                                  VALUES (\"$j\",$id,\"$JDLParserCigri::clusterConf{$j}{execFile}\",\"$jobWalltime\",$jobWeight,\"$execDir\")");
+			}
+                        if ((defined($JDLParserCigri::clusterConf{$j}{checkpoint_type})) && (
+			        $JDLParserCigri::clusterConf{$j}{checkpoint_type} == "blcr"
+                             || $JDLParserCigri::clusterConf{$j}{checkpoint_type} == "sgi"
+			     || $JDLParserCigri::clusterConf{$j}{checkpoint_type} == "NULL"
+			   )){
+			    $checkpoint_type=$JDLParserCigri::clusterConf{$j}{checkpoint_type};
+			}
+			if (defined($JDLParserCigri::clusterConf{$j}{checkpoint_period})){
+                             $checkpoint_period=$JDLParserCigri::clusterConf{$j}{checkpoint_period};
+			}
+
+                        $dbh->do("INSERT INTO properties (propertiesClusterName,propertiesMJobsId,propertiesJobCmd,propertiesJobWalltime,propertiesJobWeight,propertiesExecDirectory,propertiesCheckpointType,propertiesCheckpointPeriod)
+                                  VALUES (\"$j\",$id,\"$JDLParserCigri::clusterConf{$j}{execFile}\",\"$jobWalltime\",$jobWeight,\"$execDir\",\"$checkpoint_type\",\"$checkpoint_period\")");
                     }else{
                         rollback_transaction($dbh);
                         return -3;
@@ -812,7 +827,7 @@ sub get_MJobs_JDL($$){
 sub get_launching_job($$) {
     my $dbh = shift;
     my $clusterName = shift;
-    my $sth = $dbh->prepare("SELECT jobId,jobParam,propertiesJobCmd,jobClusterName,clusterBatch,userLogin,MJobsId,propertiesJobWalltime,propertiesJobWeight,propertiesExecDirectory
+    my $sth = $dbh->prepare("SELECT jobId,jobParam,propertiesJobCmd,jobClusterName,clusterBatch,userLogin,MJobsId,propertiesJobWalltime,propertiesJobWeight,propertiesExecDirectory,propertiesCheckpointPeriod,propertiesCheckpointType,jobName
                              FROM jobs,clusters,multipleJobs,properties,users
                              WHERE jobState=\"toLaunch\"
                                  AND clusterName = \"$clusterName\"
@@ -839,7 +854,10 @@ sub get_launching_job($$) {
         'mjobid'        => $ref[6],
         'walltime'      => $ref[7],
         'weight'        => $ref[8],
-        'execDir'       => $ref[9]
+        'execDir'       => $ref[9],
+	'checkpointPeriod' => $ref[10],
+	'checkpointType' => $ref[11],
+	'name' => $ref[12]
     );
 
     return %result;
