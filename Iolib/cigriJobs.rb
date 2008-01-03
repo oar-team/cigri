@@ -5,10 +5,10 @@
 # Job class
 #########################################################################
 class Job
-    attr_reader :jid, :mjobid, :state, :tsub, :tstart, :tstop, :param, :cluster, :batchid, :node
+    attr_reader :jid, :mjobid, :state, :tsub, :tstart, :tstop, :param, :cluster, :batchid, :node, :cdate, :cstatus
 
     # Creation
-    def initialize(id,mjobid,state,tsub,tstart,tstop,param,cluster,batchid,node)
+    def initialize(id,mjobid,state,tsub,tstart,tstop,param,cluster,batchid,node,cdate,cstatus)
         @jid=id
         @mjobid=mjobid
         @state=state
@@ -19,11 +19,13 @@ class Job
 	@cluster=cluster
 	@batchid=batchid
 	@node=node
+	@cdate=cdate
+	@cstatus=cstatus
     end
 
     # Printing
     def to_s
-        sprintf "Job #{@jid}:#{@state},#{@tsub},#{@tstart},#{@tstop}"
+        sprintf "Job #{@jid}: #{@mjobid},#{@state},#{@tsub},#{@tstart},#{@tstop}"
     end
 
     # Calculate the job duration (from submission to end or now)
@@ -35,6 +37,44 @@ class Job
         end
      end
 end
+
+#########################################################################
+## JobSet class
+# A JobSet is a set of jobs resulting of an SQL query on the jobs table
+#########################################################################
+class JobSet
+    attr_reader :jobs
+
+    def initialize(dbh,query)
+        @dbh=dbh
+        @query=query
+        @jobs=[]
+    end
+
+    def do
+        sql_jobs=@dbh.select_all(@query)
+        sql_jobs.each do |sql_job|
+             job=Job.new(sql_job['jobId'],\
+                        sql_job['jobMJobsId'],\
+                        sql_job['jobState'],\
+                        to_unix_time(sql_job['jobTSub']),\
+                        to_unix_time(sql_job['jobTStart']),\
+                        to_unix_time(sql_job['jobTStop']),\
+                        sql_job['jobParam'],\
+                        sql_job['jobClusterName'],\
+                        sql_job['jobBatchid'],\
+                        sql_job['jobNodeName'],\
+                        sql_job['jobCheckpointDate'],\
+                        sql_job['jobCheckpointStatus'])
+            @jobs << job
+	end
+    end
+
+    def to_s
+      @jobs.each { |j| sprintf j.to_s + "\n" }
+    end
+end
+
 
 #########################################################################
 # MultipleJob class
@@ -73,25 +113,15 @@ class MultipleJob
         bl_clusters=dbh.select_all(query)
 
         # SQL query to get the jobs
-        query = "SELECT jobId,jobMJobsId,jobState,jobTSub,jobTStart,jobTStop,jobParam,jobClusterName,jobBatchid,jobNodeName \
+        query = "SELECT * \
 	         FROM jobs \
                  WHERE jobMJobsId=#{mjobid}"
-        sql_jobs=dbh.select_all(query)
+        jobset=JobSet.new(dbh,query)
+	jobset.do
+        @jobs=jobset.jobs
 
         # Job objects creation and parsing
-        sql_jobs.each do |sql_job|
-            job=Job.new(sql_job['jobId'],\
-                        id,\
-                        sql_job['jobState'],\
-                        to_unix_time(sql_job['jobTSub']),\
-                        to_unix_time(sql_job['jobTStart']),\
-                        to_unix_time(sql_job['jobTStop']),\
-                        sql_job['jobParam'],\
-                        sql_job['jobClusterName'],\
-                        sql_job['jobBatchid'],\
-                        sql_job['jobNodeName'])
-            @jobs << job
-
+        @jobs.each do |job|
             case job.state
                 when  'Terminated'
                     # Get the date of the last terminated job and the number of terminated jobs
@@ -105,7 +135,7 @@ class MultipleJob
                     # Get the number of running jobs
 		    bl=1
 		    bl_clusters.each do |bl_cluster|
-		      if bl_cluster['clusterBlackListClusterName'] == sql_job['jobClusterName']
+		      if bl_cluster['clusterBlackListClusterName'] == job.cluster
 		        bl=nil
 	              end
 		    end
