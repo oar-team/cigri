@@ -48,6 +48,7 @@ my $gridstatus_command = $path."/Updator/gridstatus.rb";
 my $nikita_command = $path."/Nikita/nikitaCigri.pl";
 my $spritz_command = $path."/Spritz/spritzCigri.pl";
 my $autofix_command = $path."/Colombo/autofixCigri.rb";
+my $phoenix_command = $path."/Phoenix/phoenixCigri.rb";
 
 my $scheduler_path = $path."/Scheduler/";
 
@@ -132,6 +133,11 @@ sub autofix(){
     return launch_command($autofix_command);
 }
 
+# launch phoenix, the checkpoint manager
+sub phoenix(){
+    return launch_command($phoenix_command);
+}
+
 
 # core of the AlmightyCigri
 my $exitValue;
@@ -156,6 +162,8 @@ LBL:while (1){
 #        sleep(5);
         next LBL if ($exitValue != 0);
         $exitValue = runner();
+	next LBL if ($exitValue != 0);
+	$exitValue = phoenix();
 #        sleep(5);
         next LBL if ($exitValue != 0);
 	$exitValue =  spritz();

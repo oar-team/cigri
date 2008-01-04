@@ -1022,6 +1022,24 @@ sub set_job_batch_id($$$){
     $sth->finish();
 }
 
+# get the id of a job using it's batch id and cluster
+# arg1 --> database ref
+# arg2 --> jobBatchId
+# arg3 --> clusterName
+sub get_job_id_from_batchid($$$){
+    my $dbh = shift;
+    my $batchId = shift;
+    my $clusterName = shift;
+    my $sth = $dbh->prepare("SELECT jobId FROM jobs WHERE jobBatchId = \"$batchId\"
+                                AND jobClusterName =\"$clusterName\"");
+    $sth->execute();
+    my @res  = $sth->fetchrow_array();
+    $sth->finish();
+    if (defined($res[0])) { return $res[0]; }
+    else { return 0; }
+}
+
+
 # give cluster names where jobs in Running state are executed
 # arg1 --> database ref
 # return a hashtable of array refs : ${${$resul{pawnee}}[0]}{batchJobId} --> give the first batchId for the cluster pawnee

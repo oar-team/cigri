@@ -6,6 +6,7 @@
 #########################################################################
 class Job
     attr_reader :jid, :mjobid, :state, :tsub, :tstart, :tstop, :param, :cluster, :batchid, :node, :cdate, :cstatus
+    attr_accessor :ctype, :cperiod, :user
 
     # Creation
     def initialize(id,mjobid,state,tsub,tstart,tstop,param,cluster,batchid,node,cdate,cstatus)
@@ -25,7 +26,7 @@ class Job
 
     # Printing
     def to_s
-        sprintf "Job #{@jid}: #{@mjobid},#{@state},#{@tsub},#{@tstart},#{@tstop}"
+        sprintf "Job #{@jid}: #{@mjobid},#{@cluster},#{@state},#{@tsub},#{@tstart},#{@tstop},#{@user},#{@batchid}"
     end
 
     # Calculate the job duration (from submission to end or now)
@@ -35,6 +36,12 @@ class Job
         else
             return Time.now.to_i - tstart
         end
+     end
+
+     def update_checkpoint_date(dbh,unix_timestamp)
+         @cdate=unix_timestamp
+         query="UPDATE jobs set jobCheckpointDate=FROM_UNIXTIME(#{@cdate}) WHERE jobId=#{@jid}"
+         dbh.do(query)
      end
 end
 
@@ -65,10 +72,13 @@ class JobSet
                         to_unix_time(sql_job['jobTStop']),\
                         sql_job['jobParam'],\
                         sql_job['jobClusterName'],\
-                        sql_job['jobBatchid'],\
+                        sql_job['jobBatchId'],\
                         sql_job['jobNodeName'],\
-                        sql_job['jobCheckpointDate'],\
+                        to_unix_time(sql_job['jobCheckpointDate']),\
                         sql_job['jobCheckpointStatus'])
+	     job.ctype=sql_job['propertiesCheckpointType'] if not sql_job['propertiesCheckpointType'].nil?
+	     job.cperiod=sql_job['propertiesCheckpointPeriod'] if not sql_job['propertiesCheckpointPeriod'].nil?
+	     job.user=sql_job['MJobsUser'] if not sql_job['MJobsUser'].nil?
             @jobs << job
 	end
     end
@@ -266,5 +276,21 @@ def forecast_throughput(mjob,window)
     else
         return 0
     end
+end
+
+
+# Returns the running jobs that may be checkpointed (array of job objects)
+#
+def get_checkpointable_jobs(dbh)
+    query="SELECT * FROM jobs,properties,multipleJobs \
+       WHERE jobState='Running' \
+       AND jobs.jobMJobsId=properties.propertiesMJobsId
+       AND jobs.jobMJobsId=multipleJobs.MJobsId
+       AND propertiesCheckpointType is not null
+       AND not propertiesCheckpointType = ''
+       ORDER BY jobClusterName"
+    jobset=JobSet.new(dbh,query)
+    jobset.do
+    return jobset.jobs
 end
 

@@ -42,6 +42,7 @@ end
 $verbose = true
 
 $tag="[PHOENIX]     "
+$checkpoint_cmd=File.dirname($0)+"/../ClusterQuery/jobCheckpoint.pl"
 
 #######################################################################################
 # Includes loading
@@ -68,9 +69,21 @@ require 'cigriJobs'
 # Connect to database
 dbh = base_connect("#{$cigri_db}:#{$host}",$login,$passwd)
 
-jobs=JobSet.new(dbh,"SELECT * FROM jobs order by jobId desc limit 10")
-jobs.do
-puts jobs.to_s
+# For each checkpointable job
+puts "#{$tag}Checking if there are jobs to checkpoint" if $verbose
+get_checkpointable_jobs(dbh).each do |job|
 
-mjob=MultipleJob.new(dbh,123)
-puts mjob.to_s
+  # First, we update the cdate if it is empty
+  if job.cdate.nil? || job.cdate == 0
+    job.update_checkpoint_date(dbh,Time.now.to_i)
+    puts "#{$tag}Initiating checkpoint date for new job #{job.jid}" if $verbose
+  end
+
+  # Send checkpoints if period is reached
+  if Time.now.to_i - job.cdate > job.cperiod
+    puts "#{$tag}Sending checkpoint signal to job #{job.jid}" if $verbose
+    system($checkpoint_cmd,job.cluster,job.user,job.batchid.to_s)
+    job.update_checkpoint_date(dbh,Time.now.to_i)
+  end
+
+end

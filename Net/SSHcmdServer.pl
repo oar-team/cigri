@@ -68,7 +68,7 @@ sub qget($){
     if (("$1" eq "<submitCmd>") && ("$4" eq "<\\submitCmd>")){
         # execute query
         my %cmdResult = SSHcmd::submitCmd("$2","$3");
-        print(Dumper(%cmdResult));
+        #print(Dumper(%cmdResult));
         print $client "<SSHserverTagSTDOUT>\n";
         if ("$cmdResult{STDOUT}" ne ""){
             chomp($cmdResult{STDOUT});

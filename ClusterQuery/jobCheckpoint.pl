@@ -1,3 +1,4 @@
+#!/usr/bin/perl
 # This script checkpoints a job
 # It takes 3 arguments: <clustername> <user> <jobBatchId to checkpoint>
 
@@ -74,7 +75,8 @@ sub oarcheckpoint($$$$){
     if ($cmdResult{STDERR} ne ""){
         # test if this is a ssh error
         if (NetCommon::checkSshError($dbh,$cluster,$cmdResult{STDERR}) != 1){
-            colomboCigri::add_new_cluster_event($dbh,$cluster,0,"CHECKPOINT_CMD","$cmdResult{STDERR}");
+	    my $jobId=iolibCigri::get_job_id_from_batchid($dbh,$jobBatchId,$cluster);
+            colomboCigri::add_new_job_event($dbh,$jobId,"CHECKPOINT_CMD","$cmdResult{STDERR}");
         }
         return(-1);
     }
