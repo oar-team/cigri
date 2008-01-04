@@ -46,6 +46,9 @@ class JobSet
     attr_reader :jobs
 
     def initialize(dbh,query)
+        if query.empty? 
+	  raise "Cannot create a jobset without a request"
+	end
         @dbh=dbh
         @query=query
         @jobs=[]
@@ -79,16 +82,15 @@ end
 #########################################################################
 # MultipleJob class
 #########################################################################
-class MultipleJob
+class MultipleJob < JobSet
     attr_reader :mjobid, :jobs, :last_terminated_date, :status, :n_running, :n_terminated
 
     # Creation
-    # Yes, this constructor is a bit big, but it is for optimum performance
-    #  (not too much sql requests or array parsing)
     def initialize(dbh,id)
+        super(dbh,"SELECT * FROM jobs WHERE jobMJobsId=#{id}")
+	self.do
         @dbh=dbh
         @mjobid=id
-        @jobs=[]
         @durations=[]
         @last_terminated_date=0
         @first_submited_date=0
@@ -112,15 +114,7 @@ class MultipleJob
 		   AND eventState = \"ToFIX\" AND clusterBlackListMJobsID = #{mjobid};"
         bl_clusters=dbh.select_all(query)
 
-        # SQL query to get the jobs
-        query = "SELECT * \
-	         FROM jobs \
-                 WHERE jobMJobsId=#{mjobid}"
-        jobset=JobSet.new(dbh,query)
-	jobset.do
-        @jobs=jobset.jobs
-
-        # Job objects creation and parsing
+        # Job parsing to get some statistics
         @jobs.each do |job|
             case job.state
                 when  'Terminated'
