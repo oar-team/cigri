@@ -6,7 +6,7 @@
 #########################################################################
 class Job
     attr_reader :jid, :mjobid, :state, :tsub, :tstart, :tstop, :param, :cluster, :batchid, :node, :cdate, :cstatus
-    attr_accessor :ctype, :cperiod, :user
+    attr_accessor :ctype, :cperiod, :user, :active
 
     # Creation
     def initialize(id,mjobid,state,tsub,tstart,tstop,param,cluster,batchid,node,cdate,cstatus)
@@ -26,7 +26,7 @@ class Job
 
     # Printing
     def to_s
-        sprintf "Job #{@jid}: #{@mjobid},#{@cluster},#{@state},#{@tsub},#{@tstart},#{@tstop},#{@user},#{@batchid}"
+        sprintf "Job #{@jid}: #{@mjobid},#{@cluster},#{@state},#{@tsub},#{@tstart},#{@tstop},#{@user},#{@batchid},#{@active}"
     end
 
     # Calculate the job duration (from submission to end or now)
@@ -38,11 +38,13 @@ class Job
         end
      end
 
+     # Sets the checkpoint date of the job
      def update_checkpoint_date(dbh,unix_timestamp)
          @cdate=unix_timestamp
          query="UPDATE jobs set jobCheckpointDate=FROM_UNIXTIME(#{@cdate}) WHERE jobId=#{@jid}"
          dbh.do(query)
      end
+
 end
 
 #########################################################################
@@ -61,6 +63,7 @@ class JobSet
         @jobs=[]
     end
 
+    # Execute the query and update the jobs of the jobset
     def do
         sql_jobs=@dbh.select_all(@query)
         sql_jobs.each do |sql_job|
@@ -83,6 +86,40 @@ class JobSet
 	end
     end
 
+    # Update the "active" attribute for all the jobs in this JobSet
+    # (SQL optimized) 
+    def update_active
+      # Firstly, we initialize a hash of hashes to get (mjobid,clusters) couples
+      # This will prevent from doing the same request several times 
+      active={}
+      @jobs.each do |job|
+        active[job.mjobid] ={} if active[job.mjobid].nil?
+        active[job.mjobid][job.cluster]=0
+      end
+      # Then, we update the hash with the status of the clusters from the database
+      active.each do |mjobid,clusters|
+        clusters.each_key do |cluster|
+	  query="SELECT count( * ) as n\
+              FROM clusterBlackList, events \
+	      WHERE clusterBlackListEventId = eventId \
+	      AND eventState = \"ToFIX\" \
+	      AND clusterBlackListClusterName = \"#{cluster}\" \
+	      AND (clusterBlackListMJobsID = #{mjobid} \
+	      OR clusterBlackListMJobsID = 0)"
+	  if @dbh.select_all(query)[0]['n'].to_i == 0
+	    active[mjobid][cluster]=1
+	  else
+	    active[mjobid][cluster]=0
+	  end
+	end
+      end
+      # Finaly, we update the "active" field of each job
+      @jobs.each do |job|
+        job.active=active[job.mjobid][job.cluster]
+      end
+    end
+
+    # Printing (mainly used for debug)
     def to_s
       @jobs.each { |j| sprintf j.to_s + "\n" }
     end
@@ -171,7 +208,7 @@ class MultipleJob < JobSet
         return @n_terminated.to_f/duration.to_f if @status == 'TERMINATED'
         n=0
         first_submited_date = Time.now.to_i
-        jobs.each do |job|
+        @jobs.each do |job|
             if job.state == 'Terminated' && job.tsub > (Time.now - time_window_size).to_i
                 n+=1
                 first_submited_date = job.tsub if job.tsub < first_submited_date
@@ -200,6 +237,28 @@ class MultipleJob < JobSet
         end
     end
 
+    # For each job, check if the cluster is active
+    def update_active_clusters
+       active={}
+       self.clusters.each do |cluster|
+         query="SELECT count( * ) as n\
+              FROM clusterBlackList, events \
+	      WHERE clusterBlackListEventId = eventId \
+	      AND eventState = \"ToFIX\" \
+	      AND clusterBlackListClusterName = \"#{cluster}\" \
+	      AND (clusterBlackListMJobsID = #{@mjobid} \
+	      OR clusterBlackListMJobsID = 0)"
+	 if @dbh.select_all(query)[0]['n'].to_i == 0
+	   active[cluster]=1
+	 else
+	   active[cluster]=0
+	 end
+       end
+       @jobs.each do |job|
+         job.active=active[job.cluster]
+       end
+    end
+    
     # Printing
     def to_s
         sprintf("Multiple job %i 
@@ -291,6 +350,8 @@ def get_checkpointable_jobs(dbh)
        ORDER BY jobClusterName"
     jobset=JobSet.new(dbh,query)
     jobset.do
+    jobset.update_active
+    puts jobset.to_s
     return jobset.jobs
 end
 
