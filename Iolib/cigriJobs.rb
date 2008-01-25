@@ -119,6 +119,17 @@ class JobSet
       end
     end
 
+    # Filter the jobs by removing those on a blacklisted cluster
+    # (This has to be a Colombo feature)
+    def remove_blacklisted
+      update_active
+      newjobs=[]
+      @jobs.each do |job|
+        newjobs << job if job.active == 1
+      end
+      @jobs=newjobs
+    end
+
     # Printing (mainly used for debug)
     def to_s
       @jobs.each { |j| sprintf j.to_s + "\n" }
@@ -237,28 +248,6 @@ class MultipleJob < JobSet
         end
     end
 
-    # For each job, check if the cluster is active
-    def update_active_clusters
-       active={}
-       self.clusters.each do |cluster|
-         query="SELECT count( * ) as n\
-              FROM clusterBlackList, events \
-	      WHERE clusterBlackListEventId = eventId \
-	      AND eventState = \"ToFIX\" \
-	      AND clusterBlackListClusterName = \"#{cluster}\" \
-	      AND (clusterBlackListMJobsID = #{@mjobid} \
-	      OR clusterBlackListMJobsID = 0)"
-	 if @dbh.select_all(query)[0]['n'].to_i == 0
-	   active[cluster]=1
-	 else
-	   active[cluster]=0
-	 end
-       end
-       @jobs.each do |job|
-         job.active=active[job.cluster]
-       end
-    end
-    
     # Printing
     def to_s
         sprintf("Multiple job %i 
@@ -350,8 +339,8 @@ def get_checkpointable_jobs(dbh)
        ORDER BY jobClusterName"
     jobset=JobSet.new(dbh,query)
     jobset.do
-    jobset.update_active
-    puts jobset.to_s
+    # Filter with blacklisted clusters
+    jobset.remove_blacklisted
     return jobset.jobs
 end
 
