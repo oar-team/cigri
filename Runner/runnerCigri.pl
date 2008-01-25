@@ -64,7 +64,7 @@ foreach my $j (keys(%clusterNames)){
             my $checkpoint_function;
 
 	    # BLCR checkpoint submission script
-	    if ($job{checkpointType}=="blcr") {
+	    if ($job{checkpointType} eq "blcr") {
 	      print("[RUNNER]      This is a BLCR type checkpointable job\n");
 	      @cmdSSH = (  "echo \\#\\!/bin/bash > $tmpRemoteFile;",
                             "echo \"echo \\\"BEGIN_DATE=\\\"\\`date +\%Y-\%m-\%d\\ \%H:\%M:\%S\\` >> $resultFile\" >> $tmpRemoteFile;",
