@@ -99,9 +99,16 @@ foreach my $i (keys(%jobRunningHash)){
                         iolibCigri::set_job_state($base, ${$j}{jobId}, "Terminated");
                     }else{
                         print("\t\tJob ${$j}{jobId} Error\n");
-                        iolibCigri::set_job_state($base, ${$j}{jobId}, "Event");
-                        colomboCigri::add_new_job_event($base,${$j}{jobId},"UPDATOR_RET_CODE_ERROR","Executable exited with error code $fileVars{RET_CODE}; $cmdResult{STDERR}");
-                        #exit(66);
+			if ($fileVars{RET_CODE} == 66){
+		          print "[UPDATOR]     Job ${$j}{jobId} exited with resubmit code 66, so we resubmit.\n";
+			  iolibCigri::set_job_state($base, ${$j}{jobId}, "Terminated");
+		          colomboCigri::resubmit_job($base,${$j}{jobId});
+
+			}else{
+                          iolibCigri::set_job_state($base, ${$j}{jobId}, "Event");
+                          colomboCigri::add_new_job_event($base,${$j}{jobId},"UPDATOR_RET_CODE_ERROR","Executable exited with error code $fileVars{RET_CODE}; $cmdResult{STDERR}\nCheck OAR.${$j}{batchJobId}.stderr on ${$j}{clusterName} for more infos");
+                          #exit(66);
+			}
                     }
                 }else{
                     # the job was killed by the batch scheduler of the cluster

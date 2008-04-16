@@ -1027,6 +1027,7 @@ sub get_job_to_update_state($){
             my $tmp = {
                     "jobId" => $ref[2],
                     "batchJobId" => $ref[0],
+                    "clusterName" => $ref[1],
                     "user" => $ref[3],
                     "execDir" => $ref[5],
 		    "jobState" => $ref[6],
