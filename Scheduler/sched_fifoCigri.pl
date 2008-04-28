@@ -45,7 +45,6 @@ my %nbRemainedJobs = iolibCigri::get_nb_remained_jobs($base);
 my %nbRemoteWaitingJobWeight = iolibCigri::get_cluster_remoteWaiting_job_weight($base);
 #print(Dumper(%nbFreeNodes));
 
-
 foreach my $i (sort(keys(%nbRemainedJobs))){
     if(iolibCigri::get_data_synchronState($base, $i) eq 'ISSUED'){   
         iolibCigri::set_data_synchronState($base, $i, "INITIATED");
@@ -55,7 +54,7 @@ foreach my $i (sort(keys(%nbRemainedJobs))){
 	exec"$command";	
     }
     my %propertiesClusterName = iolibCigri::get_MJobs_Properties($base, $i);
-    foreach my $j (keys(%propertiesClusterName)){
+    foreach my $j (iolibCigri::get_MJobs_ActiveClusters($base, $i)){
       if((iolibCigri::get_propertiesData_synchronState($base, $i, $j) eq 'TERMINATED') || (iolibCigri::get_propertiesData_synchronState($base, $i, $j) eq '')){
         if (colomboCigri::is_cluster_active($base,$j,$i) == 0){
             my $number = 0 ;

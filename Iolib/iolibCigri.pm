@@ -187,6 +187,7 @@ sub add_mjobs($$) {
                         my $jobWalltime = "1:00:00";
                         my $jobWeight = 1;
                         my $execDir = "~";
+			my $priority = 1;
                         if (defined($JDLParserCigri::clusterConf{$j}{walltime})){
                             $jobWalltime = $JDLParserCigri::clusterConf{$j}{walltime};
                         }
@@ -196,8 +197,11 @@ sub add_mjobs($$) {
                         if ((defined($JDLParserCigri::clusterConf{$j}{execDir})) && !($JDLParserCigri::clusterConf{$j}{execDir} =~ m/.*\~.*/m)){
                             $execDir = $JDLParserCigri::clusterConf{$j}{execDir};
                         }
-                        $dbh->do("INSERT INTO properties (propertiesClusterName,propertiesMJobsId,propertiesJobCmd,propertiesJobWalltime,propertiesJobWeight,propertiesExecDirectory)
-                                  VALUES (\"$j\",$id,\"$JDLParserCigri::clusterConf{$j}{execFile}\",\"$jobWalltime\",$jobWeight,\"$execDir\")");
+			if (defined($JDLParserCigri::clusterConf{$j}{priority})){
+			    $priority = $JDLParserCigri::clusterConf{$j}{priority};
+			}
+                        $dbh->do("INSERT INTO properties (propertiesClusterName,propertiesMJobsId,propertiesJobCmd,propertiesJobWalltime,propertiesJobWeight,propertiesExecDirectory,propertiesClusterPriority)
+                                  VALUES (\"$j\",$id,\"$JDLParserCigri::clusterConf{$j}{execFile}\",\"$jobWalltime\",$jobWeight,\"$execDir\",\"$priority\")");
                     }else{
                         rollback_transaction($dbh);
                         return -3;
@@ -1162,6 +1166,37 @@ sub get_MJobs_Properties($$){
 
     return %result;
 }
+
+# get MJobs active clusters ordered by priority and power
+# arg1 --> database ref
+# arg2 --> MJobsId
+sub get_MJobs_ActiveClusters($$){
+    my $dbh = shift;
+    my $id = shift;
+
+    my $sth = $dbh->prepare("   SELECT   propertiesClusterName
+                                FROM properties, users, multipleJobs, clusters
+                                WHERE propertiesMJobsId = $id
+                                    AND propertiesClusterName = userClusterName
+                                    AND userGridName = MJobsUser
+                                    AND MJobsId = propertiesMJobsId
+				    AND propertiesClusterName = clusterName
+				    ORDER BY propertiesClusterPriority,clusterPower desc
+                            ");
+    $sth->execute();
+
+    my @result;
+    while (my @ref = $sth->fetchrow_array()) {
+        if (colomboCigri::is_cluster_active($dbh,$ref[0],$id) == 0){
+            push(@result,$ref[0]);
+        }
+    }
+    $sth->finish();
+
+    return @result;
+}
+
+
 
 # Add a job to launch
 # arg1 --> database ref
