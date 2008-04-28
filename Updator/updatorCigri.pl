@@ -147,7 +147,7 @@ foreach my $i (keys(%jobRunningHash)){
                 iolibCigri::set_job_state($base, ${$j}{jobId}, "Event");
                 colomboCigri::add_new_job_event($base,${$j}{jobId},"FRAG","RemoteWaiting too long frag");
 		colomboCigri::resubmit_job($base,${$j}{jobId});
-		print "[UPDATOR]     Frag-resubmit job ${$j}{jobId} because of RemoteWaiting for tool long.\n";
+		print "[UPDATOR]     Frag-resubmit job ${$j}{jobId} because of RemoteWaiting for too long.\n";
 	    }
         }
 
