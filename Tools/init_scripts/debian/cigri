@@ -24,10 +24,10 @@ CIGRI_INSTALL_PATH=$(grep "INSTALL_PATH" $CIGRI_CONF_FILE  | sed -e 's/.*= *"\(.
 start() {
 	echo -n "Starting CiGri:"
 	cd "$CIGRI_INSTALL_PATH"
-	su "$CIGRI_UNIX_USER" -c "nohup ./Almighty/AlmightyCigri.pl > cigri.log 2>/dev/null &"
+	su "$CIGRI_UNIX_USER" -c "nohup ./Almighty/AlmightyCigri.pl 2>&1 > cigri.log &"
         if [ "$?" -eq 0 ] ; then
 	  cd Collector
-	  su "$CIGRI_UNIX_USER" -c "nohup ./automatic_collect.sh > cigri_collector.log 2>/dev/null &" 
+	  su "$CIGRI_UNIX_USER" -c "nohup ./automatic_collect.sh 2>&1 > cigri_collector.log &" 
           exit 0
         else
           exit 1
