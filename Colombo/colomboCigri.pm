@@ -546,11 +546,12 @@ sub check_events($){
 sub resubmit_job($$){
     my $dbh = shift;
     my $jobId = shift;
-    $dbh->do("    INSERT INTO parameters (parametersMJobsId,parametersParam,parametersName)
-                SELECT jobMJobsId, jobParam, jobName
+    $dbh->do("    INSERT INTO parameters (parametersMJobsId,parametersParam,parametersName,parametersPriority)
+                SELECT jobMJobsId, jobParam, jobName, 1
                 FROM jobs
                 WHERE jobId = $jobId
             ");
+
 }
 
 return 1;
