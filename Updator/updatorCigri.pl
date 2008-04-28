@@ -101,7 +101,7 @@ foreach my $i (keys(%jobRunningHash)){
                         print("\t\tJob ${$j}{jobId} Error\n");
 			if ($fileVars{RET_CODE} == 66){
 		          print "[UPDATOR]     Job ${$j}{jobId} exited with resubmit code 66, so we resubmit.\n";
-			  iolibCigri::set_job_state($base, ${$j}{jobId}, "Terminated");
+			  iolibCigri::set_job_state($base, ${$j}{jobId}, "Event");
 		          colomboCigri::resubmit_job($base,${$j}{jobId});
 
 			}else{
@@ -144,6 +144,7 @@ foreach my $i (keys(%jobRunningHash)){
 	      $remotewaiting_timeout=600;
 	    }
 	    if ((${$j}{jobState} eq "RemoteWaiting") && (time() - ${$j}{jobTSub} >= $remotewaiting_timeout)) {
+                iolibCigri::set_job_state($base, ${$j}{jobId}, "Event");
                 colomboCigri::add_new_job_event($base,${$j}{jobId},"FRAG","RemoteWaiting too long frag");
 		colomboCigri::resubmit_job($base,${$j}{jobId});
 		print "[UPDATOR]     Frag-resubmit job ${$j}{jobId} because of RemoteWaiting for tool long.\n";
