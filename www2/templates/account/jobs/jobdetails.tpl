@@ -28,6 +28,7 @@
 			<th><a href="{$itemsorderby[4]}">Exec Directory{$itemsorderimgs[4]}</a></th>
 			<th><a href="{$itemsorderby[2]}">Wall Time{$itemsorderimgs[2]}</a></th>
 			<th><a href="{$itemsorderby[3]}">Weight{$itemsorderimgs[3]}</a></th>
+			<th><a href="{$itemsorderby[5]}">Prio{$itemsorderimgs[5]}</a></th>
 		</tr>
 		{foreach from=$eventarray item=secondkey}
 			{* check parity *}
@@ -44,6 +45,7 @@
 				<td align="center">{$secondkey[4]}</td>
 				<td align="center">{$secondkey[2]}</td>
 				<td align="center">{$secondkey[3]}</td>
+				<td align="center">{$secondkey[5]}</td>
 			</tr>
 		{/foreach}
 		</table>
