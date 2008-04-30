@@ -91,7 +91,7 @@ EOF;
 		    $res[$i][2]=htmlentities($res[$i][2]) ;
 		    $res[$i][3]=htmlentities(floor($res[$i][3])) ;
 		    $res[$i][4]=htmlentities($res[$i][4]) ;
-		    $res[$i][5]=htmlentities(floor($res[$i][5]*3600)) ;
+		    $res[$i][5]=htmlentities(round($res[$i][5]*3600,1)) ;
 		    # Calculate the resubmission number
 		    $mjobid=$res[$i][0];
 		    $query="SELECT count(*) FROM events,resubmissionLog 

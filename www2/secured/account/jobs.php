@@ -153,6 +153,7 @@ EOF;
 				$selectnames[] = "propertiesJobWallTime";
 				$selectnames[] = "propertiesJobWeight";
 				$selectnames[] = "propertiesExecDirectory";
+				$selectnames[] = "propertiesClusterPriority";
 				cigri_order_by($_GET,$selectnames,'account.php',$orderby,$orderarray,$orderimgs,$smarty,"../");
 
 				$query = <<<EOF
@@ -171,7 +172,7 @@ EOF;
 
 				$query = <<<EOF
 SELECT
-	propertiesClusterName, propertiesJobCmd, propertiesJobWallTime, propertiesJobWeight, propertiesExecDirectory
+	propertiesClusterName, propertiesJobCmd, propertiesJobWallTime, propertiesJobWeight, propertiesExecDirectory, propertiesClusterPriority
 FROM
 	properties
 WHERE
@@ -195,6 +196,7 @@ EOF;
 					$res[$i][2] = htmlentities($res[$i][2]) ;
 					$res[$i][3] = htmlentities($res[$i][3]) ;
 					$res[$i][4] = htmlentities($res[$i][4]) ;
+					$res[$i][5] = htmlentities($res[$i][5]) ;
 				}
 				$smarty->assign('jobid',$jobid);
 				$smarty->assign('eventarray',$res);
