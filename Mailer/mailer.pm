@@ -29,9 +29,12 @@ use Net::SMTP;
 
 # arg1 --> object
 # arg2 --> body
-sub sendMail($$){
+# arg3 --> address
+# Send a mail to the specified address
+sub sendMailtoRecipient($$$){
     my $object = shift;
     my $body = shift;
+    my $mailRecipientAddress = shift;
 
     my $pid=fork;
     if ($pid == 0){
@@ -41,9 +44,8 @@ sub sendMail($$){
 #        close(STDIN);
         my $smtpServer = ConfLibCigri::get_conf("MAIL_SMTP_SERVER");
         my $mailSenderAddress = ConfLibCigri::get_conf("MAIL_SENDER");
-        my $mailRecipientAddress = ConfLibCigri::get_conf("MAIL_RECIPIENT");
 
-        #print("[MAILER] I send a mail to $mailRecipientAddress with the sender $mailSenderAddress on the server $smtpServer\n");
+        #print("[MAILER]      I send a mail to $mailRecipientAddress with the sender $mailSenderAddress on the server $smtpServer\n");
 
         my $smtp = Net::SMTP->new($smtpServer, Timeout => 240);
         if (!defined($smtp)){
@@ -68,6 +70,44 @@ sub sendMail($$){
         exit(0);
     }
 }
+
+# arg1 --> object
+# arg2 --> body
+# Send a mail to the admin
+sub sendMail($$){
+    my $object = shift;
+    my $body = shift;
+    my $user = ConfLibCigri::get_conf("MAIL_RECIPIENT");
+    sendMailtoRecipient($object,$body,$user);
+}
+
+# Get the email address of a user
+# arg1 --> user
+sub get_User_Mail($){
+    my $user = shift;
+    my $CMD = ConfLibCigri::get_conf("MAIL_GET_ADDRESS_CMD");
+    $CMD=~s/%USER%/$user/g;
+    my $mail=`$CMD`;
+    chomp($mail);
+    return $mail;;
+}
+
+sub sendMailtoUser($$$){
+    my $object = shift;
+    my $body = shift;
+    my $user = shift;
+    if (!ConfLibCigri::is_conf("MAIL_TO_USERS")) { 
+        print("[MAILER]      Mailing to users is disabled\n");
+    }else{
+        my $recipient = get_User_Mail($user);
+	if ($recipient ne "") {
+	    sendMailtoRecipient($object,$body,$recipient);
+	}else{
+            print("[MAILER]      Could not get ".$user."'s email address\n");
+        }
+    }
+}
+
 
 return 1;
 
