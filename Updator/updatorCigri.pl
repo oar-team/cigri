@@ -165,7 +165,7 @@ my @MJobs_ended = iolibCigri::check_end_MJobs($base);
 # notify admin by email
 foreach my $i (@MJobs_ended){
     mailer::sendMail("End MJob $i ","[Iolib] set to Terminated state the MJob $i");
-    mailer::sendMailtoUser("End MJob $i ","Your CiGri Mjob $i has just ended.",iolibCigri::get_MJob_user($base,$i));
+    mailer::sendMailtoUser("CiGri: end MJob $i ","Your CiGri Mjob $i has just ended.",iolibCigri::get_MJob_user($base,$i));
 }
 
 iolibCigri::emptyTemporaryTables($base);

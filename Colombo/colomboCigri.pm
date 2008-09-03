@@ -443,7 +443,11 @@ sub check_events($){
             mailer::sendMail("clusterBlackList = $ref[1] for the MJob $ref[2]; eventId = $ref[0]","$ref[3]");
 
 	    # notify the user
-	    mailer::sendMailtoUser("clusterBlackList = $ref[1] for the MJob $ref[2]; eventId = $ref[0]","$ref[3]",iolibCigri::get_MJob_user($dbh,$ref[2]));
+	    my $msg="This is a message from the CiGri server as an error occured into your MJob #".$ref[2]."\n";
+	    $msg.="This happenned on the ".$ref[1]. " cluster. This host has been disabled for your MJob\n";
+	    $msg.="until you correct the problem and you fix it into the CiGri web interface.\n\n";
+	    $msg.=$ref[3];
+	    mailer::sendMailtoUser("clusterBlackList = $ref[1] for the MJob $ref[2]; eventId = $ref[0]",$msg,iolibCigri::get_MJob_user($dbh,$ref[2]));
         }
     }
     $sth->finish();
