@@ -441,6 +441,9 @@ sub check_events($){
 
             # notify admin by email
             mailer::sendMail("clusterBlackList = $ref[1] for the MJob $ref[2]; eventId = $ref[0]","$ref[3]");
+
+	    # notify the user
+	    mailer::sendMailtoUser("clusterBlackList = $ref[1] for the MJob $ref[2]; eventId = $ref[0]","$ref[3]",iolibCigri::get_MJob_user($dbh,$ref[2]));
         }
     }
     $sth->finish();
