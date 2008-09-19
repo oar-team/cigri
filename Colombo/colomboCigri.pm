@@ -391,7 +391,6 @@ sub check_events($){
                                     OR eventType = \"MYSQL_OAR_CONNECT\"
                                     OR eventType = \"QDEL_CMD\"
                                     OR eventType = \"OAR_NOTIFY\"
-                                    OR eventType = \"RUNNER_SUBMIT\"
                                     OR eventType = \"RUNNER_JOBID_PARSE\"
                                     )
                             ");
@@ -420,7 +419,9 @@ sub check_events($){
     $sth = $dbh->prepare("    SELECT eventId, eventClusterName, eventMJobsId, eventMessage
                             FROM events
                             WHERE eventState = \"ToFIX\"
-                                AND (eventType = \"UPDATOR_RET_CODE_ERROR\" or eventType = \"OAR_OARSUB\"
+                                AND (eventType = \"UPDATOR_RET_CODE_ERROR\" 
+				     OR eventType = \"OAR_OARSUB\"
+                                     OR eventType = \"RUNNER_SUBMIT\"
                                     )
                             ");
     $sth->execute();
@@ -439,14 +440,15 @@ sub check_events($){
             $dbh->do("    INSERT INTO clusterBlackList (clusterBlackListNum,clusterBlackListClusterName,clusterBlackListMJobsID,clusterBlackListEventId )
                         VALUES ($id,\"$ref[1]\",$ref[2],$ref[0])");
 
-            # notify admin by email
-            mailer::sendMail("clusterBlackList = $ref[1] for the MJob $ref[2]; eventId = $ref[0]","$ref[3]");
-
-	    # notify the user
 	    my $msg="This is a message from the CiGri server as an error occured into your MJob #".$ref[2]."\n";
 	    $msg.="This happenned on the ".$ref[1]. " cluster. This host has been disabled for your MJob\n";
 	    $msg.="until you correct the problem and you fix it into the CiGri web interface.\n\n";
 	    $msg.=$ref[3];
+
+            # notify admin by email
+            mailer::sendMail("clusterBlackList = $ref[1] for the MJob $ref[2]; eventId = $ref[0]",$msg);
+
+	    # notify the user
 	    mailer::sendMailtoUser("clusterBlackList = $ref[1] for the MJob $ref[2]; eventId = $ref[0]",$msg,iolibCigri::get_MJob_user($dbh,$ref[2]));
         }
     }
