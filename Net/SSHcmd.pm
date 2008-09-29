@@ -232,15 +232,20 @@ sub submitCmd($$){
 # check ssh control master
 # arg1 --> clusterName
 sub checkControlmaster($){
-    if (!defined(ConfLibCigri::get_conf("SSH_CMD"))) {
-      $SSH_CMD="ssh -T -o \"NumberOfPasswordPrompts 0\" -o \"StrictHostKeyChecking no\"";
-    }else{
-      $SSH_CMD=ConfLibCigri::get_conf("SSH_CMD");
-    }
     my $clusterName = shift;
+    my $SSH_CMD="";
+    my $SSH_CONTROL_MASTER_KEEPALIVE="43200";
+    if (!defined(ConfLibCigri::get_conf("SSH_CMD"))) {
+       $SSH_CMD="ssh -T -o \"NumberOfPasswordPrompts 0\" -o \"StrictHostKeyChecking no\"";
+    }else{
+       $SSH_CMD=ConfLibCigri::get_conf("SSH_CMD");
+    }
+    if (defined(ConfLibCigri::get_conf("SSH_CONTROL_MASTER_KEEPALIVE"))) {
+       $SSH_CONTROL_MASTER_KEEPALIVE=ConfLibCigri::get_conf("SSH_CONTROL_MASTER_KEEPALIVE");
+    }
     if (system("$SSH_CMD -O check $clusterName >/dev/null 2>&1")) {
       print "[SSH]         Starting a control master to $clusterName\n";
-      system("$SSH_CMD -f -M $clusterName sleep 3600 &");
+      system("$SSH_CMD -f -M $clusterName sleep $SSH_CONTROL_MASTER_KEEPALIVE &");
     }
 }
 
