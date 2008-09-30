@@ -41,6 +41,10 @@ my $sshServerPort = 0;
 if (ConfLibCigri::is_conf("SSH_SERVER_PORT")) {
     $sshServerPort = ConfLibCigri::get_conf("SSH_SERVER_PORT");
 }
+my $sshControlmaster = 0;
+if (ConfLibCigri::is_conf("SSH_CONTROL_MASTER")) {
+    $sshControlmaster = ConfLibCigri::get_conf("SSH_CONTROL_MASTER");
+}
 
 
 # submit a command to the given cluster
@@ -95,7 +99,10 @@ sub submitCmdToSSHServer($$){
 sub submitCmd($$){
     my $clusterName = shift;
     my $command = shift;
-
+    
+    if ($sshControlmaster == 1){
+        SSHcmd::checkControlmaster($clusterName);
+    }
     if ($sshServerPort < 1024){
         return(SSHcmd::submitCmd($clusterName, $command));
     }else{

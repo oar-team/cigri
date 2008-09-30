@@ -26,6 +26,9 @@ BEGIN {
 use SSHcmdClient;
 use NetCommon;
 
+# Clear the control master if any
+SSHcmd::exitControlMaster($ARGV[0]);
+# Test the ssh connexion
 my %cmdResult = SSHcmdClient::submitCmd($ARGV[0],"id");
 if ($cmdResult{STDERR} ne ""){
   print("[AUTOFIX]     STDERR: $cmdResult{STDERR}");
