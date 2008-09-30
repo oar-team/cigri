@@ -236,7 +236,7 @@ sub checkControlmaster($){
     my $SSH_CMD="";
     my $SSH_CONTROL_MASTER_KEEPALIVE="43200";
     if (!defined(ConfLibCigri::get_conf("SSH_CMD"))) {
-       $SSH_CMD="ssh -T -o \"NumberOfPasswordPrompts 0\" -o \"StrictHostKeyChecking no\"";
+       $SSH_CMD="ssh ";
     }else{
        $SSH_CMD=ConfLibCigri::get_conf("SSH_CMD");
     }
@@ -247,6 +247,20 @@ sub checkControlmaster($){
       print "[SSH]         Starting a control master to $clusterName\n";
       system("$SSH_CMD -f -M $clusterName sleep $SSH_CONTROL_MASTER_KEEPALIVE &");
     }
+}
+
+# exit from the controlmaster
+# arg1 --> clustername
+sub exitControlMaster($){
+    my $clusterName = shift;
+    my $SSH_CMD="";
+    if (!defined(ConfLibCigri::get_conf("SSH_CMD"))) {
+       $SSH_CMD="ssh ";
+    }else{
+       $SSH_CMD=ConfLibCigri::get_conf("SSH_CMD");
+    }
+    print "[SSH]         CLEARING the control master to $clusterName\n";
+    system("$SSH_CMD -O exit $clusterName >/dev/null 2>&1");
 }
 
 
