@@ -593,6 +593,31 @@ sub get_cluster_names_resource_unit($){
     return %resulHash;
 }
 
+# get the cluster batch properties in an array
+# arg1 --> database ref
+# return --> array of cluster names and their resource_unit property (OAR2)
+#            The keys of the hashTable are "NAME" and "PROPERTIES"
+sub get_cluster_names_properties($){
+    my $dbh = shift;
+    my $sth = $dbh->prepare("SELECT clusterName,clusterProperties FROM clusters");
+    $sth->execute();
+
+    my %resulHash;
+
+    while (my @ref = $sth->fetchrow_array()) {
+        if (colomboCigri::is_cluster_active($dbh,$ref[0],0) == 0){
+	    if ($ref[1]) {
+              $resulHash{$ref[0]} = $ref[1];
+	      }
+	    else {
+              $resulHash{$ref[0]} = "true";
+	    }
+        }
+    }
+    $sth->finish();
+
+    return %resulHash;
+}
 
 # get the cluster properties in a hash
 # arg1 --> database ref

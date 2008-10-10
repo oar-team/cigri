@@ -135,9 +135,12 @@ sub oarnodes2($$){
     my $dbh = shift;
     my $cluster = shift;
     my %clusterResourceUnit = iolibCigri::get_cluster_names_resource_unit($dbh);
+    my %clusterProperties = iolibCigri::get_cluster_names_properties($dbh);
     my $resourceUnit=$clusterResourceUnit{$cluster};
+    my $properties=$clusterProperties{$cluster};
     #print("$cluster --> OAR2, unit:$resourceUnit\n");
     my %nodeState;
+    #my $cmd="oarnodes -D --sql \"$properties\"";
     my $cmd="oarnodes -D";
    # my %cmdResult = SSHcmdClient::submitCmd($cluster,"oarnodes --backward");
     my %cmdDump = SSHcmdClient::submitCmd($cluster,$cmd);
