@@ -1,4 +1,6 @@
 <?php
+$step=$_GET['step'];
+$page=$_GET['page'];
 if ($_SESSION['adminauth'] == true) {
 	$link = dbconnect();
 	$message = '';
@@ -59,6 +61,7 @@ EOF;
  LIMIT
         $minindex,$step
 EOF;
+
 
 	unset($res);
 	list($res,$nb) = sqlquery($query,$link);
