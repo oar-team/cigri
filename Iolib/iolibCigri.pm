@@ -625,7 +625,7 @@ sub get_cluster_names_properties($){
               $resulHash{$ref[0]} = $ref[1];
 	      }
 	    else {
-              $resulHash{$ref[0]} = "true";
+              $resulHash{$ref[0]} = "1=1";
 	    }
         }
     }
@@ -736,11 +736,6 @@ sub set_cluster_node_free_weight($$$$){
     my $clusterName = shift;
     my $nodeName = shift;
     my $freeWeight = shift;
-    # Test if the node exists
-    if (is_node_exist($dbh, $clusterName, $nodeName) == 0){
-        # The node is created
-        add_node($dbh, $clusterName, $nodeName);
-    }
 
     if ($freeWeight > 0){
         my $sth = $dbh->prepare("UPDATE nodes SET nodeFreeWeight = $freeWeight
@@ -762,7 +757,7 @@ sub set_cluster_node_max_weight($$$$){
     my $nodeName = shift;
     my $maxWeight = shift;
     # Test if the node exists
-    if (is_node_exist($dbh, $clusterName, $nodeName) == 0){
+    if (is_node_exist($dbh, $clusterName, $nodeName) == 0 ){
         # The node is created
         add_node($dbh, $clusterName, $nodeName);
     }

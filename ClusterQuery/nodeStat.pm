@@ -108,8 +108,8 @@ sub oarnodes($$){
             if (defined($name) && defined($maxWeight) && defined($currentWeight) && defined($besteffort) && defined($state)){
                 if (($besteffort eq "YES") && (($state eq "job") || ($state eq "free"))){
                     # Databse update
-                    iolibCigri::set_cluster_node_free_weight($dbh, $cluster, $name, $maxWeight-$currentWeight);
                     iolibCigri::set_cluster_node_max_weight($dbh, $cluster, $name, $maxWeight);
+                    iolibCigri::set_cluster_node_free_weight($dbh, $cluster, $name, $maxWeight-$currentWeight);
                 }
             }else{
                 print("[UPDATOR] There is an error in the oarnodes command parse, node=$name;state=$state\n");
@@ -136,11 +136,15 @@ sub oarnodes2($$){
     my $cluster = shift;
     my %clusterResourceUnit = iolibCigri::get_cluster_names_resource_unit($dbh);
     my %clusterProperties = iolibCigri::get_cluster_names_properties($dbh);
+    my $filter_prop;
+    my $filter_val;
+    ($filter_prop,$filter_val)=split(/=/,$clusterProperties{$cluster});
+    if ("$filter_prop" eq "1") { $filter_prop="besteffort"; $filter_val="YES";}
     my $resourceUnit=$clusterResourceUnit{$cluster};
-    my $properties=$clusterProperties{$cluster};
     #print("$cluster --> OAR2, unit:$resourceUnit\n");
     my %nodeState;
-    #my $cmd="oarnodes -D --sql \"$properties\"";
+    #my $properties=$clusterProperties{$cluster};
+    #my $cmd="oarnodes -D --sql \"$properties\""; # Doesn't work - quotes problem Mysql/Pg :-(
     my $cmd="oarnodes -D";
    # my %cmdResult = SSHcmdClient::submitCmd($cluster,"oarnodes --backward");
     my %cmdDump = SSHcmdClient::submitCmd($cluster,$cmd);
@@ -158,7 +162,9 @@ sub oarnodes2($$){
 	       $resourceUnitId=$oarnodes->{$node}->{$resource}->{properties}->{$resourceUnit};
 	       # Count resources per cpu or core (yes, we can have several resources per core sometimes
 	       # on shared memory computers were we have several routers for example)
-               $totalWeight{$resourceUnitId}++ if ($oarnodes->{$node}->{$resource}->{properties}->{besteffort} eq "YES");
+               $totalWeight{$resourceUnitId}++ if ($oarnodes->{$node}->{$resource}->{properties}->{besteffort} eq "YES"
+	                                           &&
+						   $oarnodes->{$node}->{$resource}->{properties}->{$filter_prop} eq "$filter_val");
                $maxWeight{$resourceUnitId}++ if (
 	                                         (
 						  $oarnodes->{$node}->{$resource}->{state} eq "Alive"
@@ -177,6 +183,8 @@ sub oarnodes2($$){
 						 )
                                                    && 
 				                  $oarnodes->{$node}->{$resource}->{properties}->{besteffort} eq "YES"
+						   &&
+						  $oarnodes->{$node}->{$resource}->{properties}->{$filter_prop} eq "$filter_val"
 						);
                  foreach my $line (keys(%{$oarnodes->{$node}->{$resource}})) {
                      if ($line eq "jobs") { $jobs{$resourceUnitId}++; }
@@ -198,8 +206,10 @@ sub oarnodes2($$){
 	     $totalWeight++ if ($totalWeight{$resource});
 	   }
            # database update
-           iolibCigri::set_cluster_node_free_weight($dbh, $cluster, $node, $maxWeight-$jobs);
-           iolibCigri::set_cluster_node_max_weight($dbh, $cluster, $node, $totalWeight);
+	   if ($totalWeight > 0 ) {
+             iolibCigri::set_cluster_node_free_weight($dbh, $cluster, $node, $maxWeight-$jobs);
+             iolibCigri::set_cluster_node_max_weight($dbh, $cluster, $node, $totalWeight);
+	   }
            #print "$node: $maxWeight-$jobs\n";
         }
       }else{
