@@ -5,13 +5,14 @@
 # Job class
 #########################################################################
 class Job
-    attr_reader :jid, :mjobid, :state, :tsub, :tstart, :tstop, :param, :cluster, :batchid, :node, :cdate, :cstatus
-    attr_accessor :ctype, :cperiod, :user, :active
+    attr_reader :jid, :mjobid, :name, :state, :tsub, :tstart, :tstop, :param, :cluster, :batchid, :node, :cdate, :cstatus 
+    attr_accessor :ctype, :cperiod, :user, :localuser, :active, :batchtype, :execdir
 
     # Creation
-    def initialize(id,mjobid,state,tsub,tstart,tstop,param,cluster,batchid,node,cdate,cstatus)
+    def initialize(id,mjobid,name,state,tsub,tstart,tstop,param,cluster,batchid,node,cdate,cstatus)
         @jid=id
         @mjobid=mjobid
+        @name=name
         @state=state
         @tsub=tsub
         @tstart=tstart
@@ -54,13 +55,20 @@ end
 class JobSet
     attr_reader :jobs
 
-    def initialize(dbh,query)
+    def initialize(dbh,query,init=false)
         if query.empty? 
 	  raise "Cannot create a jobset without a request"
 	end
         @dbh=dbh
         @query=query
         @jobs=[]
+	if init
+          self.do
+	end
+    end
+
+    def each
+        @jobs.each {|j| yield(j)}
     end
 
     # Execute the query and update the jobs of the jobset
@@ -69,6 +77,7 @@ class JobSet
         sql_jobs.each do |sql_job|
              job=Job.new(sql_job['jobId'],\
                         sql_job['jobMJobsId'],\
+			sql_job['jobName'],\
                         sql_job['jobState'],\
                         to_unix_time(sql_job['jobTSub']),\
                         to_unix_time(sql_job['jobTStart']),\
@@ -79,9 +88,14 @@ class JobSet
                         sql_job['jobNodeName'],\
                         to_unix_time(sql_job['jobCheckpointDate']),\
                         sql_job['jobCheckpointStatus'])
-	     job.ctype=sql_job['propertiesCheckpointType'] if not sql_job['propertiesCheckpointType'].nil?
-	     job.cperiod=sql_job['propertiesCheckpointPeriod'] if not sql_job['propertiesCheckpointPeriod'].nil?
-	     job.user=sql_job['MJobsUser'] if not sql_job['MJobsUser'].nil?
+	     # Update extended attributes if the query gives the needed results
+	     # (else the accessor will be 'nil')
+	     job.ctype=sql_job['propertiesCheckpointType']
+	     job.cperiod=sql_job['propertiesCheckpointPeriod']
+	     job.user=sql_job['MJobsUser']
+	     job.batchtype=sql_job['clusterBatch']
+	     job.execdir=sql_job['propertiesExecDirectory']
+	     job.localuser=sql_job['userLogin']
             @jobs << job
 	end
     end
@@ -134,6 +148,7 @@ class JobSet
     def to_s
       @jobs.each { |j| sprintf j.to_s + "\n" }
     end
+
 end
 
 
@@ -322,4 +337,21 @@ def tocollect_MJobs(dbh)
     mjobs << MultipleJob.new(dbh,result['jobMJobsId'])
   end
   mjobs
+end
+
+# Get the jobs to collect
+# Returns a JobSet object
+def tocollect_Jobs(dbh)
+  JobSet.new(dbh,"SELECT jobId,jobClusterName,jobMJobsId,jobName,jobBatchId,
+                         MJobsUser,clusterBatch,propertiesExecDirectory,userLogin
+                  FROM jobs,multipleJobs,clusters,properties,users
+                  WHERE jobState = \"Terminated\" 
+                  AND jobCollectedJobId = 0
+		  AND jobMJobsId=mJobsId
+		  AND jobClusterName=clusterName
+		  AND propertiesMJobsId=jobMJobsId
+		  AND propertiesClusterName=clusterName
+		  AND userGridName=MJobsUser
+		  AND userClusterName=jobClusterName
+		  ORDER by jobMJobsId",true)
 end

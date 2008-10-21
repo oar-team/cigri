@@ -55,6 +55,7 @@ require 'time'
 require 'optparse'
 
 require 'cigriJobs'
+require 'cigriUtils'
 
 
 #########################################################################
