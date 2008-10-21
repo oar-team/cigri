@@ -48,7 +48,11 @@ require 'cigriUtils'
 # Connect to database
 dbh = base_connect("#{$cigri_db}:#{$host}",$login,$passwd)
 
-cluster=Cluster.new(dbh,"zephir.mirage.ujf-grenoble.fr")
-if cluster.active?(0)
+cluster=Cluster.new(dbh,"idpot.imag.fr")
+if cluster.active?
   puts "ACTIVE"
+end
+
+tocollect_MJobs(dbh).each do |mjob|
+  puts mjob
 end

@@ -209,3 +209,18 @@ def forecast_throughput(mjob,window)
     end
 end
 
+# Get the multiple jobs to collect
+# Returns an array of MultipleJob objects
+def tocollect_MJobs(dbh)
+  mjobs=[]
+  query="   SELECT jobMJobsId, COUNT( * )
+            FROM jobs
+            WHERE jobState = \"Terminated\"
+            AND jobCollectedJobId = 0
+            GROUP BY jobMJobsId
+        "
+  dbh.select_all(query).each do |result|
+    mjobs << MultipleJob.new(dbh,result['jobMJobsId'])
+  end
+  mjobs
+end
