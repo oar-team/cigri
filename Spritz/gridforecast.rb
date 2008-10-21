@@ -56,6 +56,7 @@ require 'yaml'
 require 'pp'
 
 require 'cigriJobs'
+require 'cigriUtils'
 
 
 #########################################################################

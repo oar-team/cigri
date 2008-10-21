@@ -270,41 +270,6 @@ end
 # Functions
 #########################################################################
 
-# Convert a MySQL date into a unix timestamp
-#
-def to_unix_time(time)
-    if time.nil?
-      return 0
-    else
-      year, month, day, hour, minute, sec = time.to_s.split(/ |:|-/)
-      unix_sec = Time.local(year, month, day, hour, minute, sec).to_i
-      return unix_sec
-    end
-end
-
-# Convert a time into number of seconds
-#
-def hmstos(hms)
-    h,m,s = hms.to_s.split(/:/)
-    return 3600*h.to_i + 60*m.to_i + s.to_i
-end
-
-# Convert a number of seconds into a duration in days, hours and minutes
-#
-def stodhm(s)
-    d = s/(24*3600)
-    s -= d * (24*3600)
-    h = s / 3600
-    m = (s- h * 3600) / 60
-    return "#{d} days #{h}:#{m}"
-end
-
-# Connect to the database
-#
-def base_connect(dbname_host,login,passwd)
-    return DBI.connect("dbi:Mysql:#{dbname_host}",login,passwd)
-end
-
 # Make a forecast based on the average job duration and number 
 # of currently running jobs. Returns a number of seconds
 def forecast_average(mjob)
@@ -326,7 +291,6 @@ def forecast_throughput(mjob,window)
     end
 end
 
-
 # Returns the running jobs that may be checkpointed (array of job objects)
 #
 def get_checkpointable_jobs(dbh)
@@ -344,3 +308,18 @@ def get_checkpointable_jobs(dbh)
     return jobset.jobs
 end
 
+# Get the multiple jobs to collect
+# Returns an array of MultipleJob objects
+def tocollect_MJobs(dbh)
+  mjobs=[]
+  query="   SELECT jobMJobsId, COUNT( * )
+            FROM jobs
+            WHERE jobState = \"Terminated\"
+            AND jobCollectedJobId = 0
+            GROUP BY jobMJobsId
+        "
+  dbh.select_all(query).each do |result|
+    mjobs << MultipleJob.new(dbh,result['jobMJobsId'])
+  end
+  mjobs
+end
