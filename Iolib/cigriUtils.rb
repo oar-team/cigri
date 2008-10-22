@@ -35,7 +35,7 @@ def stodhm(s)
   return "#{d} days #{h}:#{m}"
 end
 
-# Lock the collect table
+# Lock the collector
 #
 def lock_collector(dbh,time)
   dbh.select_all("SELECT GET_LOCK(\"cigriCollectorLock\",#{time})")

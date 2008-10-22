@@ -58,9 +58,19 @@ $tag="[COLLECTOR]   "
 def get_files(cluster,execdir,files,archive)
   archive_dir=File::dirname(archive)
   File::makedirs(archive_dir) unless File::directory?(archive_dir)
-  filenames=files.join(" ")
+  files=files.collect { |f| f="\"#{f}\"" }
+  find_cmd="find . -maxdepth 1 -name "+files.join(" -o -name ")
+  cmd="ssh #{cluster} 'cd #{execdir} && files=`#{find_cmd}`;test \"$files\" || exit 0 && tar cf - $files|gzip -c -; exit ${PIPESTATUS[0]}' > #{archive}.tgz"
   puts "#{$tag} #{archive}.tgz"
-  `ssh #{cluster} 'cd #{execdir};tar cf - #{filenames}|gzip -c -' > #{archive}.tgz`
+  if not system(cmd)
+    puts "#{$tag}ERROR collecting #{cluster}:"+files.join+" into #{archive}.tgz"
+    # TODO
+    # Add an event and blacklist the cluster
+  else 
+    # TODO
+    # - Remove the files on the cluster
+    # - Mark the job as collected into database
+  end
 end
 
 #########################################################################
@@ -97,8 +107,8 @@ tocollectJobs.each do |job|
     files << "#{job.name}"
   end
   if job.batchtype.to_s == "OAR2"
-    files << "`find . -name \"OAR*.#{job.batchid}.stderr\"`"
-    files << "`find . -name \"OAR*.#{job.batchid}.stdout\"`"
+    files << "OAR*.#{job.batchid}.stderr"
+    files << "OAR*.#{job.batchid}.stdout"
   else
     puts "#{$tag}Warning: #{job.batchtype} batch type files not collected"
   end
