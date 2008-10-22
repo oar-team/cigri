@@ -353,5 +353,5 @@ def tocollect_Jobs(dbh)
 		  AND propertiesClusterName=clusterName
 		  AND userGridName=MJobsUser
 		  AND userClusterName=jobClusterName
-		  ORDER by jobMJobsId",true)
+		  ORDER by jobMJobsId,jobClusterName",true)
 end
