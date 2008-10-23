@@ -15,56 +15,39 @@
 #        libyaml-ruby
 # ###################################################################################
 
-#####################################################################################
-#
-# CONFIGURATION
-#
-#####################################################################################
-
-# You can store the configuration on a separate file or comment out the configuration
-# variables below
+##################################################################################
+# CONFIGURATION AND INCLUDES LOADING
+##################################################################################
 if ENV['CIGRIDIR']
-then
-  load "#{ENV['CIGRIDIR']}/cigri_rb.conf"
+  require ENV['CIGRIDIR']+'/ConfLib/cigriConflib.rb'
 else
-  load "/etc/cigri_rb.conf"
+  require File.dirname($0)+'/../ConfLib/cigriConflib.rb'
 end
-
-# Database configuration
-#$cigri_db = 'cigri'
-#$host = 'localhost'
-#$login = 'root'
-#$passwd = ''
-
-# Size of the window in seconds on wich the job throughput is calculated
-# time_window_size = 3600
-
-# Verbosity (for debuging purpose)
-$verbose = false
-#$verbose = true
-
-#######################################################################################
-# Includes loading
-#######################################################################################
-
-$:.replace([$iolib_dir] | $:)
+$:.replace([get_conf("INSTALL_PATH")+"/Iolib/"] | $:)
 
 require 'dbi'
 require 'time'
 require 'optparse'
 require 'yaml'
 require 'pp'
-
 require 'cigriJobs'
 require 'cigriUtils'
 
+$verbose = false
+#$verbose = true
+
+if get_conf("TIME_WINDOW_SIZE")
+  $time_window_size=get_conf("TIME_WINDOW_SIZE").to_i
+else
+  $time_window_size=3600
+end
 
 #########################################################################
 # MAIN
 #########################################################################
 
 # Connect to database
-dbh = base_connect("#{$cigri_db}:#{$host}",$login,$passwd)
+dbh = db_init()
 
 # Check args
 if ARGV.empty?

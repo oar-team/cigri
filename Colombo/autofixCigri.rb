@@ -14,45 +14,32 @@
 #        ./autofixCheckSSH.pl (a wrapper using cigri perl libs)
 # ###################################################################################
 
-#####################################################################################
-#
-# CONFIGURATION
-#
-#####################################################################################
-
-# You can store the configuration on a separate file or comment out the configuration
-# variables below
+##################################################################################
+# CONFIGURATION AND INCLUDES LOADING
+##################################################################################
 if ENV['CIGRIDIR']
-then
-  load "#{ENV['CIGRIDIR']}/cigri_rb.conf"
+  require ENV['CIGRIDIR']+'/ConfLib/cigriConflib.rb'
 else
-  load "/etc/cigri_rb.conf"
+  require File.dirname($0)+'/../ConfLib/cigriConflib.rb'
 end
-
-# Database configuration
-#$cigri_db = 'cigri'
-#$host = 'localhost'
-#$login = 'root'
-#$passwd = ''
-
-# Verbosity (for debuging purpose)
-#$verbose = false
-$verbose = true
-
-$tag="[AUTOFIX]     "
-
-#######################################################################################
-# Includes loading
-#######################################################################################
-
-$:.replace([$iolib_dir] | $:)
+$:.replace([get_conf("INSTALL_PATH")+"/Iolib/"] | $:)
 
 require 'dbi'
 require 'time'
 require 'optparse'
-
 require 'cigriJobs'
 require 'cigriUtils'
+
+#$verbose = false
+$verbose = true
+
+if get_conf("AUTOFIX_DELAY")
+  $time_window_size=get_conf("AUTOFIX_DELAY").to_i
+else
+  $time_window_size=600
+end
+
+$tag="[AUTOFIX]     "
 
 
 #########################################################################
@@ -82,7 +69,7 @@ end
 #########################################################################
 
 # Connect to database
-dbh = base_connect("#{$cigri_db}:#{$host}",$login,$passwd)
+dbh = db_init()
 
 # Get SSH ToFIX events
 query = "SELECT eventId,unix_timestamp(eventDate) as date,eventAdminNote,eventClusterName FROM events 

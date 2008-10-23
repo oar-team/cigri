@@ -1,59 +1,40 @@
 #!/usr/bin/ruby -w
-# 
+# COLLECTOR FOR CIGRI
 
-#####################################################################################
-#
-# CONFIGURATION
-#
-#####################################################################################
-
-# You can store the configuration on a separate file or comment out the configuration
-# variables below
+##################################################################################
+# CONFIGURATION AND INCLUDES LOADING
+##################################################################################
 if ENV['CIGRIDIR']
-then
-  load "#{ENV['CIGRIDIR']}/cigri_rb.conf"
+  require ENV['CIGRIDIR']+'/ConfLib/cigriConflib.rb'
 else
-  load "/etc/cigri_rb.conf"
+  require File.dirname($0)+'/../ConfLib/cigriConflib.rb'
 end
-if not defined? $results_dir
-  $results_dir='/home/cigri/results'
-end
-
-# Database configuration
-#$cigri_db = 'cigri'
-#$host = 'localhost'
-#$login = 'root'
-#$passwd = ''
-
-# Size of the window in seconds on wich the job throughput is calculated
-# time_window_size = 3600
-
-# Verbosity (for debuging purpose)
-#$verbose = false
-$verbose = true
-
-#######################################################################################
-# Includes loading
-#######################################################################################
-
-$:.replace([$iolib_dir] | $:)
+$:.replace([get_conf("INSTALL_PATH")+"/Iolib/"] | $:)
 
 require 'dbi'
 require 'time'
-#require 'optparse'
-#require 'yaml'
-#require 'pp'
 require 'fileutils'
 require 'ftools'
-
 require 'cigriJobs'
-#require 'cigriClusters'
 require 'cigriUtils'
 
+#$verbose = false
+$verbose = true
 $tag="[COLLECTOR]   "
 
+if get_conf("RESULTS_DIR")
+  $results_dir=get_conf("RESULTS_DIR")
+else
+  $results_dir="/home/cigri/results/"
+end
+
+if not File.directory?($results_dir)
+  puts $tag+"Results directory "+$results_dir+" not found!"
+  exit 1
+end
+
 #########################################################################
-# FUNTCIONS
+# FUNCTIONS
 #########################################################################
 def get_files(cluster,execdir,files,archive)
   archive_dir=File::dirname(archive)
@@ -78,7 +59,7 @@ end
 #########################################################################
 
 # Connect to database
-dbh = base_connect("#{$cigri_db}:#{$host}",$login,$passwd)
+dbh = db_init()
 
 # Lock
 trap(0) { unlock_collector(dbh)

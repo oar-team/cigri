@@ -16,46 +16,26 @@
 #
 # ###################################################################################
 
-#####################################################################################
-#
-# CONFIGURATION
-#
-#####################################################################################
-
-# You can store the configuration on a separate file or comment out the configuration
-# variables below
+##################################################################################
+# CONFIGURATION AND INCLUDES LOADING
+##################################################################################
 if ENV['CIGRIDIR']
-then
-  load "#{ENV['CIGRIDIR']}/cigri_rb.conf"
+  require ENV['CIGRIDIR']+'/ConfLib/cigriConflib.rb'
 else
-  load "/etc/cigri_rb.conf"
+  require File.dirname($0)+'/../ConfLib/cigriConflib.rb'
 end
-
-# Database configuration
-#$cigri_db = 'cigri'
-#$host = 'localhost'
-#$login = 'root'
-#$passwd = ''
-
-# Verbosity (for debuging purpose)
-#$verbose = false
-$verbose = true
-
-$tag="[PHOENIX]     "
-$checkpoint_cmd=File.dirname($0)+"/../ClusterQuery/jobCheckpoint.pl"
-
-#######################################################################################
-# Includes loading
-#######################################################################################
-
-$:.replace([$iolib_dir] | $:)
+$:.replace([get_conf("INSTALL_PATH")+"/Iolib/"] | $:)
 
 require 'dbi'
 require 'time'
 require 'optparse'
-
 require 'cigriJobs'
 require 'cigriUtils'
+
+#$verbose = false
+$verbose = true
+$tag="[PHOENIX]     "
+$checkpoint_cmd=File.dirname($0)+"/../ClusterQuery/jobCheckpoint.pl"
 
 
 #########################################################################
@@ -68,7 +48,7 @@ require 'cigriUtils'
 #########################################################################
 
 # Connect to database
-dbh = base_connect("#{$cigri_db}:#{$host}",$login,$passwd)
+dbh = db_init()
 
 # For each checkpointable job
 puts "#{$tag}Checking if there are jobs to checkpoint" if $verbose

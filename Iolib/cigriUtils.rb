@@ -2,8 +2,15 @@
 
 # Connect to the database
 #
-def base_connect(dbname_host,login,passwd)
-  return DBI.connect("dbi:Mysql:#{dbname_host}",login,passwd)
+def base_connect(host,dbname,login,passwd)
+  return DBI.connect("dbi:Mysql:#{dbname}:#{host}",login,passwd)
+end
+
+def db_init()
+  return base_connect(get_conf("DATABASE_HOST"),
+                      get_conf("DATABASE_NAME"),
+		      get_conf("DATABASE_USER_NAME"),
+		      get_conf("DATABASE_USER_PASSWORD"))
 end
 
 # Convert a MySQL date into a unix timestamp
