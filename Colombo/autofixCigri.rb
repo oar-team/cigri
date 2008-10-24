@@ -18,9 +18,9 @@
 # CONFIGURATION AND INCLUDES LOADING
 ##################################################################################
 if ENV['CIGRIDIR']
-  require ENV['CIGRIDIR']+'/ConfLib/cigriConflib.rb'
+  require ENV['CIGRIDIR']+'/ConfLib/conflibCigri.rb'
 else
-  require File.dirname($0)+'/../ConfLib/cigriConflib.rb'
+  require File.dirname($0)+'/../ConfLib/conflibCigri.rb'
 end
 $:.replace([get_conf("INSTALL_PATH")+"/Iolib/"] | $:)
 

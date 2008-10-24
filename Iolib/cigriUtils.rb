@@ -61,5 +61,12 @@ def new_collect_id(dbh,mjobid)
   result=dbh.select_all(query)
   result[0]['id'].to_i+1
 end
-  
+
+# Send an external command and get stdout, stderr and exitstatus
+# (requires Open4)
+def shell_cmd(cmd)
+  pid, stdin, stdout, stderr = Open4.popen4(cmd)
+  ignored, status = Process::waitpid2 pid
+  [stdout.read.strip,stderr.read.strip,status.exitstatus]
+end
 
