@@ -361,3 +361,8 @@ def tocollect_Jobs(dbh)
 		  AND userClusterName=jobClusterName
 		  ORDER by jobMJobsId,jobClusterName",true)
 end
+
+def set_collected_job(dbh,jobid,collectid)
+  query="UPDATE jobs SET jobCollectedJobId = #{collectid} where jobId = #{jobid}"
+  dbh.execute(query)
+end

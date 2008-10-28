@@ -21,6 +21,7 @@ require 'ftools'
 require 'open4'
 require 'cigriJobs'
 require 'cigriUtils'
+require 'cigriEvents'
 
 #$verbose = false
 $verbose = true
@@ -65,7 +66,7 @@ def get_files(cluster,execdir,files,archive)
   puts "#{$tag} #{archive}.tgz"
   # Send the command
   stdout,stderr,status=shell_cmd(cmd)
-  # Check the status
+  # Check the status and create events if necessary
   if status != 0
     if status  == 100
       puts "#{$tag}  Warning: could not go into #{execdir} "
@@ -73,18 +74,27 @@ def get_files(cluster,execdir,files,archive)
       puts "#{$tag}  Warning: "+files.join(',')+" not found"
     elsif status  == 102
       puts "#{$tag}  ERROR with tar: "+stderr
-      # TODO: Add an event and blacklist the cluster
+      add_new_cluster_event($dbh,cluster,0,"COLLECTOR","ERROR with tar: "+stderr)
       return false
     else
       puts "#{$tag}  Unknown ERROR collecting "+files.join(',')+": "+stderr
-      # TODO: Add an event and blacklist the cluster
+      add_new_cluster_event($dbh,cluster,0,"COLLECTOR","Unknown ERROR collecting "+files.join(',')+": "+stderr)
       return false
     end
-  else 
-    # TODO
-    # - Remove the files on the cluster
-    # - Mark the job as collected into database
   end
+  return true
+end
+
+# Remove the files from a remote cluster
+def remove_files(cluster,execdir,files,user)
+  files=files.collect { |f| f="#{execdir}/#{f}" }
+  cmd="#{$ssh_cmd} #{cluster} 'sudo -u #{user} rm -f "+files.join(" ")+"'"
+  #puts "#{$tag}   Removing "+files.join(" ") if $verbose
+  stdout,stderr,status=shell_cmd(cmd)
+  if status != 0
+    puts "#{$tag}  Warning: error while removing files: "+stderr
+  end
+  # maybe we should do more error checking here...
   return true
 end
 
@@ -92,24 +102,24 @@ end
 # MAIN
 #########################################################################
 
+puts "#{$tag}Starting" if $verbose
+
 # Connect to database
-dbh = db_init()
+$dbh = db_init()
 
 # Lock
-trap(0) { unlock_collector(dbh)
-          puts "#{$tag}Unlocking collector" if $verbose }
-lock_collector(dbh,43200)
-
-#cluster=Cluster.new(dbh,"zephir.mirage.ujf-grenoble.fr")
-#if cluster.active?(415)
-#  puts "ACTIVE"
-#end
+trap(0) { 
+  puts "#{$tag}Unlocking collector" if $verbose 
+  unlock_collector($dbh)
+  puts "#{$tag}Ending" if $verbose
+}
+lock_collector($dbh,43200)
 
 collect_id={}
 clusters={}
 
 # Get the jobs to collect
-tocollectJobs=tocollect_Jobs(dbh)
+tocollectJobs=tocollect_Jobs($dbh)
 tocollectJobs.remove_blacklisted
 
 # For each job to collect
@@ -117,7 +127,7 @@ tocollectJobs.each do |job|
   files=[]
   # For a Mjob, create a new collect id
   if collect_id[job.mjobid].to_i == 0
-    collect_id[job.mjobid]=new_collect_id(dbh,job.mjobid)
+    collect_id[job.mjobid]=new_collect_id($dbh,job.mjobid)
     puts "#{$tag}Collecting #{job.mjobid} - # #{collect_id[job.mjobid]}"
   end
   # Construct the archive directory name
@@ -138,17 +148,23 @@ tocollectJobs.each do |job|
   # On the first job of a cluster, check ssh connexion
   if clusters[job.cluster].nil?
     if not check_ssh(job.cluster)
-      # TODO: blacklist the cluster for a SSH problem
+      # Blacklisting of the cluster because of a SSH problem
+      add_new_cluster_event($dbh,cluster,0,"SSH","SSH event from the collector")
       clusters[job.cluster]="blacklisted"
     else
       clusters[job.cluster]="ok"
     end
   end
-  # Get the files if the cluster has not been blacklisted
+  # If the cluster has not been blacklisted...
   if clusters[job.cluster] == "ok"
+    # get the files
     if not get_files(job.cluster,job.execdir,files,repository)
       clusters[job.cluster] = "blacklisted"
       puts "#{$tag}Cluster #{job.cluster} is blacklisted" if $verbose
+    # delete the files from the cluster
+    elsif remove_files(job.cluster,job.execdir,files,job.user)
+      # Mark the job as collected
+      set_collected_job($dbh,job.jid,collect_id[job.mjobid])
     end
   end
 end
