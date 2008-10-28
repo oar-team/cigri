@@ -19,19 +19,8 @@ class Job
           @jid=0
         # Else, we initialize with the provided values
         when 13
-          @jid=args[0]
-          @mjobid=args[1]
-          @name=args[2]
-          @state=args[3]
-          @tsub=args[4]
-          @tstart=args[5]
-          @tstop=args[6]
-	  @param=args[7]
-	  @cluster=args[8]
-	  @batchid=args[9]
-	  @node=args[10]
-	  @cdate=args[11]
-	  @cstatus=args[12]
+	  (@jid,@mjobid,@name,@state,@tsub,@tstart,@tstop,@param,\
+	   @cluster,@batchid,@node,@cdate,@cstatus)=args
         else
           raise("Wrong number of arguments for initialize")
         end
