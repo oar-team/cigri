@@ -9,20 +9,57 @@ class Job
     attr_accessor :ctype, :cperiod, :user, :localuser, :active, :batchtype, :execdir
 
     # Creation
-    def initialize(id,mjobid,name,state,tsub,tstart,tstop,param,cluster,batchid,node,cdate,cstatus)
-        @jid=id
-        @mjobid=mjobid
-        @name=name
-        @state=state
-        @tsub=tsub
-        @tstart=tstart
-        @tstop=tstop
-	@param=param
-	@cluster=cluster
-	@batchid=batchid
-	@node=node
-	@cdate=cdate
-	@cstatus=cstatus
+    def initialize(*args)
+        case args.length
+        # If only one argument, then it is the result of an sql query
+        when 1
+          fill(args[0])
+        # If no argument, an empty object with id 0 is created
+        when 0
+          @jid=0
+        # Else, we initialize with the provided values
+        when 13
+          @jid=args[0]
+          @mjobid=args[1]
+          @name=args[2]
+          @state=args[3]
+          @tsub=args[4]
+          @tstart=args[5]
+          @tstop=args[6]
+	  @param=args[7]
+	  @cluster=args[8]
+	  @batchid=args[9]
+	  @node=args[10]
+	  @cdate=args[11]
+	  @cstatus=args[12]
+        else
+          raise("Wrong number of arguments for initialize")
+        end
+    end
+
+    # Fill the attributes with the provided result of an sql query
+    def fill(sql_job)
+        initialize(sql_job['jobId'],\
+                   sql_job['jobMJobsId'],\
+                   sql_job['jobName'],\
+                   sql_job['jobState'],\
+                   to_unix_time(sql_job['jobTSub']),\
+                   to_unix_time(sql_job['jobTStart']),\
+                   to_unix_time(sql_job['jobTStop']),\
+                   sql_job['jobParam'],\
+                   sql_job['jobClusterName'],\
+                   sql_job['jobBatchId'],\
+                   sql_job['jobNodeName'],\
+                   to_unix_time(sql_job['jobCheckpointDate']),\
+                   sql_job['jobCheckpointStatus'])
+        # Update extended attributes if the query gives the needed results
+        # (else the accessor will be 'nil')
+        @ctype=sql_job['propertiesCheckpointType']
+        @cperiod=sql_job['propertiesCheckpointPeriod']
+        @user=sql_job['MJobsUser']
+        @batchtype=sql_job['clusterBatch']
+        @execdir=sql_job['propertiesExecDirectory']
+        @localuser=sql_job['userLogin']
     end
 
     # Printing
@@ -71,31 +108,11 @@ class JobSet
         @jobs.each {|j| yield(j)}
     end
 
-    # Execute the query and update the jobs of the jobset
+    # Execute the query and create the jobs of the jobset
     def do
         sql_jobs=@dbh.select_all(@query)
         sql_jobs.each do |sql_job|
-             job=Job.new(sql_job['jobId'],\
-                        sql_job['jobMJobsId'],\
-			sql_job['jobName'],\
-                        sql_job['jobState'],\
-                        to_unix_time(sql_job['jobTSub']),\
-                        to_unix_time(sql_job['jobTStart']),\
-                        to_unix_time(sql_job['jobTStop']),\
-                        sql_job['jobParam'],\
-                        sql_job['jobClusterName'],\
-                        sql_job['jobBatchId'],\
-                        sql_job['jobNodeName'],\
-                        to_unix_time(sql_job['jobCheckpointDate']),\
-                        sql_job['jobCheckpointStatus'])
-	     # Update extended attributes if the query gives the needed results
-	     # (else the accessor will be 'nil')
-	     job.ctype=sql_job['propertiesCheckpointType']
-	     job.cperiod=sql_job['propertiesCheckpointPeriod']
-	     job.user=sql_job['MJobsUser']
-	     job.batchtype=sql_job['clusterBatch']
-	     job.execdir=sql_job['propertiesExecDirectory']
-	     job.localuser=sql_job['userLogin']
+            job=Job.new(sql_job)
             @jobs << job
 	end
     end
