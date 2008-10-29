@@ -106,7 +106,7 @@ foreach my $i (keys(%jobRunningHash)){
 
 			}else{
                           iolibCigri::set_job_state($base, ${$j}{jobId}, "Event");
-                          colomboCigri::add_new_job_event($base,${$j}{jobId},"UPDATOR_RET_CODE_ERROR","Executable exited with error code $fileVars{RET_CODE}; $cmdResult{STDERR}\nCheck OAR.${$j}{batchJobId}.stderr on ${$j}{clusterName} for more infos");
+                          colomboCigri::add_new_job_event($base,${$j}{jobId},"UPDATOR_RET_CODE_ERROR","Executable exited with error code $fileVars{RET_CODE}; $cmdResult{STDERR}\nCheck OAR.${$j}{jobName}.${$j}{batchJobId}.stderr on ${$j}{clusterName} for more infos");
                           #exit(66);
 			}
                     }

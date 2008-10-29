@@ -1034,7 +1034,7 @@ sub set_job_batch_id($$$){
 # return a hashtable of array refs : ${${$resul{pawnee}}[0]}{batchJobId} --> give the first batchId for the cluster pawnee
 sub get_job_to_update_state($){
     my $dbh = shift;
-    my $sth = $dbh->prepare("SELECT jobBatchId,jobClusterName,jobId,userLogin,MJobsId,propertiesExecDirectory,jobState,unix_timestamp(jobTSub)
+    my $sth = $dbh->prepare("SELECT jobBatchId,jobClusterName,jobId,userLogin,MJobsId,propertiesExecDirectory,jobState,unix_timestamp(jobTSub),jobName
                              FROM jobs,multipleJobs,users,properties
                              WHERE (jobState = \"Running\" or jobState = \"RemoteWaiting\")
                                 and MJobsId = jobMJobsId
@@ -1056,7 +1056,8 @@ sub get_job_to_update_state($){
                     "user" => $ref[3],
                     "execDir" => $ref[5],
 		    "jobState" => $ref[6],
-		    "jobTSub" => $ref[7]
+		    "jobTSub" => $ref[7],
+		    "jobName" => $ref[8]
             };
             push(@{$resul{$ref[1]}},$tmp);
         }
