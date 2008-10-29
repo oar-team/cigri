@@ -59,13 +59,18 @@ end
 def new_collect_id(dbh,mjobid)
   query = "SELECT MAX(collectedJobsId) as id FROM collectedJobs WHERE collectedJobsMJobsId = #{mjobid}"
   result=dbh.select_all(query)
-  result[0]['id'].to_i+1
+  id=result[0]['id'].to_i+1
+  query = "INSERT INTO collectedJobs (collectedJobsMJobsId,collectedJobsId,collectedJobsFileName)
+           VALUES ('#{mjobid}','#{id}','')"
+  result=dbh.execute(query)
+  id
 end
 
 # Send an external command and get stdout, stderr and exitstatus
 # (requires Open4)
 def shell_cmd(cmd)
   pid, stdin, stdout, stderr = Open4.popen4(cmd)
+  stdin.close
   ignored, status = Process::waitpid2 pid
   [stdout.read.strip,stderr.read.strip,status.exitstatus]
 end
