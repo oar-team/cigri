@@ -5,25 +5,55 @@
 # Job class
 #########################################################################
 class Job
-    attr_reader :jid, :mjobid, :state, :tsub, :tstart, :tstop, :param, :cluster, :batchid, :node
+    attr_reader :jid, :mjobid, :name, :state, :tsub, :tstart, :tstop, :param, :cluster, :batchid, :node, :cdate, :cstatus 
+    attr_accessor :ctype, :cperiod, :user, :localuser, :active, :batchtype, :execdir
 
     # Creation
-    def initialize(id,mjobid,state,tsub,tstart,tstop,param,cluster,batchid,node)
-        @jid=id
-        @mjobid=mjobid
-        @state=state
-        @tsub=tsub
-        @tstart=tstart
-        @tstop=tstop
-	@param=param
-	@cluster=cluster
-	@batchid=batchid
-	@node=node
+    def initialize(*args)
+        case args.length
+        # If only one argument, then it is the result of an sql query
+        when 1
+          fill(args[0])
+        # If no argument, an empty object with id 0 is created
+        when 0
+          @jid=0
+        # Else, we initialize with the provided values
+        when 13
+	  (@jid,@mjobid,@name,@state,@tsub,@tstart,@tstop,@param,\
+	   @cluster,@batchid,@node,@cdate,@cstatus)=args
+        else
+          raise("Wrong number of arguments for initialize")
+        end
+    end
+
+    # Fill the attributes with the provided result of an sql query
+    def fill(sql_job)
+        initialize(sql_job['jobId'],\
+                   sql_job['jobMJobsId'],\
+                   sql_job['jobName'],\
+                   sql_job['jobState'],\
+                   to_unix_time(sql_job['jobTSub']),\
+                   to_unix_time(sql_job['jobTStart']),\
+                   to_unix_time(sql_job['jobTStop']),\
+                   sql_job['jobParam'],\
+                   sql_job['jobClusterName'],\
+                   sql_job['jobBatchId'],\
+                   sql_job['jobNodeName'],\
+                   to_unix_time(sql_job['jobCheckpointDate']),\
+                   sql_job['jobCheckpointStatus'])
+        # Update extended attributes if the query gives the needed results
+        # (else the accessor will be 'nil')
+        @ctype=sql_job['propertiesCheckpointType']
+        @cperiod=sql_job['propertiesCheckpointPeriod']
+        @user=sql_job['MJobsUser']
+        @batchtype=sql_job['clusterBatch']
+        @execdir=sql_job['propertiesExecDirectory']
+        @localuser=sql_job['userLogin']
     end
 
     # Printing
     def to_s
-        sprintf "Job #{@jid}:#{@state},#{@tsub},#{@tstart},#{@tstop}"
+        sprintf "Job #{@jid}: #{@mjobid},#{@cluster},#{@state},#{@tsub},#{@tstart},#{@tstop},#{@user},#{@batchid},#{@active}"
     end
 
     # Calculate the job duration (from submission to end or now)
@@ -34,21 +64,112 @@ class Job
             return Time.now.to_i - tstart
         end
      end
+
+     # Sets the checkpoint date of the job
+     def update_checkpoint_date(dbh,unix_timestamp)
+         @cdate=unix_timestamp
+         query="UPDATE jobs set jobCheckpointDate=FROM_UNIXTIME(#{@cdate}) WHERE jobId=#{@jid}"
+         dbh.do(query)
+     end
+
 end
+
+#########################################################################
+## JobSet class
+# A JobSet is a set of jobs resulting of an SQL query on the jobs table
+#########################################################################
+class JobSet
+    attr_reader :jobs
+
+    def initialize(dbh,query,init=false)
+        if query.empty? 
+	  raise "Cannot create a jobset without a request"
+	end
+        @dbh=dbh
+        @query=query
+        @jobs=[]
+	if init
+          self.do
+	end
+    end
+
+    def each
+        @jobs.each {|j| yield(j)}
+    end
+
+    # Execute the query and create the jobs of the jobset
+    def do
+        sql_jobs=@dbh.select_all(@query)
+        sql_jobs.each do |sql_job|
+            job=Job.new(sql_job)
+            @jobs << job
+	end
+    end
+
+    # Update the "active" attribute for all the jobs in this JobSet
+    # (SQL optimized) 
+    def update_active
+      # Firstly, we initialize a hash of hashes to get (mjobid,clusters) couples
+      # This will prevent from doing the same request several times 
+      active={}
+      @jobs.each do |job|
+        active[job.mjobid] ={} if active[job.mjobid].nil?
+        active[job.mjobid][job.cluster]=0
+      end
+      # Then, we update the hash with the status of the clusters from the database
+      active.each do |mjobid,clusters|
+        clusters.each_key do |cluster|
+	  query="SELECT count( * ) as n\
+              FROM clusterBlackList, events \
+	      WHERE clusterBlackListEventId = eventId \
+	      AND eventState = \"ToFIX\" \
+	      AND clusterBlackListClusterName = \"#{cluster}\" \
+	      AND (clusterBlackListMJobsID = #{mjobid} \
+	      OR clusterBlackListMJobsID = 0)"
+	  if @dbh.select_all(query)[0]['n'].to_i == 0
+	    active[mjobid][cluster]=1
+	  else
+	    active[mjobid][cluster]=0
+	  end
+	end
+      end
+      # Finaly, we update the "active" field of each job
+      @jobs.each do |job|
+        job.active=active[job.mjobid][job.cluster]
+      end
+    end
+
+    # Filter the jobs by removing those on a blacklisted cluster
+    # (This has to be a Colombo feature)
+    def remove_blacklisted
+      update_active
+      newjobs=[]
+      @jobs.each do |job|
+        newjobs << job if job.active == 1
+      end
+      @jobs=newjobs
+    end
+
+    # Printing (mainly used for debug)
+    def to_s
+      @jobs.each { |j| sprintf j.to_s + "\n" }
+    end
+
+end
+
 
 #########################################################################
 # MultipleJob class
 #########################################################################
-class MultipleJob
+class MultipleJob < JobSet
     attr_reader :mjobid, :jobs, :last_terminated_date, :status, :n_running, :n_terminated
 
     # Creation
-    # Yes, this constructor is a bit big, but it is for optimum performance
-    #  (not too much sql requests or array parsing)
     def initialize(dbh,id)
+        super(dbh,"SELECT * FROM jobs WHERE jobMJobsId=#{id}")
+	self.do
         @dbh=dbh
         @mjobid=id
-        @jobs=[]
         @durations=[]
         @last_terminated_date=0
         @first_submited_date=0
@@ -72,26 +193,8 @@ class MultipleJob
 		   AND eventState = \"ToFIX\" AND clusterBlackListMJobsID = #{mjobid};"
         bl_clusters=dbh.select_all(query)
 
-        # SQL query to get the jobs
-        query = "SELECT jobId,jobMJobsId,jobState,jobTSub,jobTStart,jobTStop,jobParam,jobClusterName,jobBatchid,jobNodeName \
-	         FROM jobs \
-                 WHERE jobMJobsId=#{mjobid}"
-        sql_jobs=dbh.select_all(query)
-
-        # Job objects creation and parsing
-        sql_jobs.each do |sql_job|
-            job=Job.new(sql_job['jobId'],\
-                        id,\
-                        sql_job['jobState'],\
-                        to_unix_time(sql_job['jobTSub']),\
-                        to_unix_time(sql_job['jobTStart']),\
-                        to_unix_time(sql_job['jobTStop']),\
-                        sql_job['jobParam'],\
-                        sql_job['jobClusterName'],\
-                        sql_job['jobBatchid'],\
-                        sql_job['jobNodeName'])
-            @jobs << job
-
+        # Job parsing to get some statistics
+        @jobs.each do |job|
             case job.state
                 when  'Terminated'
                     # Get the date of the last terminated job and the number of terminated jobs
@@ -105,7 +208,7 @@ class MultipleJob
                     # Get the number of running jobs
 		    bl=1
 		    bl_clusters.each do |bl_cluster|
-		      if bl_cluster['clusterBlackListClusterName'] == sql_job['jobClusterName']
+		      if bl_cluster['clusterBlackListClusterName'] == job.cluster
 		        bl=nil
 	              end
 		    end
@@ -137,7 +240,7 @@ class MultipleJob
         return @n_terminated.to_f/duration.to_f if @status == 'TERMINATED'
         n=0
         first_submited_date = Time.now.to_i
-        jobs.each do |job|
+        @jobs.each do |job|
             if job.state == 'Terminated' && job.tsub > (Time.now - time_window_size).to_i
                 n+=1
                 first_submited_date = job.tsub if job.tsub < first_submited_date
@@ -209,6 +312,23 @@ def forecast_throughput(mjob,window)
     end
 end
 
+# Returns the running jobs that may be checkpointed (array of job objects)
+#
+def get_checkpointable_jobs(dbh)
+    query="SELECT * FROM jobs,properties,multipleJobs \
+       WHERE jobState='Running' \
+       AND jobs.jobMJobsId=properties.propertiesMJobsId
+       AND jobs.jobMJobsId=multipleJobs.MJobsId
+       AND propertiesCheckpointType is not null
+       AND not propertiesCheckpointType = ''
+       ORDER BY jobClusterName"
+    jobset=JobSet.new(dbh,query)
+    jobset.do
+    # Filter with blacklisted clusters
+    jobset.remove_blacklisted
+    return jobset.jobs
+end
+
 # Get the multiple jobs to collect
 # Returns an array of MultipleJob objects
 def tocollect_MJobs(dbh)
@@ -223,4 +343,26 @@ def tocollect_MJobs(dbh)
     mjobs << MultipleJob.new(dbh,result['jobMJobsId'])
   end
   mjobs
+end
+
+# Get the jobs to collect
+# Returns a JobSet object
+def tocollect_Jobs(dbh)
+  JobSet.new(dbh,"SELECT jobId,jobClusterName,jobMJobsId,jobName,jobBatchId,
+                         MJobsUser,clusterBatch,propertiesExecDirectory,userLogin
+                  FROM jobs,multipleJobs,clusters,properties,users
+                  WHERE jobState = \"Terminated\" 
+                  AND jobCollectedJobId = 0
+		  AND jobMJobsId=mJobsId
+		  AND jobClusterName=clusterName
+		  AND propertiesMJobsId=jobMJobsId
+		  AND propertiesClusterName=clusterName
+		  AND userGridName=MJobsUser
+		  AND userClusterName=jobClusterName
+		  ORDER by jobMJobsId,jobClusterName",true)
+end
+
+def set_collected_job(dbh,jobid,collectid)
+  query="UPDATE jobs SET jobCollectedJobId = #{collectid} where jobId = #{jobid}"
+  dbh.execute(query)
 end
