@@ -12,32 +12,25 @@
 #        libyaml-ruby
 # ###################################################################################
 
-#####################################################################################
-#
-# CONFIGURATION
-#
-#####################################################################################
+##################################################################################
+# CONFIGURATION AND INCLUDES LOADING
+##################################################################################
+if ENV['CIGRIDIR']
+  require ENV['CIGRIDIR']+'/ConfLib/conflibCigri.rb'
+else
+  require File.dirname($0)+'/../ConfLib/conflibCigri.rb'
+end
+$:.replace([get_conf("INSTALL_PATH")+"/Iolib/"] | $:)
 
-# You can store the configuration on a separate file or comment out the configuration
-# variables below
-load "/etc/cigri_rb.conf"
-
-# Database configuration
-#$cigri_db = 'cigri'
-#$host = 'localhost'
-#$login = 'root'
-#$passwd = ''
-
-# Verbosity (for debuging purpose)
 $verbose = false
-
-#######################################################################################
 
 require 'dbi'
 require 'time'
 require 'optparse'
 require 'yaml'
 require 'pp'
+require 'cigriUtils'
+
 
 #########################################################################
 # Cluster class
@@ -135,14 +128,8 @@ end
 # Main
 #########################################################################
 
-
-# Connect to the database
-#
-def base_connect(dbname_host,login,passwd)
-    return DBI.connect("dbi:Mysql:#{dbname_host}",login,passwd)
-end
-
-dbh = base_connect("#{$cigri_db}:#{$host}",$login,$passwd)
+# Connect to database
+dbh = db_init()
 
 # Select all the clusters
 query = "SELECT * from clusters"
