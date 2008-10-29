@@ -13,14 +13,14 @@ REQUIREMENTS
     - mysql-server
     - mysql-client
 
-    - phpmyadmin
-
-And for the forecaster to work (Spritz):
     - libyaml-perl
     - ruby1.8 (or greater)
     - libdbi-ruby
     - libdbd-mysql-ruby or libdbd-pg-ruby
     - libyaml-ruby
+    - libopen4-ruby
+
+    - Optional: phpmyadmin
 
 CONFIGURATION
 =============
