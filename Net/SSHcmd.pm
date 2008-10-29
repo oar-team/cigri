@@ -246,6 +246,7 @@ sub checkControlmaster($){
     if (system("$SSH_CMD -O check $clusterName >/dev/null 2>&1")) {
       print "[SSH]         Starting a control master to $clusterName\n";
       system("$SSH_CMD -f -M $clusterName sleep $SSH_CONTROL_MASTER_KEEPALIVE &");
+      sleep(5);
     }
 }
 
