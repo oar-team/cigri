@@ -836,7 +836,7 @@ sub get_MJobs_JDL($$){
 sub get_launching_job($$) {
     my $dbh = shift;
     my $clusterName = shift;
-    my $sth = $dbh->prepare("SELECT jobId,jobParam,propertiesJobCmd,jobClusterName,clusterBatch,userLogin,MJobsId,propertiesJobWalltime,propertiesJobWeight,propertiesExecDirectory
+    my $sth = $dbh->prepare("SELECT jobId,jobParam,propertiesJobCmd,jobClusterName,clusterBatch,userLogin,MJobsId,propertiesJobWalltime,propertiesJobWeight,propertiesExecDirectory,jobName
                              FROM jobs,clusters,multipleJobs,properties,users
                              WHERE jobState=\"toLaunch\"
                                  AND clusterName = \"$clusterName\"
@@ -863,7 +863,8 @@ sub get_launching_job($$) {
         'mjobid'        => $ref[6],
         'walltime'      => $ref[7],
         'weight'        => $ref[8],
-        'execDir'       => $ref[9]
+        'execDir'       => $ref[9],
+	'name' 		=> $ref[10]
     );
 
     return %result;
