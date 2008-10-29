@@ -1,7 +1,0 @@
-Nicolas... si tu dois reprendre des choses, celles qui me viennent à l'idée sont:
- - dans la partie changer priorité projet/page_securise/page_jobs/jobs_en_cours/supprimer_changer_param.php
- il faut refaire la requete (y a marqué "a faire") pour avoir la priorité associée au parametre dabs tab_prio qui est mis a 10 provisoirement
- - dans la partie statistiques des clusters il est prevu de changer l'intervalle mais pas de cluster (a faire dans projet/stats/tpl/templates/stat_clusters.tpl)
- et un graphique provisoire s'affiche, il faut encore faire les requete pour remplir le tableau $datay en fonction des valeurs rentrées dans l'url (pour le mmoment y a que intervalle ( a savoir... dans tpl ya marqué intervalle mais ds graph.php cette meme variable prend un $ = $intervalle)
-  - dans mon compte les statistique sont tous a faire
-  - dans info generales remplir les blancs .. dans le tpl
