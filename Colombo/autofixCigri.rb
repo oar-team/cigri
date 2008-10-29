@@ -34,9 +34,9 @@ require 'cigriUtils'
 $verbose = true
 
 if get_conf("AUTOFIX_DELAY")
-  $time_window_size=get_conf("AUTOFIX_DELAY").to_i
+  $autofix_delay=get_conf("AUTOFIX_DELAY").to_i
 else
-  $time_window_size=600
+  $autofix_delay=600
 end
 
 $tag="[AUTOFIX]     "

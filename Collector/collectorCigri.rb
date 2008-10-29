@@ -88,7 +88,10 @@ end
 # Remove the files from a remote cluster
 def remove_files(cluster,execdir,files,user)
   files=files.collect { |f| f="#{execdir}/#{f}" }
-  cmd="#{$ssh_cmd} #{cluster} 'sudo -u #{user} rm -f "+files.join(" ")+"'"
+  if files.empty? || execdir == ""
+    return false
+  end
+  cmd="#{$ssh_cmd} #{cluster} 'sudo -u #{user} rm -rf "+files.join(" ")+"'"
   #puts "#{$tag}   Removing "+files.join(" ") if $verbose
   stdout,stderr,status=shell_cmd(cmd)
   if status != 0
