@@ -2,8 +2,8 @@
 
 while ( true )
 do
-    ./collectorCigri.pl
-    echo FINI
-    sleep 1800
+    ./collectorCigri.rb
+    echo ==============================================
+    sleep 900
 done
 
