@@ -2,6 +2,8 @@
 Réalisation d'un ordonnanceur avancé pour la grille CiGri
 =========================================================
 
+Sujet de stage
+--------------
 
 1. **Introduction**
 
@@ -64,7 +66,9 @@ Nous souhaiterions développer un nouvel ordonnanceur qui
 permetterai de gérer de l'équitée entre les utilisateurs, 
 différentes files d'attente avec des priorités complexes et qui
 prendrait en compte l'éxécution de taches parallèles utilisant
-plusieurs noeuds d'une grappe.
+plusieurs noeuds d'une grappe. Ce nouvel ordonnanceur devra aussi
+gérer correctement les interactions avec d'autres modules en cours
+de développement, tels que le checkpointing
 Nous souhaitons utiliser un langage de haut niveau et moderne, tel
 que Ruby, afin de réaliser un code très évolutif et facilement
 maintenable.
