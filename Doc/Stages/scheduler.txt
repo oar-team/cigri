@@ -2,7 +2,8 @@
 Réalisation d'un ordonnanceur avancé pour la grille CiGri
 =========================================================
 
-1. Introduction
+
+1. **Introduction**
 
 CiGri est un logiciel libre permettant de mutualiser plusieurs
 supercalculateurs afin de réaliser une grille de calcul exploitant
@@ -10,6 +11,7 @@ les cycles processeur libres de ceux-ci. CiGri ne prends en
 compte que les applications de type multi-paramétriques qui 
 nécessitent souvent un très grand nombre de sous-tâches (>100000)
 indépendantes et idempotentes.
+
 Faire tourner ces applications au niveau grille permet d'optimiser
 l'utilisation des machines d'un meso-centre de calcul intensif.
 Une telle grille est en exploitation dans le meso-centre de calcul 
@@ -20,7 +22,9 @@ plateforme d'expérimentation pour la recherche en ordonnancement
 sur les systèmes distribués au sein du laboratoire d'informatique 
 de Grenoble (LIG).
 
-2. Structure de CiGri
+
+2. **Structure de CiGri**
+
 CiGri est actuellement composé d'une base de données MySQL et de
 modules développés en Perl et en Ruby. Les mécanismes de
 communication et d'authentification sont basés sur des outils
@@ -33,7 +37,9 @@ lancement des tâches, nettoyage, gestion des erreurs, mise à
 jour des statistiques. Un module externe dédié à la collecte des
 résultats agit de manière asynchrone.
 
-3. Environnement
+
+3. **Environnement**
+
 Les développements sont réalisés au sein de l'équipe MESCAL du LIG
 et sont orientés à la fois par les projets de recherche de cette
 équipe et par les besoins d'exploitation de CIMENT. C'est un 
@@ -41,7 +47,9 @@ environnement motivant, permettant de cotoyer des ingénieurs et
 des chercheurs travaillant sur des domaines pointus en 
 informatique distribuée.
 
-4. Besoin
+
+4. **Besoin**
+
 L'actuel ordonnanceur de CiGri (ou scheduler) est un basique FIFO
 et ne gère pas les tâches parallèles. Lorsque la grille est très
 sollicitée, il arrive qu'un utilisateur soit bloqué pendant
@@ -51,6 +59,7 @@ Grenobloise du projet Ciment est en train de s'étendre à un niveau
 régional (projet RaGrid), ce qui va nécessiter la prise en compte
 de priorités des utilisateurs sur certaines grappes en fonction de 
 leur communauté d'appartenance.
+
 Nous souhaiterions développer un nouvel ordonnanceur qui 
 permetterai de gérer de l'équitée entre les utilisateurs, 
 différentes files d'attente avec des priorités complexes et qui
@@ -60,12 +69,18 @@ Nous souhaitons utiliser un langage de haut niveau et moderne, tel
 que Ruby, afin de réaliser un code très évolutif et facilement
 maintenable.
 
-5. Liens
+
+5. **Liens**
+
 - Projet CIMENT:
-http://ciment.ujf-grenoble.fr
+  http://ciment.ujf-grenoble.fr
 - CiGri:
-http://cigri.imag.fr
+  http://cigri.imag.fr
 - Equipe MESCAL:
-http://mescal.imag.fr/
+  http://mescal.imag.fr/
 - RaGrid:
-https://ciment.ujf-grenoble.fr/ragrid
+  https://ciment.ujf-grenoble.fr/ragrid
+
+6. **Contact**
+
+Contacter Bruno Bzeznik <Bruno.Bzeznik@imag.fr>
