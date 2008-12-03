@@ -9,23 +9,24 @@
 #        libdbd-mysql-ruby or libdbd-pg-ruby
 # ###################################################################################
 
-#####################################################################################
-#
-# CONFIGURATION
-#
-#####################################################################################
+##################################################################################
+# CONFIGURATION AND INCLUDES LOADING
+##################################################################################
+if ENV['CIGRIDIR']
+  require ENV['CIGRIDIR']+'/ConfLib/conflibCigri.rb'
+else
+  require File.dirname($0)+'/../ConfLib/conflibCigri.rb'
+end
+$:.replace([get_conf("INSTALL_PATH")+"/Iolib/"] | $:)
 
-# You can store the configuration on a separate file or comment out the configuration
-# variables below
-load "/etc/cigri_rb.conf"
+require 'dbi'
+require 'time'
+require 'optparse'
+require 'yaml'
+require 'pp'
+require 'cigriJobs'
+require 'cigriUtils'
 
-# Database configuration
-#$cigri_db = 'cigri'
-#$host = 'localhost'
-#$login = 'root'
-#$passwd = ''
-
-# Verbosity (for debuging purpose)
 $verbose = false
 #$verbose = true
 
@@ -37,15 +38,6 @@ clusters={
 
 #######################################################################################
 
-$:.replace([$iolib_dir] | $:)
-
-require 'dbi'
-require 'time'
-require 'optparse'
-require 'yaml'
-require 'pp'
-
-require 'cigriJobs.rb'
 
 # Make an array of running multiplejobs
 #
@@ -65,7 +57,7 @@ end
 #########################################################################
 
 # Connect to database
-dbh = base_connect("#{$cigri_db}:#{$host}",$login,$passwd)
+dbh = db_init()
 
 # Wake up clusters
 clusters.each do |cluster,cmd|
