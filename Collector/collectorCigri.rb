@@ -89,6 +89,7 @@ end
 def remove_files(cluster,execdir,files,user)
   files=files.collect { |f| f="#{execdir}/#{f}" }
   if files.empty? || execdir == ""
+    puts "#{$tag}  Warning: no files to remove"
     return false
   end
   cmd="#{$ssh_cmd} #{cluster} 'sudo -u #{user} rm -rf "+files.join(" ")+"'"
@@ -152,7 +153,7 @@ tocollectJobs.each do |job|
   if clusters[job.cluster].nil?
     if not check_ssh(job.cluster)
       # Blacklisting of the cluster because of a SSH problem
-      add_new_cluster_event($dbh,cluster,0,"SSH","SSH event from the collector")
+      add_new_cluster_event($dbh,job.cluster,0,"SSH","SSH event from the collector")
       clusters[job.cluster]="blacklisted"
     else
       clusters[job.cluster]="ok"
