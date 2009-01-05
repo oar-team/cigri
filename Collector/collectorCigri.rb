@@ -23,8 +23,8 @@ require 'cigriJobs'
 require 'cigriUtils'
 require 'cigriEvents'
 
-#$verbose = false
-$verbose = true
+$verbose = false
+#$verbose = true
 $tag="[COLLECTOR]   "
 
 if get_conf("RESULTS_DIR")
@@ -50,7 +50,7 @@ end
 
 # Check ssh on a cluster using CiGri Net library
 def check_ssh(cluster)
-  puts "#{$tag}Checking SSH on cluster #{cluster}" if $verbose
+  puts "#{$tag}Checking SSH on cluster #{cluster}"
   return system(File.dirname($0)+"/../Net/SSHcheck.pl",cluster)
 end
 
@@ -64,6 +64,7 @@ def get_files(cluster,execdir,files,archive)
   find_cmd="find . -maxdepth 1 -name "+files.join(" -o -name ")
   cmd="#{$ssh_cmd} #{cluster} 'cd #{execdir} || exit 100 && files=`#{find_cmd}`;test \"$files\" || exit 101 && tar cf - $files|gzip -c -; [ ${PIPESTATUS[0]} = 0 ] || exit 102' > #{archive}.tgz"
   puts "#{$tag} #{archive}.tgz"
+  puts "#{$tag}   Sending command: #{cmd}" if $verbose
   # Send the command
   stdout,stderr,status=shell_cmd(cmd)
   # Check the status and create events if necessary
@@ -93,7 +94,7 @@ def remove_files(cluster,execdir,files,user)
     return false
   end
   cmd="#{$ssh_cmd} #{cluster} 'sudo -u #{user} rm -rf "+files.join(" ")+"'"
-  #puts "#{$tag}   Removing "+files.join(" ") if $verbose
+  puts "#{$tag}   Removing "+files.join(" ") if $verbose
   stdout,stderr,status=shell_cmd(cmd)
   if status != 0
     puts "#{$tag}  Warning: error while removing files: "+stderr
@@ -106,16 +107,16 @@ end
 # MAIN
 #########################################################################
 
-puts "#{$tag}Starting" if $verbose
+puts "#{$tag}Starting"
 
 # Connect to database
 $dbh = db_init()
 
 # Lock
 trap(0) { 
-  puts "#{$tag}Unlocking collector" if $verbose 
+  puts "#{$tag}Unlocking collector"
   unlock_collector($dbh)
-  puts "#{$tag}Ending" if $verbose
+  puts "#{$tag}Ending"
 }
 lock_collector($dbh,43200)
 
@@ -164,9 +165,14 @@ tocollectJobs.each do |job|
     # get the files
     if not get_files(job.cluster,job.execdir,files,repository)
       clusters[job.cluster] = "blacklisted"
-      puts "#{$tag}Cluster #{job.cluster} is blacklisted" if $verbose
+      puts "#{$tag}Cluster #{job.cluster} is blacklisted"
     # delete the files from the cluster
-    elsif remove_files(job.cluster,job.execdir,files,job.user)
+    else 
+      if not FileTest.zero?("#{repository}.tgz") 
+       remove_files(job.cluster,job.execdir,files,job.user)
+      else 
+        puts "#{$tag}  Warning: empty archive, so not removing files."
+      end
       # Mark the job as collected
       set_collected_job($dbh,job.jid,collect_id[job.mjobid])
     end
