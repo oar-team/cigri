@@ -1,0 +1,1 @@
+cd /home/cigri/results; for i in *; do chown $i:cigri $i; chmod 770 $i; done
