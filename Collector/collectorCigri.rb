@@ -56,9 +56,6 @@ end
 
 # Get files into a local archive
 def get_files(cluster,execdir,files,archive)
-  # Make the archive directory if it does not exists
-  archive_dir=File::dirname(archive)
-  File::makedirs(archive_dir) unless File::directory?(archive_dir)
   # Construct the ssh pipe
   files=files.collect { |f| f="\"#{f}\"" }
   find_cmd="find . -maxdepth 1 -name "+files.join(" -o -name ")
@@ -135,8 +132,17 @@ tocollectJobs.each do |job|
     collect_id[job.mjobid]=new_collect_id($dbh,job.mjobid)
     puts "#{$tag}Collecting #{job.mjobid} - # #{collect_id[job.mjobid]}"
   end
-  # Construct the archive directory name
-  repository="#{$results_dir}/#{job.user}/#{job.mjobid}/#{collect_id[job.mjobid]}/#{job.cluster}/#{job.jid}"
+  # Construct the archive directory and set the permission modes
+  repository_dir="#{$results_dir}/#{job.user}/#{job.mjobid}/#{collect_id[job.mjobid]}/#{job.cluster}"
+  repository="#{repository_dir}/#{job.jid}"
+  File::makedirs(repository_dir) unless File::directory?(repository_dir)
+  FileUtils.chmod 0777, "#{$results_dir}/#{job.user}/#{job.mjobid}"
+  FileUtils.chmod 0777, "#{$results_dir}/#{job.user}/#{job.mjobid}/#{collect_id[job.mjobid]}"
+  FileUtils.chmod 0777, "#{$results_dir}/#{job.user}/#{job.mjobid}/#{collect_id[job.mjobid]}/#{job.cluster}"
+  if "%o" % (File.stat("#{$results_dir}/#{job.user}").mode & 0007) != "0"
+    puts "#{$tag} WARNING! #{$results_dir}/#{job.user} is world readable! Please, set the owner to #{job.user}:cigri and the mode to 0770."
+  end
+
   if job.execdir == "~"
     job.execdir = "~#{job.localuser}"
   end
@@ -169,6 +175,7 @@ tocollectJobs.each do |job|
     # delete the files from the cluster
     else 
       if not FileTest.zero?("#{repository}.tgz") 
+       FileUtils.chmod 0666, "#{$results_dir}/#{job.user}/#{job.mjobid}/#{collect_id[job.mjobid]}/#{job.cluster}/#{job.jid}.tgz"
        remove_files(job.cluster,job.execdir,files,job.user)
       else 
         puts "#{$tag}  Warning: empty archive, so not removing files."
