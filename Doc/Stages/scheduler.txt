@@ -33,6 +33,7 @@ communication et d'authentification sont basés sur des outils
 simples et standards tels que SSH, SUDO et LDAP. Une interface web,
 écrite en PHP/Smarty, permet aux utilisateurs de suivre l'évolution 
 de leurs campagnes de jobs et d'interagir en cas de besoin.
+L'ensemble fonctionne sous Linux.
 Les modules sont éxécutés de façon cyclique: mise à jour de l'état
 des noeuds et des taches, ordonnancement des tâches à soumettre,
 lancement des tâches, nettoyage, gestion des erreurs, mise à 
@@ -47,7 +48,10 @@ et sont orientés à la fois par les projets de recherche de cette
 équipe et par les besoins d'exploitation de CIMENT. C'est un 
 environnement motivant, permettant de cotoyer des ingénieurs et
 des chercheurs travaillant sur des domaines pointus en 
-informatique distribuée.
+informatique distribuée. L'équipe a également en charge le
+développement du gestionnaire de ressources OAR et participe
+activement au développement et à l'administration de la plateforme
+expérimentale de grille nationale Grid5000.
 
 
 4. **Besoin**
@@ -68,10 +72,20 @@ différentes files d'attente avec des priorités complexes et qui
 prendrait en compte l'éxécution de taches parallèles utilisant
 plusieurs noeuds d'une grappe. Ce nouvel ordonnanceur devra aussi
 gérer correctement les interactions avec d'autres modules en cours
-de développement, tels que le checkpointing
+de développement, tels que le checkpointing.
 Nous souhaitons utiliser un langage de haut niveau et moderne, tel
 que Ruby, afin de réaliser un code très évolutif et facilement
 maintenable.
+Outre cette tache de développement, le stage sera aussi l'occasion
+d'aborder des aspects plus "système" et de participer à la
+définition ou à la mise en place d'outils tels que le checkpointing
+ou un système de fichiers distribué. Il y a également des liens
+forts avec le développement du gestionnaire de ressources OAR
+et l'administration de la plateforme Grid5000. Ces outils évoluent
+actuellement en se dotant d'une API basée sur des standards et
+CiGri aura besoin aussi de sa couche d'API afin d'offrir des
+services de communication avec d'autres systèmes. Le présent sujet
+est donc ouvert et peut évoluer en fonction du niveau du candidat.
 
 
 5. **Liens**
@@ -84,6 +98,10 @@ maintenable.
   http://mescal.imag.fr/
 - RaGrid:
   https://ciment.ujf-grenoble.fr/ragrid
+- OAR:
+  http://oar.imag.fr
+- Grid5000:
+  http://www.grid5000.fr
 
 6. **Contact**
 
