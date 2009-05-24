@@ -257,6 +257,7 @@ PRIMARY KEY  (`login`)
 
 
 # Forecasting table
+DROP TABLE IF EXISTS forecasts;
 CREATE TABLE `forecasts` (
 `MjobsId` INT( 10 ) NOT NULL ,
 `average` FLOAT NOT NULL ,
@@ -267,6 +268,7 @@ PRIMARY KEY ( `MjobsId` )
 );
 
 # Gridstatus table
+DROP TABLE IF EXISTS gridstatus;
 CREATE TABLE `gridstatus` (
 `timestamp` INT NOT NULL ,
 `clusterName` VARCHAR( 100 ) NOT NULL ,
