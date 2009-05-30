@@ -10,7 +10,7 @@ fi
  
 rsync -auvz -e ssh \
     $1 \
-    cigri@${2}:/home/cigri/CIGRI \
+    root@${2}:/home/cigri/CIGRI \
     --exclude "*svn*"  \
     --exclude "*~" 
 

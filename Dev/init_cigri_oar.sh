@@ -5,6 +5,7 @@ NODEFILE=$OAR_NODEFILE
 OUTPUT="env.sh"
 NBCLUSTERS=1
 CLEAN="false"
+KILL="false"
 
 print_usage () {
  echo "Usage: $0 [options] "
@@ -12,7 +13,9 @@ print_usage () {
  echo "   -f  <nodefile>       File containing nodes, by default $OAR_NODEFILE"
  echo "   -n  integer          Number of CiGri clusters"
  echo "   -o  <outputfile>     Output file including env., by default env.sh"
- echo "   -c                   Cleanup all databases on nodes qnd kill daemons"
+ echo "   -c                   Cleanup all databases "
+ echo "   -k                   Kill daemons"
+ echo "   -s                   Cleanup all databases on nodes and kill daemons"
  echo "   -h                   Print this help message"
 }
 
@@ -34,7 +37,9 @@ while getopts "f:n:o:hc" options; do
   case $options in
     f ) NODEFILE=$OPTARG;;
     n ) NBCLUSTERS=$OPTARG;;
+    k ) KILL="true";;
     c ) CLEAN="true";;
+    s ) KILL="true";CLEAN="true";;
     o ) OUTPUT=$OPTARG;;
     h ) print_usage
          exit 0;;
@@ -50,7 +55,7 @@ then
         exit -1
 fi
 
-if [ "$CLEAN" = 'true' ]
+if [ "$KILL" = 'true' ]
 then
 
 	if [ -z "$CIGRI_SERVER" ]
@@ -59,21 +64,44 @@ then
     exit 1
 	fi
 
-	#cleanup databases
-	sort -u $NODEFILE | while read node
-	do
-		ssh root@${node} "mysql -D oar < /usr/lib/oar/mysql_structure.sql"
-		ssh root@${node} "mysql -D cigri < /home/cigri/CIGRI/DB/cigri_db.sql"
-	done #2>/dev/null
-
+	echo "$PREFIX Killing OAR and CiGri daemons"
 	#kill daemons
 	PID=`ps aux | grep ssh | grep SSHcmd | cut -d " " -f2`
 	kill -9 $PID
 
 	ssh root@${CIGRI_SERVER} killall /usr/bin/perl
+	
+	if [ "$CLEAN" != 'true' ] 
+	then
+		echo "$PREFIX Done"
+		exit 0
+	fi
+
+fi
+
+if [ "$CLEAN" = 'true' ]
+then
+
+    if [ -z "$CIGRI_SERVER" ]
+    then
+        echo "$PREFIX CIGRI_SERVER must be set" >&2
+    exit 1
+    fi
+
+
+	echo "$PREFIX Cleaning databases"
+    #cleanup databases
+    sort -u $NODEFILE | while read node
+    do  
+        ssh root@${node} "mysql -D oar < /usr/lib/oar/mysql_structure.sql"
+        ssh root@${node} "mysql -D cigri < /home/cigri/CIGRI/DB/cigri_db.sql"
+    done #2>/dev/null
+
+	echo "$PREFIX Done"
 	exit 0
 
 fi
+
 
 if [ $NBCLUSTERS -le 0 ]
 then
