@@ -101,6 +101,19 @@ INDEX MJOBsId (MJobsId),
 PRIMARY KEY (MJobsId)
 )TYPE = InnoDB;
 
+DROP TABLE IF EXISTS multipleJobTypes;
+CREATE TABLE IF NOT EXISTS multipleJobTypes (
+MJobTypeId INT UNSIGNED NOT NULL AUTO_INCREMENT,
+MJobId INT UNSIGNED NOT NULL ,
+MJobType VARCHAR(255) NOT NULL ,
+MJobTypeIndex ENUM('CURRENT','LOG') DEFAULT 'CURRENT' NOT NULL ,
+INDEX log (MJobTypeIndex),
+INDEX type (MJobType),
+INDEX id_types (MJobId),
+PRIMARY KEY (MJobTypeId)
+);
+
+
 #####add for rsync data synchronization of clusters####
 DROP TABLE IF EXISTS data_synchron;
 CREATE TABLE IF NOT EXISTS data_synchron(

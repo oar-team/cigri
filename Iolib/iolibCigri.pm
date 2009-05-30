@@ -84,13 +84,15 @@ sub emptyTemporaryTables($){
 # Add a job to the database in multipleJobs table
 # arg1 --> database ref
 # arg2 --> JDLfile
+# arg3 --> campaign type
 # return the request id or
 # -1 = bad JDL file or bad param file
 # -2 = no cluster defined
 # -3 = no execFile in a cluster section
 # -4 = duplicate parameters
-sub add_mjobs($$) {
-    my ($dbh, $JDLfile) = @_;
+# -5 = invalid campaign_type
+sub add_mjobs($$$) {
+    my ($dbh, $JDLfile, $mJobType) = @_;
 
     #$dbh->do("LOCK TABLES multipleJobs WRITE, parameters WRITE, properties WRITE");
     my $lusr= getpwuid($<);
@@ -121,6 +123,12 @@ sub add_mjobs($$) {
         rollback_transaction($dbh);
         return(-1);
     }
+
+	#TODO temporary while admissions rules not available
+	$mJobType = 'default' if (!defined($mJobType));
+	if(($mJobType ne "default") && ($mJobType ne "test")){
+		return(-5);
+	}
     
     $dbh->do("INSERT INTO multipleJobs (MJobsId,MJobsUser,MJobsJDL,MJobsTSub)
             VALUES (NULL,\"$lusr\",\"$jdl\",\"$time\")");
@@ -131,6 +139,10 @@ sub add_mjobs($$) {
     my @tmp = values(%$ref);
     my $id = $tmp[0];
     $sth->finish();
+
+	# insert jobtype on table
+	$dbh->do("INSERT INTO multipleJobTypes (MJobId,MJobType)
+            VALUES ($id,\"$mJobType\")");
 
     # copy params in the database
     my $Params ="";
@@ -1173,6 +1185,31 @@ sub get_nb_remained_jobs($){
     return %result;
 }
 
+#TODO: will be replaced when new impl. of scheduler
+sub get_nb_remained_jobs_by_type($$){
+    my $dbh = shift;
+	my $type = shift;
+
+    my $sth = $dbh->prepare("SELECT parametersMJobsId, COUNT(*)
+                             FROM parameters,multipleJobTypes
+                             WHERE MJobId = parametersMJobsId
+                             AND MJobTypeIndex = \"CURRENT\"
+                             AND MJobType = \"$type\"
+                             GROUP BY parametersMJobsId
+                             ORDER BY parametersMJobsId ASC");
+    $sth->execute();
+
+    my %result;
+    while (my @ref = $sth->fetchrow_array()) {
+        $result{$ref[0]} = $ref[1];
+    }
+    $sth->finish();
+
+    return %result;
+}
+
+
+
 # get the global weight of remote waiting jobs
 # arg1 --> database ref
 sub get_cluster_remoteWaiting_job_weight($){
@@ -1317,6 +1354,9 @@ sub check_end_MJobs($){
                 print("[Iolib] set to Terminated state the MJob $i\n");
                 $dbh->do("    UPDATE multipleJobs SET MJobsState = \"TERMINATED\"
                             WHERE MJobsId = $i");
+				$dbh->do("    UPDATE multipleJobTypes SET MJobTypeIndex =\"LOG\"
+                            WHERE MJobId = $i");
+
                 # notify admin by email
                 #mailer::sendMail("End MJob $i ","[Iolib] set to Terminated state the MJob $i");
                 push(@result, $i);

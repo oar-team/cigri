@@ -7,7 +7,7 @@ use IO::Socket::INET;
 
 use Data::Dumper;
 use Sys::Hostname;
-use Getopt::Std;
+use Getopt::Long;
 BEGIN {
     #update module path for our modules
     my ($scriptPathTmp) = $0 =~ m!(.*/*)!s;
@@ -33,7 +33,7 @@ use ConfLibCigri;
 use mailer;
 
 sub usage(){
-    print(STDERR "usage: gridSub -f JDLscript \n");
+    print(STDERR "usage: gridSub -f JDLscript [-t campaign_type] \n");
     exit 1;
 }
 
@@ -42,24 +42,59 @@ sub usage(){
 #
 
 # Options on arg command line
-my %opts;
-Getopt::Std::getopts('f:', \%opts);
+#
 
-my $JDLfile = undef;
-foreach my $key (keys(%opts)){
-    if ($key eq "f"){
-        $JDLfile = $opts{$key};
-        print("JDL file = $JDLfile\n");
-    }else{
-        print(STDERR "Warning !!! option -$key not implemented\n");
-    }
+
+my $Error_Prefix = "[ERROR]";
+
+Getopt::Long::Configure ("gnu_getopt");
+my $mJobType;
+my $sos;
+my $JDLfile;
+
+GetOptions ("jdl|f=s" =>  \$JDLfile,
+			"type|t=s" => \$mJobType,
+			"help|h" => \$sos
+			);
+
+
+if (defined($sos)){
+    usage();
+    exit(0);
 }
 
-# If there is no JDL file specified
-usage if (! defined($JDLfile));
+if (!defined($JDLfile)){
+    usage();
+    exit(1);
+}
+
+if ( (-e $JDLfile) && (-r $JDLfile) ){
+	print("JDL file = $JDLfile\n");
+}else{	
+	print("$Error_Prefix $JDLfile: non-existant or unreadable JDL file \n");
+	usage();
+    exit(1);
+}
+
+
+#--------------------------------------------------
+# Getopt::Std::getopts('f:', \%opts);
+# 
+# my $JDLfile = undef;
+# foreach my $key (keys(%opts)){
+#     if ($key eq "f"){
+#         $JDLfile = $opts{$key};
+#     }else{
+#         print(STDERR "Warning !!! option -$key not implemented\n");
+#     }
+# }
+# 
+# # If there is no JDL file specified
+# usage if (! defined($JDLfile));
+#-------------------------------------------------- 
 
 my $base = iolibCigri::connect();
-my $idJob= iolibCigri::add_mjobs($base,$JDLfile);
+my $idJob= iolibCigri::add_mjobs($base, $JDLfile, $mJobType);
 print "IdJob = $idJob \n";
 iolibCigri::disconnect($base);
 
@@ -68,16 +103,20 @@ iolibCigri::disconnect($base);
 # -3 = no execFile in a cluster section
 # -4 = duplicate parameters
 if ($idJob == -1){
-    print("[ERROR] Bad JDL file or Bad param file\n");
+    print("$Error_Prefix Bad JDL file or Bad param file\n");
     exit(2);
 }elsif($idJob == -2){
-    print("[ERROR] No cluster defined\n");
+    print("$Error_Prefix No cluster defined\n");
     exit(2);
 }elsif($idJob == -3){
-    print("[ERROR] No execFile in a cluster section\n");
+    print("$Error_Prefix No execFile in a cluster section\n");
     exit(2);
 }elsif($idJob == -4){
-    print("[ERROR] Duplicate parameters\n");
+    print("$Error_Prefix Duplicate parameters\n");
+    exit(2);
+#temporary solution while admission rules are not implemented
+}elsif($idJob == -5){   
+    print("$Error_Prefix $mJobType: invalid campaign_type\n");
     exit(2);
 }
 
