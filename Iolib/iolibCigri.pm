@@ -92,7 +92,7 @@ sub emptyTemporaryTables($){
 # -4 = duplicate parameters
 # -5 = invalid campaign_type
 sub add_mjobs($$$) {
-    my ($dbh, $JDLfile, $mJobType) = @_;
+    my ($dbh, $JDLfile, $mJobsType) = @_;
 
     #$dbh->do("LOCK TABLES multipleJobs WRITE, parameters WRITE, properties WRITE");
     my $lusr= getpwuid($<);
@@ -125,13 +125,13 @@ sub add_mjobs($$$) {
     }
 
 	#TODO temporary while admissions rules not available
-	$mJobType = 'default' if (!defined($mJobType));
-	if(($mJobType ne "default") && ($mJobType ne "test")){
+	$mJobsType = 'default' if (!defined($mJobsType));
+	if(($mJobsType ne "default") && ($mJobsType ne "test")){
 		return(-5);
 	}
     
-    $dbh->do("INSERT INTO multipleJobs (MJobsId,MJobsUser,MJobsJDL,MJobsTSub)
-            VALUES (NULL,\"$lusr\",\"$jdl\",\"$time\")");
+    $dbh->do("INSERT INTO multipleJobs (MJobsId,MJobsUser,MJobsJDL,MJobsTSub,MJobsType)
+            VALUES (NULL,\"$lusr\",\"$jdl\",\"$time\", \"$mJobsType\")");
 
     my $sth = $dbh->prepare("SELECT LAST_INSERT_ID()");
     $sth->execute();
@@ -139,10 +139,6 @@ sub add_mjobs($$$) {
     my @tmp = values(%$ref);
     my $id = $tmp[0];
     $sth->finish();
-
-	# insert jobtype on table
-	$dbh->do("INSERT INTO multipleJobTypes (MJobId,MJobType)
-            VALUES ($id,\"$mJobType\")");
 
     # copy params in the database
     my $Params ="";
@@ -1190,13 +1186,14 @@ sub get_nb_remained_jobs_by_type($$){
     my $dbh = shift;
 	my $type = shift;
 
-    my $sth = $dbh->prepare("SELECT parametersMJobsId, COUNT(*)
-                             FROM parameters,multipleJobTypes
-                             WHERE MJobId = parametersMJobsId
-                             AND MJobTypeIndex = \"CURRENT\"
-                             AND MJobType = \"$type\"
+	my $sth = $dbh->prepare("SELECT parametersMJobsId, COUNT(*)
+                             FROM parameters,multipleJobs
+                             WHERE MJobsId = parametersMJobsId
+							 AND MJobsType = \"$type\"
+                             AND MJobsState = \"IN_TREATMENT\"
                              GROUP BY parametersMJobsId
                              ORDER BY parametersMJobsId ASC");
+
     $sth->execute();
 
     my %result;
@@ -1354,8 +1351,6 @@ sub check_end_MJobs($){
                 print("[Iolib] set to Terminated state the MJob $i\n");
                 $dbh->do("    UPDATE multipleJobs SET MJobsState = \"TERMINATED\"
                             WHERE MJobsId = $i");
-				$dbh->do("    UPDATE multipleJobTypes SET MJobTypeIndex =\"LOG\"
-                            WHERE MJobId = $i");
 
                 # notify admin by email
                 #mailer::sendMail("End MJob $i ","[Iolib] set to Terminated state the MJob $i");

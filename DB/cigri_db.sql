@@ -91,6 +91,7 @@ DROP TABLE IF EXISTS multipleJobs;
 CREATE TABLE IF NOT EXISTS multipleJobs (
 MJobsId INT UNSIGNED NOT NULL AUTO_INCREMENT ,
 MJobsJDL MEDIUMBLOB ,
+MJobsType VARCHAR(255) NOT NULL ,
 MJobsState ENUM('IN_TREATMENT','TERMINATED') NOT NULL DEFAULT 'IN_TREATMENT' ,
 MJobsUser VARCHAR( 50 ) NOT NULL ,
 MJobsName VARCHAR( 255 ) ,
@@ -100,18 +101,6 @@ INDEX MJobsUser (MJobsUser),
 INDEX MJOBsId (MJobsId),
 PRIMARY KEY (MJobsId)
 )TYPE = InnoDB;
-
-DROP TABLE IF EXISTS multipleJobTypes;
-CREATE TABLE IF NOT EXISTS multipleJobTypes (
-MJobTypeId INT UNSIGNED NOT NULL AUTO_INCREMENT,
-MJobId INT UNSIGNED NOT NULL ,
-MJobType VARCHAR(255) NOT NULL ,
-MJobTypeIndex ENUM('CURRENT','LOG') DEFAULT 'CURRENT' NOT NULL ,
-INDEX log (MJobTypeIndex),
-INDEX type (MJobType),
-INDEX id_types (MJobId),
-PRIMARY KEY (MJobTypeId)
-);
 
 
 #####add for rsync data synchronization of clusters####

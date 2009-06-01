@@ -162,7 +162,7 @@ end
 # MultipleJob class
 #########################################################################
 class MultipleJob < JobSet
-    attr_reader :mjobid, :jobs, :last_terminated_date, :status, :n_running, :n_terminated
+    attr_reader :mjobid, :type, :jobs, :last_terminated_date, :status, :n_running, :n_terminated
 
     # Creation
     def initialize(dbh,id)
@@ -178,12 +178,13 @@ class MultipleJob < JobSet
         @n_trans=0
 
         # Status of this multiple job
-        query = "SELECT MJobsState, MJobsTSub FROM multipleJobs where MJobsId=#{mjobid}"
+        query = "SELECT MJobsState, MJobsType, MJobsTSub FROM multipleJobs where MJobsId=#{mjobid}"
         sql_mjob=dbh.select_all(query)
 	if sql_mjob.empty?
 	    raise "Could not find multiplejob #{mjobid}"
 	end
         @status=sql_mjob[0]['MJobsState']
+        @type=sql_mjob[0]['MJobsType']
         @tsub=to_unix_time(sql_mjob[0]['MJobsTSub'])
 
         # Get the blacklisted clusters for this job
@@ -271,7 +272,8 @@ class MultipleJob < JobSet
 
     # Printing
     def to_s
-        sprintf("Multiple job %i 
+        sprintf("Multiple job %i
+        Type:                   %s 
         Status:                 %s
         Submited:               %s
         Last terminated job:    %s 
@@ -282,7 +284,7 @@ class MultipleJob < JobSet
         Duration:               %i s 
         Average:                %i s 
         Stddev:                 %.2f", \
-        @mjobid,@status,Time.at(@tsub),Time.at(@last_terminated_date),@n_running,n_waiting,@n_terminated,\
+        @mjobid,@type,@status,Time.at(@tsub),Time.at(@last_terminated_date),@n_running,n_waiting,@n_terminated,\
 	throughput(3600)*3600,duration,average[0].to_i,average[1])
     end
 end

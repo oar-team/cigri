@@ -42,22 +42,17 @@ print "[SCHEDULER]   Begining of scheduler FIFO\n";
 
 my %nbFreeNodes = iolibCigri::get_nb_freeNodes($base);
 my %nbRemainedTestJobs = iolibCigri::get_nb_remained_jobs_by_type($base,"test");
+my %nbRemainedDefaultJobs = iolibCigri::get_nb_remained_jobs_by_type($base, "default");
 my %nbRemoteWaitingJobWeight = iolibCigri::get_cluster_remoteWaiting_job_weight($base);
 #print(Dumper(%nbFreeNodes));
 
 #enforce priority to test jobs
 if (scalar(keys %nbRemainedTestJobs) > 0){
     match_resources_and_schedule($base,\%nbFreeNodes,\%nbRemainedTestJobs,\%nbRemoteWaitingJobWeight);
-}
-
-my %nbFreeNodes = iolibCigri::get_nb_freeNodes($base);
-my %nbRemainedDefaultJobs = iolibCigri::get_nb_remained_jobs_by_type($base, "default");
-my %nbRemoteWaitingJobWeight = iolibCigri::get_cluster_remoteWaiting_job_weight($base);
-
-
-if (scalar(keys %nbRemainedDefaultJobs) > 0){
+} elsif (scalar(keys %nbRemainedDefaultJobs) > 0){
 	match_resources_and_schedule($base,\%nbFreeNodes,\%nbRemainedDefaultJobs,\%nbRemoteWaitingJobWeight);
 }
+
 
 print "[SCHEDULER]   End of scheduler FIFO\n";
 iolibCigri::disconnect($base);
@@ -70,30 +65,6 @@ sub match_resources_and_schedule ($$$$) {
 my %nbFreeNodes = %$nbFreeNodesRef;
 my %nbRemainedJobs = %$nbRemainedJobsRef;
 my %nbRemoteWaitingJobWeight = %$nbRemoteWaitingJobWeightRef;
-
-#--------------------------------------------------
-# 
-# print "[SCHEDULER]   nbFreeNodes: \n";
-# while (($key, $value) = each(%nbFreeNodes)){
-#      print $key.", ".@$value."\n";
-# }
-# 
-# print "\n ";
-# 
-# print "[SCHEDULER]   nbRemainedJobs: " . %$nbRemainedJobsRef . "\n";
-# while (($key, $value) = each(%nbRemainedJobs)){
-#      print $key.", ".$value."\n";
-# }
-# 
-# print "\n ";
-# 
-# print "[SCHEDULER]   nbRemoteWaitingJobWeight: " . %nbRemoteWaitingJobWeight . "\n";
-# while (($key, $value) = each(%nbRemoteWaitingJobWeight)){
-#      print $key.", ".$value."\n";
-# }
-# 
-# 
-#-------------------------------------------------- 
 
 
 foreach my $i (sort(keys(%nbRemainedJobs))){
