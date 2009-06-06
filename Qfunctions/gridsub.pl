@@ -77,22 +77,6 @@ if ( (-e $JDLfile) && (-r $JDLfile) ){
 }
 
 
-#--------------------------------------------------
-# Getopt::Std::getopts('f:', \%opts);
-# 
-# my $JDLfile = undef;
-# foreach my $key (keys(%opts)){
-#     if ($key eq "f"){
-#         $JDLfile = $opts{$key};
-#     }else{
-#         print(STDERR "Warning !!! option -$key not implemented\n");
-#     }
-# }
-# 
-# # If there is no JDL file specified
-# usage if (! defined($JDLfile));
-#-------------------------------------------------- 
-
 my $base = iolibCigri::connect();
 my $idJob= iolibCigri::add_mjobs($base, $JDLfile, $mJobType);
 print "IdJob = $idJob \n";
@@ -116,7 +100,7 @@ if ($idJob == -1){
     exit(2);
 #temporary solution while admission rules are not implemented
 }elsif($idJob == -5){   
-    print("$Error_Prefix $mJobType: invalid campaign_type\n");
+    print("$Error_Prefix $mJobType: invalid campaign type\n");
     exit(2);
 }
 

@@ -157,6 +157,10 @@ sub add_mjobs($$$) {
                         ($paramName, @tmp) = split (' ', $_, 2);
                         print("Insert ($id,\'$_\',\'$paramName\')\n");
                         $doRet = $dbh->do("INSERT INTO parameters (parametersMJobsId,parametersParam,parametersName) VALUES ($id,\'$_\',\'$paramName\')");
+						# TODO temporary while admissions rules not available
+						if($mJobsType eq "test"){
+							last;
+						}
                         if ($doRet != 1){
                             warn("Duplicate parameters\n");
                             warn("$@");
@@ -170,6 +174,10 @@ sub add_mjobs($$$) {
         }elsif (defined($JDLParserCigri::clusterConf{DEFAULT}{nbJobs})){
             for (my $k=0; $k<$JDLParserCigri::clusterConf{DEFAULT}{nbJobs}; $k++) {
                 $dbh->do("INSERT INTO parameters (parametersMJobsId,parametersParam) VALUES ($id,\'$k\')");
+				 #TODO temporary while admissions rules not available
+            	if($mJobsType eq "test"){
+             		last;
+            	}
             }
         }else{
             print("[iolib] I can't read the param file $JDLParserCigri::clusterConf{DEFAULT}{paramFile} or the nbJobs variable\n");

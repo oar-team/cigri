@@ -142,31 +142,31 @@ sub phoenix(){
 # core of the AlmightyCigri
 my $exitValue;
 LBL:while (1){
-        $exitValue = nikita();
+    $exitValue = nikita();
 	if ($exitValue != 0) { 
 	   print "$tag WARNING! Nikita exited abnormaly!\n"; 
 	   sleep(5);
 	}
 	$exitValue = 0;
 #        sleep(5);
-        next LBL if ($exitValue != 0);
-	$exitValue =  autofix();
-        next LBL if ($exitValue != 0);
-        $exitValue = updator();
+    next LBL if ($exitValue != 0);
+	$exitValue = autofix();
+    next LBL if ($exitValue != 0);
+    $exitValue = updator();
 #        sleep(5);
-        next LBL if ($exitValue != 0);
-        $exitValue = scheduler();
+    next LBL if ($exitValue != 0);
+    $exitValue = scheduler();
 #        sleep(5);
 	next LBL if ($exitValue != 0);
-	$exitValue =  gridstatus();
+	$exitValue = gridstatus();
 #        sleep(5);
-        next LBL if ($exitValue != 0);
-        $exitValue = runner();
+    next LBL if ($exitValue != 0);
+    $exitValue = runner();
 	next LBL if ($exitValue != 0);
 	$exitValue = phoenix();
 #        sleep(5);
-        next LBL if ($exitValue != 0);
+    next LBL if ($exitValue != 0);
 	$exitValue =  spritz();
-        print("\n$tag I make a pause of $timeout seconds :-)\n");
-        sleep($timeout);
+    print("\n$tag I make a pause of $timeout seconds :-)\n");
+    sleep($timeout);
 }
