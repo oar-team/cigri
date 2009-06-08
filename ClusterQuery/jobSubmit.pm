@@ -152,9 +152,26 @@ sub oarsubmit($$$$$$$$$$$){
     }else{
         $propertyString = "";
     }
+
+ 	#existing env. variables require double protection
+    my $jobEnv = '';
+    $jobEnv .= ' export CIGRI_NODE_FILE=\\\\\\$OAR_NODEFILE;';
+    $jobEnv .= ' export CIGRI_NODEFILE=\\\\\\$OAR_NODEFILE;';
+    $jobEnv .= " export CIGRI_JOB_ID=$jobId;";
+    $jobEnv .= " export CIGRI_JOBID=$jobId;";
+    $jobEnv .= " export CIGRI_CAMPAIGNID=$campId;";
+    $jobEnv .= " export CIGRI_CAMPAIGN_ID=$campId;";
+    $jobEnv .= " export CIGRI_JOB_NAME=$jobName;";
+    $jobEnv .= " export CIGRI_JOBNAME=$jobName;";
+    $jobEnv .= " export CIGRI_USER=$user;";
+    $jobEnv .= " export CIGRI_WORKDIR=$execDir;";
+    $jobEnv .= " export CIGRI_WORKING_DIRECTORY=$execDir;";
+    $jobEnv .= " export CIGRI_WALLTIME=$walltime;";
+    $jobEnv .= " export CIGRI_WALLTIME_SECONDS=".iolibCigri::get_walltime_in_seconds($walltime).";";  
+
     #print("Property String = $propertyString\n");
     #my %cmdResult = SSHcmd::submitCmd($cluster,"cd ~$user; sudo -H -u $user oarsub -l nodes=1,weight=$weight,walltime=$walltime -p \"$propertyString\" -q besteffort $jobFile");
-    my %cmdResult = SSHcmd::submitCmd($cluster,"sudo -H -u $user bash -l -c \"cd $execDir; oarsub -l nodes=1,weight=$weight,walltime=$walltime -p \\\"$propertyString\\\" -q besteffort $jobFile\"");
+    my %cmdResult = SSHcmd::submitCmd($cluster,"sudo -H -u $user bash -l -c \"cd $execDir; oarsub -l nodes=1,weight=$weight,walltime=$walltime -p \\\"$propertyString\\\" -q besteffort \\\" $jobEnv $jobFile \\\"\"");
     #print(Dumper(%cmdResult));
     if ($cmdResult{STDERR} ne ""){
         # test if this is a ssh error
@@ -215,9 +232,28 @@ sub oarsubmit2($$$$$$$$$$){
     }else{
         $propertyString = "";
     }
+
+	my $campId = iolibCigri::get_mjob_id($dbh, $jobId);
+
+	#existing env. variables require double protection
+	my $jobEnv = '';
+	$jobEnv .= ' export CIGRI_NODE_FILE=\\\\\\$OAR_NODEFILE;'; 
+	$jobEnv .= ' export CIGRI_NODEFILE=\\\\\\$OAR_NODEFILE;'; 
+	$jobEnv .= " export CIGRI_JOB_ID=$jobId;"; 
+	$jobEnv .= " export CIGRI_JOBID=$jobId;"; 
+	$jobEnv .= " export CIGRI_CAMPAIGNID=$campId;"; 
+	$jobEnv .= " export CIGRI_CAMPAIGN_ID=$campId;"; 
+	$jobEnv .= " export CIGRI_JOB_NAME=$jobName;"; 
+	$jobEnv .= " export CIGRI_JOBNAME=$jobName;"; 
+	$jobEnv .= " export CIGRI_USER=$user;"; 
+	$jobEnv .= " export CIGRI_WORKDIR=$execDir;"; 
+	$jobEnv .= " export CIGRI_WORKING_DIRECTORY=$execDir;"; 
+	$jobEnv .= " export CIGRI_WALLTIME=$walltime;"; 
+	$jobEnv .= " export CIGRI_WALLTIME_SECONDS=".iolibCigri::get_walltime_in_seconds($walltime).";"; 
+
     #print("Property String = $propertyString\n");
     #my %cmdResult = SSHcmd::submitCmd($cluster,"cd ~$user; sudo -H -u $user oarsub -l nodes=1,weight=$weight,walltime=$walltime -p \"$propertyString\" -q besteffort $jobFile");
-    my %cmdResult = SSHcmd::submitCmd($cluster,"sudo -H -u $user bash -l -c \"cd $execDir; oarsub --name=\\\"$jobName\\\" --signal=3 -d $execDir -l nodes=1/$resourceUnit=$weight,walltime=$walltime -p \\\"$propertyString\\\" -t besteffort $jobFile\"");
+    my %cmdResult = SSHcmd::submitCmd($cluster,"sudo -H -u $user bash -l -c \"cd $execDir; oarsub --name=\\\"$jobName\\\" --signal=3 -d $execDir -l nodes=1/$resourceUnit=$weight,walltime=$walltime -p \\\"$propertyString\\\" -t besteffort \\\" $jobEnv $jobFile \\\"\"");
     #print(Dumper(%cmdResult));
     if ($cmdResult{STDERR} ne ""){
         # test if this is a ssh error

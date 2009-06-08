@@ -65,10 +65,34 @@ sub get_cigri_remote_script_name($){
     return("cigri.tmp.$jobId");
 }
 
+# get MjobId of a given job
+# arg1 --> database ref
+# arg2 --> jobId
+sub get_mjob_id($$) {
+    my $dbh = shift;
+    my $idJob = shift;
+    my $sth = $dbh->prepare("SELECT jobMJobsId from jobs 
+                                WHERE jobId =$idJob");
+	$sth->execute();
+    my @mjobid  = $sth->fetchrow_array();
+    $sth->finish();
+
+    return @mjobid[0];
+}
+
+
 # give the date in with the right pattern
 sub get_date() {
     my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime;
     return ($year+1900)."-".($mon+1)."-".$mday." $hour:$min:$sec";
+}
+
+# convert time hh:mm:ss in seconds
+# arg1 --> time, with format hh:mm:ss
+sub get_walltime_in_seconds($) {
+	my @time = split /:/, shift ;
+    return -1 if (scalar(@time) < 3);
+    return  (($time[0]*60*60) +  ($time[1]*60) + $time[2]);
 }
 
 # empty temporary tables
