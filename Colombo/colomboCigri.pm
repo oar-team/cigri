@@ -91,7 +91,7 @@ sub add_new_job_event($$$$){
     my $dbh = shift;
     my $jobId = shift;
     my $eventType = shift;
-    my $eventMessage = shift;
+	my $eventMessage =  $dbh->quote(shift);
 
     my $sth = $dbh->prepare("SELECT jobMJobsId,jobClusterName
                              FROM jobs
