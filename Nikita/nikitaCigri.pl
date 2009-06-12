@@ -32,6 +32,26 @@ use mailer;
 
 my $base = iolibCigri::connect() ;
 
+#handle long-lasting RemoteWaiting jobs
+my $remotewaiting_timeout;
+if (defined(ConfLibCigri::get_conf("REMOTE_WAITING_TIMEOUT")) &&
+      (ConfLibCigri::get_conf("REMOTE_WAITING_TIMEOUT") > 10)) {
+           $remotewaiting_timeout=ConfLibCigri::get_conf("REMOTE_WAITING_TIMEOUT");
+}else {
+           $remotewaiting_timeout=600;
+}
+
+my %remoteWaitingJobTimes = iolibCigri::get_remoteWaiting_times($base);
+foreach my $jobId (keys (%remoteWaitingJobTimes)){
+    if ($remoteWaitingJobTimes{$Idjob} > $remotewaiting_timeout){
+        iolibCigri::set_job_state($base, $jobId, "Event");
+        colomboCigri::add_new_job_event($base,$jobId,"FRAG","RemoteWaiting too long frag");
+        colomboCigri::resubmit_job($base,$jobId);
+        print "[NIKITA]     Frag-resubmit job $jobId because of RemoteWaiting for too long.\n";
+    }
+}
+
+
 #Get MJobs to frag
 my @MJobsToFrag = iolibCigri::get_tofrag_MJobs($base);
 

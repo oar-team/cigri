@@ -1197,6 +1197,31 @@ sub get_cluster_remoteWaiting_job_weight($){
     return %result;
 }
 
+#get hash with jobids->waiting times by cluster
+# arg1 --> database ref
+# arg2 --> cluster name
+# return hash jobId -> elapsed time
+sub get_remoteWaiting_times($){
+    my $dbh = shift;
+
+    my $sth = $dbh->prepare("SELECT jobId, (NOW() - jobTSub) 
+                             FROM jobs WHERE
+                                jobState = \"RemoteWaiting\"
+                            ");
+    $sth->execute();
+
+    my %result;
+    while (my @ref = $sth->fetchrow_array()) {
+            $result{$ref[0]} = $ref[1];
+    }
+
+    $sth->finish();
+
+    return %result;
+}
+
+
+
 # get MJobs properties
 # arg1 --> database ref
 # arg2 --> MJobsId
