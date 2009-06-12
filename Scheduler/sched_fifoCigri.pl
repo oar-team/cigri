@@ -45,7 +45,7 @@ my %nbRemainedJobs = iolibCigri::get_nb_remained_jobs($base);
 my %nbRemoteWaitingJobWeight = iolibCigri::get_cluster_remoteWaiting_job_weight($base);
 #print(Dumper(%nbFreeNodes));
 
-foreach my $i (sort(keys(%nbRemainedJobs))){
+foreach my $i (sort {$a <=> $b} keys %nbRemainedJobs){
     if(iolibCigri::get_data_synchronState($base, $i) eq 'ISSUED'){   
         iolibCigri::set_data_synchronState($base, $i, "INITIATED");
 	my $user = "cigri";
