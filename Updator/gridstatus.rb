@@ -89,30 +89,26 @@ class Cluster
         return sql_sum[0]['free_resources'].to_i || 0
     end
 
-    # Claculate the number of resources used by cigri on this cluster
+    # Calculate the number of running jobs on the cluster
     def used_resources
-       query = "SELECT cast(sum(propertiesJobWeight) as unsigned) as count
-                   FROM (
-		           SELECT propertiesJobWeight
-                           FROM properties,jobs 
-		              LEFT JOIN clusterBlackList 
-			      ON jobs.jobMJobsId = clusterBlackListMJobsID AND jobClusterName=clusterBlackListClusterName 
+       query = "SELECT count(*) FROM properties,jobs 
+		          LEFT JOIN clusterBlackList 
+			       ON jobs.jobMJobsId = clusterBlackListMJobsID 
+                   AND jobClusterName=clusterBlackListClusterName 
 			      LEFT JOIN events 
-			      ON eventId=clusterBlackListEventId
+			       ON eventId=clusterBlackListEventId
 		           WHERE jobClusterName='#{@name}' 
 		           AND jobState='Running'
 		           AND propertiesClusterName=jobClusterName 
 		           AND propertiesMJobsId=jobMJobsId 
-		           AND (eventState != \"ToFIX\" OR eventState is null) 
-		           GROUP BY jobId
-		       ) AS T;"
+		           AND (eventState != \"ToFIX\" OR eventState is null);"
        sql_count=@dbh.select_all(query)
        return sql_count[0]['count'].to_i || 0
     end
 
     # Claculate the number of resources that will be used in a near futur
     def tolaunch_resources
-       query = "SELECT cast(sum(propertiesJobWeight*jobsToSubmitNumber) as unsigned) as count 
+       query = "SELECT cast(sum(jobsToSubmitNumber) as unsigned) as count 
                        FROM jobsToSubmit,properties 
 		       WHERE jobsToSubmitClusterName='#{@name}'
 		       AND propertiesClusterName='#{@name}'
@@ -166,7 +162,7 @@ clusters.each do |cluster|
   end
   puts "    Max #{cluster.unit}s:  #{max}" if $verbose
   puts "    Free #{cluster.unit}s: #{free}" if $verbose
-  puts "    Used by cigri : #{used}" if $verbose
+  puts "    Jobs launched by CiGri : #{used}" if $verbose
   puts "    To launch : #{tolaunch}" if $verbose
   query = "INSERT INTO gridstatus (timestamp,clusterName,maxResources,freeResources,usedResources,blacklisted)
                                   VALUES
@@ -180,5 +176,5 @@ if $verbose
   puts "    Blacklisted clusters: #{n_blacklisted}"
   puts "    Max resources:  #{total_max}"
   puts "    Free resources: #{total_free}"
-  puts "    Used resources: #{total_used}"
+  puts "    Jobs Launched by CiGri: #{total_used}"
 end

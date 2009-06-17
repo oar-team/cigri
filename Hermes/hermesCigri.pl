@@ -87,8 +87,7 @@ foreach my $i (keys(%data_synchron_param)){
     	}
     }	
     
-    my %propertiesClusterName = iolibCigri::get_MJobs_Properties($base, $i);
-    foreach my $j (keys(%propertiesClusterName)){
+    foreach my $j (iolibCigri::get_MJobs_ActiveClusters($base, $i)){
     	if(($j ne "localhost") && ($j ne $localhost) && ($j ne $data_synchron_param{$i}[0]{host}) && (iolibCigri::get_propertiesData_synchronState($base, $i, $localhost) eq 'TERMINATED' || iolibCigri::get_propertiesData_synchronState($base, $i, $localhost) eq 'ERROR' ||  iolibCigri::get_properties_cluster_existance($base,$i,$localhost) == 0) && iolibCigri::get_propertiesData_synchronState($base, $i, $j) eq 'INITIATED' && iolibCigri::get_nb_synchronTREAT_clusters($base,$i) == 0){
              print"[HERMES]Transfer data from localhost $localhost to $j for data synchronization of $i Mjob\n";	     
 	     iolibCigri::set_propertiesData_synchronState($base, $i, $j, 'IN_TREATMENT');

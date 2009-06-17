@@ -91,7 +91,7 @@ sub add_new_job_event($$$$){
     my $dbh = shift;
     my $jobId = shift;
     my $eventType = shift;
-    my $eventMessage = shift;
+    my $eventMessage =  $dbh->quote(shift);
 
     my $sth = $dbh->prepare("SELECT jobMJobsId,jobClusterName
                              FROM jobs
@@ -347,6 +347,30 @@ sub get_blacklisted_nodes($$$){
     return(@nodeNames);
 }
 
+
+
+# get jobid number that generated a given blacklisting
+# arg1 --> database ref
+# arg2 --> clusterBlackListEventId
+sub get_jobid_from_blacklistid($$){
+    my $dbh = shift;
+    my $blacklistid = shift;
+
+	my $sth = $dbh->prepare("SELECT clusterBlackListEventId FROM clusterBlackList WHERE clusterBlackListNum = $blacklistid");
+    $sth->execute();
+    my @array = $sth->fetchrow_array();
+    my $eventid = $array[0];
+
+	$sth = $dbh->prepare("SELECT eventJobId FROM events WHERE eventId = $eventid");
+    $sth->execute();
+    @array = $sth->fetchrow_array();
+    my $jobid = $array[0];
+
+    return $jobid;
+}
+
+
+
 # check events in the database and decide actions to perform
 # arg1 --> database ref
 sub check_events($){
@@ -406,6 +430,7 @@ sub check_events($){
             if(!defined($id)) {
                 $id = 1;
             }
+
             $dbh->do("    INSERT INTO clusterBlackList (clusterBlackListNum,clusterBlackListClusterName,clusterBlackListEventId )
                         VALUES ($id,\"$ref[1]\",$ref[0])");
 
@@ -415,14 +440,15 @@ sub check_events($){
     }
     $sth->finish();
 
+
+
     # JOB error ----> blacklist a cluster for a MJob
-    $sth = $dbh->prepare("    SELECT eventId, eventClusterName, eventMJobsId, eventMessage
+    $sth = $dbh->prepare("    SELECT eventId, eventClusterName, eventMJobsId, eventMessage, eventType
                             FROM events
                             WHERE eventState = \"ToFIX\"
                                 AND (eventType = \"UPDATOR_RET_CODE_ERROR\" 
-				     OR eventType = \"OAR_OARSUB\"
-                                     OR eventType = \"RUNNER_SUBMIT\"
-                                    )
+						     	OR eventType = \"OAR_OARSUB\"
+                                OR eventType = \"RUNNER_SUBMIT\")
                             ");
     $sth->execute();
 
@@ -437,22 +463,59 @@ sub check_events($){
             if(!defined($id)) {
                 $id = 1;
             }
+
             $dbh->do("    INSERT INTO clusterBlackList (clusterBlackListNum,clusterBlackListClusterName,clusterBlackListMJobsID,clusterBlackListEventId )
                         VALUES ($id,\"$ref[1]\",$ref[2],$ref[0])");
 
-	    my $msg="This is a message from the CiGri server as an error occured into your MJob #".$ref[2]."\n";
-	    $msg.="This happenned on the ".$ref[1]. " cluster. This host has been disabled for your MJob\n";
-	    $msg.="until you correct the problem and you fix it into the CiGri web interface.\n\n";
-	    $msg.=$ref[3];
 
-            # notify admin by email
-            mailer::sendMail("clusterBlackList = $ref[1] for the MJob $ref[2]; eventId = $ref[0]",$msg);
+	    	my $msg="This is a message from the CiGri server as an error occured into your MJob #".$ref[2]."\n";
+	    	$msg.="This happenned on the ".$ref[1]. " cluster. This host has been disabled for your MJob\n";
+	    	$msg.="until you correct the problem and you fix it into the CiGri web interface.\n\n";
+	    	$msg.=$ref[3];
 
-	    # notify the user
-	    mailer::sendMailtoUser("clusterBlackList = $ref[1] for the MJob $ref[2]; eventId = $ref[0]",$msg,iolibCigri::get_MJob_user($dbh,$ref[2]));
+            # notify admin by email, but not on OAR errors(which can be a lot)
+		    if($ref[4] ne "OAR_OARSUB"){
+	            mailer::sendMail("clusterBlackList = $ref[1] for the MJob $ref[2]; eventId = $ref[0]",$msg);
+			}
+
+		    # notify the user
+	    	mailer::sendMailtoUser("clusterBlackList = $ref[1] for the MJob $ref[2]; eventId = $ref[0]",$msg,iolibCigri::get_MJob_user($dbh,$ref[2]));
+
+
+
+
+			# check if all clusters where blacklisted
+			my $nb_cluster_sth = $dbh->prepare("SELECT COUNT(*) FROM properties WHERE propertiesMJobsId = $ref[2]");
+			$nb_cluster_sth->execute();
+			my @nb_cluster_array = $nb_cluster_sth->fetchrow_array();
+			my $nb_cluster = $nb_cluster_array[0];
+
+			my $nb_blcluster_sth = $dbh->prepare("SELECT COUNT(*) FROM clusterBlackList WHERE clusterBlackListMJobsID = $ref[2]");
+			$nb_blcluster_sth->execute();
+			my @nb_blcluster_array = $nb_blcluster_sth->fetchrow_array();
+			my $nb_blcluster = $nb_blcluster_array[0];
+
+			if($nb_blcluster == $nb_cluster){
+				print "[COLOMBO]       all clusters were blacklisted for the
+Mjob $ref[2]  \n";
+				add_new_mjob_event($dbh,$ref[2],"FRAG","Auto-frag: all clusters blacklisted");
+				#TODO emathias: mail everybody 
+			}else{
+				my $job_to_resubmit = get_jobid_from_blacklistid($dbh,$id);
+				print "[COLOMBO]     Resubmit job $job_to_resubmit, due to blacklisting \n";
+		 		resubmit_job($dbh,$job_to_resubmit);
+			}
+
+
         }
     }
     $sth->finish();
+
+
+
+
+
+
 
     # I treate the UPDATOR_JOB_KILLED event type
     # --> resubmit jobs

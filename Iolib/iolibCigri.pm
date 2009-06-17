@@ -29,6 +29,91 @@ use ConfLibCigri qw(init_conf get_conf is_conf);
 use colomboCigri;
 #use mailer;
 
+
+
+sub connect() ;
+sub disconnect($) ;
+
+#TODO emathias: add comments on prototypes
+sub get_cigri_remote_file_name($);
+sub get_cigri_remote_script_name($);
+sub get_mjob_id($$) ;
+sub get_date() ;
+sub get_walltime_in_seconds($) ;
+sub emptyTemporaryTables($);
+sub add_mjobs($$$) ;
+sub get_source_data_synchron($$);
+sub get_data_synchron_param($);
+sub set_data_synchronState($$$) ;
+sub get_userLogin4cluster($$$) ;
+sub get_data_synchronState($$) ;
+sub get_data_synchronUser($$) ;
+sub get_nb_data_synchronTREATstate($) ;
+sub get_nbclusters_4user($$) ;
+sub get_localhost_user($) ;
+sub set_propertiesData_synchronState($$$$) ;
+sub get_propertiesData_synchronState($$$) ;
+sub get_properties_ExecDirectory($$$) ;
+sub get_properties_cluster_existance($$$);
+sub get_nb_synchronTERM_clusters($$);
+sub get_nb_synchronERR_clusters($$);
+sub get_nb_synchronTREAT_clusters($$);
+sub get_nb_Mjob_clusters($$);
+sub set_properties_datasynchron_initstate($$);
+sub get_cluster_names_batch($);
+sub get_cluster_names_resource_unit($);
+sub get_clusters_max_weight($);
+sub get_default_job_resources();
+sub get_cluster_names_properties($);
+sub get_cluster_properties($$);
+sub get_all_cluster_names($);
+sub get_cluster_default_weight($$);
+sub disable_all_nodes($);
+sub is_node_exist($$$);
+sub add_node($$$) ;
+sub set_cluster_node_free_weight($$$$);
+sub set_cluster_node_max_weight($$$$);
+sub get_IN_TREATMENT_MJobs($);
+sub get_MJobs_JDL($$);
+sub get_launching_job($$) ;
+sub get_cluster_job_toLaunch($$$) ;
+sub set_job_state($$$) ;
+sub set_mjobs_state($$$) ;
+sub set_job_batch_id($$$);
+sub get_job_id_from_batchid($$$);
+sub get_job_to_update_state($);
+sub get_nb_freeNodes($);
+sub get_nb_remained_jobs($);
+sub get_nb_remained_jobs_by_type($$);
+sub get_cluster_remoteWaiting_job_nb($);
+sub get_remote_waiting_jobs_by_cluster($$);
+sub get_remoteWaiting_times($);
+sub get_MJobs_Properties($$);
+sub get_MJobs_ActiveClusters($$);
+sub add_job_to_launch($$$$);
+sub check_end_MJobs($);
+sub update_att_job($$$$$$$);
+sub get_tocollect_MJobs($$);
+sub get_tocollect_MJob_files($$);
+sub create_new_collector($$$) ;
+sub set_job_collectedJobId($$$);
+sub get_current_scheduler($);
+sub update_current_scheduler($);
+sub begin_transaction($);
+sub commit_transaction($);
+sub rollback_transaction($);
+sub lock_collector($$);
+sub unlock_collector($);
+sub get_tofrag_MJobs($);
+sub get_tofrag_jobs($);
+sub delete_all_MJob_parameters($$);
+sub set_frag_specific_MJob($$);
+sub get_MJobs_tofrag_eventId($$);
+sub get_MJob_user($$);
+sub get_job_user($$);
+sub update_mjob_forecast($$$$$$);
+sub get_MjobsId($$) ;
+
 # Connect to the database and give the ref
 sub connect() {
     # Connect to the database.
@@ -153,9 +238,10 @@ sub add_mjobs($$$) {
 	if(($mJobsType ne "default") && ($mJobsType ne "test")){
 		return(-5);
 	}
-    
+    my $quoted_jdl =  $dbh->quote($jdl);
+ 
     $dbh->do("INSERT INTO multipleJobs (MJobsId,MJobsUser,MJobsJDL,MJobsTSub,MJobsType)
-            VALUES (NULL,\"$lusr\",\"$jdl\",\"$time\", \"$mJobsType\")");
+            VALUES (NULL,\"$lusr\",\"$quoted_jdl\",\"$time\", \"$mJobsType\")");
 
     my $sth = $dbh->prepare("SELECT LAST_INSERT_ID()");
     $sth->execute();
@@ -227,17 +313,17 @@ sub add_mjobs($$$) {
                 if ($j ne "DEFAULT"){
                     if (defined($JDLParserCigri::clusterConf{$j}{execFile})){
                         my $jobWalltime = "1:00:00";
-                        my $jobWeight = 1;
+                        my $jobResources = "/resource_id=1";
                         my $execDir = "~";
-			my $checkpoint_type="";
-			my $checkpoint_period=0;
-			my $priority = 1;
+						my $checkpoint_type="";
+						my $checkpoint_period=0;
+						my $priority = 1;
                         if (defined($JDLParserCigri::clusterConf{$j}{walltime})){
                             $jobWalltime = $JDLParserCigri::clusterConf{$j}{walltime};
                         }
-                        if ((defined($JDLParserCigri::clusterConf{$j}{weight})) && ($JDLParserCigri::clusterConf{$j}{weight} > 0)){
-                            $jobWeight = $JDLParserCigri::clusterConf{$j}{weight};
-                        }
+                        if (defined($JDLParserCigri::clusterConf{$j}{resources})){
+                            $jobResources = $JDLParserCigri::clusterConf{$j}{resources};
+						}
                         if ((defined($JDLParserCigri::clusterConf{$j}{execDir})) && !($JDLParserCigri::clusterConf{$j}{execDir} =~ m/.*\~.*/m)){
                             $execDir = $JDLParserCigri::clusterConf{$j}{execDir};
 			}
@@ -255,8 +341,8 @@ sub add_mjobs($$$) {
 			    $priority = $JDLParserCigri::clusterConf{$j}{priority};
 			}
 
-                        $dbh->do("INSERT INTO properties (propertiesClusterName,propertiesMJobsId,propertiesJobCmd,propertiesJobWalltime,propertiesJobWeight,propertiesExecDirectory,propertiesCheckpointType,propertiesCheckpointPeriod,propertiesClusterPriority)
-                                  VALUES (\"$j\",$id,\"$JDLParserCigri::clusterConf{$j}{execFile}\",\"$jobWalltime\",$jobWeight,\"$execDir\",\"$checkpoint_type\",\"$checkpoint_period\",\"$priority\")");
+                        $dbh->do("INSERT INTO properties (propertiesClusterName,propertiesMJobsId,propertiesJobCmd,propertiesJobWalltime,propertiesJobResources,propertiesExecDirectory,propertiesCheckpointType,propertiesCheckpointPeriod,propertiesClusterPriority)
+                                  VALUES (\"$j\",$id,\"$JDLParserCigri::clusterConf{$j}{execFile}\",\"$jobWalltime\",\"$jobResources\",\"$execDir\",\"$checkpoint_type\",\"$checkpoint_period\",\"$priority\")");
                     }else{
                         rollback_transaction($dbh);
                         return -3;
@@ -628,24 +714,71 @@ sub get_cluster_names_batch($){
 #            The keys of the hashTable are "NAME" and "RESOURCE_UNIT"
 sub get_cluster_names_resource_unit($){
     my $dbh = shift;
-    my $sth = $dbh->prepare("SELECT clusterName,clusterResourceUnit FROM clusters");
+    my $sth = $dbh->prepare("SELECT clusterName,clusterResourceUnit FROM clusters
+");
     $sth->execute();
 
     my %resulHash;
 
     while (my @ref = $sth->fetchrow_array()) {
         if (colomboCigri::is_cluster_active($dbh,$ref[0],0) == 0){
-	    if ($ref[1]) {
+    	    if ($ref[1]) {
+            	$resulHash{$ref[0]} = $ref[1];
+        	}else {
+	    		ConfLibCigri::init_conf();
+
+		    	if (is_conf("DEFAULT_RESOURCE_UNITY")){
+                	$resulHash{$ref[0]} = get_conf("DEFAULT_RESOURCE_UNITY");
+				}else{
+		      		warn("You must have a cigri.conf (in /etc or in 
+				      \$CIGRIDIR) script with a valid INSTALL_PATH tag\n");
+               		$resulHash{$ref[0]} = "cpu";        
+     			}
+        	}
+    	}
+	}
+    $sth->finish();
+
+    return %resulHash;
+}
+
+
+#get maxWeight of clusters
+#arg1  --> database
+#return  --> hash clustername -> maxweight
+sub get_clusters_max_weight($){
+	my $dbh = shift;
+    my $sth = $dbh->prepare("SELECT nodeClusterName, sum(nodeMaxWeight) FROM
+nodes GROUP BY nodeClusterName");
+    $sth->execute();
+
+    my %resulHash;
+
+    while (my @ref = $sth->fetchrow_array()) {
+        if (colomboCigri::is_cluster_active($dbh,$ref[0],0) == 0){
               $resulHash{$ref[0]} = $ref[1];
-	      }
-	    else {
-              $resulHash{$ref[0]} = "cpu";
-	    }
         }
     }
     $sth->finish();
 
     return %resulHash;
+}
+
+
+
+#get default cigri resource unit
+# return --> DEFAULT_RESOURCE variable from cigri.conf or /resource_id=1
+sub get_default_job_resources(){
+    my $resource_unit;
+
+	ConfLibCigri::init_conf();
+
+    if (is_conf("DEFAULT_JOB_RESOURCES")){
+	    $resource_unit = get_conf("DEFAULT_JOB_RESOURCES");
+    }else{
+ 	   warn("You must have a cigri.conf (in /etc or in \$CIGRIDIR) script with a valid INSTALL_PATH tag\n");
+         $resource_unit = "/resource_id=1";
+     }
 }
 
 # get the cluster batch properties in an array
@@ -692,21 +825,24 @@ sub get_cluster_properties($$){
 
 # get all the cluster names in an array (even if it is dead)
 # arg1 --> database ref
-# return --> hash of cluster names
+# return --> array of cluster names
 sub get_all_cluster_names($){
     my $dbh = shift;
     my $sth = $dbh->prepare("SELECT clusterName FROM clusters ");
     $sth->execute();
 
-    my %resulHash;
+	my @resulArray;
+
     while (my @ref = $sth->fetchrow_array()) {
-        $resulHash{$ref[0]} = 1;
+        push(@resulArray, $ref[0]);
     }
+
     $sth->finish();
 
-    return %resulHash;
+    return @resulArray;
 }
 
+# DEPRECATED
 # get defaultWeight of a cluster
 # arg1 --> database ref
 # arg2 --> clusterName
@@ -891,7 +1027,7 @@ sub get_MJobs_JDL($$){
 sub get_launching_job($$) {
     my $dbh = shift;
     my $clusterName = shift;
-    my $sth = $dbh->prepare("SELECT jobId,jobParam,propertiesJobCmd,jobClusterName,clusterBatch,userLogin,MJobsId,propertiesJobWalltime,propertiesJobWeight,propertiesExecDirectory,propertiesCheckpointPeriod,propertiesCheckpointType,jobName
+    my $sth = $dbh->prepare("SELECT jobId,jobParam,propertiesJobCmd,jobClusterName,clusterBatch,userLogin,MJobsId,propertiesJobWalltime,propertiesJobResources,propertiesExecDirectory,propertiesCheckpointPeriod,propertiesCheckpointType,jobName
                              FROM jobs,clusters,multipleJobs,properties,users
                              WHERE jobState=\"toLaunch\"
                                  AND clusterName = \"$clusterName\"
@@ -917,7 +1053,7 @@ sub get_launching_job($$) {
         'user'          => $ref[5],
         'mjobid'        => $ref[6],
         'walltime'      => $ref[7],
-        'weight'        => $ref[8],
+        'resources'     => $ref[8],
         'execDir'       => $ref[9],
 	'checkpointPeriod' => $ref[10],
 	'checkpointType' => $ref[11],
@@ -1238,16 +1374,41 @@ sub get_nb_remained_jobs_by_type($$){
 }
 
 
-
-# get the global weight of remote waiting jobs
+# get array of remote waiting jobs on a given cluster
 # arg1 --> database ref
-sub get_cluster_remoteWaiting_job_weight($){
+# arg1 --> database ref
+sub get_remote_waiting_jobs_by_cluster($$){
+	my $dbh = shift;
+	my $cluster = shift;
+
+    my $sth = $dbh->prepare("SELECT jobId
+                             FROM jobs
+                             WHERE jobState = \"RemoteWaiting\"
+							 AND jobClusterName = \"$cluster\" 
+							 ORDER BY jobId ASC
+                            ");
+
+	$sth->execute();
+
+	my @result;
+	while (my @ref = $sth->fetchrow_array()) {
+   		push(@result,$ref[0]);
+    }
+
+    $sth->finish();
+
+    return @result;
+
+}
+
+# get number of remote waiting jobs on clusters
+# arg1 --> database ref
+sub get_cluster_remoteWaiting_job_nb($){
     my $dbh = shift;
 
-    my $sth = $dbh->prepare("SELECT jobClusterName,SUM(propertiesJobWeight)
-                             FROM jobs,properties
+    my $sth = $dbh->prepare("SELECT jobClusterName,COUNT(*)
+                             FROM jobs
                              WHERE jobState = \"RemoteWaiting\"
-                                AND jobMJobsId = propertiesMJobsId
                              GROUP BY jobClusterName
                             ");
     $sth->execute();
@@ -1263,6 +1424,30 @@ sub get_cluster_remoteWaiting_job_weight($){
     return %result;
 }
 
+#get hash with jobids->waiting times by cluster
+# arg1 --> database ref
+# arg2 --> cluster name
+sub get_remoteWaiting_times($){
+    my $dbh = shift;
+
+    my $sth = $dbh->prepare("SELECT jobId, (NOW() - jobTSub) 
+							 FROM jobs WHERE
+								jobState = \"RemoteWaiting\"
+                            ");
+    $sth->execute();
+
+    my %result;
+    while (my @ref = $sth->fetchrow_array()) {
+            $result{$ref[0]} = $ref[1];
+    }
+    
+    $sth->finish();
+
+    return %result;
+}
+
+
+#DEPRECATED
 # get MJobs properties
 # arg1 --> database ref
 # arg2 --> MJobsId
@@ -1270,7 +1455,7 @@ sub get_MJobs_Properties($$){
     my $dbh = shift;
     my $id = shift;
 
-    my $sth = $dbh->prepare("   SELECT   propertiesClusterName,propertiesJobWeight
+    my $sth = $dbh->prepare("   SELECT   propertiesClusterName
                                 FROM properties, users, multipleJobs
                                 WHERE propertiesMJobsId = $id
                                     AND propertiesClusterName = userClusterName
@@ -1282,7 +1467,7 @@ sub get_MJobs_Properties($$){
     my %result;
     while (my @ref = $sth->fetchrow_array()) {
         if (colomboCigri::is_cluster_active($dbh,$ref[0],$id) == 0){
-            $result{$ref[0]} = $ref[1];
+            $result{$ref[0]} = 1;
         }
     }
     $sth->finish();

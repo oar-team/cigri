@@ -25,6 +25,8 @@ use ConfLibCigri qw(init_conf dump_conf get_conf is_conf);
 use iolibCigri;
 use mailer;
 
+my $run = 1;
+
 # Init the request to the cigri.conf file
 init_conf();
 
@@ -138,6 +140,9 @@ sub phoenix(){
     return launch_command($phoenix_command);
 }
 
+if ($run == 0){
+	exit 0;
+}
 
 # core of the AlmightyCigri
 my $exitValue;

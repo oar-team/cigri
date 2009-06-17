@@ -57,7 +57,6 @@ my %jobRunningHash = iolibCigri::get_job_to_update_state($base);
 print("[UPDATOR]     Verify if Running jobs are still running\n");
 # Exec qstat cmd for all clusters which have a running job
 foreach my $i (keys(%jobRunningHash)){
-    print("\tcluster = $i\n");
     my %jobState = ();
     my $remotewaiting_timeout;
     if (jobStat::jobStat($i, \%jobState) == -1){
@@ -135,22 +134,7 @@ foreach my $i (keys(%jobRunningHash)){
                     iolibCigri::set_job_state($base, ${$j}{jobId}, "Running");
                 }
             }
-	    # Check for RemotWaiting timeouts
-	    if (defined(ConfLibCigri::get_conf("REMOTE_WAITING_TIMEOUT")) &&
-	         (ConfLibCigri::get_conf("REMOTE_WAITING_TIMEOUT") > 10)) {
-	      $remotewaiting_timeout=ConfLibCigri::get_conf("REMOTE_WAITING_TIMEOUT");
-	    }
-	    else {
-	      $remotewaiting_timeout=600;
-	    }
-	    if ((${$j}{jobState} eq "RemoteWaiting") && (time() - ${$j}{jobTSub} >= $remotewaiting_timeout)) {
-                iolibCigri::set_job_state($base, ${$j}{jobId}, "Event");
-                colomboCigri::add_new_job_event($base,${$j}{jobId},"FRAG","RemoteWaiting too long frag");
-		colomboCigri::resubmit_job($base,${$j}{jobId});
-		print "[UPDATOR]     Frag-resubmit job ${$j}{jobId} because of RemoteWaiting for too long.\n";
-	    }
         }
-
     }
 }
 

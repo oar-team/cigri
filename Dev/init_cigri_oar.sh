@@ -33,7 +33,7 @@ do
 done
 }
 
-while getopts "f:n:o:hc" options; do
+while getopts "f:n:o:hkcs" options; do
   case $options in
     f ) NODEFILE=$OPTARG;;
     n ) NBCLUSTERS=$OPTARG;;
@@ -67,9 +67,16 @@ then
 	echo "$PREFIX Killing OAR and CiGri daemons"
 	#kill daemons
 	PID=`ps aux | grep ssh | grep SSHcmd | cut -d " " -f2`
-	kill -9 $PID
+	kill -9 $PID 2>/dev/null
 
-	ssh root@${CIGRI_SERVER} killall /usr/bin/perl
+	sort -u $NODEFILE | while read node
+    do
+		echo "$PREFIX Killing daemons on $node"
+ 		ssh -n root@${node} killall /usr/bin/perl 2>/dev/null
+		ssh -n root@${node} killall sleep 2>/dev/null
+		ssh -n root@${node} killall ssh 2>/dev/null
+    done #2>/dev/null
+
 	
 	if [ "$CLEAN" != 'true' ] 
 	then
@@ -92,9 +99,11 @@ then
 	echo "$PREFIX Cleaning databases"
     #cleanup databases
     sort -u $NODEFILE | while read node
-    do  
-        ssh root@${node} "mysql -D oar < /usr/lib/oar/mysql_structure.sql"
-        ssh root@${node} "mysql -D cigri < /home/cigri/CIGRI/DB/cigri_db.sql"
+    do 
+        ssh -n root@${node} "mysql -D oar < /usr/lib/oar/mysql_structure.sql"
+        ssh -n root@${node} "mysql -D oar < /usr/lib/oar/default_data.sql"
+        ssh -n root@${node} "mysql -D oar < /usr/lib/oar/mysql_default_admission_rules.sql"
+        ssh -n root@${node} "mysql -D cigri < /home/cigri/CIGRI/DB/cigri_db.sql"
     done #2>/dev/null
 
 	echo "$PREFIX Done"
@@ -155,6 +164,8 @@ do
 	fi
 
 	echo "$PREFIX Starting OAR server on $CIGRI_CLUSTER"
+
+	echo "sort -u $NODEFILE | sed -n \"${FIRSTNODE_LINE},${LASTNODE_LINE}p\"  | ssh -l g5k $CIGRI_CLUSTER \"xargs /home/g5k/launch_OAR.sh\"" 
 	sort -u $NODEFILE | sed -n "${FIRSTNODE_LINE},${LASTNODE_LINE}p"  | ssh -l g5k $CIGRI_CLUSTER "xargs /home/g5k/launch_OAR.sh" 
 
 	echo "$PREFIX cluster $CIGRI_CLUSTER to CiGri"
