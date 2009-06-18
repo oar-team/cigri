@@ -50,7 +50,7 @@ foreach my $cluster (keys (%clusters_max_weight)){
 	my $max_waiting = floor($clusters_max_weight{$cluster} *  $flood_rate);
 	my @remote_waiting_jobs = iolibCigri::get_remote_waiting_jobs_by_cluster($base, $cluster);
 
-	if ((scalar @remote_waiting_jobs) > $max_waiting){
+	while ((scalar @remote_waiting_jobs) > $max_waiting){
 		print "[NIKITA] Frag-resubmit ".  ((scalar @remote_waiting_jobs) - $max_waiting) . " RemoteWaiting jobs on cluster $cluster to avoid job overflow (max waiting = $max_waiting)\n";
 
 		my $jobId = pop(@remote_waiting_jobs);
