@@ -730,8 +730,7 @@ sub get_cluster_names_resource_unit($){
 		    	if (is_conf("DEFAULT_RESOURCE_UNITY")){
                 	$resulHash{$ref[0]} = get_conf("DEFAULT_RESOURCE_UNITY");
 				}else{
-		      		warn("You must have a cigri.conf (in /etc or in 
-				      \$CIGRIDIR) script with a valid INSTALL_PATH tag\n");
+		      		warn("You must have a cigri.conf (in /etc or in \$CIGRIDIR) script with a valid DEFAULT_RESOURCE_UNITY tag\n");
                		$resulHash{$ref[0]} = "cpu";        
      			}
         	}
