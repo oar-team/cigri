@@ -295,7 +295,7 @@ end
 # of currently running jobs. Returns a number of seconds
 def forecast_average(mjob)
     if mjob.n_running != 0 
-        return ( ((mjob.n_waiting + mjob.n_running/2) * mjob.average[0]) / mjob.n_running ).to_i
+        return ( ((mjob.n_waiting.to_f + mjob.n_running.to_f/2) * mjob.average[0]) / mjob.n_running ).to_i
     else
         return 0
     end
@@ -306,7 +306,7 @@ end
 def forecast_throughput(mjob,window)
     throughtput=mjob.throughput(window)
     if throughtput != 0
-        return ( (mjob.n_waiting + mjob.n_running/2) / throughtput ).to_i
+        return ( (mjob.n_waiting.to_f + mjob.n_running.to_f/2) / throughtput ).to_i
     else
         return 0
     end
