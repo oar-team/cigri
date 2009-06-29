@@ -50,20 +50,25 @@ if (!-x $forecaster) {
 my @MjobsToForecast;
 @MjobsToForecast = iolibCigri::get_IN_TREATMENT_MJobs($base);
 
+
+ 
 foreach my $i (@MjobsToForecast){
-    print("[SPRITZ]      I'm forecasting the MJob $i\n");
-    my $cmd = "$forecaster $i";
-    my $output = `$cmd`;
-    my ($hashref, $arrayref, $string) = YAML::Load($output) || die "[SPRITZ]      Could not parse output of $forecaster";
-    iolibCigri::begin_transaction($base);
-    iolibCigri::update_mjob_forecast($base,$i,
-                                     $hashref->{data}->{average},
-				     $hashref->{data}->{standard_deviation},
-				     $hashref->{data}->{throughput},
-				     $hashref->{end_time}
-				    );
-    iolibCigri::commit_transaction($base);
-}
+     print("[SPRITZ]      I'm forecasting the MJob $i\n");
+     my $cmd = "$forecaster $i";
+     my $output = `$cmd`;
+     my ($hashref, $arrayref, $string) = YAML::Load($output) || die "[SPRITZ]      Could not parse output of $forecaster";
+ 
+     iolibCigri::begin_transaction($base);
+     iolibCigri::update_mjob_forecast($base,$i,
+                                      $hashref->{data}->{average},
+ 				     $hashref->{data}->{standard_deviation},
+ 				     $hashref->{data}->{throughput},
+ 				     $hashref->{end_time}
+ 				    );
+     iolibCigri::commit_transaction($base);
+ }
+
 iolibCigri::disconnect($base);
 
 exit 0;
+

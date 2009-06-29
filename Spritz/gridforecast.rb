@@ -32,6 +32,7 @@ require 'yaml'
 require 'pp'
 require 'cigriJobs'
 require 'cigriUtils'
+require 'cigriForecasts'
 
 $verbose = false
 #$verbose = true
@@ -55,39 +56,51 @@ if ARGV.empty?
     exit 1
 end
 
+
 # Get the multiple job
 mjob=MultipleJob.new(dbh,ARGV[0])
+forecasts=Forecasts.new(mjob)
+
+#put forecasts
 
 puts mjob if $verbose
-puts "Forecast (average method): #{forecast_average(mjob)}" if $verbose
-puts "Forecast (throughput method): #{forecast_throughput(mjob,$time_window_size)}" if $verbose
+puts forecasts if $verbose
 
-average=mjob.average
+sprintf("Forecast (average method): %.3f", Forecasts.forecast_average(mjob)) if $verbose
+sprintf("Forecast (throughput method): %.3f", Forecasts.forecast_throughput(mjob,$time_window_size)) if $verbose
+ 
+average=forecasts.get_average
 
 # Use the average forcaster at the beginning of the job
 # and use the throughput forecaster after
-if average[0] == 0 || mjob.duration < (2 * average[0])
-    forecasted=forecast_average(mjob)
-    forecaster='average'
-else
-    forecasted=forecast_throughput(mjob,$time_window_size)
-    forecaster='throughput'
-end
 
-# Make an array with the forecast
+if average[0] == 0 || mjob.duration < (2 * average[0])
+     forecasted=Forecasts.forecast_average(mjob)
+     forecaster='average'
+else
+     forecasted=Forecasts.forecast_throughput(mjob,$time_window_size)
+     forecaster='throughput'
+ end
+
+ 
+# # Make an array with the forecast
 result = { 'mjob_id' => mjob.mjobid.to_i,
            'forcaster' => forecaster,
-	   'status' => mjob.status,
-	   'duration' => mjob.duration
+   	       'status' => mjob.status,
+		   'duration' => mjob.duration
          }
+
+
 if mjob.status == 'TERMINATED'
-    result['end_time'] = mjob.last_terminated_date if mjob.status == 'TERMINATED'
+	result['end_time'] = mjob.last_terminated_date if mjob.status == 'TERMINATED'
 else 
     result['end_time'] = Time.now.to_i + forecasted
 end
-result['data'] = { 'throughput' => sprintf("%.6f",mjob.throughput($time_window_size)).to_f,
-                   'average' => sprintf("%.2f",average[0]).to_f,
+
+result['data'] = { 'throughput' => sprintf("%.6f",forecasts.get_throughput($time_window_size)).to_f,
+                   'average' => sprintf("%.2f",forecasts.get_average[0]).to_f,
                    'standard_deviation' => sprintf("%.2f",average[1]).to_f
-                 }
-# YAML Output
-puts YAML.dump(result)
+                  }
+
+# # YAML Output
+ puts YAML.dump(result)

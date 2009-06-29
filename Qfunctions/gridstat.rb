@@ -27,6 +27,7 @@ require 'yaml'
 require 'pp'
 require 'cigriJobs'
 require 'cigriUtils'
+require 'cigriForecasts'
 
 $verbose = false
 #$verbose = true
@@ -46,26 +47,55 @@ dbh = db_init()
 
 # Check args
 if ARGV.empty?
-    puts "Usage: #{$0} <multiple_job_id> [-csv]"
+    puts "Usage: #{$0} <multiple_job_id> [-f] [--csv] [-h]"
     exit 1
 end
 
-if ARGV[1] == '-csv'
-    csv=1
+#cParse args
+options = {}
+
+opts = OptionParser.new do|opts|
+
+options[:full] = false
+opts.on( '-f', '--full', 'Show full information about campaigns' ) do
+  options[:full] = true
 end
+
+options[:csv] = false
+opts.on( '--csv', 'Print information in csv format' ) do
+  options[:csv] = true
+end
+
+opts.on( '-h', '--help', "Display #{$0} help" ) do
+    puts opts
+    exit
+end
+
+end
+
+opts.parse! ARGV
+
 
 # Get the multiple job
 mjob=MultipleJob.new(dbh,ARGV[0])
 
-if not csv
+if not options[:csv]
   puts mjob.to_s
-  puts "List of jobs:"
   puts
+  
+  if options[:full]
+	forecasts=Forecasts.new(mjob)
+	puts forecasts.to_s
+	puts
+  	puts "List of jobs:"
+  
 
-  mjob.jobs.each do |job|
-    printf("Job %s: %s\n  Cluster: %s\n  Node: %s\n  BatchId: %s\n  Params: %s\n",
-        job.jid,job.state,job.cluster,job.node,job.batchid,job.param)
+  	mjob.jobs.each do |job|
+    	printf("Job %s: %s\n  Cluster: %s\n  Node: %s\n  BatchId: %s\n  Params: %s\n",
+        	job.jid,job.state,job.cluster,job.node,job.batchid,job.param)
+  	end
   end
+
 else
   puts "\"id\",\"state\",\"cluster\",\"node\",\"batchid\",\"params\""
   mjob.jobs.each do |job|
@@ -73,3 +103,4 @@ else
         job.jid,job.state,job.cluster,job.node,job.batchid,job.param)
   end
 end
+

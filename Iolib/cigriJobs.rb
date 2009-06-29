@@ -161,8 +161,10 @@ end
 #########################################################################
 # MultipleJob class
 #########################################################################
+
+
 class MultipleJob < JobSet
-    attr_reader :mjobid, :type, :jobs, :last_terminated_date, :status, :n_running, :n_terminated
+    attr_reader :mjobid, :type, :jobs, :last_terminated_date, :status, :n_running, :n_terminated, :durations
 
     # Creation
     def initialize(dbh,id)
@@ -236,40 +238,6 @@ class MultipleJob < JobSet
         return @last_terminated_date - @tsub else 
     end
 
-    # Job throughput during the time window
-    def throughput(time_window_size)
-        return @n_terminated.to_f/duration.to_f if @status == 'TERMINATED'
-        n=0
-        first_submited_date = Time.now.to_i
-        @jobs.each do |job|
-            if job.state == 'Terminated' && job.tsub > (Time.now - time_window_size).to_i
-                n+=1
-                first_submited_date = job.tsub if job.tsub < first_submited_date
-            end
-        end
-        if n != 0
-	    t = n.to_f / (Time.now.to_i - first_submited_date).to_f
-	    puts "Calculated troughtput: #{t} (#{t*3600} j/h) - #{n} jobs during window" if $verbose 
-            return t
-        else
-            return 0.0
-        end
-    end
-
-    # Mean and stddev duration of terminated jobs
-    def average
-        if !@durations.empty?
-            std_dev = @durations.first **2
-            total = @durations.inject {|sum, d| std_dev += d * d; sum + d }
-            n = @durations.length.to_f
-            mean = total.to_f / n
-            std_dev = Math.sqrt(std_dev.to_f / n - mean **2)
-            return [mean,std_dev]
-        else
-            return [0.0,0.0]
-        end
-    end
-
     # Printing
     def to_s
         sprintf("Multiple job %i
@@ -280,39 +248,14 @@ class MultipleJob < JobSet
         Running:                %i 
         Waiting:                %i 
         Terminated:             %i 
-        Troughput (last hour):  %.2f jobs/hour 
-        Duration:               %i s 
-        Average:                %i s 
-        Stddev:                 %.2f", \
-        @mjobid,@type,@status,Time.at(@tsub),Time.at(@last_terminated_date),@n_running,n_waiting,@n_terminated,\
-	throughput(3600)*3600,duration,average[0].to_i,average[1])
+        Duration:               %i s", \
+        @mjobid,@type,@status,Time.at(@tsub),Time.at(@last_terminated_date),@n_running,n_waiting,@n_terminated,duration)
     end
 end
 
 #########################################################################
 # Functions
 #########################################################################
-
-# Make a forecast based on the average job duration and number 
-# of currently running jobs. Returns a number of seconds
-def forecast_average(mjob)
-    if mjob.n_running != 0 
-        return ( ((mjob.n_waiting + mjob.n_running/2) * mjob.average[0]) / mjob.n_running ).to_i
-    else
-        return 0
-    end
-end
-
-# Make a forecast based on the job throughput in the last window seconds
-# Returns a number of seconds
-def forecast_throughput(mjob,window)
-    throughtput=mjob.throughput(window)
-    if throughtput != 0
-        return ( (mjob.n_waiting + mjob.n_running/2) / throughtput ).to_i
-    else
-        return 0
-    end
-end
 
 # Returns the running jobs that may be checkpointed (array of job objects)
 #

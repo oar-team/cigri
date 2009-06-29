@@ -150,6 +150,7 @@ INDEX propertiesMJobsId (propertiesMJobsId),
 PRIMARY KEY (propertiesClusterName,propertiesMJobsId)
 )TYPE = InnoDB;
 
+
 DROP TABLE IF EXISTS jobsToSubmit;
 CREATE TABLE IF NOT EXISTS jobsToSubmit (
 jobsToSubmitMJobsId INT UNSIGNED NOT NULL ,
@@ -259,7 +260,6 @@ PRIMARY KEY  (`login`)
 )TYPE = InnoDB;
 
 
-# Forecasting table
 DROP TABLE IF EXISTS forecasts;
 CREATE TABLE `forecasts` (
 `MjobsId` INT( 10 ) NOT NULL ,
@@ -269,6 +269,25 @@ CREATE TABLE `forecasts` (
 `end` INT NOT NULL ,
 PRIMARY KEY ( `MjobsId` )
 );
+
+
+# New forecast table
+#--------------------------------------------------
+# DROP TABLE IF EXISTS forecasts;
+# CREATE TABLE IF NOT EXISTS forecasts (
+# timeStamp TIME NOT NULL ,
+# clusterName VARCHAR( 100 ) NOT NULL ,
+# mJobsId INT UNSIGNED NOT NULL ,
+# jobRatio INT UNSIGNED,
+# lastJobRatio INT UNSIGNED,
+# average FLOAT NOT NULL ,
+# stddev FLOAT NOT NULL ,
+# throughput FLOAT NOT NULL ,
+# `end` INT NOT NULL ,
+# INDEX mJobsId (mJobsId),
+# PRIMARY KEY (mJobsId,clusterName)
+# )TYPE = InnoDB;
+#-------------------------------------------------- 
 
 # Gridstatus table
 DROP TABLE IF EXISTS gridstatus;
