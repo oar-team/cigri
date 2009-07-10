@@ -53,19 +53,50 @@ my @MjobsToForecast;
 
  
 foreach my $i (@MjobsToForecast){
-     print("[SPRITZ]      I'm forecasting the MJob $i\n");
-     my $cmd = "$forecaster $i";
-     my $output = `$cmd`;
-     my ($hashref, $arrayref, $string) = YAML::Load($output) || die "[SPRITZ]      Could not parse output of $forecaster";
+    print("[SPRITZ]      I'm forecasting the MJob $i\n");
+    my $cmd = "$forecaster $i";
+    my $output = `$cmd`;
+    my ($hashref, $arrayref, $string) = YAML::Load($output) || die "[SPRITZ]      Could not parse output of $forecaster";
  
-     iolibCigri::begin_transaction($base);
-     iolibCigri::update_mjob_forecast($base,$i,
-                                      $hashref->{data}->{average},
- 				     $hashref->{data}->{standard_deviation},
- 				     $hashref->{data}->{throughput},
- 				     $hashref->{end_time}
- 				    );
-     iolibCigri::commit_transaction($base);
+	my %average = %{$hashref->{average}};
+	my %stddev = %{$hashref->{stddev}};
+	my %throughput = %{$hashref->{throughput}};
+	
+	foreach my $cluster (sort keys %average){
+
+	#get previous jobratio, current waiting and running
+	my $old_jobratio = iolibCigri::get_last_jobratio($base,$i,$cluster);	
+	my $nb_waiting =  iolibCigri::get_cluster_remoteWaiting_job_nb($base, $cluster);
+	my $max_waiting = iolibCigri::get_max_waiting_jobs_by_cluster($base, $cluster); 
+
+	#calculate new jobratio	(TCP slow-start)
+	#my $jobratio;
+	#if ($nb_waiting > $max_waiting) {
+	#	$jobratio = 0;
+	#}else{
+	#	if ($old_jobratio == 0) {
+	#		$jobratio = iolibCigri::get_cluster_free_weight($base, $cluster);
+	#	}else{
+	#		$jobratio = $old_jobratio * 2;
+	#	}	
+	#}
+
+	my $jobratio;
+	if ($nb_waiting > $max_waiting) {
+		$jobratio = $old_jobratio - ($max_waiting - $nb_waiting);
+	}else{
+		$jobratio = iolibCigri::get_cluster_free_weight($base, $cluster) + $max_waiting;
+	}
+
+
+	print "MJobId $i, cluster=$cluster,  Old jr = $old_jobratio, New Jr = $jobratio \n";
+	
+	#update forecast DB
+    #iolibCigri::begin_transaction($base);
+	iolibCigri::update_mjob_forecast ($base,$i,$cluster,$average{$cluster},
+			$stddev{$cluster},$throughput{$cluster}, $jobratio, $hashref->{end_time});
+	}    
+	#iolibCigri::commit_transaction($base);
  }
 
 iolibCigri::disconnect($base);

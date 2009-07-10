@@ -121,7 +121,7 @@ foreach my $j (keys(%clusterNames)){
             }
 
             my $cmdString = join(" ", @cmdSSH);
-	    #print "$cmdString\n";
+	        #print  " ---------  $cmdString\n";
             my %cmdResult = SSHcmd::submitCmd($job{clusterName},$cmdString);
             if ($cmdResult{STDERR} ne ""){
                 print("[RUNNER]      ERROR: $cmdResult{STDERR}");

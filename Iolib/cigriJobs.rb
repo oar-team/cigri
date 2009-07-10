@@ -18,9 +18,11 @@ class Job
         when 0
           @jid=0
         # Else, we initialize with the provided values
-        when 13
-	  (@jid,@mjobid,@name,@state,@tsub,@tstart,@tstop,@param,\
+        when 13 
+	 (@jid,@mjobid,@name,@state,@tsub,@tstart,@tstop,@param,\
 	   @cluster,@batchid,@node,@cdate,@cstatus)=args
+
+		#puts  " #{@jid} #{@mjobid} #{@state} #{@tsub} #{@tstart} #{@tstop}"
         else
           raise("Wrong number of arguments for initialize")
         end
@@ -60,8 +62,15 @@ class Job
     def duration
         if state == 'Terminated'
             return tstop - tstart
-        else
-            return Time.now.to_i - tstart
+        elsif state == 'Event'
+			return 0
+		else
+			# tstart = 0 means job is Running, but not started by RM
+			if (tstart == 0)
+				return 0
+			else
+            	return Time.now.to_i - tstart
+			end
         end
      end
 

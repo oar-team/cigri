@@ -13,19 +13,29 @@ phoenix_command=${path}"/Phoenix/phoenixCigri.rb";
 sched_command=${path}"/Scheduler/sched_fifoCigri.pl";
 
 
+#--------------------------------------------------
+# - AutoFix
+# - Updator
+# - Spritz
+# - Scheduler
+# - Gridstatus
+# - Runner
+# - Phoenix
+# - Nikita
+#-------------------------------------------------- 
 
 while [ 1 ] 
 do
 
 echo " Please chose the module to run: "
-echo " 1 - Nikita"
-echo " 2 - AutoFix"
-echo " 3 - Updator"
+echo " 1 - AutoFix"
+echo " 2 - Updator"
+echo " 3 - Spritz"
 echo " 4 - Scheduler"
 echo " 5 - Gridstat"
 echo " 6 - Runner"
 echo " 7 - Phoenix"
-echo " 8 - Spritz"
+echo " 8 - Nikita"
 echo " * - Run a whole Almighty iteration"
 echo " - - Give your own command"
 echo " x|q - Exit"
@@ -34,21 +44,21 @@ read opt
 
 echo "------------------------"
 case $opt in
-   1)  echo "Running Nikita:"; time $nikita_command ;;
-   2)  echo "Running AutoFix:"; time $autofix_command ;;
-   3)  echo "Running Updator:"; time $updator_command ;;
+   1)  echo "Running AutoFix:"; time $autofix_command ;;
+   2)  echo "Running Updator:"; time $updator_command ;;
+   3)  echo "Running Spritz:"; time $spritz_command ;;
    4)  echo "Running Scheduler:"; time $sched_command ;;
    5)  echo "Running Gridstatus:"; time $gridstatus_command ;;
    6)  echo "Running Runner:"; time $runner_command ;;
    7)  echo "Running Phoenix:"; time $phoenix_command ;;
-   8)  echo "Running Spritz:"; time $spritz_command ;;
+   8)  echo "Running Nikita:"; time $nikita_command ;;
    \*)  echo "Running an Almighty iteration:"; 
-						echo "========= NIKITA =============";
-						time $nikita_command;
 						echo "========= AUTOFIX ============";
 						time $autofix_command;  
 						echo "========= UPDATOR ============";
 						time $updator_command;   
+						echo "========= SPRITZ =============";
+						time $spritz_command ;
 						echo "========= SCHED ==============";
 						time $sched_command; 
 						echo "========= GSTAT ==============";
@@ -57,8 +67,9 @@ case $opt in
 						time $runner_command; 
 						echo "========= PHOENIX ============";
 						time $phoenix_command;
-						echo "========= SPRITZ =============";
-						time $spritz_command ;;
+						echo "========= NIKITA =============";
+						time $nikita_command;;
+
    x|q) exit 0;;
    -)  echo "Give your own command:"
 	   read cmd

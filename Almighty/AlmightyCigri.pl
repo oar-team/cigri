@@ -100,7 +100,7 @@ sub scheduler(){
             colomboCigri::add_new_scheduler_event($base,$$sched{schedulerId},"ALMIGHTY_FILE","Can t find the file $scheduler_path$$sched{schedulerFile}");
         }
     }else{
-        print("$tag NO SCHEDULER TO LAUNCH :-(\n");
+        print("$tag NO SCHEDULER " . $scheduler_path.$$sched{schedulerFile} . " -> " . $$sched{schedulerFile} .  " TO LAUNCH :-(\n");
     }
     #iolibCigri::disconnect($base);
 }
@@ -147,31 +147,65 @@ if ($run == 0){
 # core of the AlmightyCigri
 my $exitValue;
 LBL:while (1){
+
+	$exitValue = autofix();
+    next LBL if ($exitValue != 0);
+    $exitValue = updator();
+    next LBL if ($exitValue != 0);
+	$exitValue =  spritz();
+    next LBL if ($exitValue != 0);
+    $exitValue = scheduler();
+	next LBL if ($exitValue != 0);
+	$exitValue = gridstatus();
+    next LBL if ($exitValue != 0);
+    $exitValue = runner();
+	next LBL if ($exitValue != 0);
+	$exitValue = phoenix();
+    next LBL if ($exitValue != 0);
+
     $exitValue = nikita();
 	if ($exitValue != 0) { 
 	   print "$tag WARNING! Nikita exited abnormaly!\n"; 
 	   sleep(5);
 	}
 	$exitValue = 0;
-#        sleep(5);
-    next LBL if ($exitValue != 0);
-	$exitValue = autofix();
-    next LBL if ($exitValue != 0);
-    $exitValue = updator();
-#        sleep(5);
-    next LBL if ($exitValue != 0);
-    $exitValue = scheduler();
-#        sleep(5);
-	next LBL if ($exitValue != 0);
-	$exitValue = gridstatus();
-#        sleep(5);
-    next LBL if ($exitValue != 0);
-    $exitValue = runner();
-	next LBL if ($exitValue != 0);
-	$exitValue = phoenix();
-#        sleep(5);
-    next LBL if ($exitValue != 0);
-	$exitValue =  spritz();
+
     print("\n$tag I make a pause of $timeout seconds :-)\n");
     sleep($timeout);
 }
+
+
+
+
+#--------------------------------------------------
+# my $exitValue;
+# LBL:while (1){
+#     $exitValue = nikita();
+# 	if ($exitValue != 0) { 
+# 	   print "$tag WARNING! Nikita exited abnormaly!\n"; 
+# 	   sleep(5);
+# 	}
+# 	$exitValue = 0;
+# #        sleep(5);
+#     next LBL if ($exitValue != 0);
+# 	$exitValue = autofix();
+#     next LBL if ($exitValue != 0);
+#     $exitValue = updator();
+# #        sleep(5);
+#     next LBL if ($exitValue != 0);
+#     $exitValue = scheduler();
+# #        sleep(5);
+# 	next LBL if ($exitValue != 0);
+# 	$exitValue = gridstatus();
+# #        sleep(5);
+#     next LBL if ($exitValue != 0);
+#     $exitValue = runner();
+# 	next LBL if ($exitValue != 0);
+# 	$exitValue = phoenix();
+# #        sleep(5);
+#     next LBL if ($exitValue != 0);
+# 	$exitValue =  spritz();
+#     print("\n$tag I make a pause of $timeout seconds :-)\n");
+#     sleep($timeout);
+# }
+#-------------------------------------------------- 

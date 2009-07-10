@@ -66,24 +66,26 @@ forecasts=Forecasts.new(mjob)
 puts mjob if $verbose
 puts forecasts if $verbose
 
-sprintf("Forecast (average method): %.3f", Forecasts.forecast_average(mjob)) if $verbose
-sprintf("Forecast (throughput method): %.3f", Forecasts.forecast_throughput(mjob,$time_window_size)) if $verbose
+printf("Forecast (average method): %.3f\n", forecasts.get_global_average[0]) if $verbose
+
+printf("Forecast (throughput method): %.3f\n", forecasts.get_global_throughput($time_window_size)) if $verbose
+
  
-average=forecasts.get_average
+average=forecasts.get_global_average
 
 # Use the average forcaster at the beginning of the job
 # and use the throughput forecaster after
 
 if average[0] == 0 || mjob.duration < (2 * average[0])
-     forecasted=Forecasts.forecast_average(mjob)
+     forecasted=forecasts.get_forecast_average
      forecaster='average'
 else
-     forecasted=Forecasts.forecast_throughput(mjob,$time_window_size)
+     forecasted=forecasts.get_forecast_throughput($time_window_size)
      forecaster='throughput'
  end
 
  
-# # Make an array with the forecast
+# Make an array with the forecast
 result = { 'mjob_id' => mjob.mjobid.to_i,
            'forcaster' => forecaster,
    	       'status' => mjob.status,
@@ -91,16 +93,20 @@ result = { 'mjob_id' => mjob.mjobid.to_i,
          }
 
 
+# end_time prediction, based on forecaster
 if mjob.status == 'TERMINATED'
 	result['end_time'] = mjob.last_terminated_date if mjob.status == 'TERMINATED'
 else 
     result['end_time'] = Time.now.to_i + forecasted
 end
 
-result['data'] = { 'throughput' => sprintf("%.6f",forecasts.get_throughput($time_window_size)).to_f,
-                   'average' => sprintf("%.2f",forecasts.get_average[0]).to_f,
-                   'standard_deviation' => sprintf("%.2f",average[1]).to_f
-                  }
+#get stats for each cluster
+result ['throughput'] = forecasts.throughput
+result ['average'] = forecasts.average
+result ['stddev'] = forecasts.stddev
+
 
 # # YAML Output
- puts YAML.dump(result)
+puts YAML.dump(result)
+
+

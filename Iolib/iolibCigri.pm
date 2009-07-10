@@ -27,6 +27,7 @@ BEGIN {
 use JDLParserCigri;
 use ConfLibCigri qw(init_conf get_conf is_conf);
 use colomboCigri;
+use POSIX;
 #use mailer;
 
 
@@ -63,6 +64,7 @@ sub set_properties_datasynchron_initstate($$);
 sub get_cluster_names_batch($);
 sub get_cluster_names_resource_unit($);
 sub get_clusters_max_weight($);
+sub get_cluster_max_weight($$);
 sub get_default_job_resources();
 sub get_cluster_names_properties($);
 sub get_cluster_properties($$);
@@ -85,9 +87,13 @@ sub get_job_to_update_state($);
 sub get_nb_freeNodes($);
 sub get_nb_remained_jobs($);
 sub get_nb_remained_jobs_by_type($$);
-sub get_cluster_remoteWaiting_job_nb($);
+sub get_clusters_remoteWaiting_job_nb($);
+sub get_cluster_remoteWaiting_job_nb($$);
 sub get_remote_waiting_jobs_by_cluster($$);
+sub get_max_waiting_jobs_by_cluster($$);
 sub get_remoteWaiting_times($);
+sub get_clusters_running_job_nb($);
+sub get_cluster_running_job_nb($$);
 sub get_MJobs_Properties($$);
 sub get_MJobs_ActiveClusters($$);
 sub add_job_to_launch($$$$);
@@ -111,7 +117,8 @@ sub set_frag_specific_MJob($$);
 sub get_MJobs_tofrag_eventId($$);
 sub get_MJob_user($$);
 sub get_job_user($$);
-sub update_mjob_forecast($$$$$$);
+sub update_mjob_forecast($$$$$$$$);
+sub get_last_jobratio($$$);
 sub get_MjobsId($$) ;
 
 # Connect to the database and give the ref
@@ -764,6 +771,48 @@ nodes GROUP BY nodeClusterName");
 }
 
 
+#get maxWeight of a given clusters
+#arg1  --> database
+#cluster  --> clustername
+#return maxweight
+sub get_cluster_max_weight($$){
+    my $dbh = shift;
+    my $cluster = shift;
+
+    my $sth = $dbh->prepare("SELECT sum(nodeMaxWeight) 
+							 FROM nodes 
+							 WHERE nodeClusterName=\"$cluster\"");
+    $sth->execute();
+    
+	my @res  = $sth->fetchrow_array();
+    $sth->finish();
+    if (defined($res[0])) { return $res[0]; }
+    else { return 0; }
+}
+
+
+
+
+#get freeWeight of a given clusters
+#arg1  --> database
+#cluster  --> clustername
+#return  freexweight
+sub get_cluster_free_weight($$){
+    my $dbh = shift;
+    my $cluster = shift;
+
+    my $sth = $dbh->prepare("SELECT sum(nodeFreeWeight) 
+							 FROM nodes 
+							 WHERE nodeClusterName=\"$cluster\"");
+    $sth->execute();
+    
+	my @res  = $sth->fetchrow_array();
+    $sth->finish();
+    if (defined($res[0])) { return $res[0]; }
+    else { return 0; }
+}
+
+
 
 #get default cigri resource unit
 # return --> DEFAULT_RESOURCE variable from cigri.conf or /resource_id=1
@@ -1400,9 +1449,28 @@ sub get_remote_waiting_jobs_by_cluster($$){
 
 }
 
+#get max waiting jobs, based on max_weight and FLOOD_RATE configuration
+sub get_max_waiting_jobs_by_cluster($$){
+    my $dbh = shift;
+    my $cluster = shift;
+
+	my $flood_rate;
+	if (defined(ConfLibCigri::get_conf("FLOOD_RATE")) &&
+      (ConfLibCigri::get_conf("FLOOD_RATE") > 0)) {
+      $flood_rate = ConfLibCigri::get_conf("FLOOD_RATE");
+	}else {
+      $flood_rate=0.5;
+	}
+
+	my $max_waiting = floor(get_cluster_max_weight($dbh,$cluster) *  $flood_rate);
+
+	return $max_waiting;	
+}
+
+
 # get number of remote waiting jobs on clusters
 # arg1 --> database ref
-sub get_cluster_remoteWaiting_job_nb($){
+sub get_clusters_remoteWaiting_job_nb($){
     my $dbh = shift;
 
     my $sth = $dbh->prepare("SELECT jobClusterName,COUNT(*)
@@ -1423,7 +1491,24 @@ sub get_cluster_remoteWaiting_job_nb($){
     return %result;
 }
 
-#get hash with jobids->waiting times by cluster
+# get nb of waiting jobs on a given cluster 
+sub get_cluster_remoteWaiting_job_nb($$){
+    my $dbh = shift;
+    my $cluster = shift;
+
+    my $sth = $dbh->prepare("SELECT COUNT(*)
+                             FROM jobs
+                             WHERE jobState = \"RemoteWaiting\"
+							 AND jobClusterName = \"$cluster\"
+                            ");
+    $sth->execute();
+    my @res  = $sth->fetchrow_array();
+    $sth->finish();
+    if (defined($res[0])) { return $res[0]; }
+    else { return 0; }
+}
+
+
 # arg1 --> database ref
 # arg2 --> cluster name
 sub get_remoteWaiting_times($){
@@ -1443,6 +1528,46 @@ sub get_remoteWaiting_times($){
     $sth->finish();
 
     return %result;
+}
+
+# get number of running jobs on clusters
+# arg1 --> database ref
+sub get_clusters_running_job_nb($){
+    my $dbh = shift;
+
+    my $sth = $dbh->prepare("SELECT jobClusterName,COUNT(*)
+                             FROM jobs
+                             WHERE jobState = \"Running\"
+                             GROUP BY jobClusterName
+                            ");
+    $sth->execute();
+
+    my %result;
+    while (my @ref = $sth->fetchrow_array()) {
+        if ($ref[1] ne "NULL"){
+            $result{$ref[0]} = $ref[1];
+        }
+    }
+    $sth->finish();
+
+    return %result;
+}
+
+# get nb of waiting jobs on a given cluster 
+sub get_cluster_running_job_nb($$){
+    my $dbh = shift;
+    my $cluster = shift;
+
+    my $sth = $dbh->prepare("SELECT COUNT(*)
+                             FROM jobs
+                             WHERE jobState = \"Running\"
+                             AND jobClusterName = \"$cluster\"
+                            ");
+    $sth->execute();
+    my @res  = $sth->fetchrow_array();
+    $sth->finish();
+    if (defined($res[0])) { return $res[0]; }
+    else { return 0; }
 }
 
 
@@ -1516,7 +1641,8 @@ sub add_job_to_launch($$$$){
     my $clusterName = shift;
     my $nbJobs = shift;
 
-    $dbh->do("INSERT INTO jobsToSubmit (jobsToSubmitMJobsId,jobsToSubmitClusterName,jobsToSubmitNumber) VALUES ($MJobsId,\"$clusterName\",$nbJobs)");
+	if ($nbJobs > 0) { $dbh->do("INSERT INTO jobsToSubmit (jobsToSubmitMJobsId,jobsToSubmitClusterName,jobsToSubmitNumber) VALUES ($MJobsId,\"$clusterName\",$nbJobs)");
+	}
 }
 
 # check and set the end of each MJob in the IN_TREATMENT state
@@ -1924,6 +2050,10 @@ sub get_job_user($$){
     return($ref[0]);
 }
 
+
+#        replace average, stddev and throughput by hashes cluster->value
+#        add jobratio
+#
 # update the forcecast for a given multijob
 # arg1 --> database ref
 # arg2 --> MjobsId
@@ -1931,46 +2061,102 @@ sub get_job_user($$){
 # arg4 --> stddev
 # arg4 --> throughput
 # arg5 --> end time
-sub update_mjob_forecast($$$$$$){
+#--------------------------------------------------
+# sub update_mjob_forecast($$$$$$){
+#     my $dbh = shift;
+#     my $MjobsId = shift;
+#     my $average = shift;
+#     my $stddev = shift;
+#     my $throughput = shift;
+#     my $endtime = shift;
+# 
+#     my $sth = $dbh->prepare(" SELECT MjobsId
+#                               FROM forecasts
+#                               WHERE
+#                                      MjobsId = $MjobsId
+#                             ");
+#     $sth->execute();
+# 
+#     if ($sth->fetchrow_array()) {
+#         my $sth = $dbh->prepare(" UPDATE forecasts
+# 	                          SET 
+# 				    average='$average',
+#                                     stddev='$stddev',
+#                                     throughput='$throughput',
+# 				    end='$endtime'
+# 	                          WHERE
+# 				    MjobsId='$MjobsId'
+# 				");
+#         $sth->execute(); 
+#     }else {
+#         my $sth = $dbh->prepare(" INSERT INTO forecasts
+# 	                          (MjobsId,average,stddev,throughput,end)
+# 				  VALUES
+# 				  ('$MjobsId','$average','$stddev','$throughput','$endtime')
+# 				");
+#         $sth->execute();
+#     }
+# }    
+# 
+#-------------------------------------------------- 
+
+
+# add an entry to forecast table
+# arg1 --> DB
+# arg1 --> MJobId
+# arg1 --> clustername
+# arg1 --> average
+# arg1 --> stddev
+# arg1 --> throughput
+# arg1 --> jobratio
+# arg1 --> expected end time
+sub update_mjob_forecast($$$$$$$$){
     my $dbh = shift;
-    my $MjobsId = shift;
-    my $average = shift;
+    my $mjobid = shift;
+    my $cluster = shift;
+    
+	my $average = shift;
     my $stddev = shift;
     my $throughput = shift;
-    my $endtime = shift;
+    
+	my $jobratio = shift;
+	my $end = shift;
 
-    my $sth = $dbh->prepare(" SELECT MjobsId
-                              FROM forecasts
-                              WHERE
-                                     MjobsId = $MjobsId
-                            ");
-    $sth->execute();
+    my $sth = $dbh->do(" INSERT INTO forecasts
+	    (timeStamp,MjobsId,clusterName,jobRatio,average,stddev,throughput,end)
+			  VALUES
+		(NOW(), '$mjobid','$cluster',$jobratio,
+		'$average','$stddev','$throughput','$end')
+							");
+}
 
-    if ($sth->fetchrow_array()) {
-        my $sth = $dbh->prepare(" UPDATE forecasts
-	                          SET 
-				    average='$average',
-                                    stddev='$stddev',
-                                    throughput='$throughput',
-				    end='$endtime'
-	                          WHERE
-				    MjobsId='$MjobsId'
-				");
-        $sth->execute(); 
-    }else {
-        my $sth = $dbh->prepare(" INSERT INTO forecasts
-	                          (MjobsId,average,stddev,throughput,end)
-				  VALUES
-				  ('$MjobsId','$average','$stddev','$throughput','$endtime')
-				");
-        $sth->execute();
-    }
-}    
+# get last job ratio for a given cluster
+# return last job ratio, maxFreeWeight if there's no previous prediction
+#TODO emathias, if ratio > remaining ratio=remaining
+sub get_last_jobratio($$$){
+    my $dbh = shift;
+    my $mjobid = shift;
+    my $cluster = shift;
+
+	my $sth = $dbh->prepare("SELECT jobRatio 
+							 FROM forecasts
+							 WHERE  mJobsId = $mjobid
+							 AND clusterName=\"$cluster\"
+							 ORDER BY timeStamp DESC 
+							 LIMIT 1");
+
+	$sth->execute();
+    my @res  = $sth->fetchrow_array();
+    $sth->finish();
+    if (defined($res[0])) { return $res[0]; }
+    else { return get_cluster_free_weight($dbh, $cluster) + get_max_waiting_jobs_by_cluster($dbh, $cluster); }	
+}
+
+
 
 # get the MjobsId of a jobId
 # arg1 --> database ref
 # arg2 --> jobId
-
 sub get_MjobsId($$) {
     my $dbh = shift;
     my $jobId = shift;
@@ -1984,4 +2170,3 @@ sub get_MjobsId($$) {
     else { return 0; }
 }
 
-return 1;

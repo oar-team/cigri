@@ -44,7 +44,7 @@ my %nbFreeNodes = iolibCigri::get_nb_freeNodes($base);
 my %nbRemainedTestJobs = iolibCigri::get_nb_remained_jobs_by_type($base,"test");
 my %nbRemainedDefaultJobs = iolibCigri::get_nb_remained_jobs_by_type($base, "default");
 # TODO emathias vim replace %s/nbRemoteWaitingJobWeight/nbRemoteWaitingJobNb/g
-my %nbRemoteWaitingJobWeight = iolibCigri::get_cluster_remoteWaiting_job_nb($base);
+my %nbRemoteWaitingJobWeight = iolibCigri::get_clusters_remoteWaiting_job_nb($base);
 #print(Dumper(%nbFreeNodes));
 
 #enforce priority to test jobs

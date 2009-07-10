@@ -78,14 +78,14 @@ opts.parse! ARGV
 
 # Get the multiple job
 mjob=MultipleJob.new(dbh,ARGV[0])
+forecasts=Forecasts.new(mjob)
 
 if not options[:csv]
   puts mjob.to_s
   puts
   
   if options[:full]
-	forecasts=Forecasts.new(mjob)
-	puts forecasts.to_s
+	puts forecasts.to_s_full
 	puts
   	puts "List of jobs:"
   
@@ -93,7 +93,9 @@ if not options[:csv]
   	mjob.jobs.each do |job|
     	printf("Job %s: %s\n  Cluster: %s\n  Node: %s\n  BatchId: %s\n  Params: %s\n",
         	job.jid,job.state,job.cluster,job.node,job.batchid,job.param)
-  	end
+	end
+  else
+     puts forecasts.to_s
   end
 
 else

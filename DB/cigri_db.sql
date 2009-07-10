@@ -260,35 +260,36 @@ PRIMARY KEY  (`login`)
 )TYPE = InnoDB;
 
 
-DROP TABLE IF EXISTS forecasts;
-CREATE TABLE `forecasts` (
-`MjobsId` INT( 10 ) NOT NULL ,
-`average` FLOAT NOT NULL ,
-`stddev` FLOAT NOT NULL ,
-`throughput` FLOAT NOT NULL ,
-`end` INT NOT NULL ,
-PRIMARY KEY ( `MjobsId` )
-);
-
-
-# New forecast table
 #--------------------------------------------------
 # DROP TABLE IF EXISTS forecasts;
-# CREATE TABLE IF NOT EXISTS forecasts (
-# timeStamp TIME NOT NULL ,
-# clusterName VARCHAR( 100 ) NOT NULL ,
-# mJobsId INT UNSIGNED NOT NULL ,
-# jobRatio INT UNSIGNED,
-# lastJobRatio INT UNSIGNED,
-# average FLOAT NOT NULL ,
-# stddev FLOAT NOT NULL ,
-# throughput FLOAT NOT NULL ,
+# CREATE TABLE `forecasts` (
+# `MjobsId` INT( 10 ) NOT NULL ,
+# `average` FLOAT NOT NULL ,
+# `stddev` FLOAT NOT NULL ,
+# `throughput` FLOAT NOT NULL ,
 # `end` INT NOT NULL ,
-# INDEX mJobsId (mJobsId),
-# PRIMARY KEY (mJobsId,clusterName)
-# )TYPE = InnoDB;
+# PRIMARY KEY ( `MjobsId` )
+# );
+# 
 #-------------------------------------------------- 
 
+#New forecast table
+DROP TABLE IF EXISTS forecasts;
+CREATE TABLE IF NOT EXISTS forecasts (
+timeStamp DATETIME NOT NULL ,
+mJobsId INT UNSIGNED NOT NULL ,
+clusterName VARCHAR( 100 ) NOT NULL ,
+jobRatio INT UNSIGNED,
+average FLOAT NOT NULL ,
+stddev FLOAT NOT NULL ,
+throughput FLOAT NOT NULL ,
+`end` INT NOT NULL ,
+INDEX mJobsId (mJobsId),
+PRIMARY KEY (timeStamp,mJobsId,clusterName)
+)TYPE = InnoDB;
+
+
+#--------------------------------------------------
 # Gridstatus table
 DROP TABLE IF EXISTS gridstatus;
 CREATE TABLE `gridstatus` (
@@ -308,6 +309,7 @@ INSERT IGNORE INTO webusers VALUES ("admin", "");
 
 #INSERT INTO users (userGridName,userClusterName,userLogin) VALUES ("capitn", "pawnee", "capitn");
 
-INSERT IGNORE INTO schedulers (schedulerFile,schedulerPriority) VALUES ("sched_equitCigri",1);
-INSERT IGNORE INTO schedulers (schedulerFile,schedulerPriority) VALUES ("sched_fifoCigri.pl",2);
+#INSERT IGNORE INTO schedulers (schedulerFile,schedulerPriority) VALUES ("sched_equitCigri",1);
+#INSERT IGNORE INTO schedulers (schedulerFile,schedulerPriority) VALUES ("sched_fifoCigri.pl",2);
+INSERT IGNORE INTO schedulers (schedulerFile,schedulerPriority) VALUES ("sched_jobratio+fifoCigri.pl",2);
 

@@ -36,18 +36,9 @@ my $base = iolibCigri::connect() ;
 
 
 #control cluster job flooding based on flooding rate and
-# number of RemoteWaiting jobs
-my $flood_rate;
-if (defined(ConfLibCigri::get_conf("FLOOD_RATE")) &&
-      (ConfLibCigri::get_conf("FLOOD_RATE") > 0)) {
-      $flood_rate = ConfLibCigri::get_conf("FLOOD_RATE");
-}else {
-      $flood_rate=0.5;
-}
-
 my %clusters_max_weight = iolibCigri::get_clusters_max_weight($base);
 foreach my $cluster (keys (%clusters_max_weight)){
-	my $max_waiting = floor($clusters_max_weight{$cluster} *  $flood_rate);
+	my $max_waiting = iolibCigri::get_max_waiting_jobs_by_cluster($base, $cluster);
 	my @remote_waiting_jobs = iolibCigri::get_remote_waiting_jobs_by_cluster($base, $cluster);
 
 	while ((scalar @remote_waiting_jobs) > $max_waiting){
