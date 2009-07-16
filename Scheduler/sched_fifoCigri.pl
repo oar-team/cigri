@@ -45,7 +45,7 @@ my %nbRemainedJobs = iolibCigri::get_nb_remained_jobs($base);
 my %nbRemoteWaitingJobWeight = iolibCigri::get_cluster_remoteWaiting_job_weight($base);
 #print(Dumper(%nbFreeNodes));
 
-foreach my $i (sort {$a <=> $b} keys %nbRemainedJobs){
+foreach my $i (sort(keys(%nbRemainedJobs))){
     if(iolibCigri::get_data_synchronState($base, $i) eq 'ISSUED'){   
         iolibCigri::set_data_synchronState($base, $i, "INITIATED");
 	my $user = "cigri";
@@ -85,16 +85,23 @@ foreach my $i (sort {$a <=> $b} keys %nbRemainedJobs){
                 $k++;
             }
             if ($number > 0){
-                #my $flood_value = 0;
-                #if (ConfLibCigri::is_conf("flood_parameter")){
-                #    $flood_value = ConfLibCigri::get_conf("flood_parameter");
-                #}
-                #my $nb_jobs_to_launch = $number + ($number * $flood_value / 100);
-                #print("[Scheduler] add toLaunch MJob : $i; cluster : $j; nb jobs : $nb_jobs_to_launch\n");
-                print("[SCHEDULER]   add toLaunch MJob : $i; cluster : $j; nb jobs : $number\n");
-                #iolibCigri::add_job_to_launch($base,$i,$j,$nb_jobs_to_launch);
-                iolibCigri::add_job_to_launch($base,$i,$j,$number);
-                $nbRemainedJobs{$i} -= $number;
+                my $flood_value = 0;
+                if (ConfLibCigri::is_conf("flood_parameter")){
+                    $flood_value = ConfLibCigri::get_conf("flood_parameter");
+                }
+                my $max_jobs = 300;
+                if (ConfLibCigri::is_conf("max_jobs")){
+                    $max_jobs = ConfLibCigri::get_conf("max_jobs");
+                }
+                my $nb_jobs_to_launch = $number + ($number * $flood_value / 100);
+                if ($nb_jobs_to_launch > $max_jobs ) { $nb_jobs_to_launch = $max_jobs; }
+                print("[Scheduler] add toLaunch MJob : $i; cluster : $j; nb jobs : $nb_jobs_to_launch\n");
+                
+                iolibCigri::add_job_to_launch($base,$i,$j,$nb_jobs_to_launch);
+                $nbRemainedJobs{$i} -= $nb_jobs_to_launch;
+               # print("[SCHEDULER]   add toLaunch MJob : $i; cluster : $j; nb jobs : $number\n");
+                #iolibCigri::add_job_to_launch($base,$i,$j,$number);
+                #$nbRemainedJobs{$i} -= $number;
             }
         }
       }	                       
