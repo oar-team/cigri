@@ -6,6 +6,7 @@ REQUIREMENTS
     - Perl
     - Perl-MySql
     - Perl-suid (Debian)
+    - libnet-ssh-perl
 
     - php
     - php-mysql

@@ -110,7 +110,7 @@ sub oarstat2($$$){
 
     #print("$cluster --> OAR2\n");
     my %jobState;
-    my %cmdResult = SSHcmdClient::submitCmd($cluster,"oarstat -f");
+    my %cmdResult = SSHcmdClient::submitCmd($cluster,"oarstat -D");
     #print(Dumper(%cmdResult));
     if ($cmdResult{STDERR} ne ""){
         print("\t[UPDATOR]     ERROR: $cmdResult{STDERR}\n");
@@ -120,15 +120,28 @@ sub oarstat2($$$){
         }
         return(-1);
     }else{
-        my $qstatStr = $cmdResult{STDOUT};
-        chomp($qstatStr);
-        my @jobsStrs = split(/^\s*\n/m,$qstatStr);
-        # for each job section, record its state
-        foreach my $jobStr (@jobsStrs){
-            $jobStr =~ /Job_Id: (\d+).*state = (.).*/s;
-            #print("[UPDATOR_DEBUG] $jobStr\n");
-            $jobState{$1} = $2;
+        my $oarjobs=(eval$cmdResult{STDOUT});
+        if (defined %{$oarjobs}) {
+          foreach my $job (keys(%{$oarjobs})) {
+            $oarjobs->{$job}->{state} =~ /^(.).*/s; 
+            $jobState{$job} = $1 ;
+          }
         }
+        #### Commented because an empty job list is something that is possible ####
+        #}else{
+        #  print("[UPDATOR]     ERROR: There is an error in the oarstat command parsing\n");
+        #       colomboCigri::add_new_cluster_event($dbh,$cluster,0,"UPDATOR_OARSTAT_PARSE",
+        #                   "There is an error in the oarstat command parsing");
+        #       return(-1);
+        #}
+
+        #my @jobsStrs = split(/^\s*\n/m,$qstatStr);
+        ## for each job section, record its state
+        #foreach my $jobStr (@jobsStrs){
+        #    $jobStr =~ /Job_Id: (\d+).*state = (.).*/s;
+        #    #print("[UPDATOR_DEBUG] $jobStr\n");
+        #    $jobState{$1} = $2;
+        #}
     }
 
     %{$resRefHash} = %jobState;
