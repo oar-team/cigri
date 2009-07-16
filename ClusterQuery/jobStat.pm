@@ -126,12 +126,15 @@ sub oarstat2($$$){
             $oarjobs->{$job}->{state} =~ /^(.).*/s; 
             $jobState{$job} = $1 ;
           }
-        }else{
-          print("[UPDATOR]     ERROR: There is an error in the oarstat command parsing\n");
-               colomboCigri::add_new_cluster_event($dbh,$cluster,0,"UPDATOR_OARSTAT_PARSE",
-                           "There is an error in the oarstat command parsing");
-               return(-1);
         }
+        #### Commented because an empty job list is something that is possible ####
+        #}else{
+        #  print("[UPDATOR]     ERROR: There is an error in the oarstat command parsing\n");
+        #       colomboCigri::add_new_cluster_event($dbh,$cluster,0,"UPDATOR_OARSTAT_PARSE",
+        #                   "There is an error in the oarstat command parsing");
+        #       return(-1);
+        #}
+
         #my @jobsStrs = split(/^\s*\n/m,$qstatStr);
         ## for each job section, record its state
         #foreach my $jobStr (@jobsStrs){
