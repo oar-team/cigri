@@ -5,6 +5,10 @@ package colomboCigri;
 use strict;
 use Data::Dumper;
 use DBI;
+use IO::File;
+use POSIX qw(tmpnam);
+
+
 BEGIN {
     my ($scriptPathTmp) = $0 =~ m!(.*/*)!s;
     my ($scriptPath) = readlink($scriptPathTmp);
@@ -625,5 +629,34 @@ sub resubmit_job($$){
             ");
 
 }
+
+# resubmit an mjob 
+# arg1 --> database parameter
+# arg2 --> MJobId to resubmit
+sub resubmit_mjob($$$){
+    my $dbh = shift;
+    my $MJobId = shift;
+    my $MJobType = shift;
+
+	my $JDLString = iolibCigri::get_MJobs_JDL($dbh,$MJobId);
+
+	my $tmpfilename;	
+	my $fh;	
+
+	# try new temporary filenames until we get one that didn't already exist
+	do {$tmpfilename = tmpnam()} until $fh = IO::File->new($tmpfilename, O_RDWR|O_CREAT|O_EXCL);
+	#print ("Created temp file $tmpfilename\n") ;
+	print $fh "\n $JDLString\n";	
+	$fh->close;
+
+	my $idJob= iolibCigri::add_mjobs($dbh, $tmpfilename, $MJobType);
+    print "IdJob = $idJob \n";
+
+	#delete temp file
+	unlink($tmpfilename);
+
+}
+
+
 
 return 1;

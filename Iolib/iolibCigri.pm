@@ -116,6 +116,7 @@ sub delete_all_MJob_parameters($$);
 sub set_frag_specific_MJob($$);
 sub get_MJobs_tofrag_eventId($$);
 sub get_MJob_user($$);
+sub get_MJob_state($$);
 sub get_job_user($$);
 sub update_mjob_forecast($$$$$$$$);
 sub get_last_jobratio($$$);
@@ -291,7 +292,8 @@ sub add_mjobs($$$) {
         }elsif (defined($JDLParserCigri::clusterConf{DEFAULT}{nbJobs})){
             for (my $k=0; $k<$JDLParserCigri::clusterConf{DEFAULT}{nbJobs}; $k++) {
                 $dbh->do("INSERT INTO parameters (parametersMJobsId,parametersParam) VALUES ($id,\'$k\')");
-				 #TODO temporary while admissions rules not available
+				 
+				#TODO temporary while admissions rules not available
             	if($mJobsType eq "test"){
              		last;
             	}
@@ -1027,6 +1029,10 @@ sub get_MJobs_JDL($$){
 
     my @resulArray = $sth->fetchrow_array();
     $sth->finish();
+
+	#unquote JDL
+	$resulArray[0] =~ s/^'//;
+	$resulArray[0] =~ s/'$//g;
 
     return $resulArray[0];
 }
@@ -2027,6 +2033,29 @@ sub get_MJob_user($$){
     return($ref[0]);
 }
 
+# get the state of the specified MJob
+# arg1 --> database ref
+# arg2 --> MJobId
+# return the MJob state
+sub get_MJob_state($$){
+    my $dbh = shift;
+    my $MJobId = shift;
+
+    my $sth = $dbh->prepare(" SELECT MJobsState
+                              FROM multipleJobs
+                              WHERE
+                                 MJobsId = $MJobId
+                            ");
+    $sth->execute();
+
+    my @ref = $sth->fetchrow_array();
+    $sth->finish();
+
+    return($ref[0]);
+}
+
+
+
 
 # get the user name of the specified Job
 # arg1 --> database ref
@@ -2041,6 +2070,28 @@ sub get_job_user($$){
                               WHERE
                                      jobId = $jobId
                                  AND MJobsId = jobMJobsId
+                            ");
+    $sth->execute();
+
+    my @ref = $sth->fetchrow_array();
+    $sth->finish();
+
+    return($ref[0]);
+}
+
+
+# get the state of the specified Job
+# arg1 --> database ref
+# arg2 --> JobId
+# return the state of the job
+sub get_job_state($$){
+    my $dbh = shift;
+    my $jobId = shift;
+
+    my $sth = $dbh->prepare(" SELECT jobState
+                              FROM jobs
+                              WHERE
+                                     jobId = $jobId
                             ");
     $sth->execute();
 
