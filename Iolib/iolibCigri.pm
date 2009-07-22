@@ -1660,7 +1660,6 @@ sub check_end_MJobs($){
     my @result;
     
     foreach my $i (@MJobs){
-#        print("------check $i --------\n");
         my $sth = $dbh->prepare("    SELECT jobMJobsId, count( * )
                                     FROM jobs
                                     WHERE jobMJobsId = $i

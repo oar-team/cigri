@@ -30,7 +30,6 @@ BEGIN {
      #            The forecaster to use:            #
 
      $forecaster="$path/gridforecast.rb";
-
      #                                              #
      ################################################
 }
