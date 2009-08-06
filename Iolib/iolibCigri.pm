@@ -1167,14 +1167,15 @@ sub get_cluster_job_toLaunch($$$) {
         $sth->execute();
         my $parameter = $sth->fetchrow_hashref();
         $sth->finish();
-
-        if (!defined($parameter)){
-            #$dbh->do("UNLOCK TABLES");
-            $dbh->do("SELECT RELEASE_LOCK(\"cigriParamLock\")");
-            warn("[Iolib] Erreur de choix du scheduler pour le nb de parametres\n");
-            colomboCigri::add_new_scheduler_event($dbh,${get_current_scheduler($dbh)}{schedulerId},"NB_PARAMS"," Erreur de choix du scheduler pour le nb de parametres");
-            return(1);
-        }
+	 
+      #OLDSCHED
+      #  if (!defined($parameter)){
+      #      #$dbh->do("UNLOCK TABLES");
+      #      $dbh->do("SELECT RELEASE_LOCK(\"cigriParamLock\")");
+      #      warn("[Iolib] Erreur de choix du scheduler pour le nb de parametres\n");
+      #      colomboCigri::add_new_scheduler_event($dbh,${get_current_scheduler($dbh)}{schedulerId},"NB_PARAMS"," Erreur de choix du scheduler pour le nb de parametres");
+      #      return(1);
+      #  }
 
         #check if the node is FREE
         #my $nbRes = $dbh->do("SELECT * FROM nodes WHERE nodeId = $MJobtoSubmit[1] AND nodeState = \"FREE\"");
@@ -1619,7 +1620,7 @@ sub get_MJobs_ActiveClusters($$){
                                     AND userGridName = MJobsUser
                                     AND MJobsId = propertiesMJobsId
 				    AND propertiesClusterName = clusterName
-				    ORDER BY propertiesClusterPriority,clusterPower desc
+				    ORDER BY propertiesClusterPriority desc,clusterPower desc
                             ");
     $sth->execute();
 
@@ -2182,7 +2183,6 @@ sub update_mjob_forecast($$$$$$$$){
 
 # get last job ratio for a given cluster
 # return last job ratio, maxFreeWeight if there's no previous prediction
-#TODO emathias, if ratio > remaining ratio=remaining
 sub get_last_jobratio($$$){
     my $dbh = shift;
     my $mjobid = shift;
@@ -2198,10 +2198,47 @@ sub get_last_jobratio($$$){
 	$sth->execute();
     my @res  = $sth->fetchrow_array();
     $sth->finish();
-    if (defined($res[0])) { return $res[0]; }
-    else { return get_cluster_free_weight($dbh, $cluster) + get_max_waiting_jobs_by_cluster($dbh, $cluster); }	
+
+    if (defined($res[0])){ 
+		return $res[0]; 
+	} else { 
+		return 1; 
+	}	
+
 }
 
+#get absolute number of jobs based on jobratio and cluster resources
+sub jobratio_to_absolute($$$){
+    my $dbh = shift;
+    my $cluster = shift;
+    my $jobratio = shift;
+
+	return $jobratio * (get_cluster_free_weight($dbh, $cluster) + get_max_waiting_jobs_by_cluster($dbh, $cluster));
+
+}
+
+# get last number of free nodes 
+# useful to evaluate jobratio prediction
+sub get_last_cluster_free_nb($$){
+    my $dbh = shift;
+    my $cluster = shift;
+
+ 	my $sth = $dbh->prepare("SELECT freeResources
+							 FROM gridstatus
+							 WHERE clusterName=\"$cluster\"
+							 ORDER BY timeStamp DESC
+							 LIMIT 1");
+
+	$sth->execute();
+    my @res  = $sth->fetchrow_array();
+    $sth->finish();
+
+    if (defined($res[0])){
+        return $res[0];
+    } else {
+        return get_cluster_free_weight($dbh, $cluster);
+    }
+}
 
 
 # get the MjobsId of a jobId

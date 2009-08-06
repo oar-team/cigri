@@ -247,6 +247,77 @@ class MultipleJob < JobSet
         return @last_terminated_date - @tsub else 
     end
 
+	# get list of active Clusters ordered by priority/power
+	def active_clusters
+		active_clusters=[]
+		query = " SELECT propertiesClusterName
+                     FROM properties, users, multipleJobs, clusters
+                     WHERE propertiesMJobsId = #{@mjobid}
+                        AND propertiesClusterName = userClusterName
+                        AND userGridName = MJobsUser
+                        AND MJobsId = propertiesMJobsId
+                        AND propertiesClusterName = clusterName
+                    ORDER BY propertiesClusterPriority desc,clusterPower desc
+		"
+		active_clusters_sql=@dbh.select_all(query)
+		active_clusters_sql.each do |sql_cluster|
+			cluster = Cluster.new(@dbh, sql_cluster)
+			active_clusters << cluster if cluster.active?(@mjobid)
+		end
+
+		return active_clusters
+	end
+
+
+	# get data synchronization state
+	def data_synchron_state
+		query = " SELECT data_synchronState
+				  FROM data_synchron
+				  WHERE data_synchronMJobsId = #{@mjobid}
+		"
+	
+ 		sql_sync_state=@dbh.select_all(query)
+    	if sql_sync_state.empty?
+        	return nil
+	    end
+    	return sql_sync_state[0]['data_synchronState']
+	end
+
+	# Add jobs to launch
+	def add_job_to_launch(cluster, nb_max)
+		nb = nb_max < n_waiting ? nb_max : n_waiting
+
+		if(nb > 0)
+			query = " INSERT INTO jobsToSubmit (jobsToSubmitMJobsId,
+						jobsToSubmitClusterName,jobsToSubmitNumber) 
+					  VALUES  (#{@mjobid}, \"#{cluster}\", #{nb})
+			"
+			#puts " [cigriJobs] query #{query}"
+			@dbh.execute(query)
+		end
+		return nb
+	end
+
+	
+
+	#get last jobratio for a given cluster
+	def job_ratio(cluster)
+		synchron_data
+		query = " SELECT jobRatio FROM forecasts
+					WHERE  mJobsId = #{@mjobid}
+						AND clusterName = \"#{cluster}\"
+					ORDER BY timeStamp DESC
+					LIMIT 1
+ 		"
+		sql_jobratio = @dbh.select_all(query)
+		if sql_jobratio.empty?
+			return 1
+		end
+		return sql_jobratio[0]['jobRatio'].to_f
+
+	end
+
+
     # Printing
     def to_s
         sprintf("Multiple job %i
@@ -260,7 +331,75 @@ class MultipleJob < JobSet
         Duration:               %i s", \
         @mjobid,@type,@status,Time.at(@tsub),Time.at(@last_terminated_date),@n_running,n_waiting,@n_terminated,duration)
     end
+
+#### Private Methods #####
+private 
+
+
+	# set data synchronization state
+	def set_data_synchron_state(state)
+		query = " UPDATE data_synchron SET data_synchronState = \"#{state}\"
+				  WHERE data_synchronMJobsId = #{@mjobid}
+		"
+		@dbh.execute(query)
+	end
+
+
+	
+	#synchronize data through hermes module
+	def synchron_data
+		if(data_synchron_state.eql? "ISSUED")
+			set_data_synchron_state("INITIATED")
+			user = "cigri"
+			path = File.dirname($0)+"/.."
+	        command ="sudo -u #{user}  #{path}/Hermes/hermesCigri.pl "
+    		puts "Initiating data synchronization... Executing: #{command}\n"
+	    	system(command)
+		end
+	end
+
+
 end
+
+
+#########################################################################
+# A MultipleJobSet is a set of jobs resulting of an SQL query on the jobs table
+#########################################################################
+class MultipleJobSet
+    attr_reader :mjobs
+
+    def initialize(dbh,query,init=false)
+        if query.empty? 
+	  		raise "Cannot create an mjobset without a request"
+		end
+        @dbh=dbh
+        @query=query
+        @mjobs=[]
+		if init
+          self.do
+		end
+    end
+
+    def each
+        @mjobs.each {|j| yield(j)}
+    end
+
+    # Execute the query and create the mjobs of the mjobset
+    def do
+        sql_jobs=@dbh.select_all(@query)
+        sql_jobs.each do |sql_job|
+            mjob=MultipleJob.new(@dbh,sql_job['MJobsId'])
+            @mjobs << mjob
+		end
+	end
+    
+	# Printing (mainly used for debug)
+    def to_s
+      @mjobs.each { |j| sprintf j.to_s + "\n" }
+    end
+
+end
+
 
 #########################################################################
 # Functions
@@ -320,3 +459,21 @@ def set_collected_job(dbh,jobid,collectid)
   query="UPDATE jobs SET jobCollectedJobId = #{collectid} where jobId = #{jobid}"
   dbh.execute(query)
 end
+
+
+
+def get_mjobset_type (dbh, type)
+	return MultipleJobSet.new(dbh, "SELECT MJobsId FROM multipleJobs WHERE MJobsState = \'#{type}\' ORDER BY MJobsId", true);
+end
+
+
+def get_intreatment_mjobset (dbh)
+	return get_mjobset_type(dbh, "IN_TREATMENT")
+end
+
+
+def get_terminated_mjobset (dbh)
+	return get_mjobset_type(dbh, "TERMINATED")
+end
+
+

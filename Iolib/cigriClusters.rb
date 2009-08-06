@@ -32,6 +32,49 @@ class Cluster
     end
   end
 
+  # get relative free nodes (based on free resources and flood rate)
+  def free_nodes
+	if get_conf("FLOOD_RATE")
+            flood_rate=get_conf("FLOOD_RATE")
+    else
+            flood_rate = 0
+    end
 
+	query = "SELECT sum(nodeMaxWeight) 
+             FROM nodes
+             WHERE nodeClusterName=\"#{@name}\" "
+
+	sql_result=@dbh.select_all(query)
+	max_weight=sql_result[0][0];
+
+
+	query = "SELECT sum(nodeFreeWeight) 
+			 FROM nodes
+			 WHERE nodeClusterName=\"#{@name}\" "
+
+	sql_result=@dbh.select_all(query)
+	free_weight = sql_result[0][0];
+
+	return free_weight.to_i + (flood_rate.to_f*max_weight.to_i)
+
+  end
+
+end
+
+
+######################################################################### 
+# Functions 
+######################################################################### 
+ 
+#return array of cigri clusters 
+def get_cigri_clusters(dbh)
+   query = "SELECT * from clusters"
+   sql_clusters=dbh.select_all(query)
+   clusters=[]
+   sql_clusters.each do |sql_cluster|
+      cluster=Cluster.new(dbh,sql_cluster['clusterName'])
+      clusters << cluster
+   end
+   return clusters
 end
 

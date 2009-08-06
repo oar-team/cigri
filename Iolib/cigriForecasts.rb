@@ -18,13 +18,13 @@ class Forecasts
 		@global_average, @global_stddev = get_global_average
 
 		if get_conf("TIME_WINDOW_SIZE")
-			$time_window_size=get_conf("TIME_WINDOW_SIZE").to_i
+			time_window_size=get_conf("TIME_WINDOW_SIZE").to_i
 		else
-			$time_window_size=3600
+			time_window_size=3600
 		end
 		
-		@throughput = get_throughput_by_cluster($time_window_size);
-		@global_throughput = get_global_throughput($time_window_size);
+		@throughput = get_throughput_by_cluster(time_window_size);
+		@global_throughput = get_global_throughput(time_window_size);
 	end
 
 

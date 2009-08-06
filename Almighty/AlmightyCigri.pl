@@ -51,6 +51,7 @@ my $nikita_command = $path."/Nikita/nikitaCigri.pl";
 my $spritz_command = $path."/Spritz/spritzCigri.pl";
 my $autofix_command = $path."/Colombo/autofixCigri.rb";
 my $phoenix_command = $path."/Phoenix/phoenixCigri.rb";
+my $metascheduler_command = $path."/Scheduler/MetaScheduler.rb";
 
 my $scheduler_path = $path."/Scheduler/";
 
@@ -80,29 +81,40 @@ sub launch_command($){
 
 my $base = iolibCigri::connect();
 
-# launch a scheduler or blacklist it
-sub scheduler(){
-    #my $base = iolibCigri::connect();
-    iolibCigri::update_current_scheduler($base);
-    my $sched = iolibCigri::get_current_scheduler($base);
-    #return launch_command($scheduler_command);
-    if (defined($$sched{schedulerFile})){
-        if ( -x $scheduler_path.$$sched{schedulerFile} ){
-            my $exitValue = launch_command($scheduler_path.$$sched{schedulerFile});
-            if ($exitValue != 0){
-                colomboCigri::add_new_scheduler_event($base,$$sched{schedulerId},"EXIT_VALUE","bad exit value $exitValue for $scheduler_path$$sched{schedulerFile}");
-            }
-            #print("---------------->".${iolibCigri::get_current_scheduler($base)}{schedulerFile}."\n");
-            #iolibCigri::disconnect($base);
-            return $exitValue;
-        }else{
-            print("$tag Bad scheduler file\n");
-            colomboCigri::add_new_scheduler_event($base,$$sched{schedulerId},"ALMIGHTY_FILE","Can t find the file $scheduler_path$$sched{schedulerFile}");
-        }
-    }else{
-        print("$tag NO SCHEDULER " . $scheduler_path.$$sched{schedulerFile} . " -> " . $$sched{schedulerFile} .  " TO LAUNCH :-(\n");
-    }
-    #iolibCigri::disconnect($base);
+
+#OLDSCHED-------------------------------------------
+# 
+# # launch a scheduler or blacklist it
+# sub scheduler(){
+#     #my $base = iolibCigri::connect();
+#     iolibCigri::update_current_scheduler($base);
+#     my $sched = iolibCigri::get_current_scheduler($base);
+#     #return launch_command($scheduler_command);
+#     if (defined($$sched{schedulerFile})){
+#         if ( -x $scheduler_path.$$sched{schedulerFile} ){
+#             my $exitValue = launch_command($scheduler_path.$$sched{schedulerFile});
+#             if ($exitValue != 0){
+#                 colomboCigri::add_new_scheduler_event($base,$$sched{schedulerId},"EXIT_VALUE","bad exit value $exitValue for $scheduler_path$$sched{schedulerFile}");
+#             }
+#             #print("---------------->".${iolibCigri::get_current_scheduler($base)}{schedulerFile}."\n");
+#             #iolibCigri::disconnect($base);
+#             return $exitValue;
+#         }else{
+#             print("$tag Bad scheduler file\n");
+#             colomboCigri::add_new_scheduler_event($base,$$sched{schedulerId},"ALMIGHTY_FILE","Can t find the file $scheduler_path$$sched{schedulerFile}");
+#         }
+#     }else{
+#         print("$tag NO SCHEDULER " . $scheduler_path.$$sched{schedulerFile} . " -> " . $$sched{schedulerFile} .  " TO LAUNCH :-(\n");
+#     }
+#     #iolibCigri::disconnect($base);
+# }
+#-------------------------------------------------- 
+
+
+
+#launch the metasched command
+sub metascheduler(){
+    return launch_command($metascheduler_command);
 }
 
 # launch the runner command
@@ -154,7 +166,7 @@ LBL:while (1){
     next LBL if ($exitValue != 0);
 	$exitValue =  spritz();
     next LBL if ($exitValue != 0);
-    $exitValue = scheduler();
+    $exitValue = metascheduler();
 	next LBL if ($exitValue != 0);
 	$exitValue = gridstatus();
     next LBL if ($exitValue != 0);

@@ -103,7 +103,7 @@ foreach my $i (@jobsToFrag){
     #Delete this job
     if (($$i{jobBatchId} ne "") && ($$i{userLogin} ne "") && ($$i{clusterName} ne "")){
         if ( jobDel::jobDel($$i{clusterName},$$i{userLogin},$$i{jobBatchId}) == -1){
-            exit(66);
+            #exit(66);
         }else{
             print("OK\n");
             #change state

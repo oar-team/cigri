@@ -78,10 +78,12 @@ foreach my $mjobid (sort {$a <=> $b} keys %nbRemainedJobs){
 $cluster) eq 'TERMINATED') || (iolibCigri::get_propertiesData_synchronState($base, $mjobid, $cluster) eq '')){
        	  if (colomboCigri::is_cluster_active($base,$cluster,$mjobid) == 0){
 			 my $jobratio = iolibCigri::get_last_jobratio ($base, $mjobid, $cluster);
+			 my $nb_of_jobs_to_launch = iolibCigri::jobratio_to_absolute($base,
+$cluster, $jobratio);
              
 			 #TODO emathias: control nb of jobs based on free resources + FLOOD_RATE   
-			 print("[SCHEDULER]   add toLaunch MJob : $mjobid; cluster :$cluster; nb jobs: $jobratio\n");
-             iolibCigri::add_job_to_launch($base,$mjobid,$cluster,$jobratio);
+			 print("[SCHEDULER]   add toLaunch MJob : $mjobid; cluster :$cluster; nb jobs: $nb_of_jobs_to_launch\n");
+             iolibCigri::add_job_to_launch($base,$mjobid,$cluster,$nb_of_jobs_to_launch);
                 #$nbRemainedJobs{$i} -= $number;
           }
        }
