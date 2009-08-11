@@ -261,6 +261,10 @@ sub add_mjobs($$$) {
     # copy params in the database
     my $Params ="";
     if (JDLParserCigri::init_jdl($jdl) == 0){
+
+    	my $ParamNb = 0;
+		my $ClusterNb = (scalar (keys %JDLParserCigri::clusterConf) -1);
+	
         if (defined($JDLParserCigri::clusterConf{DEFAULT}{paramFile}) && (-r $JDLParserCigri::clusterConf{DEFAULT}{paramFile})){
                 open(FILE, $JDLParserCigri::clusterConf{DEFAULT}{paramFile});
                 my $doRet;
@@ -275,34 +279,46 @@ sub add_mjobs($$$) {
                         ($paramName, @tmp) = split (' ', $_, 2);
                         print("Insert ($id,\'$_\',\'$paramName\')\n");
                         $doRet = $dbh->do("INSERT INTO parameters (parametersMJobsId,parametersParam,parametersName) VALUES ($id,\'$_\',\'$paramName\')");
-						# TODO temporary while admissions rules not available
-						if($mJobsType eq "test"){
-							last;
-						}
                         if ($doRet != 1){
                             warn("Duplicate parameters\n");
                             warn("$@");
                             #$dbh->do("DELETE FROM parameters WHERE parametersMJobsId = $id");
                             rollback_transaction($dbh);
                             return -4;
-                        }
+                        }else{
+							$ParamNb ++;
+
+							# TODO workaround :(
+							# TODO method impl should be refined as a whole
+							if($mJobsType eq "test" && $ParamNb == $ClusterNb){
+								last;
+							}
+						}
                     }
                 }
                 close(FILE);
+
         }elsif (defined($JDLParserCigri::clusterConf{DEFAULT}{nbJobs})){
             for (my $k=0; $k<$JDLParserCigri::clusterConf{DEFAULT}{nbJobs}; $k++) {
-                $dbh->do("INSERT INTO parameters (parametersMJobsId,parametersParam) VALUES ($id,\'$k\')");
+            	$dbh->do("INSERT INTO parameters (parametersMJobsId,parametersParam) VALUES ($id,\'$k\')");
+
+				$ParamNb ++;
 				 
-				#TODO temporary while admissions rules not available
-            	if($mJobsType eq "test"){
-             		last;
-            	}
+				# TODO orkaround :(
+				# TODO method impl should be refined as a whole
+				if($mJobsType eq "test" && $ParamNb == $ClusterNb){
+					last;
+				}
             }
+
+
         }else{
             print("[iolib] I can't read the param file $JDLParserCigri::clusterConf{DEFAULT}{paramFile} or the nbJobs variable\n");
             rollback_transaction($dbh);
             return -1;
         }
+
+
 	##added for rsync data synchronization of clusters##
 	if ((defined($JDLParserCigri::clusterConf{DEFAULT}{data_to_transfer})) && !($JDLParserCigri::clusterConf{DEFAULT}{data} =~ m/.*\~.*/m)){
                   my $DataSrc = $JDLParserCigri::clusterConf{DEFAULT}{data_to_transfer};

@@ -32,8 +32,8 @@ class Cluster
     end
   end
 
-  # get relative free nodes (based on free resources and flood rate)
-  def free_nodes
+  # get relative free resources(based on free nodes and flood rate)
+  def free_resources
 	if get_conf("FLOOD_RATE")
             flood_rate=get_conf("FLOOD_RATE")
     else

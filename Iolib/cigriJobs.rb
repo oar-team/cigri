@@ -392,6 +392,15 @@ class MultipleJobSet
             @mjobs << mjob
 		end
 	end
+
+	#concatenate 2 MultiJobSets
+	def +(second)
+		if(second.class.name.eql? self.class.name)
+			@mjobs += second.mjobs
+		else
+			raise TypeError.new("#{second.class.name} can't be coerced into #{self.class.name}")
+		end
+	end
     
 	# Printing (mainly used for debug)
     def to_s
@@ -462,18 +471,31 @@ end
 
 
 
-def get_mjobset_type (dbh, type)
-	return MultipleJobSet.new(dbh, "SELECT MJobsId FROM multipleJobs WHERE MJobsState = \'#{type}\' ORDER BY MJobsId", true);
+def get_mjobset_state(dbh, state)
+	return MultipleJobSet.new(dbh, "SELECT MJobsId FROM multipleJobs WHERE
+MJobsState = \'#{state}\' ORDER BY MJobsId", true);
+end
+
+def get_mjobset_state_type(dbh, state, type)
+	return MultipleJobSet.new(dbh, "SELECT MJobsId FROM multipleJobs WHERE
+MJobsState = \'#{state}\' AND MJobsType = \'#{type}\' ORDER BY MJobsId", true);
 end
 
 
 def get_intreatment_mjobset (dbh)
-	return get_mjobset_type(dbh, "IN_TREATMENT")
+	return get_mjobset_state(dbh, "IN_TREATMENT")
 end
 
+def get_default_intreatment_mjobset(dbh)
+	return get_mjobset_state_type(dbh, "IN_TREATMENT", "default")
+end
+
+def get_test_intreatment_mjobset(dbh)
+	return get_mjobset_state_type(dbh, "IN_TREATMENT", "test")
+end
 
 def get_terminated_mjobset (dbh)
-	return get_mjobset_type(dbh, "TERMINATED")
+	return get_mjobset_state(dbh, "TERMINATED")
 end
 
 
