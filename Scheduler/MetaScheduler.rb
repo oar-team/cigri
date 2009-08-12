@@ -58,7 +58,9 @@ mjobset += get_default_intreatment_mjobset(dbh)
 mjobset.each do |mjob| 
 	mjob.active_clusters.each do |cluster|
 	used_nodes = 0
-	
+
+	#TODO: take care if all the jobs where not deployed in previous lood
+	# solution: keep track locally (hash) and compare with n_waiting	
 	if(free_resources["#{cluster.name}"].to_i > 0)
 		case (mjob.type)
 		  when "test" : used_nodes = TestScheduler.schedule(mjob, cluster.name, free_resources["#{cluster.name}"].to_i)

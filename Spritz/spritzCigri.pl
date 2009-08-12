@@ -107,7 +107,7 @@ foreach my $i (@MjobsToForecast){
 	$jobratio = 0 if $jobratio < 0;
 
 
-	print "MJobId $i, cluster=$cluster,  Old jr = $old_jobratio, New Jr = $jobratio \n";
+	#print "MJobId $i, cluster=$cluster,  Old jr = $old_jobratio, New Jr = $jobratio \n";
 	
 	#update forecast DB
     #iolibCigri::begin_transaction($base);

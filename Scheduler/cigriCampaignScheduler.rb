@@ -5,9 +5,12 @@
 ##########################################################
 class TestScheduler
 	def self.schedule(mjob, cluster_name, free_resources)
+		#ensure one job / cluster
+		return 0 if mjob.deployed_clusters.include? cluster_name
 		used_nodes = 0
 		used_nodes = mjob.add_job_to_launch(cluster_name, 1)
         puts "[TEST_SCHEDULER] added toLaunch MJob: #{mjob.mjobid}; cluster; #{cluster_name}; nb jobs: #{used_nodes} "
+		mjob.notify_deployed_cluster(cluster_name) if used_nodes > 0
 		return used_nodes
 	end
 end

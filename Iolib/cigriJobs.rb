@@ -361,6 +361,22 @@ private
 
 end
 
+#########################################################################
+# Test MultipleJob class
+#########################################################################
+class TestMultipleJob < MultipleJob
+   attr_accessor :deployed_clusters
+    
+	def initialize(dbh,id)
+       super(dbh, id)      
+	   @deployed_clusters=Array.new 
+	end
+
+	def notify_deployed_cluster(cluster_name)
+		@deployed_clusters << cluster_name 
+	end
+end
+
 
 #########################################################################
 # A MultipleJobSet is a set of jobs resulting of an SQL query on the jobs table
@@ -388,7 +404,11 @@ class MultipleJobSet
     def do
         sql_jobs=@dbh.select_all(@query)
         sql_jobs.each do |sql_job|
-            mjob=MultipleJob.new(@dbh,sql_job['MJobsId'])
+			case(sql_job['MJobsType'])
+				when "test" : mjob=TestMultipleJob.new(@dbh,sql_job['MJobsId'])
+				when "default" : mjob=MultipleJob.new(@dbh,sql_job['MJobsId'])
+				else  mjob=MultipleJob.new(@dbh,sql_job['MJobsId'])
+			end
             @mjobs << mjob
 		end
 	end
@@ -472,13 +492,11 @@ end
 
 
 def get_mjobset_state(dbh, state)
-	return MultipleJobSet.new(dbh, "SELECT MJobsId FROM multipleJobs WHERE
-MJobsState = \'#{state}\' ORDER BY MJobsId", true);
+	return MultipleJobSet.new(dbh, "SELECT MJobsId, MJobsType FROM multipleJobs WHERE MJobsState = \'#{state}\' ORDER BY MJobsId", true);
 end
 
 def get_mjobset_state_type(dbh, state, type)
-	return MultipleJobSet.new(dbh, "SELECT MJobsId FROM multipleJobs WHERE
-MJobsState = \'#{state}\' AND MJobsType = \'#{type}\' ORDER BY MJobsId", true);
+	return MultipleJobSet.new(dbh, "SELECT MJobsId, MJobsType FROM multipleJobs WHERE MJobsState = \'#{state}\' AND MJobsType = \'#{type}\' ORDER BY MJobsId", true);
 end
 
 
