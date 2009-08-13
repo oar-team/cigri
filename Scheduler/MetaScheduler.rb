@@ -55,20 +55,26 @@ mjobset = get_test_intreatment_mjobset(dbh)
 mjobset += get_default_intreatment_mjobset(dbh)
 
 
+# since updator is independing, keep locally n_waiting jobs 
+# to avoid lauching more than needed
+waiting_jb = Hash.new()
+mjobset.each{|mjob| waiting_jb["#{mjob.n_waiting}"]=mjob.n_waiting}
+
+
 mjobset.each do |mjob| 
 	mjob.active_clusters.each do |cluster|
 	used_nodes = 0
 
-	#TODO: take care if all the jobs where not deployed in previous lood
-	# solution: keep track locally (hash) and compare with n_waiting	
-	if(free_resources["#{cluster.name}"].to_i > 0)
+	if(free_resources["#{cluster.name}"].to_i > 0 && waiting_jb["#{mjob.n_waiting}"] > 0)
+
 		case (mjob.type)
 		  when "test" : used_nodes = TestScheduler.schedule(mjob, cluster.name, free_resources["#{cluster.name}"].to_i)
 		  when "default" : used_nodes = DefaultScheduler.schedule(mjob, cluster.name, free_resources["#{cluster.name}"].to_i)
   	   end
 
-		free_resources["#{cluster.name}"] = free_resources["#{cluster.name}"].to_i - used_nodes
+		free_resources["#{cluster.name}"] -= used_nodes
 		free_resources["#{cluster.name}"] = 0 if free_resources["#{cluster.name}"].to_i < 0
+		 waiting_jb["#{mjob.n_waiting}"] -= used_nodes
 	end 
 	end
 end
