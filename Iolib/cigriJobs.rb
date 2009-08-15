@@ -500,7 +500,7 @@ def get_mjobset_state_type(dbh, state, type)
 end
 
 
-def get_intreatment_mjobset (dbh)
+def get_intreatment_mjobset(dbh)
 	return get_mjobset_state(dbh, "IN_TREATMENT")
 end
 
@@ -512,8 +512,40 @@ def get_test_intreatment_mjobset(dbh)
 	return get_mjobset_state_type(dbh, "IN_TREATMENT", "test")
 end
 
-def get_terminated_mjobset (dbh)
+def get_terminated_mjobset(dbh)
 	return get_mjobset_state(dbh, "TERMINATED")
 end
+
+def get_mjobset_range(dbh, begin_id, end_id)
+	if end_id < 0
+	    return MultipleJobSet.new(dbh, "SELECT MJobsId, MJobsType FROM multipleJobs WHERE MJobsId = #{begin_id}", true);
+	else
+	    return MultipleJobSet.new(dbh, "SELECT MJobsId, MJobsType FROM multipleJobs WHERE MJobsId >= #{begin_id} AND  MJobsId <= #{end_id}", true);
+	end
+end
+
+
+def get_last_mjobid(dbh)
+	query = "SELECT MJobsId FROM multipleJobs ORDER BY MJobsId DESC LIMIT 1"
+
+	 sql_jobid = dbh.select_all(query)
+     if sql_jobid.empty?
+     	return 0
+     end
+     return sql_jobid[0]['MJobsId'].to_i
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

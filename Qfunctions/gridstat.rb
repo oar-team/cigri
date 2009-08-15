@@ -66,6 +66,11 @@ opts.on( '--csv', 'Print information in csv format' ) do
   options[:csv] = true
 end
 
+options[:summary] = false
+opts.on( '-s', '--summary ID or RANGE', 'Print summary information' ) do |range| 
+  options[:summary] = range
+end
+
 opts.on( '-h', '--help', "Display #{$0} help" ) do
     puts opts
     exit
@@ -76,33 +81,75 @@ end
 opts.parse! ARGV
 
 
-# Get the multiple job
-mjob=MultipleJob.new(dbh,ARGV[0])
-forecasts=Forecasts.new(mjob)
+if !options[:summary]
+	# Get the multiple job
+	mjob=MultipleJob.new(dbh,ARGV[0])
+	forecasts=Forecasts.new(mjob)
 
-if not options[:csv]
-  puts mjob.to_s
-  puts
+	if not options[:csv]
+	  puts mjob.to_s
+	  puts
   
-  if options[:full]
-	puts forecasts.to_s_full
-	puts
-  	puts "List of jobs:"
+	  if options[:full]
+		puts forecasts.to_s_full
+		puts
+	  	puts "List of jobs:"
   
 
-  	mjob.jobs.each do |job|
-    	printf("Job %s: %s\n  Cluster: %s\n  Node: %s\n  BatchId: %s\n  Params: %s\n",
-        	job.jid,job.state,job.cluster,job.node,job.batchid,job.param)
+	  	mjob.jobs.each do |job|
+    		printf("Job %s: %s\n  Cluster: %s\n  Node: %s\n  BatchId: %s\n  Params: %s\n",
+        		job.jid,job.state,job.cluster,job.node,job.batchid,job.param)
+		end
+	  else
+    	 puts forecasts.to_s
+	  end
+
+	else
+	  puts "\"id\",\"state\",\"cluster\",\"node\",\"batchid\",\"params\""
+	  mjob.jobs.each do |job|
+	    printf("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n",
+    	    job.jid,job.state,job.cluster,job.node,job.batchid,job.param)
+	  end
 	end
-  else
-     puts forecasts.to_s
-  end
-
 else
-  puts "\"id\",\"state\",\"cluster\",\"node\",\"batchid\",\"params\""
-  mjob.jobs.each do |job|
-    printf("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n",
-        job.jid,job.state,job.cluster,job.node,job.batchid,job.param)
-  end
+	# matches: 
+	#    *-* : All the mjobs
+	#    n-* : All the mjobs starting in 'n'
+	#    *-n : All the mjobs from 0 to 'n'
+	#    n-m : All the mjobs from between 'n' and 'm' included
+	#    n   : just the mjob 'n' 
+	if (options[:summary] =~ /^\s*(\d+|\*)\s*(-\s*(\d+|\*)\s*)?$/ ) == nil
+		puts "ERROR #{options[:summary]} is not a valid range"
+		puts opts
+		exit(-1)
+	end
+
+	if  (!$1.eql? "*") && (!$3.eql? "*") && $1!=nil && $3!=nil && $1.to_i >= $3.to_i
+		puts "ERROR #{options[:summary]} is not a valid range. Second number must be bigger than first in the range"
+		puts opts
+		exit(-1)
+	end
+
+	
+
+	($1.eql? "*") ? begin_id=0 : begin_id=$1.to_i
+	($3.eql? "*") ? end_id=get_last_mjobid(dbh) : end_id=$3.to_i
+	end_id = -1 if end_id == 0
+	#puts "checking from #{begin_id} to #{end_id}"
+
+	mjobset = get_mjobset_range(dbh, begin_id, end_id)
+
+
+	puts("Campaign Id  Status       Type       Waiting  Running  Finished")
+	puts("-----------  ------------ ---------  -------  -------  --------")
+	mjobset.each do |mjob|
+		 j=MultipleJob.new(dbh,mjob.mjobid)
+	 	 puts sprintf("   %-9.9s %-12.15s %-11.12s   %-7.7s  %-9.9s %-8.8s\n", j.mjobid, j.status, j.type, j.n_running, j.n_waiting, j.n_terminated);
+	end
+	puts("-----------  ------------ ---------  -------  -------  --------")
+
+
+
+
 end
 
