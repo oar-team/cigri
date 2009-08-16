@@ -47,7 +47,7 @@ dbh = db_init()
 
 # Check args
 if ARGV.empty?
-    puts "Usage: #{$0} <multiple_job_id> [-f] [--csv] [-h]"
+    puts "Usage: #{$0} <multiple_job_id> [-f ID | -s RANGE] [--csv] [-h]"
     exit 1
 end
 
@@ -144,7 +144,8 @@ else
 	puts("-----------  ------------ ---------  -------  -------  --------")
 	mjobset.each do |mjob|
 		 j=MultipleJob.new(dbh,mjob.mjobid)
-	 	 puts sprintf("   %-9.9s %-12.15s %-11.12s   %-7.7s  %-9.9s %-8.8s\n", j.mjobid, j.status, j.type, j.n_running, j.n_waiting, j.n_terminated);
+	 	 puts sprintf("   %-9.9s %-12.15s %-11.12s   %-7.7s  %-9.9s %-8.8s\n",
+j.mjobid, j.status, j.type, j.n_waiting, j.n_running, j.n_terminated);
 	end
 	puts("-----------  ------------ ---------  -------  -------  --------")
 
