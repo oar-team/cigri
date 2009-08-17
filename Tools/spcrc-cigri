@@ -5,7 +5,7 @@
 #  HTML COLOR NAME   COL A N T STRING or REGULAR EXPRESSION
 #################### ### # # # ################################################################
 Cyan                 cya       (\[ALMIGHTY\].*)
-Green                grn       (\[SCHEDULER\].*)
+Green                grn       (\[.*SCHEDULER.*\].*)
 Green                grn       (\[UPDATOR\].*)
 Green                grn       (\[RUNNER\].*)
 Brown                yel       (\[SSH\].*)

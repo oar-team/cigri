@@ -144,30 +144,32 @@ sub add_new_mjob_event($$$$){
     check_events($dbh);
 }
 
-# add a new event relative of a scheduler in the database and treate it
-# arg1 --> database ref
-# arg2 --> schedulerId on which event occured
-# arg3 --> event Type
-# arg4 --> descriptive message
-sub add_new_scheduler_event($$$$){
-    my $dbh = shift;
-    my $schedId = shift;
-    my $eventType = shift;
-    my $eventMessage = shift;
-
-    #$dbh->do("LOCK TABLES events WRITE");
-    $dbh->begin_work;
-
-    #my $id = calculate_event_id($dbh);
-    my $time = get_date();
-    $dbh->do("    INSERT INTO events (eventId,eventType,eventClass,eventSchedulerId,eventDate,eventMessage)
-                VALUES (NULL,\"$eventType\",\"SCHEDULER\",\"$schedId\",\"$time\",\"$eventMessage\")");
-
-    #$dbh->do("UNLOCK TABLES");
-    $dbh->commit;
-
-    check_events($dbh);
-}
+#OLDSCHED-------------------------------------------
+# # add a new event relative of a scheduler in the database and treate it
+# # arg1 --> database ref
+# # arg2 --> schedulerId on which event occured
+# # arg3 --> event Type
+# # arg4 --> descriptive message
+# sub add_new_scheduler_event($$$$){
+#     my $dbh = shift;
+#     my $schedId = shift;
+#     my $eventType = shift;
+#     my $eventMessage = shift;
+# 
+#     #$dbh->do("LOCK TABLES events WRITE");
+#     $dbh->begin_work;
+# 
+#     #my $id = calculate_event_id($dbh);
+#     my $time = get_date();
+#     $dbh->do("    INSERT INTO events (eventId,eventType,eventClass,eventSchedulerId,eventDate,eventMessage)
+#                 VALUES (NULL,\"$eventType\",\"SCHEDULER\",\"$schedId\",\"$time\",\"$eventMessage\")");
+# 
+#     #$dbh->do("UNLOCK TABLES");
+#     $dbh->commit;
+# 
+#     check_events($dbh);
+# }
+#-------------------------------------------------- 
 
 # add a new event relative of a ssh in the database and treate it
 # arg1 --> database ref
@@ -295,26 +297,29 @@ sub is_collect_active($$$){
     return $numErrors[0];
 }
 
-# test if the scheduler is active
-# arg1 --> database ref
-# arg2 --> schedulerId
-sub is_scheduler_active($$){
-    my $dbh = shift;
-    my $schedId = shift;
 
-    my $sth = $dbh->prepare("    SELECT count( * )
-                                FROM schedulerBlackList, events
-                                WHERE schedulerBlackListEventId = eventId
-                                    AND eventState = \"ToFIX\"
-                                    AND (schedulerBlackListSchedulerId = $schedId
-                                        OR schedulerBlackListSchedulerId = 0)
-                            ");
-    $sth->execute();
-    my @numErrors = $sth->fetchrow_array();
-    $sth->finish();
-
-    return $numErrors[0];
-}
+#OLDSCHED------------------------------------------
+# # test if the scheduler is active
+# # arg1 --> database ref
+# # arg2 --> schedulerId
+# sub is_scheduler_active($$){
+#     my $dbh = shift;
+#     my $schedId = shift;
+# 
+#     my $sth = $dbh->prepare("    SELECT count( * )
+#                                 FROM schedulerBlackList, events
+#                                 WHERE schedulerBlackListEventId = eventId
+#                                     AND eventState = \"ToFIX\"
+#                                     AND (schedulerBlackListSchedulerId = $schedId
+#                                         OR schedulerBlackListSchedulerId = 0)
+#                             ");
+#     $sth->execute();
+#     my @numErrors = $sth->fetchrow_array();
+#     $sth->finish();
+# 
+#     return $numErrors[0];
+# }
+#-------------------------------------------------- 
 
 sub fix_event($$){
     my $dbh = shift;
@@ -539,50 +544,53 @@ Mjob $ref[2]  \n";
     }
     $sth->finish();
 
-    # scheduler error --> blacklist scheduler
-    #list of scheduler events used
 
-    $sth = $dbh->prepare("    SELECT schedulerBlackListEventId
-                            FROM events, schedulerBlackList
-                            WHERE schedulerBlackListEventId = eventId
-                                AND eventState = \"ToFIX\"
-                            ");
-    $sth->execute();
-    undef(%eventUsed);
-    while (my @ref = $sth->fetchrow_array()) {
-        $eventUsed{$ref[0]}=1;
-    }
-    $sth->finish();
-
-    $sth = $dbh->prepare("    SELECT eventId, eventSchedulerId, eventMessage
-                            FROM events
-                            WHERE eventState = \"ToFIX\"
-                                AND (eventType = \"ALMIGHTY_FILE\"
-                                    OR eventType = \"EXIT_VALUE\"
-                                )
-                            ");
-    $sth->execute();
-
-    while (my @ref = $sth->fetchrow_array()) {
-        if (!defined($eventUsed{$ref[0]})){
-            my $sthTmp = $dbh->prepare("SELECT MAX(schedulerBlackListNum)+1 FROM schedulerBlackList");
-            $sthTmp->execute();
-            my $refTmp = $sthTmp->fetchrow_hashref();
-            my @tmp = values(%$refTmp);
-            my $id = $tmp[0];
-            $sthTmp->finish();
-            if(!defined($id)) {
-                $id = 1;
-            }
-            $dbh->do("    INSERT INTO schedulerBlackList (schedulerBlackListNum,schedulerBlackListSchedulerId,schedulerBlackListEventId)
-                        VALUES ($id,$ref[1],$ref[0])");
-
-            # notify admin by email
-            mailer::sendMail("schedulerBlackList = $ref[1]; eventId = $ref[0]","$ref[2]");
-        }
-    }
-    $sth->finish();
-
+#OLDSCHED------------------------------------------
+#    # scheduler error --> blacklist scheduler
+#    #list of scheduler events used
+# 
+#     $sth = $dbh->prepare("    SELECT schedulerBlackListEventId
+#                             FROM events, schedulerBlackList
+#                             WHERE schedulerBlackListEventId = eventId
+#                                 AND eventState = \"ToFIX\"
+#                             ");
+#     $sth->execute();
+#     undef(%eventUsed);
+#     while (my @ref = $sth->fetchrow_array()) {
+#         $eventUsed{$ref[0]}=1;
+#     }
+#     $sth->finish();
+# 
+#     $sth = $dbh->prepare("    SELECT eventId, eventSchedulerId, eventMessage
+#                             FROM events
+#                             WHERE eventState = \"ToFIX\"
+#                                 AND (eventType = \"ALMIGHTY_FILE\"
+#                                     OR eventType = \"EXIT_VALUE\"
+#                                 )
+#                             ");
+#     $sth->execute();
+# 
+#     while (my @ref = $sth->fetchrow_array()) {
+#         if (!defined($eventUsed{$ref[0]})){
+#             my $sthTmp = $dbh->prepare("SELECT MAX(schedulerBlackListNum)+1 FROM schedulerBlackList");
+#             $sthTmp->execute();
+#             my $refTmp = $sthTmp->fetchrow_hashref();
+#             my @tmp = values(%$refTmp);
+#             my $id = $tmp[0];
+#             $sthTmp->finish();
+#             if(!defined($id)) {
+#                 $id = 1;
+#             }
+#             $dbh->do("    INSERT INTO schedulerBlackList (schedulerBlackListNum,schedulerBlackListSchedulerId,schedulerBlackListEventId)
+#                         VALUES ($id,$ref[1],$ref[0])");
+# 
+#             # notify admin by email
+#             mailer::sendMail("schedulerBlackList = $ref[1]; eventId = $ref[0]","$ref[2]");
+#         }
+#     }
+#     $sth->finish();
+# 
+#-------------------------------------------------- 
     # treate FRAG events
 
     $sth = $dbh->prepare("    SELECT fragLogEventId

@@ -10,7 +10,9 @@ use iolibCigri;
 
 my $base = iolibCigri::connect();
 
-print(${iolibCigri::get_current_scheduler($base)}{schedulerId}."\n");
+#OLDSCHED------------------------------------------
+# print(${iolibCigri::get_current_scheduler($base)}{schedulerId}."\n");
+#-------------------------------------------------- 
 
 
 # print iolibCigri::add_job($base,1,1,"ls");

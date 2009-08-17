@@ -144,9 +144,7 @@ else
 		mjobset = get_intreatment_mjobset_user(dbh)
 	end
 	
-	#puts "checking from #{begin_id} to #{end_id}"
-
-
+	exit 0 if mjobset.mjobs.empty? 
 
 	puts("Id      User     Status       Type       Waiting  Running  Finished  ToFix Err")
 	puts("------  -------  ------------ ---------  -------  -------  --------  --------- ")

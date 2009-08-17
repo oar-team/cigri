@@ -5,7 +5,10 @@
 # Cluster class
 #########################################################################
 class Event
-  attr_accessor :eid, :type, :class, :state, :jobid, :cluster, :schedulerid, :mjobid, :date, :message, :adminnote
+  attr_accessor :eid, :type, :class, :state, :jobid, :cluster,  :mjobid, :date, :message, :adminnote
+#OLDSCHED------------------------------------------
+#   attr_accessor :eid, :type, :class, :state, :jobid, :cluster, :schedulerid, :mjobid, :date, :message, :adminnote
+#-------------------------------------------------- 
 
   # Creation
   def initialize(*args)
@@ -22,9 +25,15 @@ class Event
       @jobid=0
       @schedulerid=0
     # Else, we initialize with the provided values
-    when 11
-      (@eid,@type,@class,@state,@jobid,@cluster,@schedulerid,\
+#OLDSCHED------------------------------------------
+#     when 11
+#       (@eid,@type,@class,@state,@jobid,@cluster,@schedulerid,\
+#        @mjobid,@date,@message,@adminnote)=args
+#-------------------------------------------------- 
+	 when 10
+      (@eid,@type,@class,@state,@jobid,@cluster,\
        @mjobid,@date,@message,@adminnote)=args
+
     else
       raise("Wrong number of arguments for initialize")
     end
@@ -49,13 +58,23 @@ class Event
   end
 
   def insert(dbh)
+	#OLDSCHED------------------------------------------
+    #query="INSERT INTO events
+    #       (eventType,eventClass,eventState,eventJobId,eventClusterName,
+	#     eventSchedulerId,eventMJobsId,eventDate,eventMessage)
+	#    VALUES
+	#    ('#{@type}','#{@class}','#{@state}','#{@jobid}','#{cluster}',
+	#     '#{@schedulerid}','#{@mjobid}','#{@date}','#{message}')
+	#   "
+	#-------------------------------------------------- 
     query="INSERT INTO events
-           (eventType,eventClass,eventState,eventJobId,eventClusterName,
-	    eventSchedulerId,eventMJobsId,eventDate,eventMessage)
+           (eventType,eventClass,eventState,eventJobId,
+		eventClusterName,eventMJobsId,eventDate,eventMessage)
 	   VALUES
 	   ('#{@type}','#{@class}','#{@state}','#{@jobid}','#{cluster}',
-	    '#{@schedulerid}','#{@mjobid}','#{@date}','#{message}')
+		'#{@mjobid}','#{@date}','#{message}')
 	  "
+
     dbh.execute(query)
   end
 

@@ -53,7 +53,9 @@ my $autofix_command = $path."/Colombo/autofixCigri.rb";
 my $phoenix_command = $path."/Phoenix/phoenixCigri.rb";
 my $metascheduler_command = $path."/Scheduler/MetaScheduler.rb";
 
-my $scheduler_path = $path."/Scheduler/";
+#OLDSCHED------------------------------------------
+# my $scheduler_path = $path."/Scheduler/";
+#-------------------------------------------------- 
 
 #my $base = iolibCigri::connect();
 
@@ -189,7 +191,7 @@ LBL:while (1){
 
 
 
-#--------------------------------------------------
+#OLDSCHED-------------------------------------
 # my $exitValue;
 # LBL:while (1){
 #     $exitValue = nikita();

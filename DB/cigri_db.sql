@@ -22,11 +22,16 @@ DROP TABLE IF EXISTS events;
 CREATE TABLE IF NOT EXISTS events (
 eventId INT UNSIGNED NOT NULL AUTO_INCREMENT ,
 eventType VARCHAR( 50 ) NOT NULL,
-eventClass ENUM('CLUSTER','SCHEDULER','JOB','MJOB') NOT NULL ,
+#OLDSCHED------------------------------------------
+# eventClass ENUM('CLUSTER','SCHEDULER','JOB','MJOB') NOT NULL ,
+#-------------------------------------------------- 
+eventClass ENUM('CLUSTER','JOB','MJOB') NOT NULL ,
 eventState ENUM('ToFIX','FIXED') DEFAULT 'ToFIX' NOT NULL ,
 eventJobId BIGINT UNSIGNED ,
 eventClusterName VARCHAR( 100 ) ,
-eventSchedulerId INT UNSIGNED ,
+#OLDSCHED------------------------------------------
+# eventSchedulerId INT UNSIGNED ,
+#-------------------------------------------------- 
 eventMJobsId INT UNSIGNED ,
 eventDate DATETIME NOT NULL ,
 eventMessage TEXT ,
@@ -176,19 +181,21 @@ INDEX collectedJobsMJobsId (collectedJobsMJobsId),
 PRIMARY KEY (collectedJobsMJobsId,collectedJobsId)
 )TYPE = InnoDB;
 
-DROP TABLE IF EXISTS schedulers;
-CREATE TABLE IF NOT EXISTS schedulers (
-schedulerId INT UNSIGNED NOT NULL AUTO_INCREMENT ,
-schedulerFile VARCHAR( 255 ) NOT NULL ,
-schedulerPriority INT NOT NULL DEFAULT 0 ,
-PRIMARY KEY (schedulerId)
-)TYPE = InnoDB;
-
-DROP TABLE IF EXISTS currentScheduler;
-CREATE TABLE IF NOT EXISTS currentScheduler (
-currentSchedulerId INT UNSIGNED NOT NULL ,
-PRIMARY KEY (currentSchedulerId)
-)TYPE = InnoDB;
+#OLDSCHED------------------------------------------
+# DROP TABLE IF EXISTS schedulers;
+# CREATE TABLE IF NOT EXISTS schedulers (
+# schedulerId INT UNSIGNED NOT NULL AUTO_INCREMENT ,
+# schedulerFile VARCHAR( 255 ) NOT NULL ,
+# schedulerPriority INT NOT NULL DEFAULT 0 ,
+# PRIMARY KEY (schedulerId)
+# )TYPE = InnoDB;
+# 
+# DROP TABLE IF EXISTS currentScheduler;
+# CREATE TABLE IF NOT EXISTS currentScheduler (
+# currentSchedulerId INT UNSIGNED NOT NULL ,
+# PRIMARY KEY (currentSchedulerId)
+# )TYPE = InnoDB;
+#-------------------------------------------------- 
 
 #DROP TABLE IF EXISTS semaphoreCollector;
 #CREATE TABLE IF NOT EXISTS semaphoreCollector (
@@ -232,13 +239,15 @@ collectBlackListClusterName VARCHAR( 100 ) ,
 collectBlackListEventId INT UNSIGNED NOT NULL
 )TYPE = InnoDB;
 
-DROP TABLE IF EXISTS schedulerBlackList;
-CREATE TABLE IF NOT EXISTS schedulerBlackList (
-schedulerBlackListNum INT UNSIGNED NOT NULL ,
-schedulerBlackListSchedulerId INT UNSIGNED NOT NULL ,
-schedulerBlackListEventId INT UNSIGNED NOT NULL ,
-PRIMARY KEY (schedulerBlackListSchedulerId,schedulerBlackListEventId)
-)TYPE = InnoDB;
+#OLDSCHED------------------------------------------
+# DROP TABLE IF EXISTS schedulerBlackList;
+# CREATE TABLE IF NOT EXISTS schedulerBlackList (
+# schedulerBlackListNum INT UNSIGNED NOT NULL ,
+# schedulerBlackListSchedulerId INT UNSIGNED NOT NULL ,
+# schedulerBlackListEventId INT UNSIGNED NOT NULL ,
+# PRIMARY KEY (schedulerBlackListSchedulerId,schedulerBlackListEventId)
+# )TYPE = InnoDB;
+#-------------------------------------------------- 
 
 DROP TABLE IF EXISTS resubmissionLog;
 CREATE TABLE IF NOT EXISTS resubmissionLog (
@@ -260,7 +269,7 @@ PRIMARY KEY  (`login`)
 )TYPE = InnoDB;
 
 
-#--------------------------------------------------
+#OLDSCHED------------------------------------------
 # DROP TABLE IF EXISTS forecasts;
 # CREATE TABLE `forecasts` (
 # `MjobsId` INT( 10 ) NOT NULL ,
@@ -270,7 +279,6 @@ PRIMARY KEY  (`login`)
 # `end` INT NOT NULL ,
 # PRIMARY KEY ( `MjobsId` )
 # );
-# 
 #-------------------------------------------------- 
 
 #New forecast table
@@ -287,9 +295,9 @@ throughput FLOAT NOT NULL ,
 INDEX mJobsId (mJobsId),
 PRIMARY KEY (timeStamp,mJobsId,clusterName)
 )TYPE = InnoDB;
-
-
 #--------------------------------------------------
+
+
 # Gridstatus table
 DROP TABLE IF EXISTS gridstatus;
 CREATE TABLE `gridstatus` (
@@ -309,7 +317,8 @@ INSERT IGNORE INTO webusers VALUES ("admin", "");
 
 #INSERT INTO users (userGridName,userClusterName,userLogin) VALUES ("capitn", "pawnee", "capitn");
 
-#INSERT IGNORE INTO schedulers (schedulerFile,schedulerPriority) VALUES ("sched_equitCigri",1);
-#INSERT IGNORE INTO schedulers (schedulerFile,schedulerPriority) VALUES ("sched_fifoCigri.pl",2);
-INSERT IGNORE INTO schedulers (schedulerFile,schedulerPriority) VALUES ("sched_jobratio+fifoCigri.pl",2);
-
+#OLDSCHED------------------------------------------
+# #INSERT IGNORE INTO schedulers (schedulerFile,schedulerPriority) VALUES ("sched_equitCigri",1);
+# #INSERT IGNORE INTO schedulers (schedulerFile,schedulerPriority) VALUES ("sched_fifoCigri.pl",2);
+# INSERT IGNORE INTO schedulers (schedulerFile,schedulerPriority) VALUES ("sched_jobratio+fifoCigri.pl",2);
+#-------------------------------------------------- 

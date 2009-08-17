@@ -103,8 +103,10 @@ sub get_tocollect_MJobs($$);
 sub get_tocollect_MJob_files($$);
 sub create_new_collector($$$) ;
 sub set_job_collectedJobId($$$);
-sub get_current_scheduler($);
-sub update_current_scheduler($);
+#OLDSCHED------------------------------------------
+# sub get_current_scheduler($);
+# sub update_current_scheduler($);
+#-------------------------------------------------- 
 sub begin_transaction($);
 sub commit_transaction($);
 sub rollback_transaction($);
@@ -1157,12 +1159,15 @@ sub get_cluster_job_toLaunch($$$) {
 
     if (defined($MJobtoSubmit[0])){
         #Verif if the scheduler is right
-        if (colomboCigri::is_cluster_active($dbh,$clusterName,$MJobtoSubmit[0]) != 0){
-            #$dbh->do("UNLOCK TABLES");
-            warn("[Iolib] Erreur de choix du scheduler, le cluster est blackliste\n");
-            colomboCigri::add_new_scheduler_event($dbh,${get_current_scheduler($dbh)}{schedulerId},"CLUSTER_BLACKLISTED"," Erreur de choix du scheduler, le cluster $clusterName est blackliste");
-            return(1);
-        }
+        
+		#OLDSCHED------------------------------------------
+		# if (colomboCigri::is_cluster_active($dbh,$clusterName,$MJobtoSubmit[0]) != 0){
+        #    #$dbh->do("UNLOCK TABLES");
+        #    warn("[Iolib] Erreur de choix du scheduler, le cluster est blackliste\n");
+        #    colomboCigri::add_new_scheduler_event($dbh,${get_current_scheduler($dbh)}{schedulerId},"CLUSTER_BLACKLISTED"," Erreur de choix du scheduler, le cluster $clusterName est blackliste");
+        #    return(1);
+        #}
+		#-------------------------------------------------- 
 
         # if (colomboCigri::is_node_active($dbh,$MJobtoSubmit[1],$MJobtoSubmit[0]) != 0){
             # $dbh->do("UNLOCK TABLES");
@@ -1420,7 +1425,7 @@ sub get_nb_remained_jobs($){
     return %result;
 }
 
-#TODO: will be replaced when new impl. of scheduler
+#OLDSCHED: Deprecated: replaced when new impl. of scheduler
 sub get_nb_remained_jobs_by_type($$){
     my $dbh = shift;
 	my $type = shift;
@@ -1841,52 +1846,54 @@ sub set_job_collectedJobId($$$){
     $dbh->do("UPDATE jobs SET jobCollectedJobId = $collectedJobId where jobId = $jobId");
 }
 
-# return the current scheduler
-# arg1 --> database ref
-sub get_current_scheduler($){
-    my $dbh = shift;
-
-    my $sth = $dbh->prepare("    SELECT schedulerId, schedulerFile
-                                FROM currentScheduler, schedulers
-                                WHERE currentSchedulerId = schedulerId
-                                LIMIT 1
-                            ");
-    $sth->execute();
-    my $result  = $sth->fetchrow_hashref();
-
-    $sth->finish();
-
-    return $result;
-
-}
-
-# set the current scheduler table
-# arg1 --> database ref
-sub update_current_scheduler($){
-    my $dbh = shift;
-    my @badScheds;
-
-    my $sth = $dbh->prepare("    SELECT schedulerId, schedulerFile, schedulerPriority
-                            FROM schedulers
-                            ORDER BY schedulerPriority DESC
-                        ");
-    $sth->execute();
-    my $schedId;
-    while (my @ref = $sth->fetchrow_array()) {
-        if (colomboCigri::is_scheduler_active($dbh,$ref[0]) == 0){
-            $schedId = $ref[0];
-            last;
-        }
-    }
-
-    $sth->finish();
-
-    $dbh->do("TRUNCATE TABLE currentScheduler");
-    if (defined($schedId)){
-        $dbh->do("INSERT INTO currentScheduler (currentSchedulerId) VALUES ($schedId)");
-    }
-}
-
+#OLDSCHED------------------------------------------
+# # return the current scheduler
+# # arg1 --> database ref
+# sub get_current_scheduler($){
+#     my $dbh = shift;
+# 
+#     my $sth = $dbh->prepare("    SELECT schedulerId, schedulerFile
+#                                 FROM currentScheduler, schedulers
+#                                 WHERE currentSchedulerId = schedulerId
+#                                 LIMIT 1
+#                             ");
+#     $sth->execute();
+#     my $result  = $sth->fetchrow_hashref();
+# 
+#     $sth->finish();
+# 
+#     return $result;
+# 
+# }
+# 
+# # set the current scheduler table
+# # arg1 --> database ref
+# sub update_current_scheduler($){
+#     my $dbh = shift;
+#     my @badScheds;
+# 
+#     my $sth = $dbh->prepare("    SELECT schedulerId, schedulerFile, schedulerPriority
+#                             FROM schedulers
+#                             ORDER BY schedulerPriority DESC
+#                         ");
+#     $sth->execute();
+#     my $schedId;
+#     while (my @ref = $sth->fetchrow_array()) {
+#         if (colomboCigri::is_scheduler_active($dbh,$ref[0]) == 0){
+#             $schedId = $ref[0];
+#             last;
+#         }
+#     }
+# 
+#     $sth->finish();
+# 
+#     $dbh->do("TRUNCATE TABLE currentScheduler");
+#     if (defined($schedId)){
+#         $dbh->do("INSERT INTO currentScheduler (currentSchedulerId) VALUES ($schedId)");
+#     }
+# }
+# 
+#-------------------------------------------------- 
 sub begin_transaction($){
     my $dbh = shift;
     $dbh->begin_work;

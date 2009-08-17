@@ -10,7 +10,9 @@ nikita_command=${path}"/Nikita/nikitaCigri.pl";
 spritz_command=${path}"/Spritz/spritzCigri.pl";
 autofix_command=${path}"/Colombo/autofixCigri.rb";
 phoenix_command=${path}"/Phoenix/phoenixCigri.rb";
-sched_command=${path}"/Scheduler/sched_fifoCigri.pl";
+#OLDSCHED------------------------------------------
+# sched_command=${path}"/Scheduler/sched_fifoCigri.pl";
+#-------------------------------------------------- 
 meta_sched_command=${path}"/Scheduler/MetaScheduler.rb";
 
 
@@ -32,8 +34,10 @@ echo " Please chose the module to run: "
 echo " 1 - AutoFix"
 echo " 2 - Updator"
 echo " 3 - Spritz"
-echo " 4 - Scheduler"
-echo " 4b - MetaScheduler"
+#OLDSCHED------------------------------------------
+# echo " 4b - Scheduler"
+#-------------------------------------------------- 
+echo " 4 - MetaScheduler"
 echo " 5 - Gridstat"
 echo " 6 - Runner"
 echo " 7 - Phoenix"
@@ -49,8 +53,10 @@ case $opt in
    1)  echo "Running AutoFix:"; time $autofix_command ;;
    2)  echo "Running Updator:"; time $updator_command ;;
    3)  echo "Running Spritz:"; time $spritz_command ;;
-   4)  echo "Running Scheduler:"; time $sched_command ;;
-   4b)  echo "Running Scheduler:"; time $meta_sched_command ;;
+#OLDSCHED------------------------------------------
+#    4b)  echo "Running Scheduler:"; time $sched_command ;;
+#-------------------------------------------------- 
+   4)  echo "Running Scheduler:"; time $meta_sched_command ;;
    5)  echo "Running Gridstatus:"; time $gridstatus_command ;;
    6)  echo "Running Runner:"; time $runner_command ;;
    7)  echo "Running Phoenix:"; time $phoenix_command ;;
@@ -63,7 +69,9 @@ case $opt in
 						echo "========= SPRITZ =============";
 						time $spritz_command ;
 						echo "========= SCHED ==============";
-						#time $sched_command; 
+						#OLDSCHED------------------------------------------
+						# time $sched_command; 
+						#-------------------------------------------------- 
 						time $meta_sched_command; 
 						echo "========= GSTAT ==============";
  						time $gridstatus_command;
