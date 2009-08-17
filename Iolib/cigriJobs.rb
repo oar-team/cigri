@@ -242,7 +242,7 @@ class MultipleJob < JobSet
     end
 
 	def n_to_submit
-		query = "SELECT sum(jobsToSubmitNumber) FROM jobsToSubmit WHERE jobsToSubmitMJobsId =  #{@mjobid}"
+		query = "SELECT sum(jobsToSubmitNumber) as n FROM jobsToSubmit WHERE jobsToSubmitMJobsId =  #{@mjobid}"
         return @dbh.select_all(query)[0]['n'].to_i 
 	end
 
