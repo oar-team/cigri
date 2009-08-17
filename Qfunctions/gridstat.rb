@@ -145,9 +145,9 @@ else
 	mjobset.each do |mjob|
 		 j=MultipleJob.new(dbh,mjob.mjobid)
 		 if (j.has_errors_to_fix)
-		 	 puts sprintf("   %-9.9s %-12.15s %-11.12s   %-7.7s  %-9.9s %-10.10s %s\n", j.mjobid, j.status, j.type, j.n_waiting, j.n_running, j.n_terminated, "x");
+		 	 puts sprintf("   %-9.9s %-13.13s %-10.10s   %-7.7s  %-9.9s %-10.10s %s\n", j.mjobid, j.status, j.type, j.n_waiting, j.n_running, j.n_terminated, "x");
 		 else
-		 	 puts sprintf("   %-9.9s %-12.15s %-11.12s   %-7.7s  %-9.9s %-8.8s\n", j.mjobid, j.status, j.type, j.n_waiting, j.n_running, j.n_terminated);
+		 	 puts sprintf("   %-9.9s %-13.13s %-10.10s   %-7.7s  %-9.9s %-8.8s\n", j.mjobid, j.status, j.type, j.n_waiting, j.n_running, j.n_terminated);
 		 end
 	end
 	puts("-----------  ------------ ---------  -------  -------  --------  ------------ ")
