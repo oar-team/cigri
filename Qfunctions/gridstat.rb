@@ -101,7 +101,7 @@ if !options[:summary]
         		job.jid,job.state,job.cluster,job.node,job.batchid,job.param)
 		end
 	  else
-    	 puts forecasts.to_s
+    	 	puts forecasts.to_s
 	  end
 
 	else
@@ -140,16 +140,17 @@ else
 	mjobset = get_mjobset_range(dbh, begin_id, end_id)
 
 
-	puts("Campaign Id  Status       Type       Waiting  Running  Finished")
-	puts("-----------  ------------ ---------  -------  -------  --------")
+	puts("Campaign Id  Status       Type       Waiting  Running  Finished  Error to Fix")
+	puts("-----------  ------------ ---------  -------  -------  --------  ------------ ")
 	mjobset.each do |mjob|
 		 j=MultipleJob.new(dbh,mjob.mjobid)
-	 	 puts sprintf("   %-9.9s %-12.15s %-11.12s   %-7.7s  %-9.9s %-8.8s\n",
-j.mjobid, j.status, j.type, j.n_waiting, j.n_running, j.n_terminated);
+		 if (j.has_errors_to_fix)
+		 	 puts sprintf("   %-9.9s %-12.15s %-11.12s   %-7.7s  %-9.9s %-10.10s %s\n", j.mjobid, j.status, j.type, j.n_waiting, j.n_running, j.n_terminated, "x");
+		 else
+		 	 puts sprintf("   %-9.9s %-12.15s %-11.12s   %-7.7s  %-9.9s %-8.8s\n", j.mjobid, j.status, j.type, j.n_waiting, j.n_running, j.n_terminated);
+		 end
 	end
-	puts("-----------  ------------ ---------  -------  -------  --------")
-
-
+	puts("-----------  ------------ ---------  -------  -------  --------  ------------ ")
 
 
 end

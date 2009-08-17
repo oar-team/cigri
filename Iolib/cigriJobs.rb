@@ -288,6 +288,24 @@ class MultipleJob < JobSet
     	return sql_sync_state[0]['data_synchronState']
 	end
 
+	def has_errors_to_fix
+		query = " SELECT eventId
+                          	FROM events
+                                WHERE eventState = \"ToFIX\" 
+				  AND eventMJobsId = #{@mjobid}
+				  AND (eventType = \"UPDATOR_RET_CODE_ERROR\" 
+					OR eventType = \"OAR_OARSUB\"
+					OR eventType = \"RUNNER_SUBMIT\")
+                "
+		sql_result=@dbh.select_all(query)
+
+		if sql_result.empty?
+              	  return false
+	        else
+                  return true
+		end
+	end
+
 	# Add jobs to launch
 	def add_job_to_launch(cluster, nb_max)
 		nb_waiting =  n_waiting - n_to_submit;
@@ -331,11 +349,12 @@ class MultipleJob < JobSet
         Status:                 %s
         Submited:               %s
         Last terminated job:    %s 
+        Errors to Fix:          %s 
         Running:                %i 
         Waiting:                %i 
         Terminated:             %i 
         Duration:               %i s", \
-        @mjobid,@type,@status,Time.at(@tsub),Time.at(@last_terminated_date),@n_running,n_waiting,@n_terminated,duration)
+        @mjobid,@type,@status,Time.at(@tsub),Time.at(@last_terminated_date),has_errors_to_fix,@n_running,n_waiting,@n_terminated,duration)
     end
 
 #### Private Methods #####

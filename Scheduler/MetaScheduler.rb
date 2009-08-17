@@ -56,7 +56,7 @@ mjobset = get_test_intreatment_mjobset(dbh)
 mjobset += get_default_intreatment_mjobset(dbh)
 
 
-# since updator is independing, keep locally n_waiting jobs 
+# since updator runs synchronously, keep locally n_waiting jobs 
 # to avoid lauching more than needed
 waiting_jb = Hash.new()
 mjobset.each{|mjob| waiting_jb["#{mjob.mjobid}"]=mjob.n_waiting}
@@ -74,7 +74,7 @@ mjobset.each do |mjob|
 
 		free_resources["#{cluster.name}"] -= used_nodes
 		free_resources["#{cluster.name}"] = 0 if free_resources["#{cluster.name}"].to_i < 0
-		waiting_jb["#{mjob.n_waiting}"] -= used_nodes
+		waiting_jb["#{mjob.mjobid}"] -= used_nodes
 	end 
 	end
 end
