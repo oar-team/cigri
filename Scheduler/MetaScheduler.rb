@@ -74,10 +74,19 @@ mjobset.each do |mjob|
 
 		free_resources["#{cluster.name}"] -= used_nodes
 		free_resources["#{cluster.name}"] = 0 if free_resources["#{cluster.name}"].to_i < 0
-		 waiting_jb["#{mjob.n_waiting}"] -= used_nodes
+		waiting_jb["#{mjob.n_waiting}"] -= used_nodes
 	end 
 	end
 end
 
+#free_resources.sort.each {|cluster, nb|
+#        puts "[METASCHEDULER] cl #{cluster} => #{nb} free nodes"}
+
+#waiting_jb.sort.each {|id, nb|
+#        puts "[METASCHEDULER] mjobid #{id} => #{nb} waiting jobs"}
+
+
 
 puts "[METASCHEDULER]   End of scheduler FIFO\n";
+
+

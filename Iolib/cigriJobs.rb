@@ -241,6 +241,11 @@ class MultipleJob < JobSet
         return @dbh.select_all(query)[0]['n'].to_i + @n_trans
     end
 
+	def n_to_submit
+		query = "SELECT sum(jobsToSubmitNumber) FROM jobsToSubmit WHERE jobsToSubmitMJobsId =  #{@mjobid}"
+        return @dbh.select_all(query)[0]['n'].to_i 
+	end
+
     # Duration of this multiple job
     def duration
         return Time.now.to_i - @tsub if @status != 'TERMINATED'
@@ -285,7 +290,8 @@ class MultipleJob < JobSet
 
 	# Add jobs to launch
 	def add_job_to_launch(cluster, nb_max)
-		nb = nb_max < n_waiting ? nb_max : n_waiting
+		nb_waiting =  n_waiting - n_to_submit;
+		nb = nb_max < nb_waiting ? nb_max : nb_waiting
 
 		if(nb > 0)
 			query = " INSERT INTO jobsToSubmit (jobsToSubmitMJobsId,
