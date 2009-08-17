@@ -50,6 +50,7 @@ if $verbose
 end
 
 
+
 #ensure that test jobs are scheduled first if they exist
 mjobset = get_test_intreatment_mjobset(dbh)
 mjobset += get_default_intreatment_mjobset(dbh)
@@ -58,15 +59,14 @@ mjobset += get_default_intreatment_mjobset(dbh)
 # since updator is independing, keep locally n_waiting jobs 
 # to avoid lauching more than needed
 waiting_jb = Hash.new()
-mjobset.each{|mjob| waiting_jb["#{mjob.n_waiting}"]=mjob.n_waiting}
+mjobset.each{|mjob| waiting_jb["#{mjob.mjobid}"]=mjob.n_waiting}
 
 
 mjobset.each do |mjob| 
 	mjob.active_clusters.each do |cluster|
 	used_nodes = 0
 
-	if(free_resources["#{cluster.name}"].to_i > 0 && waiting_jb["#{mjob.n_waiting}"] > 0)
-
+	if(free_resources["#{cluster.name}"].to_i > 0 && waiting_jb["#{mjob.mjobid}"] > 0)
 		case (mjob.type)
 		  when "test" : used_nodes = TestScheduler.schedule(mjob, cluster.name, free_resources["#{cluster.name}"].to_i)
 		  when "default" : used_nodes = DefaultScheduler.schedule(mjob, cluster.name, free_resources["#{cluster.name}"].to_i)
@@ -78,13 +78,6 @@ mjobset.each do |mjob|
 	end 
 	end
 end
-
-#free_resources.sort.each {|cluster, nb|
-#        puts "[METASCHEDULER] cl #{cluster} => #{nb} free nodes"}
-
-#waiting_jb.sort.each {|id, nb|
-#        puts "[METASCHEDULER] mjobid #{id} => #{nb} waiting jobs"}
-
 
 
 puts "[METASCHEDULER]   End of scheduler FIFO\n";

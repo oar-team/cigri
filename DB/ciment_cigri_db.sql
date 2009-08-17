@@ -10,10 +10,10 @@ CREATE DATABASE IF NOT EXISTS cigri2009;
 #				('localhost','cigri','cigri','Y','Y','Y','Y','Y','Y');
 #INSERT IGNORE INTO db  (Host,Db,User,Select_priv,Insert_priv,Update_priv,Delete_priv, Create_priv,Drop_priv) VALUES
 #				('%.imag.fr','cigri','cigri','Y','Y','Y','Y','Y','Y');
-FLUSH PRIVILEGES;
+#FLUSH PRIVILEGES;
 
 #GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP ON cigri2009.* TO cigri@"localhost";
-FLUSH PRIVILEGES;
+#FLUSH PRIVILEGES;
 
 CONNECT cigri2009;
 
