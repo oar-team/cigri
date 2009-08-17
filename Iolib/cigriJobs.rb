@@ -173,7 +173,7 @@ end
 
 
 class MultipleJob < JobSet
-    attr_reader :mjobid, :type, :jobs, :last_terminated_date, :status, :n_running, :n_terminated, :durations
+    attr_reader :mjobid, :type, :jobs, :last_terminated_date, :status, :n_running, :n_terminated, :durations, :user
 
     # Creation
     def initialize(dbh,id)
@@ -187,15 +187,17 @@ class MultipleJob < JobSet
         @n_running=0
         @n_terminated=0
         @n_trans=0
+		@user=""
 
         # Status of this multiple job
-        query = "SELECT MJobsState, MJobsType, MJobsTSub FROM multipleJobs where MJobsId=#{mjobid}"
+        query = "SELECT MJobsState, MJobsType, MJobsTSub, MJobsUser FROM multipleJobs where MJobsId=#{mjobid}"
         sql_mjob=dbh.select_all(query)
 	if sql_mjob.empty?
 	    raise "Could not find multiplejob #{mjobid}"
 	end
         @status=sql_mjob[0]['MJobsState']
         @type=sql_mjob[0]['MJobsType']
+        @user=sql_mjob[0]['MJobsUser']
         @tsub=to_unix_time(sql_mjob[0]['MJobsTSub'])
 
         # Get the blacklisted clusters for this job
@@ -549,6 +551,15 @@ def get_mjobset_range(dbh, begin_id, end_id)
 	end
 end
 
+def get_state_mjobset_user(dbh, state)
+	user=ENV['USER']
+	return MultipleJobSet.new(dbh, "SELECT MJobsId, MJobsType FROM multipleJobs
+WHERE MJobsState = \'#{state}\' AND MJobsUser =  \'#{user}\'", true);	
+end
+
+def get_intreatment_mjobset_user(dbh)
+	return get_state_mjobset_user(dbh, "IN_TREATMENT");	
+end
 
 def get_last_mjobid(dbh)
 	query = "SELECT MJobsId FROM multipleJobs ORDER BY MJobsId DESC LIMIT 1"

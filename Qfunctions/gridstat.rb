@@ -47,7 +47,7 @@ dbh = db_init()
 
 # Check args
 if ARGV.empty?
-    puts "Usage: #{$0} <multiple_job_id> [-f ID | -s RANGE] [--csv] [-h]"
+    puts "Usage: #{$0} <multiple_job_id> [-f ID | -s RANGE [-u] | -u] [--csv] [-h]"
     exit 1
 end
 
@@ -71,6 +71,11 @@ opts.on( '-s', '--summary ID or RANGE', 'Print summary information' ) do |range|
   options[:summary] = range
 end
 
+options[:user] = false
+opts.on( '-u', '--user', 'Show running (or -s RANGE) user jobs' ) do
+  options[:user] = true
+end
+
 opts.on( '-h', '--help', "Display #{$0} help" ) do
     puts opts
     exit
@@ -81,7 +86,7 @@ end
 opts.parse! ARGV
 
 
-if !options[:summary]
+if !options[:summary] and !options[:user]
 	# Get the multiple job
 	mjob=MultipleJob.new(dbh,ARGV[0])
 	forecasts=Forecasts.new(mjob)
@@ -118,39 +123,41 @@ else
 	#    *-n : All the mjobs from 0 to 'n'
 	#    n-m : All the mjobs from between 'n' and 'm' included
 	#    n   : just the mjob 'n' 
-	if (options[:summary] =~ /^\s*(\d+|\*)\s*(-\s*(\d+|\*)\s*)?$/ ) == nil
-		puts "ERROR #{options[:summary]} is not a valid range"
+	if options[:summary] and ((options[:summary] =~ /^\s*(\d+|\*)\s*(-\s*(\d+|\*)\s*)?$/ ) == nil)
+		puts "ERROR \"#{options[:summary]}\" is not a valid range"
 		puts opts
 		exit(-1)
 	end
 
-	if  (!$1.eql? "*") && (!$3.eql? "*") && $1!=nil && $3!=nil && $1.to_i >= $3.to_i
+	if options[:summary] and !$1.eql? "*" and !$3.eql? "*" and $1!=nil and $3!=nil and $1.to_i >= $3.to_i
 		puts "ERROR #{options[:summary]} is not a valid range. Second number must be bigger than first in the range"
 		puts opts
 		exit(-1)
 	end
 
+	if options[:summary] 
+		($1.eql? "*") ? begin_id=0 : begin_id=$1.to_i
+		($3.eql? "*") ? end_id=get_last_mjobid(dbh) : end_id=$3.to_i
+		end_id = -1 if end_id == 0
+		mjobset = get_mjobset_range(dbh, begin_id, end_id)
+	elsif options[:user]
+		mjobset = get_intreatment_mjobset_user(dbh)
+	end
 	
-
-	($1.eql? "*") ? begin_id=0 : begin_id=$1.to_i
-	($3.eql? "*") ? end_id=get_last_mjobid(dbh) : end_id=$3.to_i
-	end_id = -1 if end_id == 0
 	#puts "checking from #{begin_id} to #{end_id}"
 
-	mjobset = get_mjobset_range(dbh, begin_id, end_id)
 
 
-	puts("Campaign Id  Status       Type       Waiting  Running  Finished  Error to Fix")
-	puts("-----------  ------------ ---------  -------  -------  --------  ------------ ")
+	puts("Id      User     Status       Type       Waiting  Running  Finished  ToFix Err")
+	puts("------  -------  ------------ ---------  -------  -------  --------  --------- ")
 	mjobset.each do |mjob|
 		 j=MultipleJob.new(dbh,mjob.mjobid)
-		 if (j.has_errors_to_fix)
-		 	 puts sprintf("   %-9.9s %-13.13s %-10.10s   %-7.7s  %-9.9s %-10.10s %s\n", j.mjobid, j.status, j.type, j.n_waiting, j.n_running, j.n_terminated, "x");
-		 else
-		 	 puts sprintf("   %-9.9s %-13.13s %-10.10s   %-7.7s  %-9.9s %-8.8s\n", j.mjobid, j.status, j.type, j.n_waiting, j.n_running, j.n_terminated);
+		 j.has_errors_to_fix ? error_check="x" : error_check=""
+		 if !options[:user] or ENV['USER'].eql? j.user
+			 puts sprintf("  %-7.7s %-6.6s %-13.13s %-10.10s   %-7.7s  %-9.9s %-8.8s %s", j.mjobid, j.user, j.status, j.type, j.n_waiting, j.n_running, j.n_terminated, error_check) 
 		 end
 	end
-	puts("-----------  ------------ ---------  -------  -------  --------  ------------ ")
+	puts("------  -------  ------------ ---------  -------  -------  --------  --------- ")
 
 
 end
