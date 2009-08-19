@@ -46,10 +46,10 @@ end
 dbh = db_init()
 
 # Check args
-if ARGV.empty?
-    puts "Usage: #{$0} <multiple_job_id> [-f ID | -s RANGE [-u] | -u] [--csv] [-h]"
-    exit 1
-end
+#if ARGV.empty?
+#    puts "Usage: #{$0} <multiple_job_id> [-f ID | -s RANGE [-u] | -u] [--csv] [-h]"
+#    exit 1
+#end
 
 #cParse args
 options = {}
@@ -86,7 +86,7 @@ end
 opts.parse! ARGV
 
 
-if !options[:summary] and !options[:user]
+if !options[:summary] and !options[:user] and !ARGV.empty?
 	# Get the multiple job
 	mjob=MultipleJob.new(dbh,ARGV[0])
 	forecasts=Forecasts.new(mjob)
@@ -142,6 +142,8 @@ else
 		mjobset = get_mjobset_range(dbh, begin_id, end_id)
 	elsif options[:user]
 		mjobset = get_intreatment_mjobset_user(dbh)
+	elsif ARGV.empty?
+		mjobset = get_intreatment_mjobset(dbh)
 	end
 	
 	exit 0 if mjobset.mjobs.empty? 
