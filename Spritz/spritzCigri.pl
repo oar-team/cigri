@@ -68,7 +68,7 @@ foreach my $i (@MjobsToForecast){
 	my $nb_waiting =  iolibCigri::get_cluster_remoteWaiting_job_nb($base, $cluster);
 	my $nb_running =  iolibCigri::get_cluster_running_job_nb($base, $cluster);
 	my $max_waiting = iolibCigri::get_max_waiting_jobs_by_cluster($base, $cluster); 
-	my $last_free = iolibCigri::get_max_waiting_jobs_by_cluster($base, $cluster); 
+	my $last_free = iolibCigri::get_last_cluster_free_nb($base, $cluster); 
 
 	#calculate new jobratio	(TCP slow-start)
 	#my $jobratio;
