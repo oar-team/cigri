@@ -522,6 +522,11 @@ def get_mjobset_state(dbh, state)
 	return MultipleJobSet.new(dbh, "SELECT MJobsId, MJobsType FROM multipleJobs WHERE MJobsState = \'#{state}\' ORDER BY MJobsId", true);
 end
 
+def get_running_mjobset(dbh)
+	return MultipleJobSet.new(dbh, "SELECT MJobsId, MJobsType FROM multipleJobs WHERE (MJobsState = \'IN_TREATMENT\' OR  MJobsState = \'PAUSED\')", true);	
+end
+
+
 def get_mjobset_state_type(dbh, state, type)
 	return MultipleJobSet.new(dbh, "SELECT MJobsId, MJobsType FROM multipleJobs WHERE MJobsState = \'#{state}\' AND MJobsType = \'#{type}\' ORDER BY MJobsId", true);
 end
@@ -530,6 +535,11 @@ end
 def get_intreatment_mjobset(dbh)
 	return get_mjobset_state(dbh, "IN_TREATMENT")
 end
+
+def get_paused_mjobset(dbh)
+	return get_paused_state(dbh, "PAUSED")
+end
+
 
 def get_default_intreatment_mjobset(dbh)
 	return get_mjobset_state_type(dbh, "IN_TREATMENT", "default")
@@ -553,13 +563,22 @@ end
 
 def get_state_mjobset_user(dbh, state)
 	user=ENV['USER']
-	return MultipleJobSet.new(dbh, "SELECT MJobsId, MJobsType FROM multipleJobs
-WHERE MJobsState = \'#{state}\' AND MJobsUser =  \'#{user}\'", true);	
+	return MultipleJobSet.new(dbh, "SELECT MJobsId, MJobsType FROM multipleJobs WHERE MJobsState = \'#{state}\' AND MJobsUser =  \'#{user}\'", true);	
+end
+
+def get_running_mjobset_user(dbh)
+	user=ENV['USER']
+	return MultipleJobSet.new(dbh, "SELECT MJobsId, MJobsType FROM multipleJobs WHERE (MJobsState = \'IN_TREATMENT\' OR  MJobsState = \'PAUSED\') AND MJobsUser =  \'#{user}\'", true);	
 end
 
 def get_intreatment_mjobset_user(dbh)
 	return get_state_mjobset_user(dbh, "IN_TREATMENT");	
 end
+
+def get_paused_mjobset_user(dbh)
+	return get_state_mjobset_user(dbh, "PAUSED");	
+end
+
 
 def get_last_mjobid(dbh)
 	query = "SELECT MJobsId FROM multipleJobs ORDER BY MJobsId DESC LIMIT 1"

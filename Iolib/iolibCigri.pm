@@ -80,6 +80,7 @@ sub get_MJobs_JDL($$);
 sub get_launching_job($$) ;
 sub get_cluster_job_toLaunch($$$) ;
 sub set_job_state($$$) ;
+sub get_mjobs_state($$);
 sub set_mjobs_state($$$) ;
 sub set_job_batch_id($$$);
 sub get_job_id_from_batchid($$$);
@@ -1270,6 +1271,26 @@ sub set_job_state($$$) {
                                 WHERE jobId =\"$idJob\"");
     $sth->execute();
     $sth->finish();
+}
+
+
+
+#get the state of an mjob 
+## arg1 --> database ref
+## arg2 --> MjobsId
+sub get_mjobs_state($$){
+	my $dbh = shift;
+    my $id = shift;
+
+    my $sth = $dbh->prepare("SELECT MJobsState
+                             FROM multipleJobs
+                             WHERE MJobsId = $id
+                            ");
+    $sth->execute();
+	my @res  = $sth->fetchrow_array();
+    $sth->finish();
+    if (defined($res[0])) { return $res[0]; }
+    else { return NULL; }
 }
 
 # set the state of a Mjob

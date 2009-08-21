@@ -141,12 +141,12 @@ else
 		end_id = -1 if end_id == 0
 		mjobset = get_mjobset_range(dbh, begin_id, end_id)
 	elsif options[:user]
-		mjobset = get_intreatment_mjobset_user(dbh)
+		mjobset = get_running_mjobset_user(dbh)
 	elsif ARGV.empty?
-		mjobset = get_intreatment_mjobset(dbh)
+		mjobset = get_running_mjobset(dbh)
 	end
 	
-	exit 0 if mjobset.mjobs.empty? 
+	#exit 0 if mjobset.mjobs.empty? 
 
 	puts("Id      User     Status       Type       Waiting  Running  Finished  ToFix Err")
 	puts("------  -------  ------------ ---------  -------  -------  --------  --------- ")

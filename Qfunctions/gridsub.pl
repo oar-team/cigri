@@ -33,11 +33,13 @@ use ConfLibCigri;
 use mailer;
 
 sub usage(){
-    print(STDERR "usage: gridSub [-f JDLscript | -r [-j|-m] id]  [-t campaign_type] \n");
+    print(STDERR "usage: gridSub [-f JDLscript | -r [-j|-m] id]  [-t campaign_type] [-s id] [-c id] \n");
 	print(STDERR "\t -f for submitting a new mjob \n");
 	print(STDERR "\t -r for resubmitting a job/mjob \n");
 	print(STDERR "\t\t -j for resubmit a job \n");
 	print(STDERR "\t\t -m for resubmit an mjob \n");
+	print(STDERR "\t\t -s for suspending an mjob \n");
+	print(STDERR "\t\t -c for continuing a suspended mjob \n");
     exit 1;
 }
 
@@ -56,12 +58,16 @@ my $mJobType;
 my $sos;
 my $JDLfile;
 my $resubmit;
+my $suspend;
+my $continue;
 my $jobId;
 my $MJobId;
 
 GetOptions ("jdl|f=s" =>  \$JDLfile,
 			"type|t=s" => \$mJobType,
-			"resubmit|r" => \$resubmit,
+			"resubmit|r=i" => \$resubmit,
+			"suspend|s=i" => \$suspend,
+			"continue|c=i" => \$continue,
 			"job|j=i" => \$jobId,
 			"mjob|m=i" => \$MJobId,
 			"help|h" => \$sos
@@ -73,9 +79,15 @@ if (defined($sos)){
     exit(0);
 }
 
-if (defined($JDLfile) && defined($resubmit) ||
-	!defined($JDLfile) && !defined($resubmit) ){
-    print("$Error_Prefix You must EITHER submit a new jor or resubmit an existing one\n");
+
+
+if (defined($JDLfile) && 
+(defined($resubmit) || defined($suspend) || defined($continue)) 
+||
+!defined($JDLfile) &&  
+(!defined($resubmit) && !defined($suspend) && !defined($continue)) 
+){
+    print("$Error_Prefix You must EITHER submit a new job, resubmit/suspend/continue an existing\n");
     usage();
     exit(1);
 }
@@ -90,6 +102,50 @@ if (defined($resubmit) &&
 
 
 my $base = iolibCigri::connect();
+
+
+if (defined($suspend)) {
+	my $mjob_state = iolibCigri::get_mjobs_state($base,$suspend);
+	if (defined ($mjob_state)){
+		if($mjob_state eq 'IN_TREATMENT'){
+			iolibCigri::set_mjobs_state($base, $suspend, "PAUSED");
+			print("The campaign $suspend was suspended\n");
+			exit(0)
+		}else{
+			print("$Error_Prefix $suspend could not be sustended. Jobs must be \"IN_TREATMENT\" to be suspended and current state is $mjob_state\n");
+			usage();
+	        exit(1);
+		}
+	}else{
+    	print("$Error_Prefix $suspend is not a valid campaign number\n");
+		usage();
+        exit(1);
+	}
+
+}
+
+if (defined($continue)) {
+    my $mjob_state = iolibCigri::get_mjobs_state($base,$continue);
+    if (defined ($mjob_state)){ 
+        if($mjob_state eq 'PAUSED'){
+            iolibCigri::set_mjobs_state($base, $continue, "IN_TREATMENT");
+            print("The campaign $continue was resumed\n");
+            exit(0)
+        }else{
+            print("$Error_Prefix $continue could not be resumed. Jobs must be \"PAUSED\" to be resumed and current state is $mjob_state\n");
+            usage();
+            exit(1);
+        }
+    }else{
+        print("$Error_Prefix $continue is not a valid campaign number\n");
+        usage();
+        exit(1);
+    }	
+
+}
+
+
+
 
 if (defined($JDLfile)) {
 	if ( (-e $JDLfile) && (-r $JDLfile) ){
