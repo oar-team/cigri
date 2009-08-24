@@ -81,6 +81,8 @@ EOF;
 	              FROM multipleJobs,forecasts
 	              WHERE not MJobsState='TERMINATED'
 		      AND multipleJobs.MjobsId=forecasts.MjobsId
+                      ORDER BY forecasts.timestamp desc 
+                      LIMIT 1
 		      ";
             list($res,$nb) = sqlquery($query,$link);
 	    if ($nb != 0)  {
