@@ -139,7 +139,11 @@ else
 		($1.eql? "*") ? begin_id=0 : begin_id=$1.to_i
 		($3.eql? "*") ? end_id=get_last_mjobid(dbh) : end_id=$3.to_i
 		end_id = -1 if end_id == 0
-		mjobset = get_mjobset_range(dbh, begin_id, end_id)
+		if options[:user]
+			mjobset = get_mjobset_range_user(dbh, begin_id, end_id)
+		else
+			mjobset = get_mjobset_range(dbh, begin_id, end_id)
+		end
 	elsif options[:user]
 		mjobset = get_running_mjobset_user(dbh)
 	elsif ARGV.empty?

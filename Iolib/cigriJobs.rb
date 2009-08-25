@@ -561,6 +561,17 @@ def get_mjobset_range(dbh, begin_id, end_id)
 	end
 end
 
+
+def get_mjobset_range_user(dbh, begin_id, end_id)
+	user=ENV['USER']
+	if end_id < 0
+	    return MultipleJobSet.new(dbh, "SELECT MJobsId, MJobsType FROM multipleJobs WHERE MJobsId = #{begin_id} AND MJobsUser =  \'#{user}\'", true);
+	else
+	    return MultipleJobSet.new(dbh, "SELECT MJobsId, MJobsType FROM multipleJobs WHERE MJobsId >= #{begin_id} AND  MJobsId <= #{end_id} AND MJobsUser =  \'#{user}\'", true);
+	end
+end
+
+
 def get_state_mjobset_user(dbh, state)
 	user=ENV['USER']
 	return MultipleJobSet.new(dbh, "SELECT MJobsId, MJobsType FROM multipleJobs WHERE MJobsState = \'#{state}\' AND MJobsUser =  \'#{user}\'", true);	
