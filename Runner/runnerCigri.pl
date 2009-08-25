@@ -79,6 +79,7 @@ foreach my $j (keys(%clusterNames)){
             my %cmdResult = SSHcmd::submitCmd($job{clusterName},$cmdString);
             if ($cmdResult{STDERR} ne ""){
                 print("[RUNNER]      ERROR: $cmdResult{STDERR}");
+                print("[RUNNER]      ERROR: The command was: $cmdString\n");
                 # test if this is a ssh error
                 if (NetCommon::checkSshError($base,$job{clusterName},$cmdResult{STDERR}) != 1){
                     iolibCigri::set_job_state($base,$jobId,"Event");

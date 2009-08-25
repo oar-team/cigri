@@ -91,7 +91,7 @@ sub add_new_job_event($$$$){
     my $dbh = shift;
     my $jobId = shift;
     my $eventType = shift;
-    my $eventMessage = shift;
+    my $eventMessage = $dbh->quote(shift);
 
     my $sth = $dbh->prepare("SELECT jobMJobsId,jobClusterName
                              FROM jobs
@@ -386,6 +386,7 @@ sub check_events($){
                                 AND (eventType = \"UPDATOR_PBSNODES_PARSE\"
                                     OR eventType = \"UPDATOR_PBSNODES_CMD\"
                                     OR eventType = \"UPDATOR_QSTAT_CMD\"
+                                    OR eventType = \"UPDATOR_OARSTAT_CMD\"
                                     OR eventType = \"SSH\"
                                     OR eventType = \"COLLECTOR\"
                                     OR eventType = \"MYSQL_OAR_CONNECT\"
