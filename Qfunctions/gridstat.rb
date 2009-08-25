@@ -152,16 +152,15 @@ else
 	
 	#exit 0 if mjobset.mjobs.empty? 
 
-	puts("Id      User     Status       Type       Waiting  Running  Finished  ToFix Err")
-	puts("------  -------  ------------ ---------  -------  -------  --------  --------- ")
-	mjobset.each do |mjob|
-		 j=MultipleJob.new(dbh,mjob.mjobid)
+	puts("Id       User     Status       Type      Waiting  Running   Finished  ToFix Err")
+	puts("------   -------  ------------ --------  -------  -------   --------  --------- ")
+	mjobset.each do |j|
 		 j.has_errors_to_fix ? error_check="x" : error_check=""
 		 if !options[:user] or ENV['USER'].eql? j.user
-			 puts sprintf("  %-7.7s %-6.6s %-13.13s %-10.10s   %-7.7s  %-9.9s %-8.8s %s", j.mjobid, j.user, j.status, j.type, j.n_waiting, j.n_running, j.n_terminated, error_check) 
+			 puts sprintf("  %-7.7s %-6.6s  %-12.12s %-9.9s   %-7.7s  %-9.9s %-8.8s %s", j.mjobid, j.user, j.status, j.type, j.n_waiting, j.n_running, j.n_terminated, error_check) 
 		 end
 	end
-	puts("------  -------  ------------ ---------  -------  -------  --------  --------- ")
+	puts("------   -------  ------------ --------  -------  -------   --------  --------- ")
 
 
 end
