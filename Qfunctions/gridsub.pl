@@ -102,17 +102,25 @@ if (defined($resubmit) &&
 
 
 my $base = iolibCigri::connect();
+my $user = getpwuid($<);
 
 
 if (defined($suspend)) {
-	my $mjob_state = iolibCigri::get_mjobs_state($base,$suspend);
+	my $mjob_state = iolibCigri::get_MJob_state($base,$suspend);
+	my $mjob_user = iolibCigri::get_MJob_user($base,$suspend);
+
 	if (defined ($mjob_state)){
+		if ($mjob_user ne $user){
+			print("$Error_Prefix $suspend could not be suspended. You are not the right user\n");
+	        exit(1);
+		}
+
 		if($mjob_state eq 'IN_TREATMENT'){
 			iolibCigri::set_mjobs_state($base, $suspend, "PAUSED");
 			print("The campaign $suspend was suspended\n");
 			exit(0)
 		}else{
-			print("$Error_Prefix $suspend could not be sustended. Jobs must be \"IN_TREATMENT\" to be suspended and current state is $mjob_state\n");
+			print("$Error_Prefix $suspend could not be suspended. Jobs must be \"IN_TREATMENT\" to be suspended and current state is $mjob_state\n");
 			usage();
 	        exit(1);
 		}
@@ -125,8 +133,15 @@ if (defined($suspend)) {
 }
 
 if (defined($continue)) {
-    my $mjob_state = iolibCigri::get_mjobs_state($base,$continue);
+	my $mjob_state = iolibCigri::get_MJob_state($base,$continue);
+    my $mjob_user = iolibCigri::get_MJob_user($base,$continue);
+
     if (defined ($mjob_state)){ 
+	    if ($mjob_user ne $user){            
+			print("$Error_Prefix $continue could not be continued. You are not the right user\n");
+            exit(1);
+    	}
+
         if($mjob_state eq 'PAUSED'){
             iolibCigri::set_mjobs_state($base, $continue, "IN_TREATMENT");
             print("The campaign $continue was resumed\n");
@@ -182,7 +197,6 @@ if (defined($JDLfile)) {
 	}
 
 } elsif (defined($resubmit)) {
-	my $user = getpwuid($<);
 	if(defined($jobId)){
 	    my $jobUser = iolibCigri::get_job_user($base,$jobId);
     	if ($jobUser eq $user){
