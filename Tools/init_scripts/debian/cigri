@@ -1,8 +1,8 @@
 #!/bin/sh
 ### BEGIN INIT INFO
 # Provides:          cigri
-# Required-Start:    networking apache2 sendmail
-# Required-Stop:     networking apache2 sendmail
+# Required-Start:    networking apache2 sendmail mysql
+# Required-Stop:     networking apache2 sendmail mysql
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 6
 # Short-Description: CiGri (Ciment Grid) server

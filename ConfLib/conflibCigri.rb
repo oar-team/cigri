@@ -1,8 +1,10 @@
 #!/usr/bin/ruby -w
 # Cigri configuration library
 
-if ENV['CIGRIDIR']
+if ENV['CIGRICONFDIR']
 then
+  config_file="#{ENV['CIGRICONFDIR']}/cigri.conf"
+elsif ENV['CIGRIDIR'] && File.exists?("#{ENV['CIGRIDIR']}/cigri.conf")
   config_file="#{ENV['CIGRIDIR']}/cigri.conf"
 else
   config_file="/etc/cigri.conf"
