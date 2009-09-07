@@ -57,7 +57,6 @@ my %jobRunningHash = iolibCigri::get_job_to_update_state($base);
 print("[UPDATOR]     Verify if Running jobs are still running\n");
 # Exec qstat cmd for all clusters which have a running job
 foreach my $i (keys(%jobRunningHash)){
-    print("\tcluster = $i\n");
     my %jobState = ();
     my $remotewaiting_timeout;
     if (jobStat::jobStat($i, \%jobState) == -1){
@@ -136,7 +135,6 @@ foreach my $i (keys(%jobRunningHash)){
                 }
             }
         }
-
     }
 }
 

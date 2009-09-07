@@ -25,6 +25,8 @@ use ConfLibCigri qw(init_conf dump_conf get_conf is_conf);
 use iolibCigri;
 use mailer;
 
+my $run = 1;
+
 # Init the request to the cigri.conf file
 init_conf();
 
@@ -49,8 +51,11 @@ my $nikita_command = $path."/Nikita/nikitaCigri.pl";
 my $spritz_command = $path."/Spritz/spritzCigri.pl";
 my $autofix_command = $path."/Colombo/autofixCigri.rb";
 my $phoenix_command = $path."/Phoenix/phoenixCigri.rb";
+my $metascheduler_command = $path."/Scheduler/MetaScheduler.rb";
 
-my $scheduler_path = $path."/Scheduler/";
+#OLDSCHED------------------------------------------
+# my $scheduler_path = $path."/Scheduler/";
+#-------------------------------------------------- 
 
 #my $base = iolibCigri::connect();
 
@@ -78,29 +83,40 @@ sub launch_command($){
 
 my $base = iolibCigri::connect();
 
-# launch a scheduler or blacklist it
-sub scheduler(){
-    #my $base = iolibCigri::connect();
-    iolibCigri::update_current_scheduler($base);
-    my $sched = iolibCigri::get_current_scheduler($base);
-    #return launch_command($scheduler_command);
-    if (defined($$sched{schedulerFile})){
-        if ( -x $scheduler_path.$$sched{schedulerFile} ){
-            my $exitValue = launch_command($scheduler_path.$$sched{schedulerFile});
-            if ($exitValue != 0){
-                colomboCigri::add_new_scheduler_event($base,$$sched{schedulerId},"EXIT_VALUE","bad exit value $exitValue for $scheduler_path$$sched{schedulerFile}");
-            }
-            #print("---------------->".${iolibCigri::get_current_scheduler($base)}{schedulerFile}."\n");
-            #iolibCigri::disconnect($base);
-            return $exitValue;
-        }else{
-            print("$tag Bad scheduler file\n");
-            colomboCigri::add_new_scheduler_event($base,$$sched{schedulerId},"ALMIGHTY_FILE","Can t find the file $scheduler_path$$sched{schedulerFile}");
-        }
-    }else{
-        print("$tag NO SCHEDULER TO LAUNCH :-(\n");
-    }
-    #iolibCigri::disconnect($base);
+
+#OLDSCHED-------------------------------------------
+# 
+# # launch a scheduler or blacklist it
+# sub scheduler(){
+#     #my $base = iolibCigri::connect();
+#     iolibCigri::update_current_scheduler($base);
+#     my $sched = iolibCigri::get_current_scheduler($base);
+#     #return launch_command($scheduler_command);
+#     if (defined($$sched{schedulerFile})){
+#         if ( -x $scheduler_path.$$sched{schedulerFile} ){
+#             my $exitValue = launch_command($scheduler_path.$$sched{schedulerFile});
+#             if ($exitValue != 0){
+#                 colomboCigri::add_new_scheduler_event($base,$$sched{schedulerId},"EXIT_VALUE","bad exit value $exitValue for $scheduler_path$$sched{schedulerFile}");
+#             }
+#             #print("---------------->".${iolibCigri::get_current_scheduler($base)}{schedulerFile}."\n");
+#             #iolibCigri::disconnect($base);
+#             return $exitValue;
+#         }else{
+#             print("$tag Bad scheduler file\n");
+#             colomboCigri::add_new_scheduler_event($base,$$sched{schedulerId},"ALMIGHTY_FILE","Can t find the file $scheduler_path$$sched{schedulerFile}");
+#         }
+#     }else{
+#         print("$tag NO SCHEDULER " . $scheduler_path.$$sched{schedulerFile} . " -> " . $$sched{schedulerFile} .  " TO LAUNCH :-(\n");
+#     }
+#     #iolibCigri::disconnect($base);
+# }
+#-------------------------------------------------- 
+
+
+
+#launch the metasched command
+sub metascheduler(){
+    return launch_command($metascheduler_command);
 }
 
 # launch the runner command
@@ -138,35 +154,72 @@ sub phoenix(){
     return launch_command($phoenix_command);
 }
 
+if ($run == 0){
+	exit 0;
+}
 
 # core of the AlmightyCigri
 my $exitValue;
 LBL:while (1){
-        $exitValue = nikita();
+
+	$exitValue = autofix();
+    next LBL if ($exitValue != 0);
+    $exitValue = updator();
+    next LBL if ($exitValue != 0);
+	$exitValue =  spritz();
+    next LBL if ($exitValue != 0);
+    $exitValue = metascheduler();
+	next LBL if ($exitValue != 0);
+	$exitValue = gridstatus();
+    next LBL if ($exitValue != 0);
+    $exitValue = runner();
+	next LBL if ($exitValue != 0);
+	$exitValue = phoenix();
+    next LBL if ($exitValue != 0);
+
+    $exitValue = nikita();
 	if ($exitValue != 0) { 
 	   print "$tag WARNING! Nikita exited abnormaly!\n"; 
 	   sleep(5);
 	}
 	$exitValue = 0;
-#        sleep(5);
-        next LBL if ($exitValue != 0);
-	$exitValue =  autofix();
-        next LBL if ($exitValue != 0);
-        $exitValue = updator();
-#        sleep(5);
-        next LBL if ($exitValue != 0);
-        $exitValue = scheduler();
-#        sleep(5);
-	next LBL if ($exitValue != 0);
-	$exitValue =  gridstatus();
-#        sleep(5);
-        next LBL if ($exitValue != 0);
-        $exitValue = runner();
-	next LBL if ($exitValue != 0);
-	$exitValue = phoenix();
-#        sleep(5);
-        next LBL if ($exitValue != 0);
-	$exitValue =  spritz();
-        print("\n$tag I make a pause of $timeout seconds :-)\n");
-        sleep($timeout);
+
+    print("\n$tag I make a pause of $timeout seconds :-)\n");
+    sleep($timeout);
 }
+
+
+
+
+#OLDSCHED-------------------------------------
+# my $exitValue;
+# LBL:while (1){
+#     $exitValue = nikita();
+# 	if ($exitValue != 0) { 
+# 	   print "$tag WARNING! Nikita exited abnormaly!\n"; 
+# 	   sleep(5);
+# 	}
+# 	$exitValue = 0;
+# #        sleep(5);
+#     next LBL if ($exitValue != 0);
+# 	$exitValue = autofix();
+#     next LBL if ($exitValue != 0);
+#     $exitValue = updator();
+# #        sleep(5);
+#     next LBL if ($exitValue != 0);
+#     $exitValue = scheduler();
+# #        sleep(5);
+# 	next LBL if ($exitValue != 0);
+# 	$exitValue = gridstatus();
+# #        sleep(5);
+#     next LBL if ($exitValue != 0);
+#     $exitValue = runner();
+# 	next LBL if ($exitValue != 0);
+# 	$exitValue = phoenix();
+# #        sleep(5);
+#     next LBL if ($exitValue != 0);
+# 	$exitValue =  spritz();
+#     print("\n$tag I make a pause of $timeout seconds :-)\n");
+#     sleep($timeout);
+# }
+#-------------------------------------------------- 

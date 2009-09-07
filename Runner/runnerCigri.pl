@@ -121,7 +121,7 @@ foreach my $j (keys(%clusterNames)){
             }
 
             my $cmdString = join(" ", @cmdSSH);
-	    #print "$cmdString\n";
+	        #print  " ---------  $cmdString\n";
             my %cmdResult = SSHcmd::submitCmd($job{clusterName},$cmdString);
             if ($cmdResult{STDERR} ne ""){
                 print("[RUNNER]      ERROR: $cmdResult{STDERR}");
@@ -135,7 +135,7 @@ foreach my $j (keys(%clusterNames)){
             }else{
                 my @blackNodes = colomboCigri::get_blacklisted_nodes($base,$job{mjobid},$job{clusterName});
                 my $remoteScript = "$job{execDir}/".iolibCigri::get_cigri_remote_script_name($jobId);
-                my $retCode = jobSubmit::jobSubmit($job{clusterName},\@blackNodes,$job{user},$remoteScript,$job{walltime},$job{weight},$job{execDir},$jobId,$job{name});
+                my $retCode = jobSubmit::jobSubmit($job{clusterName},\@blackNodes,$job{user},$remoteScript,$job{walltime},$job{resources},$job{execDir},$jobId,$job{name});
                 if ($retCode < 0){
                     if ($retCode == -2){
                         print("[RUNNER]      There is a mistake, the job $jobId state = ERROR, bad remote batch id\n");

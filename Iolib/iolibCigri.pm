@@ -27,7 +27,103 @@ BEGIN {
 use JDLParserCigri;
 use ConfLibCigri qw(init_conf get_conf is_conf);
 use colomboCigri;
+use POSIX;
 #use mailer;
+
+
+
+sub connect() ;
+sub disconnect($) ;
+
+#TODO emathias: add comments on prototypes
+sub get_cigri_remote_file_name($);
+sub get_cigri_remote_script_name($);
+sub get_mjob_id($$) ;
+sub get_date() ;
+sub get_walltime_in_seconds($) ;
+sub emptyTemporaryTables($);
+sub add_mjobs($$$) ;
+sub get_source_data_synchron($$);
+sub get_data_synchron_param($);
+sub set_data_synchronState($$$) ;
+sub get_userLogin4cluster($$$) ;
+sub get_data_synchronState($$) ;
+sub get_data_synchronUser($$) ;
+sub get_nb_data_synchronTREATstate($) ;
+sub get_nbclusters_4user($$) ;
+sub get_localhost_user($) ;
+sub set_propertiesData_synchronState($$$$) ;
+sub get_propertiesData_synchronState($$$) ;
+sub get_properties_ExecDirectory($$$) ;
+sub get_properties_cluster_existance($$$);
+sub get_nb_synchronTERM_clusters($$);
+sub get_nb_synchronERR_clusters($$);
+sub get_nb_synchronTREAT_clusters($$);
+sub get_nb_Mjob_clusters($$);
+sub set_properties_datasynchron_initstate($$);
+sub get_cluster_names_batch($);
+sub get_cluster_names_resource_unit($);
+sub get_clusters_max_weight($);
+sub get_cluster_max_weight($$);
+sub get_default_job_resources();
+sub get_cluster_names_properties($);
+sub get_cluster_properties($$);
+sub get_all_cluster_names($);
+sub get_cluster_default_weight($$);
+sub disable_all_nodes($);
+sub is_node_exist($$$);
+sub add_node($$$) ;
+sub set_cluster_node_free_weight($$$$);
+sub set_cluster_node_max_weight($$$$);
+sub get_IN_TREATMENT_MJobs($);
+sub get_MJobs_JDL($$);
+sub get_launching_job($$) ;
+sub get_cluster_job_toLaunch($$$) ;
+sub set_job_state($$$) ;
+sub get_mjobs_state($$);
+sub set_mjobs_state($$$) ;
+sub set_job_batch_id($$$);
+sub get_job_id_from_batchid($$$);
+sub get_job_to_update_state($);
+sub get_nb_freeNodes($);
+sub get_nb_remained_jobs($);
+sub get_nb_remained_jobs_by_type($$);
+sub get_clusters_remoteWaiting_job_nb($);
+sub get_cluster_remoteWaiting_job_nb($$);
+sub get_remote_waiting_jobs_by_cluster($$);
+sub get_max_waiting_jobs_by_cluster($$);
+sub get_remoteWaiting_times($);
+sub get_clusters_running_job_nb($);
+sub get_cluster_running_job_nb($$);
+sub get_MJobs_Properties($$);
+sub get_MJobs_ActiveClusters($$);
+sub add_job_to_launch($$$$);
+sub check_end_MJobs($);
+sub update_att_job($$$$$$$);
+sub get_tocollect_MJobs($$);
+sub get_tocollect_MJob_files($$);
+sub create_new_collector($$$) ;
+sub set_job_collectedJobId($$$);
+#OLDSCHED------------------------------------------
+# sub get_current_scheduler($);
+# sub update_current_scheduler($);
+#-------------------------------------------------- 
+sub begin_transaction($);
+sub commit_transaction($);
+sub rollback_transaction($);
+sub lock_collector($$);
+sub unlock_collector($);
+sub get_tofrag_MJobs($);
+sub get_tofrag_jobs($);
+sub delete_all_MJob_parameters($$);
+sub set_frag_specific_MJob($$);
+sub get_MJobs_tofrag_eventId($$);
+sub get_MJob_user($$);
+sub get_MJob_state($$);
+sub get_job_user($$);
+sub update_mjob_forecast($$$$$$$$);
+sub get_last_jobratio($$$);
+sub get_MjobsId($$) ;
 
 # Connect to the database and give the ref
 sub connect() {
@@ -65,10 +161,34 @@ sub get_cigri_remote_script_name($){
     return("cigri.tmp.$jobId");
 }
 
+# get MjobId of a given job
+# arg1 --> database ref
+# arg2 --> jobId
+sub get_mjob_id($$) {
+    my $dbh = shift;
+    my $idJob = shift;
+    my $sth = $dbh->prepare("SELECT jobMJobsId from jobs 
+                                WHERE jobId =$idJob");
+	$sth->execute();
+    my @mjobid  = $sth->fetchrow_array();
+    $sth->finish();
+
+    return @mjobid[0];
+}
+
+
 # give the date in with the right pattern
 sub get_date() {
     my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime;
     return ($year+1900)."-".($mon+1)."-".$mday." $hour:$min:$sec";
+}
+
+# convert time hh:mm:ss in seconds
+# arg1 --> time, with format hh:mm:ss
+sub get_walltime_in_seconds($) {
+	my @time = split /:/, shift ;
+    return -1 if (scalar(@time) < 3);
+    return  (($time[0]*60*60) +  ($time[1]*60) + $time[2]);
 }
 
 # empty temporary tables
@@ -84,13 +204,15 @@ sub emptyTemporaryTables($){
 # Add a job to the database in multipleJobs table
 # arg1 --> database ref
 # arg2 --> JDLfile
+# arg3 --> campaign type
 # return the request id or
 # -1 = bad JDL file or bad param file
 # -2 = no cluster defined
 # -3 = no execFile in a cluster section
 # -4 = duplicate parameters
-sub add_mjobs($$) {
-    my ($dbh, $JDLfile) = @_;
+# -5 = invalid campaign_type
+sub add_mjobs($$$) {
+    my ($dbh, $JDLfile, $mJobsType) = @_;
 
     #$dbh->do("LOCK TABLES multipleJobs WRITE, parameters WRITE, properties WRITE");
     my $lusr= getpwuid($<);
@@ -121,9 +243,16 @@ sub add_mjobs($$) {
         rollback_transaction($dbh);
         return(-1);
     }
-    
-    $dbh->do("INSERT INTO multipleJobs (MJobsId,MJobsUser,MJobsJDL,MJobsTSub)
-            VALUES (NULL,\"$lusr\",\"$jdl\",\"$time\")");
+
+	#TODO temporary while admissions rules not available
+	$mJobsType = 'default' if (!defined($mJobsType));
+	if(($mJobsType ne "default") && ($mJobsType ne "test")){
+		return(-5);
+	}
+    my $quoted_jdl =  $dbh->quote($jdl);
+ 
+    $dbh->do("INSERT INTO multipleJobs (MJobsId,MJobsUser,MJobsJDL,MJobsTSub,MJobsType)
+            VALUES (NULL,\"$lusr\",\"$quoted_jdl\",\"$time\", \"$mJobsType\")");
 
     my $sth = $dbh->prepare("SELECT LAST_INSERT_ID()");
     $sth->execute();
@@ -135,6 +264,10 @@ sub add_mjobs($$) {
     # copy params in the database
     my $Params ="";
     if (JDLParserCigri::init_jdl($jdl) == 0){
+
+    	my $ParamNb = 0;
+		my $ClusterNb = (scalar (keys %JDLParserCigri::clusterConf) -1);
+	
         if (defined($JDLParserCigri::clusterConf{DEFAULT}{paramFile}) && (-r $JDLParserCigri::clusterConf{DEFAULT}{paramFile})){
                 open(FILE, $JDLParserCigri::clusterConf{DEFAULT}{paramFile});
                 my $doRet;
@@ -155,19 +288,40 @@ sub add_mjobs($$) {
                             #$dbh->do("DELETE FROM parameters WHERE parametersMJobsId = $id");
                             rollback_transaction($dbh);
                             return -4;
-                        }
+                        }else{
+							$ParamNb ++;
+
+							# TODO workaround :(
+							# TODO method impl should be refined as a whole
+							if($mJobsType eq "test" && $ParamNb == $ClusterNb){
+								last;
+							}
+						}
                     }
                 }
                 close(FILE);
+
         }elsif (defined($JDLParserCigri::clusterConf{DEFAULT}{nbJobs})){
             for (my $k=0; $k<$JDLParserCigri::clusterConf{DEFAULT}{nbJobs}; $k++) {
-                $dbh->do("INSERT INTO parameters (parametersMJobsId,parametersParam) VALUES ($id,\'$k\')");
+            	$dbh->do("INSERT INTO parameters (parametersMJobsId,parametersParam) VALUES ($id,\'$k\')");
+
+				$ParamNb ++;
+				 
+				# TODO orkaround :(
+				# TODO method impl should be refined as a whole
+				if($mJobsType eq "test" && $ParamNb == $ClusterNb){
+					last;
+				}
             }
+
+
         }else{
             print("[iolib] I can't read the param file $JDLParserCigri::clusterConf{DEFAULT}{paramFile} or the nbJobs variable\n");
             rollback_transaction($dbh);
             return -1;
         }
+
+
 	##added for rsync data synchronization of clusters##
 	if ((defined($JDLParserCigri::clusterConf{DEFAULT}{data_to_transfer})) && !($JDLParserCigri::clusterConf{DEFAULT}{data} =~ m/.*\~.*/m)){
                   my $DataSrc = $JDLParserCigri::clusterConf{DEFAULT}{data_to_transfer};
@@ -187,17 +341,17 @@ sub add_mjobs($$) {
                 if ($j ne "DEFAULT"){
                     if (defined($JDLParserCigri::clusterConf{$j}{execFile})){
                         my $jobWalltime = "1:00:00";
-                        my $jobWeight = 1;
+                        my $jobResources = "/resource_id=1";
                         my $execDir = "~";
-			my $checkpoint_type="";
-			my $checkpoint_period=0;
-			my $priority = 1;
+						my $checkpoint_type="";
+						my $checkpoint_period=0;
+						my $priority = 1;
                         if (defined($JDLParserCigri::clusterConf{$j}{walltime})){
                             $jobWalltime = $JDLParserCigri::clusterConf{$j}{walltime};
                         }
-                        if ((defined($JDLParserCigri::clusterConf{$j}{weight})) && ($JDLParserCigri::clusterConf{$j}{weight} > 0)){
-                            $jobWeight = $JDLParserCigri::clusterConf{$j}{weight};
-                        }
+                        if (defined($JDLParserCigri::clusterConf{$j}{resources})){
+                            $jobResources = $JDLParserCigri::clusterConf{$j}{resources};
+						}
                         if ((defined($JDLParserCigri::clusterConf{$j}{execDir})) && !($JDLParserCigri::clusterConf{$j}{execDir} =~ m/.*\~.*/m)){
                             $execDir = $JDLParserCigri::clusterConf{$j}{execDir};
 			}
@@ -215,8 +369,8 @@ sub add_mjobs($$) {
 			    $priority = $JDLParserCigri::clusterConf{$j}{priority};
 			}
 
-                        $dbh->do("INSERT INTO properties (propertiesClusterName,propertiesMJobsId,propertiesJobCmd,propertiesJobWalltime,propertiesJobWeight,propertiesExecDirectory,propertiesCheckpointType,propertiesCheckpointPeriod,propertiesClusterPriority)
-                                  VALUES (\"$j\",$id,\"$JDLParserCigri::clusterConf{$j}{execFile}\",\"$jobWalltime\",$jobWeight,\"$execDir\",\"$checkpoint_type\",\"$checkpoint_period\",\"$priority\")");
+                        $dbh->do("INSERT INTO properties (propertiesClusterName,propertiesMJobsId,propertiesJobCmd,propertiesJobWalltime,propertiesJobResources,propertiesExecDirectory,propertiesCheckpointType,propertiesCheckpointPeriod,propertiesClusterPriority)
+                                  VALUES (\"$j\",$id,\"$JDLParserCigri::clusterConf{$j}{execFile}\",\"$jobWalltime\",\"$jobResources\",\"$execDir\",\"$checkpoint_type\",\"$checkpoint_period\",\"$priority\")");
                     }else{
                         rollback_transaction($dbh);
                         return -3;
@@ -588,24 +742,112 @@ sub get_cluster_names_batch($){
 #            The keys of the hashTable are "NAME" and "RESOURCE_UNIT"
 sub get_cluster_names_resource_unit($){
     my $dbh = shift;
-    my $sth = $dbh->prepare("SELECT clusterName,clusterResourceUnit FROM clusters");
+    my $sth = $dbh->prepare("SELECT clusterName,clusterResourceUnit FROM clusters
+");
     $sth->execute();
 
     my %resulHash;
 
     while (my @ref = $sth->fetchrow_array()) {
         if (colomboCigri::is_cluster_active($dbh,$ref[0],0) == 0){
-	    if ($ref[1]) {
+    	    if ($ref[1]) {
+            	$resulHash{$ref[0]} = $ref[1];
+        	}else {
+	    		ConfLibCigri::init_conf();
+
+		    	if (is_conf("DEFAULT_RESOURCE_UNITY")){
+                	$resulHash{$ref[0]} = get_conf("DEFAULT_RESOURCE_UNITY");
+				}else{
+		      		warn("You must have a cigri.conf (in /etc or in \$CIGRIDIR) script with a valid DEFAULT_RESOURCE_UNITY tag\n");
+               		$resulHash{$ref[0]} = "cpu";        
+     			}
+        	}
+    	}
+	}
+    $sth->finish();
+
+    return %resulHash;
+}
+
+
+#get maxWeight of clusters
+#arg1  --> database
+#return  --> hash clustername -> maxweight
+sub get_clusters_max_weight($){
+	my $dbh = shift;
+    my $sth = $dbh->prepare("SELECT nodeClusterName, sum(nodeMaxWeight) FROM
+nodes GROUP BY nodeClusterName");
+    $sth->execute();
+
+    my %resulHash;
+
+    while (my @ref = $sth->fetchrow_array()) {
+        if (colomboCigri::is_cluster_active($dbh,$ref[0],0) == 0){
               $resulHash{$ref[0]} = $ref[1];
-	      }
-	    else {
-              $resulHash{$ref[0]} = "cpu";
-	    }
         }
     }
     $sth->finish();
 
     return %resulHash;
+}
+
+
+#get maxWeight of a given clusters
+#arg1  --> database
+#cluster  --> clustername
+#return maxweight
+sub get_cluster_max_weight($$){
+    my $dbh = shift;
+    my $cluster = shift;
+
+    my $sth = $dbh->prepare("SELECT sum(nodeMaxWeight) 
+							 FROM nodes 
+							 WHERE nodeClusterName=\"$cluster\"");
+    $sth->execute();
+    
+	my @res  = $sth->fetchrow_array();
+    $sth->finish();
+    if (defined($res[0])) { return $res[0]; }
+    else { return 0; }
+}
+
+
+
+
+#get freeWeight of a given clusters
+#arg1  --> database
+#cluster  --> clustername
+#return  freexweight
+sub get_cluster_free_weight($$){
+    my $dbh = shift;
+    my $cluster = shift;
+
+    my $sth = $dbh->prepare("SELECT sum(nodeFreeWeight) 
+							 FROM nodes 
+							 WHERE nodeClusterName=\"$cluster\"");
+    $sth->execute();
+    
+	my @res  = $sth->fetchrow_array();
+    $sth->finish();
+    if (defined($res[0])) { return $res[0]; }
+    else { return 0; }
+}
+
+
+
+#get default cigri resource unit
+# return --> DEFAULT_RESOURCE variable from cigri.conf or /resource_id=1
+sub get_default_job_resources(){
+    my $resource_unit;
+
+	ConfLibCigri::init_conf();
+
+    if (is_conf("DEFAULT_JOB_RESOURCES")){
+	    $resource_unit = get_conf("DEFAULT_JOB_RESOURCES");
+    }else{
+ 	   warn("You must have a cigri.conf (in /etc or in \$CIGRIDIR) script with a valid INSTALL_PATH tag\n");
+         $resource_unit = "/resource_id=1";
+     }
 }
 
 # get the cluster batch properties in an array
@@ -652,21 +894,24 @@ sub get_cluster_properties($$){
 
 # get all the cluster names in an array (even if it is dead)
 # arg1 --> database ref
-# return --> hash of cluster names
+# return --> array of cluster names
 sub get_all_cluster_names($){
     my $dbh = shift;
     my $sth = $dbh->prepare("SELECT clusterName FROM clusters ");
     $sth->execute();
 
-    my %resulHash;
+	my @resulArray;
+
     while (my @ref = $sth->fetchrow_array()) {
-        $resulHash{$ref[0]} = 1;
+        push(@resulArray, $ref[0]);
     }
+
     $sth->finish();
 
-    return %resulHash;
+    return @resulArray;
 }
 
+# DEPRECATED
 # get defaultWeight of a cluster
 # arg1 --> database ref
 # arg2 --> clusterName
@@ -804,6 +1049,10 @@ sub get_MJobs_JDL($$){
     my @resulArray = $sth->fetchrow_array();
     $sth->finish();
 
+	#unquote JDL
+	$resulArray[0] =~ s/^'//;
+	$resulArray[0] =~ s/'$//g;
+
     return $resulArray[0];
 }
 
@@ -851,7 +1100,7 @@ sub get_MJobs_JDL($$){
 sub get_launching_job($$) {
     my $dbh = shift;
     my $clusterName = shift;
-    my $sth = $dbh->prepare("SELECT jobId,jobParam,propertiesJobCmd,jobClusterName,clusterBatch,userLogin,MJobsId,propertiesJobWalltime,propertiesJobWeight,propertiesExecDirectory,propertiesCheckpointPeriod,propertiesCheckpointType,jobName
+    my $sth = $dbh->prepare("SELECT jobId,jobParam,propertiesJobCmd,jobClusterName,clusterBatch,userLogin,MJobsId,propertiesJobWalltime,propertiesJobResources,propertiesExecDirectory,propertiesCheckpointPeriod,propertiesCheckpointType,jobName
                              FROM jobs,clusters,multipleJobs,properties,users
                              WHERE jobState=\"toLaunch\"
                                  AND clusterName = \"$clusterName\"
@@ -877,7 +1126,7 @@ sub get_launching_job($$) {
         'user'          => $ref[5],
         'mjobid'        => $ref[6],
         'walltime'      => $ref[7],
-        'weight'        => $ref[8],
+        'resources'     => $ref[8],
         'execDir'       => $ref[9],
 	'checkpointPeriod' => $ref[10],
 	'checkpointType' => $ref[11],
@@ -911,12 +1160,15 @@ sub get_cluster_job_toLaunch($$$) {
 
     if (defined($MJobtoSubmit[0])){
         #Verif if the scheduler is right
-        if (colomboCigri::is_cluster_active($dbh,$clusterName,$MJobtoSubmit[0]) != 0){
-            #$dbh->do("UNLOCK TABLES");
-            warn("[Iolib] Erreur de choix du scheduler, le cluster est blackliste\n");
-            colomboCigri::add_new_scheduler_event($dbh,${get_current_scheduler($dbh)}{schedulerId},"CLUSTER_BLACKLISTED"," Erreur de choix du scheduler, le cluster $clusterName est blackliste");
-            return(1);
-        }
+        
+		#OLDSCHED------------------------------------------
+		# if (colomboCigri::is_cluster_active($dbh,$clusterName,$MJobtoSubmit[0]) != 0){
+        #    #$dbh->do("UNLOCK TABLES");
+        #    warn("[Iolib] Erreur de choix du scheduler, le cluster est blackliste\n");
+        #    colomboCigri::add_new_scheduler_event($dbh,${get_current_scheduler($dbh)}{schedulerId},"CLUSTER_BLACKLISTED"," Erreur de choix du scheduler, le cluster $clusterName est blackliste");
+        #    return(1);
+        #}
+		#-------------------------------------------------- 
 
         # if (colomboCigri::is_node_active($dbh,$MJobtoSubmit[1],$MJobtoSubmit[0]) != 0){
             # $dbh->do("UNLOCK TABLES");
@@ -937,14 +1189,15 @@ sub get_cluster_job_toLaunch($$$) {
         $sth->execute();
         my $parameter = $sth->fetchrow_hashref();
         $sth->finish();
-
-        if (!defined($parameter)){
-            #$dbh->do("UNLOCK TABLES");
-            $dbh->do("SELECT RELEASE_LOCK(\"cigriParamLock\")");
-            warn("[Iolib] Erreur de choix du scheduler pour le nb de parametres\n");
-            colomboCigri::add_new_scheduler_event($dbh,${get_current_scheduler($dbh)}{schedulerId},"NB_PARAMS"," Erreur de choix du scheduler pour le nb de parametres");
-            return(1);
-        }
+	 
+      #OLDSCHED
+      #  if (!defined($parameter)){
+      #      #$dbh->do("UNLOCK TABLES");
+      #      $dbh->do("SELECT RELEASE_LOCK(\"cigriParamLock\")");
+      #      warn("[Iolib] Erreur de choix du scheduler pour le nb de parametres\n");
+      #      colomboCigri::add_new_scheduler_event($dbh,${get_current_scheduler($dbh)}{schedulerId},"NB_PARAMS"," Erreur de choix du scheduler pour le nb de parametres");
+      #      return(1);
+      #  }
 
         #check if the node is FREE
         #my $nbRes = $dbh->do("SELECT * FROM nodes WHERE nodeId = $MJobtoSubmit[1] AND nodeState = \"FREE\"");
@@ -1018,6 +1271,26 @@ sub set_job_state($$$) {
                                 WHERE jobId =\"$idJob\"");
     $sth->execute();
     $sth->finish();
+}
+
+
+
+#get the state of an mjob 
+## arg1 --> database ref
+## arg2 --> MjobsId
+sub get_mjobs_state($$){
+	my $dbh = shift;
+    my $id = shift;
+
+    my $sth = $dbh->prepare("SELECT MJobsState
+                             FROM multipleJobs
+                             WHERE MJobsId = $id
+                            ");
+    $sth->execute();
+	my @res  = $sth->fetchrow_array();
+    $sth->finish();
+    if (defined($res[0])) { return $res[0]; }
+    else { return NULL; }
 }
 
 # set the state of a Mjob
@@ -1173,15 +1446,85 @@ sub get_nb_remained_jobs($){
     return %result;
 }
 
-# get the global weight of remote waiting jobs
+#OLDSCHED: Deprecated: replaced when new impl. of scheduler
+sub get_nb_remained_jobs_by_type($$){
+    my $dbh = shift;
+	my $type = shift;
+
+	my $sth = $dbh->prepare("SELECT parametersMJobsId, COUNT(*)
+                             FROM parameters,multipleJobs
+                             WHERE MJobsId = parametersMJobsId
+							 AND MJobsType = \"$type\"
+                             AND MJobsState = \"IN_TREATMENT\"
+                             GROUP BY parametersMJobsId
+                             ORDER BY parametersMJobsId ASC");
+
+    $sth->execute();
+
+    my %result;
+    while (my @ref = $sth->fetchrow_array()) {
+        $result{$ref[0]} = $ref[1];
+    }
+    $sth->finish();
+
+    return %result;
+}
+
+
+# get array of remote waiting jobs on a given cluster
 # arg1 --> database ref
-sub get_cluster_remoteWaiting_job_weight($){
+# arg1 --> database ref
+sub get_remote_waiting_jobs_by_cluster($$){
+	my $dbh = shift;
+	my $cluster = shift;
+
+    my $sth = $dbh->prepare("SELECT jobId
+                             FROM jobs
+                             WHERE jobState = \"RemoteWaiting\"
+							 AND jobClusterName = \"$cluster\" 
+							 ORDER BY jobId ASC
+                            ");
+
+	$sth->execute();
+
+	my @result;
+	while (my @ref = $sth->fetchrow_array()) {
+   		push(@result,$ref[0]);
+    }
+
+    $sth->finish();
+
+    return @result;
+
+}
+
+#get max waiting jobs, based on max_weight and FLOOD_RATE configuration
+sub get_max_waiting_jobs_by_cluster($$){
+    my $dbh = shift;
+    my $cluster = shift;
+
+	my $flood_rate;
+	if (defined(ConfLibCigri::get_conf("FLOOD_RATE")) &&
+      (ConfLibCigri::get_conf("FLOOD_RATE") > 0)) {
+      $flood_rate = ConfLibCigri::get_conf("FLOOD_RATE");
+	}else {
+      $flood_rate=0.5;
+	}
+
+	my $max_waiting = floor(get_cluster_max_weight($dbh,$cluster) *  $flood_rate);
+
+	return $max_waiting;	
+}
+
+
+# get number of remote waiting jobs on clusters
+# arg1 --> database ref
+sub get_clusters_remoteWaiting_job_nb($){
     my $dbh = shift;
 
-    my $sth = $dbh->prepare("SELECT jobClusterName,SUM(propertiesJobWeight)
-                             FROM jobs,properties
+    my $sth = $dbh->prepare("SELECT jobClusterName,COUNT(*)
+                             FROM jobs
                              WHERE jobState = \"RemoteWaiting\"
-                                AND jobMJobsId = propertiesMJobsId
                              GROUP BY jobClusterName
                             ");
     $sth->execute();
@@ -1197,16 +1540,32 @@ sub get_cluster_remoteWaiting_job_weight($){
     return %result;
 }
 
-#get hash with jobids->waiting times by cluster
+# get nb of waiting jobs on a given cluster 
+sub get_cluster_remoteWaiting_job_nb($$){
+    my $dbh = shift;
+    my $cluster = shift;
+
+    my $sth = $dbh->prepare("SELECT COUNT(*)
+                             FROM jobs
+                             WHERE jobState = \"RemoteWaiting\"
+							 AND jobClusterName = \"$cluster\"
+                            ");
+    $sth->execute();
+    my @res  = $sth->fetchrow_array();
+    $sth->finish();
+    if (defined($res[0])) { return $res[0]; }
+    else { return 0; }
+}
+
+
 # arg1 --> database ref
 # arg2 --> cluster name
-# return hash jobId -> elapsed time
 sub get_remoteWaiting_times($){
     my $dbh = shift;
 
     my $sth = $dbh->prepare("SELECT jobId, (NOW() - jobTSub) 
-                             FROM jobs WHERE
-                                jobState = \"RemoteWaiting\"
+							 FROM jobs WHERE
+								jobState = \"RemoteWaiting\"
                             ");
     $sth->execute();
 
@@ -1214,14 +1573,54 @@ sub get_remoteWaiting_times($){
     while (my @ref = $sth->fetchrow_array()) {
             $result{$ref[0]} = $ref[1];
     }
-
+    
     $sth->finish();
 
     return %result;
 }
 
+# get number of running jobs on clusters
+# arg1 --> database ref
+sub get_clusters_running_job_nb($){
+    my $dbh = shift;
+
+    my $sth = $dbh->prepare("SELECT jobClusterName,COUNT(*)
+                             FROM jobs
+                             WHERE jobState = \"Running\"
+                             GROUP BY jobClusterName
+                            ");
+    $sth->execute();
+
+    my %result;
+    while (my @ref = $sth->fetchrow_array()) {
+        if ($ref[1] ne "NULL"){
+            $result{$ref[0]} = $ref[1];
+        }
+    }
+    $sth->finish();
+
+    return %result;
+}
+
+# get nb of waiting jobs on a given cluster 
+sub get_cluster_running_job_nb($$){
+    my $dbh = shift;
+    my $cluster = shift;
+
+    my $sth = $dbh->prepare("SELECT COUNT(*)
+                             FROM jobs
+                             WHERE jobState = \"Running\"
+                             AND jobClusterName = \"$cluster\"
+                            ");
+    $sth->execute();
+    my @res  = $sth->fetchrow_array();
+    $sth->finish();
+    if (defined($res[0])) { return $res[0]; }
+    else { return 0; }
+}
 
 
+#DEPRECATED
 # get MJobs properties
 # arg1 --> database ref
 # arg2 --> MJobsId
@@ -1229,7 +1628,7 @@ sub get_MJobs_Properties($$){
     my $dbh = shift;
     my $id = shift;
 
-    my $sth = $dbh->prepare("   SELECT   propertiesClusterName,propertiesJobWeight
+    my $sth = $dbh->prepare("   SELECT   propertiesClusterName
                                 FROM properties, users, multipleJobs
                                 WHERE propertiesMJobsId = $id
                                     AND propertiesClusterName = userClusterName
@@ -1241,7 +1640,7 @@ sub get_MJobs_Properties($$){
     my %result;
     while (my @ref = $sth->fetchrow_array()) {
         if (colomboCigri::is_cluster_active($dbh,$ref[0],$id) == 0){
-            $result{$ref[0]} = $ref[1];
+            $result{$ref[0]} = 1;
         }
     }
     $sth->finish();
@@ -1263,7 +1662,7 @@ sub get_MJobs_ActiveClusters($$){
                                     AND userGridName = MJobsUser
                                     AND MJobsId = propertiesMJobsId
 				    AND propertiesClusterName = clusterName
-				    ORDER BY propertiesClusterPriority,clusterPower desc
+				    ORDER BY propertiesClusterPriority desc,clusterPower desc
                             ");
     $sth->execute();
 
@@ -1291,7 +1690,8 @@ sub add_job_to_launch($$$$){
     my $clusterName = shift;
     my $nbJobs = shift;
 
-    $dbh->do("INSERT INTO jobsToSubmit (jobsToSubmitMJobsId,jobsToSubmitClusterName,jobsToSubmitNumber) VALUES ($MJobsId,\"$clusterName\",$nbJobs)");
+	if ($nbJobs > 0) { $dbh->do("INSERT INTO jobsToSubmit (jobsToSubmitMJobsId,jobsToSubmitClusterName,jobsToSubmitNumber) VALUES ($MJobsId,\"$clusterName\",$nbJobs)");
+	}
 }
 
 # check and set the end of each MJob in the IN_TREATMENT state
@@ -1303,7 +1703,6 @@ sub check_end_MJobs($){
     my @result;
     
     foreach my $i (@MJobs){
-#        print("------check $i --------\n");
         my $sth = $dbh->prepare("    SELECT jobMJobsId, count( * )
                                     FROM jobs
                                     WHERE jobMJobsId = $i
@@ -1342,6 +1741,7 @@ sub check_end_MJobs($){
                 print("[Iolib] set to Terminated state the MJob $i\n");
                 $dbh->do("    UPDATE multipleJobs SET MJobsState = \"TERMINATED\"
                             WHERE MJobsId = $i");
+
                 # notify admin by email
                 #mailer::sendMail("End MJob $i ","[Iolib] set to Terminated state the MJob $i");
                 push(@result, $i);
@@ -1467,52 +1867,54 @@ sub set_job_collectedJobId($$$){
     $dbh->do("UPDATE jobs SET jobCollectedJobId = $collectedJobId where jobId = $jobId");
 }
 
-# return the current scheduler
-# arg1 --> database ref
-sub get_current_scheduler($){
-    my $dbh = shift;
-
-    my $sth = $dbh->prepare("    SELECT schedulerId, schedulerFile
-                                FROM currentScheduler, schedulers
-                                WHERE currentSchedulerId = schedulerId
-                                LIMIT 1
-                            ");
-    $sth->execute();
-    my $result  = $sth->fetchrow_hashref();
-
-    $sth->finish();
-
-    return $result;
-
-}
-
-# set the current scheduler table
-# arg1 --> database ref
-sub update_current_scheduler($){
-    my $dbh = shift;
-    my @badScheds;
-
-    my $sth = $dbh->prepare("    SELECT schedulerId, schedulerFile, schedulerPriority
-                            FROM schedulers
-                            ORDER BY schedulerPriority DESC
-                        ");
-    $sth->execute();
-    my $schedId;
-    while (my @ref = $sth->fetchrow_array()) {
-        if (colomboCigri::is_scheduler_active($dbh,$ref[0]) == 0){
-            $schedId = $ref[0];
-            last;
-        }
-    }
-
-    $sth->finish();
-
-    $dbh->do("TRUNCATE TABLE currentScheduler");
-    if (defined($schedId)){
-        $dbh->do("INSERT INTO currentScheduler (currentSchedulerId) VALUES ($schedId)");
-    }
-}
-
+#OLDSCHED------------------------------------------
+# # return the current scheduler
+# # arg1 --> database ref
+# sub get_current_scheduler($){
+#     my $dbh = shift;
+# 
+#     my $sth = $dbh->prepare("    SELECT schedulerId, schedulerFile
+#                                 FROM currentScheduler, schedulers
+#                                 WHERE currentSchedulerId = schedulerId
+#                                 LIMIT 1
+#                             ");
+#     $sth->execute();
+#     my $result  = $sth->fetchrow_hashref();
+# 
+#     $sth->finish();
+# 
+#     return $result;
+# 
+# }
+# 
+# # set the current scheduler table
+# # arg1 --> database ref
+# sub update_current_scheduler($){
+#     my $dbh = shift;
+#     my @badScheds;
+# 
+#     my $sth = $dbh->prepare("    SELECT schedulerId, schedulerFile, schedulerPriority
+#                             FROM schedulers
+#                             ORDER BY schedulerPriority DESC
+#                         ");
+#     $sth->execute();
+#     my $schedId;
+#     while (my @ref = $sth->fetchrow_array()) {
+#         if (colomboCigri::is_scheduler_active($dbh,$ref[0]) == 0){
+#             $schedId = $ref[0];
+#             last;
+#         }
+#     }
+# 
+#     $sth->finish();
+# 
+#     $dbh->do("TRUNCATE TABLE currentScheduler");
+#     if (defined($schedId)){
+#         $dbh->do("INSERT INTO currentScheduler (currentSchedulerId) VALUES ($schedId)");
+#     }
+# }
+# 
+#-------------------------------------------------- 
 sub begin_transaction($){
     my $dbh = shift;
     $dbh->begin_work;
@@ -1675,6 +2077,29 @@ sub get_MJob_user($$){
     return($ref[0]);
 }
 
+# get the state of the specified MJob
+# arg1 --> database ref
+# arg2 --> MJobId
+# return the MJob state
+sub get_MJob_state($$){
+    my $dbh = shift;
+    my $MJobId = shift;
+
+    my $sth = $dbh->prepare(" SELECT MJobsState
+                              FROM multipleJobs
+                              WHERE
+                                 MJobsId = $MJobId
+                            ");
+    $sth->execute();
+
+    my @ref = $sth->fetchrow_array();
+    $sth->finish();
+
+    return($ref[0]);
+}
+
+
+
 
 # get the user name of the specified Job
 # arg1 --> database ref
@@ -1698,6 +2123,32 @@ sub get_job_user($$){
     return($ref[0]);
 }
 
+
+# get the state of the specified Job
+# arg1 --> database ref
+# arg2 --> JobId
+# return the state of the job
+sub get_job_state($$){
+    my $dbh = shift;
+    my $jobId = shift;
+
+    my $sth = $dbh->prepare(" SELECT jobState
+                              FROM jobs
+                              WHERE
+                                     jobId = $jobId
+                            ");
+    $sth->execute();
+
+    my @ref = $sth->fetchrow_array();
+    $sth->finish();
+
+    return($ref[0]);
+}
+
+
+#        replace average, stddev and throughput by hashes cluster->value
+#        add jobratio
+#
 # update the forcecast for a given multijob
 # arg1 --> database ref
 # arg2 --> MjobsId
@@ -1705,46 +2156,138 @@ sub get_job_user($$){
 # arg4 --> stddev
 # arg4 --> throughput
 # arg5 --> end time
-sub update_mjob_forecast($$$$$$){
+#--------------------------------------------------
+# sub update_mjob_forecast($$$$$$){
+#     my $dbh = shift;
+#     my $MjobsId = shift;
+#     my $average = shift;
+#     my $stddev = shift;
+#     my $throughput = shift;
+#     my $endtime = shift;
+# 
+#     my $sth = $dbh->prepare(" SELECT MjobsId
+#                               FROM forecasts
+#                               WHERE
+#                                      MjobsId = $MjobsId
+#                             ");
+#     $sth->execute();
+# 
+#     if ($sth->fetchrow_array()) {
+#         my $sth = $dbh->prepare(" UPDATE forecasts
+# 	                          SET 
+# 				    average='$average',
+#                                     stddev='$stddev',
+#                                     throughput='$throughput',
+# 				    end='$endtime'
+# 	                          WHERE
+# 				    MjobsId='$MjobsId'
+# 				");
+#         $sth->execute(); 
+#     }else {
+#         my $sth = $dbh->prepare(" INSERT INTO forecasts
+# 	                          (MjobsId,average,stddev,throughput,end)
+# 				  VALUES
+# 				  ('$MjobsId','$average','$stddev','$throughput','$endtime')
+# 				");
+#         $sth->execute();
+#     }
+# }    
+# 
+#-------------------------------------------------- 
+
+
+# add an entry to forecast table
+# arg1 --> DB
+# arg1 --> MJobId
+# arg1 --> clustername
+# arg1 --> average
+# arg1 --> stddev
+# arg1 --> throughput
+# arg1 --> jobratio
+# arg1 --> expected end time
+sub update_mjob_forecast($$$$$$$$){
     my $dbh = shift;
-    my $MjobsId = shift;
-    my $average = shift;
+    my $mjobid = shift;
+    my $cluster = shift;
+    
+	my $average = shift;
     my $stddev = shift;
     my $throughput = shift;
-    my $endtime = shift;
+    
+	my $jobratio = shift;
+	my $end = shift;
 
-    my $sth = $dbh->prepare(" SELECT MjobsId
-                              FROM forecasts
-                              WHERE
-                                     MjobsId = $MjobsId
-                            ");
-    $sth->execute();
+    my $sth = $dbh->do(" INSERT INTO forecasts
+	    (timeStamp,MjobsId,clusterName,jobRatio,average,stddev,throughput,end)
+			  VALUES
+		(NOW(), '$mjobid','$cluster',$jobratio,
+		'$average','$stddev','$throughput','$end')
+							");
+}
 
-    if ($sth->fetchrow_array()) {
-        my $sth = $dbh->prepare(" UPDATE forecasts
-	                          SET 
-				    average='$average',
-                                    stddev='$stddev',
-                                    throughput='$throughput',
-				    end='$endtime'
-	                          WHERE
-				    MjobsId='$MjobsId'
-				");
-        $sth->execute(); 
-    }else {
-        my $sth = $dbh->prepare(" INSERT INTO forecasts
-	                          (MjobsId,average,stddev,throughput,end)
-				  VALUES
-				  ('$MjobsId','$average','$stddev','$throughput','$endtime')
-				");
-        $sth->execute();
+# get last job ratio for a given cluster
+# return last job ratio, maxFreeWeight if there's no previous prediction
+sub get_last_jobratio($$$){
+    my $dbh = shift;
+    my $mjobid = shift;
+    my $cluster = shift;
+
+	my $sth = $dbh->prepare("SELECT jobRatio 
+							 FROM forecasts
+							 WHERE  mJobsId = $mjobid
+							 AND clusterName=\"$cluster\"
+							 ORDER BY timeStamp DESC 
+							 LIMIT 1");
+
+	$sth->execute();
+    my @res  = $sth->fetchrow_array();
+    $sth->finish();
+
+    if (defined($res[0])){ 
+		return $res[0]; 
+	} else { 
+		return 1; 
+	}	
+
+}
+
+#get absolute number of jobs based on jobratio and cluster resources
+sub jobratio_to_absolute($$$){
+    my $dbh = shift;
+    my $cluster = shift;
+    my $jobratio = shift;
+
+	return $jobratio * (get_cluster_free_weight($dbh, $cluster) + get_max_waiting_jobs_by_cluster($dbh, $cluster));
+
+}
+
+# get last number of free nodes 
+# useful to evaluate jobratio prediction
+sub get_last_cluster_free_nb($$){
+    my $dbh = shift;
+    my $cluster = shift;
+
+ 	my $sth = $dbh->prepare("SELECT freeResources
+							 FROM gridstatus
+							 WHERE clusterName=\"$cluster\"
+							 ORDER BY timeStamp DESC
+							 LIMIT 1");
+
+	$sth->execute();
+    my @res  = $sth->fetchrow_array();
+    $sth->finish();
+
+    if (defined($res[0])){
+        return $res[0];
+    } else {
+        return get_cluster_free_weight($dbh, $cluster);
     }
-}    
+}
+
 
 # get the MjobsId of a jobId
 # arg1 --> database ref
 # arg2 --> jobId
-
 sub get_MjobsId($$) {
     my $dbh = shift;
     my $jobId = shift;
@@ -1758,4 +2301,3 @@ sub get_MjobsId($$) {
     else { return 0; }
 }
 
-return 1;

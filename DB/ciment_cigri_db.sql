@@ -1,37 +1,31 @@
-CREATE DATABASE IF NOT EXISTS cigri;
+CREATE DATABASE IF NOT EXISTS cigri2009;
 #CONNECT cigri;
 
 # Creation de l utilisateur cigri
-CONNECT mysql;
-INSERT IGNORE INTO user (Host,User,Password) VALUES('localhost','cigri',PASSWORD('cigri'));
+#CONNECT mysql;
+#INSERT IGNORE INTO user (Host,User,Password) VALUES('localhost','cigri',PASSWORD('cigri'));
 
 #INSERT IGNORE INTO user (Host,User,Password) VALUES('%.imag.fr','cigri',PASSWORD('cigri'));
-INSERT IGNORE INTO db  (Host,Db,User,Select_priv,Insert_priv,Update_priv,Delete_priv, Create_priv,Drop_priv) VALUES
-				('localhost','cigri','cigri','Y','Y','Y','Y','Y','Y');
+#INSERT IGNORE INTO db  (Host,Db,User,Select_priv,Insert_priv,Update_priv,Delete_priv, Create_priv,Drop_priv) VALUES
+#				('localhost','cigri','cigri','Y','Y','Y','Y','Y','Y');
 #INSERT IGNORE INTO db  (Host,Db,User,Select_priv,Insert_priv,Update_priv,Delete_priv, Create_priv,Drop_priv) VALUES
 #				('%.imag.fr','cigri','cigri','Y','Y','Y','Y','Y','Y');
-FLUSH PRIVILEGES;
+#FLUSH PRIVILEGES;
 
-GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP ON cigri.* TO cigri@localhost;
-#GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP ON cigri.* TO cigri@"%.imag.fr";
-FLUSH PRIVILEGES;
+#GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP ON cigri2009.* TO cigri@"localhost";
+#FLUSH PRIVILEGES;
 
-CONNECT cigri;
+CONNECT cigri2009;
 
 DROP TABLE IF EXISTS events;
 CREATE TABLE IF NOT EXISTS events (
 eventId INT UNSIGNED NOT NULL AUTO_INCREMENT ,
 eventType VARCHAR( 50 ) NOT NULL,
-#OLDSCHED------------------------------------------
-# eventClass ENUM('CLUSTER','SCHEDULER','JOB','MJOB') NOT NULL ,
-#-------------------------------------------------- 
-eventClass ENUM('CLUSTER','JOB','MJOB') NOT NULL ,
+eventClass ENUM('CLUSTER','SCHEDULER','JOB','MJOB') NOT NULL ,
 eventState ENUM('ToFIX','FIXED') DEFAULT 'ToFIX' NOT NULL ,
 eventJobId BIGINT UNSIGNED ,
 eventClusterName VARCHAR( 100 ) ,
-#OLDSCHED------------------------------------------
-# eventSchedulerId INT UNSIGNED ,
-#-------------------------------------------------- 
+eventSchedulerId INT UNSIGNED ,
 eventMJobsId INT UNSIGNED ,
 eventDate DATETIME NOT NULL ,
 eventMessage TEXT ,
@@ -295,7 +289,6 @@ throughput FLOAT NOT NULL ,
 INDEX mJobsId (mJobsId),
 PRIMARY KEY (timeStamp,mJobsId,clusterName)
 )TYPE = InnoDB;
-#--------------------------------------------------
 
 
 # Gridstatus table
@@ -322,3 +315,4 @@ INSERT IGNORE INTO webusers VALUES ("admin", "");
 # #INSERT IGNORE INTO schedulers (schedulerFile,schedulerPriority) VALUES ("sched_fifoCigri.pl",2);
 # INSERT IGNORE INTO schedulers (schedulerFile,schedulerPriority) VALUES ("sched_jobratio+fifoCigri.pl",2);
 #-------------------------------------------------- 
+

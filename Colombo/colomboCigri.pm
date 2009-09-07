@@ -5,6 +5,10 @@ package colomboCigri;
 use strict;
 use Data::Dumper;
 use DBI;
+use IO::File;
+use POSIX qw(tmpnam);
+
+
 BEGIN {
     my ($scriptPathTmp) = $0 =~ m!(.*/*)!s;
     my ($scriptPath) = readlink($scriptPathTmp);
@@ -91,7 +95,7 @@ sub add_new_job_event($$$$){
     my $dbh = shift;
     my $jobId = shift;
     my $eventType = shift;
-	my $eventMessage =  $dbh->quote(shift);
+    my $eventMessage =  $dbh->quote(shift);
 
     my $sth = $dbh->prepare("SELECT jobMJobsId,jobClusterName
                              FROM jobs
@@ -140,30 +144,32 @@ sub add_new_mjob_event($$$$){
     check_events($dbh);
 }
 
-# add a new event relative of a scheduler in the database and treate it
-# arg1 --> database ref
-# arg2 --> schedulerId on which event occured
-# arg3 --> event Type
-# arg4 --> descriptive message
-sub add_new_scheduler_event($$$$){
-    my $dbh = shift;
-    my $schedId = shift;
-    my $eventType = shift;
-    my $eventMessage = shift;
-
-    #$dbh->do("LOCK TABLES events WRITE");
-    $dbh->begin_work;
-
-    #my $id = calculate_event_id($dbh);
-    my $time = get_date();
-    $dbh->do("    INSERT INTO events (eventId,eventType,eventClass,eventSchedulerId,eventDate,eventMessage)
-                VALUES (NULL,\"$eventType\",\"SCHEDULER\",\"$schedId\",\"$time\",\"$eventMessage\")");
-
-    #$dbh->do("UNLOCK TABLES");
-    $dbh->commit;
-
-    check_events($dbh);
-}
+#OLDSCHED-------------------------------------------
+# # add a new event relative of a scheduler in the database and treate it
+# # arg1 --> database ref
+# # arg2 --> schedulerId on which event occured
+# # arg3 --> event Type
+# # arg4 --> descriptive message
+# sub add_new_scheduler_event($$$$){
+#     my $dbh = shift;
+#     my $schedId = shift;
+#     my $eventType = shift;
+#     my $eventMessage = shift;
+# 
+#     #$dbh->do("LOCK TABLES events WRITE");
+#     $dbh->begin_work;
+# 
+#     #my $id = calculate_event_id($dbh);
+#     my $time = get_date();
+#     $dbh->do("    INSERT INTO events (eventId,eventType,eventClass,eventSchedulerId,eventDate,eventMessage)
+#                 VALUES (NULL,\"$eventType\",\"SCHEDULER\",\"$schedId\",\"$time\",\"$eventMessage\")");
+# 
+#     #$dbh->do("UNLOCK TABLES");
+#     $dbh->commit;
+# 
+#     check_events($dbh);
+# }
+#-------------------------------------------------- 
 
 # add a new event relative of a ssh in the database and treate it
 # arg1 --> database ref
@@ -291,26 +297,29 @@ sub is_collect_active($$$){
     return $numErrors[0];
 }
 
-# test if the scheduler is active
-# arg1 --> database ref
-# arg2 --> schedulerId
-sub is_scheduler_active($$){
-    my $dbh = shift;
-    my $schedId = shift;
 
-    my $sth = $dbh->prepare("    SELECT count( * )
-                                FROM schedulerBlackList, events
-                                WHERE schedulerBlackListEventId = eventId
-                                    AND eventState = \"ToFIX\"
-                                    AND (schedulerBlackListSchedulerId = $schedId
-                                        OR schedulerBlackListSchedulerId = 0)
-                            ");
-    $sth->execute();
-    my @numErrors = $sth->fetchrow_array();
-    $sth->finish();
-
-    return $numErrors[0];
-}
+#OLDSCHED------------------------------------------
+# # test if the scheduler is active
+# # arg1 --> database ref
+# # arg2 --> schedulerId
+# sub is_scheduler_active($$){
+#     my $dbh = shift;
+#     my $schedId = shift;
+# 
+#     my $sth = $dbh->prepare("    SELECT count( * )
+#                                 FROM schedulerBlackList, events
+#                                 WHERE schedulerBlackListEventId = eventId
+#                                     AND eventState = \"ToFIX\"
+#                                     AND (schedulerBlackListSchedulerId = $schedId
+#                                         OR schedulerBlackListSchedulerId = 0)
+#                             ");
+#     $sth->execute();
+#     my @numErrors = $sth->fetchrow_array();
+#     $sth->finish();
+# 
+#     return $numErrors[0];
+# }
+#-------------------------------------------------- 
 
 sub fix_event($$){
     my $dbh = shift;
@@ -346,6 +355,30 @@ sub get_blacklisted_nodes($$$){
     $sth->finish();
     return(@nodeNames);
 }
+
+
+
+# get jobid number that generated a given blacklisting
+# arg1 --> database ref
+# arg2 --> clusterBlackListEventId
+sub get_jobid_from_blacklistid($$){
+    my $dbh = shift;
+    my $blacklistid = shift;
+
+	my $sth = $dbh->prepare("SELECT clusterBlackListEventId FROM clusterBlackList WHERE clusterBlackListNum = $blacklistid");
+    $sth->execute();
+    my @array = $sth->fetchrow_array();
+    my $eventid = $array[0];
+
+	$sth = $dbh->prepare("SELECT eventJobId FROM events WHERE eventId = $eventid");
+    $sth->execute();
+    @array = $sth->fetchrow_array();
+    my $jobid = $array[0];
+
+    return $jobid;
+}
+
+
 
 # check events in the database and decide actions to perform
 # arg1 --> database ref
@@ -406,6 +439,7 @@ sub check_events($){
             if(!defined($id)) {
                 $id = 1;
             }
+
             $dbh->do("    INSERT INTO clusterBlackList (clusterBlackListNum,clusterBlackListClusterName,clusterBlackListEventId )
                         VALUES ($id,\"$ref[1]\",$ref[0])");
 
@@ -415,14 +449,15 @@ sub check_events($){
     }
     $sth->finish();
 
+
+
     # JOB error ----> blacklist a cluster for a MJob
-    $sth = $dbh->prepare("    SELECT eventId, eventClusterName, eventMJobsId, eventMessage
+    $sth = $dbh->prepare("    SELECT eventId, eventClusterName, eventMJobsId, eventMessage, eventType
                             FROM events
                             WHERE eventState = \"ToFIX\"
                                 AND (eventType = \"UPDATOR_RET_CODE_ERROR\" 
-				     OR eventType = \"OAR_OARSUB\"
-                                     OR eventType = \"RUNNER_SUBMIT\"
-                                    )
+						     	OR eventType = \"OAR_OARSUB\"
+                                OR eventType = \"RUNNER_SUBMIT\")
                             ");
     $sth->execute();
 
@@ -437,22 +472,59 @@ sub check_events($){
             if(!defined($id)) {
                 $id = 1;
             }
+
             $dbh->do("    INSERT INTO clusterBlackList (clusterBlackListNum,clusterBlackListClusterName,clusterBlackListMJobsID,clusterBlackListEventId )
                         VALUES ($id,\"$ref[1]\",$ref[2],$ref[0])");
 
-	    my $msg="This is a message from the CiGri server as an error occured into your MJob #".$ref[2]."\n";
-	    $msg.="This happenned on the ".$ref[1]. " cluster. This host has been disabled for your MJob\n";
-	    $msg.="until you correct the problem and you fix it into the CiGri web interface.\n\n";
-	    $msg.=$ref[3];
 
-            # notify admin by email
-            mailer::sendMail("clusterBlackList = $ref[1] for the MJob $ref[2]; eventId = $ref[0]",$msg);
+	    	my $msg="This is a message from the CiGri server as an error occured into your MJob #".$ref[2]."\n";
+	    	$msg.="This happenned on the ".$ref[1]. " cluster. This host has been disabled for your MJob\n";
+	    	$msg.="until you correct the problem and you fix it into the CiGri web interface.\n\n";
+	    	$msg.=$ref[3];
 
-	    # notify the user
-	    mailer::sendMailtoUser("clusterBlackList = $ref[1] for the MJob $ref[2]; eventId = $ref[0]",$msg,iolibCigri::get_MJob_user($dbh,$ref[2]));
+            # notify admin by email, but not on OAR errors(which can be a lot)
+		    if($ref[4] ne "OAR_OARSUB"){
+	            mailer::sendMail("clusterBlackList = $ref[1] for the MJob $ref[2]; eventId = $ref[0]",$msg);
+			}
+
+		    # notify the user
+	    	mailer::sendMailtoUser("clusterBlackList = $ref[1] for the MJob $ref[2]; eventId = $ref[0]",$msg,iolibCigri::get_MJob_user($dbh,$ref[2]));
+
+
+
+
+			# check if all clusters where blacklisted
+			my $nb_cluster_sth = $dbh->prepare("SELECT COUNT(*) FROM properties WHERE propertiesMJobsId = $ref[2]");
+			$nb_cluster_sth->execute();
+			my @nb_cluster_array = $nb_cluster_sth->fetchrow_array();
+			my $nb_cluster = $nb_cluster_array[0];
+
+			my $nb_blcluster_sth = $dbh->prepare("SELECT COUNT(*) FROM clusterBlackList WHERE clusterBlackListMJobsID = $ref[2]");
+			$nb_blcluster_sth->execute();
+			my @nb_blcluster_array = $nb_blcluster_sth->fetchrow_array();
+			my $nb_blcluster = $nb_blcluster_array[0];
+
+			if($nb_blcluster == $nb_cluster){
+				print "[COLOMBO]       all clusters were blacklisted for the
+Mjob $ref[2]  \n";
+				add_new_mjob_event($dbh,$ref[2],"FRAG","Auto-frag: all clusters blacklisted");
+				#TODO emathias: mail everybody 
+			}else{
+				my $job_to_resubmit = get_jobid_from_blacklistid($dbh,$id);
+				print "[COLOMBO]     Resubmit job $job_to_resubmit, due to blacklisting \n";
+		 		resubmit_job($dbh,$job_to_resubmit);
+			}
+
+
         }
     }
     $sth->finish();
+
+
+
+
+
+
 
     # I treate the UPDATOR_JOB_KILLED event type
     # --> resubmit jobs
@@ -472,50 +544,53 @@ sub check_events($){
     }
     $sth->finish();
 
-    # scheduler error --> blacklist scheduler
-    #list of scheduler events used
 
-    $sth = $dbh->prepare("    SELECT schedulerBlackListEventId
-                            FROM events, schedulerBlackList
-                            WHERE schedulerBlackListEventId = eventId
-                                AND eventState = \"ToFIX\"
-                            ");
-    $sth->execute();
-    undef(%eventUsed);
-    while (my @ref = $sth->fetchrow_array()) {
-        $eventUsed{$ref[0]}=1;
-    }
-    $sth->finish();
-
-    $sth = $dbh->prepare("    SELECT eventId, eventSchedulerId, eventMessage
-                            FROM events
-                            WHERE eventState = \"ToFIX\"
-                                AND (eventType = \"ALMIGHTY_FILE\"
-                                    OR eventType = \"EXIT_VALUE\"
-                                )
-                            ");
-    $sth->execute();
-
-    while (my @ref = $sth->fetchrow_array()) {
-        if (!defined($eventUsed{$ref[0]})){
-            my $sthTmp = $dbh->prepare("SELECT MAX(schedulerBlackListNum)+1 FROM schedulerBlackList");
-            $sthTmp->execute();
-            my $refTmp = $sthTmp->fetchrow_hashref();
-            my @tmp = values(%$refTmp);
-            my $id = $tmp[0];
-            $sthTmp->finish();
-            if(!defined($id)) {
-                $id = 1;
-            }
-            $dbh->do("    INSERT INTO schedulerBlackList (schedulerBlackListNum,schedulerBlackListSchedulerId,schedulerBlackListEventId)
-                        VALUES ($id,$ref[1],$ref[0])");
-
-            # notify admin by email
-            mailer::sendMail("schedulerBlackList = $ref[1]; eventId = $ref[0]","$ref[2]");
-        }
-    }
-    $sth->finish();
-
+#OLDSCHED------------------------------------------
+#    # scheduler error --> blacklist scheduler
+#    #list of scheduler events used
+# 
+#     $sth = $dbh->prepare("    SELECT schedulerBlackListEventId
+#                             FROM events, schedulerBlackList
+#                             WHERE schedulerBlackListEventId = eventId
+#                                 AND eventState = \"ToFIX\"
+#                             ");
+#     $sth->execute();
+#     undef(%eventUsed);
+#     while (my @ref = $sth->fetchrow_array()) {
+#         $eventUsed{$ref[0]}=1;
+#     }
+#     $sth->finish();
+# 
+#     $sth = $dbh->prepare("    SELECT eventId, eventSchedulerId, eventMessage
+#                             FROM events
+#                             WHERE eventState = \"ToFIX\"
+#                                 AND (eventType = \"ALMIGHTY_FILE\"
+#                                     OR eventType = \"EXIT_VALUE\"
+#                                 )
+#                             ");
+#     $sth->execute();
+# 
+#     while (my @ref = $sth->fetchrow_array()) {
+#         if (!defined($eventUsed{$ref[0]})){
+#             my $sthTmp = $dbh->prepare("SELECT MAX(schedulerBlackListNum)+1 FROM schedulerBlackList");
+#             $sthTmp->execute();
+#             my $refTmp = $sthTmp->fetchrow_hashref();
+#             my @tmp = values(%$refTmp);
+#             my $id = $tmp[0];
+#             $sthTmp->finish();
+#             if(!defined($id)) {
+#                 $id = 1;
+#             }
+#             $dbh->do("    INSERT INTO schedulerBlackList (schedulerBlackListNum,schedulerBlackListSchedulerId,schedulerBlackListEventId)
+#                         VALUES ($id,$ref[1],$ref[0])");
+# 
+#             # notify admin by email
+#             mailer::sendMail("schedulerBlackList = $ref[1]; eventId = $ref[0]","$ref[2]");
+#         }
+#     }
+#     $sth->finish();
+# 
+#-------------------------------------------------- 
     # treate FRAG events
 
     $sth = $dbh->prepare("    SELECT fragLogEventId
@@ -562,5 +637,34 @@ sub resubmit_job($$){
             ");
 
 }
+
+# resubmit an mjob 
+# arg1 --> database parameter
+# arg2 --> MJobId to resubmit
+sub resubmit_mjob($$$){
+    my $dbh = shift;
+    my $MJobId = shift;
+    my $MJobType = shift;
+
+	my $JDLString = iolibCigri::get_MJobs_JDL($dbh,$MJobId);
+
+	my $tmpfilename;	
+	my $fh;	
+
+	# try new temporary filenames until we get one that didn't already exist
+	do {$tmpfilename = tmpnam()} until $fh = IO::File->new($tmpfilename, O_RDWR|O_CREAT|O_EXCL);
+	#print ("Created temp file $tmpfilename\n") ;
+	print $fh "\n $JDLString\n";	
+	$fh->close;
+
+	my $idJob= iolibCigri::add_mjobs($dbh, $tmpfilename, $MJobType);
+    print "IdJob = $idJob \n";
+
+	#delete temp file
+	unlink($tmpfilename);
+
+}
+
+
 
 return 1;

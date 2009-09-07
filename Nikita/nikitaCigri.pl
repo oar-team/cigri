@@ -29,13 +29,36 @@ use SSHcmdClient;
 use NetCommon;
 use jobDel;
 use mailer;
+use POSIX;
 
 my $base = iolibCigri::connect() ;
 
+
+
+#control cluster job flooding based on flooding rate and
+my %clusters_max_weight = iolibCigri::get_clusters_max_weight($base);
+foreach my $cluster (keys (%clusters_max_weight)){
+	my $max_waiting = iolibCigri::get_max_waiting_jobs_by_cluster($base, $cluster);
+	my @remote_waiting_jobs = iolibCigri::get_remote_waiting_jobs_by_cluster($base, $cluster);
+
+	while ((scalar @remote_waiting_jobs) > $max_waiting){
+		print "[NIKITA] Frag-resubmit ".  ((scalar @remote_waiting_jobs) - $max_waiting) . " RemoteWaiting jobs on cluster $cluster to avoid job overflow (max waiting = $max_waiting)\n";
+
+		my $jobId = pop(@remote_waiting_jobs);
+
+	    print "[NIKITA] Frag-resubmit $jobId\n";
+		iolibCigri::set_job_state($base, $jobId, "Event");
+	    colomboCigri::add_new_job_event($base,$jobId,"FRAG","Job overflow frag");
+	    colomboCigri::resubmit_job($base,$jobId);
+	}
+}
+		
+		
+
 #handle long-lasting RemoteWaiting jobs
 my $remotewaiting_timeout;
-if (defined(ConfLibCigri::get_conf("REMOTE_WAITING_TIMEOUT")) &&
-      (ConfLibCigri::get_conf("REMOTE_WAITING_TIMEOUT") > 10)) {
+if (defined(ConfLibCigri::get_conf("REMOTE_WAITING_TIMEOUT")) && 
+	  (ConfLibCigri::get_conf("REMOTE_WAITING_TIMEOUT") > 10)) {
            $remotewaiting_timeout=ConfLibCigri::get_conf("REMOTE_WAITING_TIMEOUT");
 }else {
            $remotewaiting_timeout=600;
@@ -43,12 +66,12 @@ if (defined(ConfLibCigri::get_conf("REMOTE_WAITING_TIMEOUT")) &&
 
 my %remoteWaitingJobTimes = iolibCigri::get_remoteWaiting_times($base);
 foreach my $jobId (keys (%remoteWaitingJobTimes)){
-    if ($remoteWaitingJobTimes{$Idjob} > $remotewaiting_timeout){
-        iolibCigri::set_job_state($base, $jobId, "Event");
-        colomboCigri::add_new_job_event($base,$jobId,"FRAG","RemoteWaiting too long frag");
-        colomboCigri::resubmit_job($base,$jobId);
-        print "[NIKITA]     Frag-resubmit job $jobId because of RemoteWaiting for too long.\n";
-    }
+	if ($remoteWaitingJobTimes{$jobId} > $remotewaiting_timeout){
+		iolibCigri::set_job_state($base, $jobId, "Event");
+		colomboCigri::add_new_job_event($base,$jobId,"FRAG","RemoteWaiting for too long frag");
+		colomboCigri::resubmit_job($base,$jobId);
+		print "[NIKITA]     Frag-resubmit job $jobId because of RemoteWaiting for too long.\n";
+	}
 }
 
 
@@ -74,13 +97,13 @@ foreach my $i (@MJobsToFrag){
 
 #Get jobs to frag
 my @jobsToFrag = iolibCigri::get_tofrag_jobs($base);
-print(Dumper(@jobsToFrag));
+#print(Dumper(@jobsToFrag));
 
 foreach my $i (@jobsToFrag){
     #Delete this job
     if (($$i{jobBatchId} ne "") && ($$i{userLogin} ne "") && ($$i{clusterName} ne "")){
         if ( jobDel::jobDel($$i{clusterName},$$i{userLogin},$$i{jobBatchId}) == -1){
-            exit(66);
+            #exit(66);
         }else{
             print("OK\n");
             #change state

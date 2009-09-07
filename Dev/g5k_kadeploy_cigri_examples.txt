@@ -1,0 +1,14 @@
+
+#some commands to handle creation, registration and deploymento of images with kadeploy/katapult on Grid5000
+
+#pack a g5k deployed image
+ssh root@azur-1 "tar --posix --numeric-owner --one-file-system -zcvf - /" > archive.tgz
+
+#Karecordenv sample
+karecordenv -n CiGri-GSoC-v0 -d "GSoC'09 initial image: lenny2.6.26 with OAR and CiGri"  -a Elton.Mathias@inria.fr -fb /home/sophia/emathias/kadeploy/environments/lenny2.6.26-cigri-oar.tgz -ft /home/sophia/emathias/kadeploy/environments/lenny-x64-base-0.9-post.tgz -s 1000 -i /boot/initrd-2.6.26  -k /boot/vmlinuz-2.6.26 -fd 83
+
+#katapult'ing it
+ ~/bin/katapult/katapult --min-deployed-nodes `sort -u  $OAR_NODEFILE | wc -l` --max-deploy-runs 30 --deploy-env CiGri-GSoC-v0 --file $OAR_NODEFILE
+
+
+

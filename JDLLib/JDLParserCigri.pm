@@ -52,10 +52,10 @@ sub init_jdl($) {
 
     #Check cluster names
     my $base = iolibCigri::connect();
-    my %clusterNamesHash = iolibCigri::get_all_cluster_names($base);
+    my @clusterNamesArray = iolibCigri::get_all_cluster_names($base);
     iolibCigri::disconnect($base);
     my %clusterNames = ();
-    foreach my $i (keys(%clusterNamesHash)){
+    foreach my $i (@clusterNamesArray){
         $clusterNames{$i} = 1;
     }
 
@@ -66,7 +66,7 @@ sub init_jdl($) {
         next if (!defined($clusterBlock));
         my @linesConf = split(/;/, $clusterBlock);
         foreach my $j (@linesConf){
-            if ($j =~ m/^\s*(\w+)\s*=\s*([\w\.\/\-\:]+)\s*$/){
+            if ($j =~ m/^\s*(\w+)\s*=\s*([\w\.\/\-\:=\/]+)\s*$/){
                 $clusterConf{$clusterName}{$1} = $2;
             }
         }
