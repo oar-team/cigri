@@ -19,7 +19,7 @@ CIGRIGROUP=cigri
 all: usage
 install: usage
 usage:
-	@echo "Usage: make <server-install | user-install | rc-install>"
+	@echo "Usage: make <server-install | user-install | www-install | rc-install>"
 
 sanity-check:
 	@[ "`id root`" = "`id`" ] || echo "Warning: root-privileges are required to install some files !"
@@ -43,13 +43,13 @@ doc-install:
 	cp -r Doc/scheduler $(DESTDIR)$(DOCDIR)
 	cp -r Tools/sample_jobs $(DESTDIR)$(DOCDIR)
 
-server-install: doc-install configuration rc-install
+server-install: sanity-check doc-install configuration rc-install
 	install -d -m 0755 $(DESTDIR)$(CIGRIDIR)
 	cp -r Almighty ClusterQuery Collector Colombo ConfLib DB Hermes Iolib JDLLib Ldap Mailer Net Nikita Phoenix Runner Scheduler Spritz Updator $(DESTDIR)$(CIGRIDIR)
 	-chown root.root -R $(DESTDIR)$(CIGRIDIR)
 	-chmod 755 -R $(DESTDIR)$(CIGRIDIR)
 
-user-install: doc-install configuration
+user-install: sanity-check doc-install configuration
 	install -d -m 0755 $(DESTDIR)$(CIGRIDIR)
 	install -d -m 0755 $(DESTDIR)$(BINDIR)
 	cp -r ConfLib Iolib $(DESTDIR)$(CIGRIDIR)
@@ -75,3 +75,6 @@ user-install: doc-install configuration
 	chmod 755 $(DESTDIR)$(BINDIR)/gridstat
 	-chown root.root -R $(DESTDIR)$(CIGRIDIR)
 	-chmod 755 -R $(DESTDIR)$(CIGRIDIR)
+
+www-install: sanity-check
+	@echo "NOT YET IMPLEMENTED!"
