@@ -1,0 +1,380 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="Docutils 0.5: http://docutils.sourceforge.net/" />
+<title>Advanced scheduler for the CiGri grid</title>
+<style type="text/css">
+
+/*
+:Author: David Goodger (goodger@python.org)
+:Id: $Id: html4css1.css 5196 2007-06-03 20:25:28Z wiemann $
+:Copyright: This stylesheet has been placed in the public domain.
+
+Default cascading style sheet for the HTML output of Docutils.
+
+See http://docutils.sf.net/docs/howto/html-stylesheets.html for how to
+customize this style sheet.
+*/
+
+/* used to remove borders from tables and images */
+.borderless, table.borderless td, table.borderless th {
+  border: 0 }
+
+table.borderless td, table.borderless th {
+  /* Override padding for "table.docutils td" with "! important".
+     The right padding separates the table cells. */
+  padding: 0 0.5em 0 0 ! important }
+
+.first {
+  /* Override more specific margin styles with "! important". */
+  margin-top: 0 ! important }
+
+.last, .with-subtitle {
+  margin-bottom: 0 ! important }
+
+.hidden {
+  display: none }
+
+a.toc-backref {
+  text-decoration: none ;
+  color: black }
+
+blockquote.epigraph {
+  margin: 2em 5em ; }
+
+dl.docutils dd {
+  margin-bottom: 0.5em }
+
+/* Uncomment (and remove this text!) to get bold-faced definition list terms
+dl.docutils dt {
+  font-weight: bold }
+*/
+
+div.abstract {
+  margin: 2em 5em }
+
+div.abstract p.topic-title {
+  font-weight: bold ;
+  text-align: center }
+
+div.admonition, div.attention, div.caution, div.danger, div.error,
+div.hint, div.important, div.note, div.tip, div.warning {
+  margin: 2em ;
+  border: medium outset ;
+  padding: 1em }
+
+div.admonition p.admonition-title, div.hint p.admonition-title,
+div.important p.admonition-title, div.note p.admonition-title,
+div.tip p.admonition-title {
+  font-weight: bold ;
+  font-family: sans-serif }
+
+div.attention p.admonition-title, div.caution p.admonition-title,
+div.danger p.admonition-title, div.error p.admonition-title,
+div.warning p.admonition-title {
+  color: red ;
+  font-weight: bold ;
+  font-family: sans-serif }
+
+/* Uncomment (and remove this text!) to get reduced vertical space in
+   compound paragraphs.
+div.compound .compound-first, div.compound .compound-middle {
+  margin-bottom: 0.5em }
+
+div.compound .compound-last, div.compound .compound-middle {
+  margin-top: 0.5em }
+*/
+
+div.dedication {
+  margin: 2em 5em ;
+  text-align: center ;
+  font-style: italic }
+
+div.dedication p.topic-title {
+  font-weight: bold ;
+  font-style: normal }
+
+div.figure {
+  margin-left: 2em ;
+  margin-right: 2em }
+
+div.footer, div.header {
+  clear: both;
+  font-size: smaller }
+
+div.line-block {
+  display: block ;
+  margin-top: 1em ;
+  margin-bottom: 1em }
+
+div.line-block div.line-block {
+  margin-top: 0 ;
+  margin-bottom: 0 ;
+  margin-left: 1.5em }
+
+div.sidebar {
+  margin: 0 0 0.5em 1em ;
+  border: medium outset ;
+  padding: 1em ;
+  background-color: #ffffee ;
+  width: 40% ;
+  float: right ;
+  clear: right }
+
+div.sidebar p.rubric {
+  font-family: sans-serif ;
+  font-size: medium }
+
+div.system-messages {
+  margin: 5em }
+
+div.system-messages h1 {
+  color: red }
+
+div.system-message {
+  border: medium outset ;
+  padding: 1em }
+
+div.system-message p.system-message-title {
+  color: red ;
+  font-weight: bold }
+
+div.topic {
+  margin: 2em }
+
+h1.section-subtitle, h2.section-subtitle, h3.section-subtitle,
+h4.section-subtitle, h5.section-subtitle, h6.section-subtitle {
+  margin-top: 0.4em }
+
+h1.title {
+  text-align: center }
+
+h2.subtitle {
+  text-align: center }
+
+hr.docutils {
+  width: 75% }
+
+img.align-left {
+  clear: left }
+
+img.align-right {
+  clear: right }
+
+ol.simple, ul.simple {
+  margin-bottom: 1em }
+
+ol.arabic {
+  list-style: decimal }
+
+ol.loweralpha {
+  list-style: lower-alpha }
+
+ol.upperalpha {
+  list-style: upper-alpha }
+
+ol.lowerroman {
+  list-style: lower-roman }
+
+ol.upperroman {
+  list-style: upper-roman }
+
+p.attribution {
+  text-align: right ;
+  margin-left: 50% }
+
+p.caption {
+  font-style: italic }
+
+p.credits {
+  font-style: italic ;
+  font-size: smaller }
+
+p.label {
+  white-space: nowrap }
+
+p.rubric {
+  font-weight: bold ;
+  font-size: larger ;
+  color: maroon ;
+  text-align: center }
+
+p.sidebar-title {
+  font-family: sans-serif ;
+  font-weight: bold ;
+  font-size: larger }
+
+p.sidebar-subtitle {
+  font-family: sans-serif ;
+  font-weight: bold }
+
+p.topic-title {
+  font-weight: bold }
+
+pre.address {
+  margin-bottom: 0 ;
+  margin-top: 0 ;
+  font-family: serif ;
+  font-size: 100% }
+
+pre.literal-block, pre.doctest-block {
+  margin-left: 2em ;
+  margin-right: 2em }
+
+span.classifier {
+  font-family: sans-serif ;
+  font-style: oblique }
+
+span.classifier-delimiter {
+  font-family: sans-serif ;
+  font-weight: bold }
+
+span.interpreted {
+  font-family: sans-serif }
+
+span.option {
+  white-space: nowrap }
+
+span.pre {
+  white-space: pre }
+
+span.problematic {
+  color: red }
+
+span.section-subtitle {
+  /* font-size relative to parent (h1..h6 element) */
+  font-size: 80% }
+
+table.citation {
+  border-left: solid 1px gray;
+  margin-left: 1px }
+
+table.docinfo {
+  margin: 2em 4em }
+
+table.docutils {
+  margin-top: 0.5em ;
+  margin-bottom: 0.5em }
+
+table.footnote {
+  border-left: solid 1px black;
+  margin-left: 1px }
+
+table.docutils td, table.docutils th,
+table.docinfo td, table.docinfo th {
+  padding-left: 0.5em ;
+  padding-right: 0.5em ;
+  vertical-align: top }
+
+table.docutils th.field-name, table.docinfo th.docinfo-name {
+  font-weight: bold ;
+  text-align: left ;
+  white-space: nowrap ;
+  padding-left: 0 }
+
+h1 tt.docutils, h2 tt.docutils, h3 tt.docutils,
+h4 tt.docutils, h5 tt.docutils, h6 tt.docutils {
+  font-size: 100% }
+
+ul.auto-toc {
+  list-style-type: none }
+
+</style>
+</head>
+<body>
+<div class="document" id="advanced-scheduler-for-the-cigri-grid">
+<h1 class="title">Advanced scheduler for the CiGri grid</h1>
+<h2 class="subtitle" id="internship-subject">Internship subject</h2>
+
+<ol class="arabic simple">
+<li><strong>Introduction</strong></li>
+</ol>
+<p>CiGri is a free software allowing to construct a computing grid
+which exploits idle processor cycles of a supercomputers group.
+CiGri is a lightweight grid which manages with only &quot;bag-of-tasks&quot;
+applications that generaly result in a big number (&gt;100000) of
+independant and idempotent sub-tasks.
+Running such applications at the grid level optimizes the load
+of supercomputers in a middle sized HPC center.
+Such a grid is running over HPC hosts of the Joseph Fourier
+university (Grenoble/FRANCE) since 2002, inside the &quot;CIMENT&quot;
+project. It manages today with 2000 cpu cores and executed about
+5 millions of tasks. The name CiGri comes originaly from this
+CIMENT project (CIment-GRId).
+CiGri is also an experimental platform for research on distributed
+computing scheduling at the computing laboratory of Grenoble (LIG).</p>
+<ol class="arabic simple" start="2">
+<li><strong>Cigri structure</strong></li>
+</ol>
+<p>CiGri is currently composed of a MySQL database, some perl modules
+and some ruby modules. Communication and authentication mechanisms
+are based on simple and standard tools like SSH, SUDO and LDAP.
+A web PHP/Smarty interface allows users to check their job campaigns
+statuses and to interact if necessary.
+Everything has been developped and tested for Linux.
+The modules are cyclicly executed: nodes and tasks states update,
+tasks to submit scheduling, tasks launching, cleaning, error control,
+statistics update. An external asynchronous module is dedicated to
+results collecting.</p>
+<ol class="arabic simple" start="3">
+<li><strong>Environnement</strong></li>
+</ol>
+<p>Development is done inside the &quot;MESCAL&quot; team of the &quot;LIG&quot; laboratory
+and guidelines are given by this team research projects and by
+the exploit needs of the &quot;CIMENT&quot; project.
+It's a motivating environnement because you can talk with engineers
+and researchers working on complex problems about distributed
+computing. This &quot;MESCAL&quot; team is also in charge of the development
+of the OAR resources manager and is a major actor of the development
+and administration of the experimental french national grid called
+&quot;Grid5000&quot;.</p>
+<ol class="arabic simple" start="4">
+<li><strong>The need for a new scheduler</strong></li>
+</ol>
+<p>The current scheduler module of CiGri is a basic FIFO and doesn't
+manage with parallel tasks. When the grid runs at a high load, it
+may happen that a user is blocked for days, even if he needs
+very few resources, for example if he only need to test a new
+campaign. Furthermore, the Grenoble's grid is becoming biger and
+extends to other towns (Lyon, for the RaGrid project). That brings
+new needs like users priorities over some clusters, depending on
+their community.</p>
+<p>We want to develop a new scheduler that will be able to manage
+users fairsharing, several queues with complex priorities and
+to take into account parallel tasks running on several nodes of a
+cluster. This new scheduler should also manage interactions with
+other new modules that are also currently under development, like
+a checkpointing module.
+We want to use a high level modern language, like Ruby, to have
+a very maintenable and scalable code.
+In addition to this development task, the trainee, if he wants,
+could approach more &quot;system&quot; aspects and participate to the
+implementation of other tools like checkpointing or distributed
+filesystems. Also note that this project is very close to the OAR
+project and Grid5000 administration.</p>
+<ol class="arabic simple" start="5">
+<li><strong>Links</strong></li>
+</ol>
+<ul class="simple">
+<li>CIMENT project:
+<a class="reference external" href="http://ciment.ujf-grenoble.fr">http://ciment.ujf-grenoble.fr</a></li>
+<li>CiGri:
+<a class="reference external" href="http://cigri.imag.fr">http://cigri.imag.fr</a></li>
+<li>MESCAL Team:
+<a class="reference external" href="http://mescal.imag.fr/">http://mescal.imag.fr/</a></li>
+<li>RaGrid:
+<a class="reference external" href="https://ciment.ujf-grenoble.fr/ragrid">https://ciment.ujf-grenoble.fr/ragrid</a></li>
+<li>OAR:
+<a class="reference external" href="http://oar.imag.fr">http://oar.imag.fr</a></li>
+<li>Grid5000:
+<a class="reference external" href="http://www.grid5000.fr">http://www.grid5000.fr</a></li>
+</ul>
+<ol class="arabic simple" start="6">
+<li><strong>Contact</strong></li>
+</ol>
+<p>Bruno Bzeznik &lt;<a class="reference external" href="mailto:Bruno.Bzeznik&#64;imag.fr">Bruno.Bzeznik&#64;imag.fr</a>&gt;</p>
+</div>
+</body>
+</html>
