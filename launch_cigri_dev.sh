@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export CIGRIDIR=/var/lib/cigri/svn/cigri/branches/gsoc2009-scheduler
+export CIGRIDIR=/var/lib/cigri/svn/cigri/trunk
 #./Almighty/AlmightyCigri.pl|spc -c /etc/supercat/spcrc-cigri
 ./Almighty/AlmightyCigri.pl
 
