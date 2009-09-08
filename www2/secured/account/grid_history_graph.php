@@ -1,8 +1,8 @@
 <?php
 include("../../dbfunctions.inc");
-require_once("../../jpgraph/src/jpgraph.php");
-require_once("../../jpgraph/src/jpgraph_bar.php");
-require_once("../../jpgraph/src/jpgraph_line.php");
+require_once("$JPGRAPH_DIR/jpgraph.php");
+require_once("$JPGRAPH_DIR/jpgraph_bar.php");
+require_once("$JPGRAPH_DIR/jpgraph_line.php");
 
 # Get the begin and end timestamps
 if (isset($_GET['begin'])) $begin = $_GET['begin'];
@@ -41,13 +41,13 @@ $graph->SetShadow();
 #$graph->xaxis->HideLabels();
 $graph->xaxis->SetLabelFormatCallback('xLabelFormat');
 $graph->SetTickDensity(TICKD_DENSE,TICKD_VERYSPARSE);
-$graph->xaxis->HideTicks(true,false); 
+#$graph->xaxis->HideTicks(true,false); 
 $graph->legend->Pos(0.1,0.01);
 $graph->SetMargin(45,45,75,55);
 $graph->yaxis->scale->SetAutoMin(0);
 $graph->yaxis->SetTitle("Resources");
 $graph->xaxis->SetTitle("Time");
-$graph->xaxis->HideLastTickLabel();
+#$graph->xaxis->HideLastTickLabel();
 
 
 # Get the data to plot

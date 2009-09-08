@@ -1,14 +1,13 @@
 <?php
 
-$LDAP=0;
-$LDAP_HOST=localhost;
-$LDAP_USERS="ou=People,ou=platforms,o=ciment,dc=ujf-grenoble,dc=fr";
-
+require "config.inc";
+require($SMARTY_DIR.'Smarty.class.php');
 
 function dbconnect() {
-    $link = mysql_connect("localhost", "cigri", "cigri")
-        or die("Connection failed : " . mysql_error());
-    mysql_select_db("cigri",$link) or die( "Connection failed : " . mysql_error());
+    global $DB_HOST,$DB_USER,$DB_PASSWORD,$DB_DATABASE;
+    $link = mysql_connect($DB_HOST, $DB_USER, $DB_PASSWORD)
+        or die("Connection failed ($DB_HOST,$DB_USER) " . mysql_error());
+    mysql_select_db("$DB_DATABASE",$link) or die( "Connection failed ($DB_DATABASE) " . mysql_error());
     return $link;
 }
 

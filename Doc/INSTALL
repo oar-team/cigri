@@ -21,6 +21,8 @@ REQUIREMENTS
     - libyaml-ruby
     - libopen4-ruby
 
+    - For the web interface: smarty and jpgraph
+
     - Optional: phpmyadmin
 
 CONFIGURATION

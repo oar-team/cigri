@@ -11,6 +11,8 @@ DOCDIR=$(PREFIX)/share/doc/cigri
 VARDIR=/var/lib/cigri
 CONFDIR=/etc
 WWWDIR=/var/www
+WWWUSER=www-data
+WWWGROUP=www-data
 CIGRIOWNER=cigri
 CIGRIGROUP=cigri
 
@@ -29,6 +31,9 @@ configuration:
 	install -d -m 0755 $(DESTDIR)$(CONFDIR)
 	@if [ -f $(DESTDIR)$(CONFDIR)/cigri.conf ]; then echo "Warning: $(DESTDIR)$(CONFDIR)/cigri.conf already exists, not overwriting it." ; else install -m 0600 Tools/cigri.conf $(DESTDIR)$(CONFDIR) ; chown $(CIGRIOWNER).root $(DESTDIR)$(CONFDIR)/cigri.conf || /bin/true ; fi
 
+sprc:
+	@if [ -d $(DESTDIR)/etc/supercat -a \! -f $(DESTDIR)/etc/supercat/spcrc-cigri ] ; then install Tools/spcrc-cigri $(DESTDIR)/etc/supercat ; fi
+
 rc-install:
 	@if [ -f /etc/debian_version ]; then install -m 6755 Tools/init_scripts/debian/cigri $(DESTDIR)/etc/init.d/cigri; update-rc.d cigri defaults 90 10; fi
 	@if [ -f /etc/redhat-release ]; then install -m 6755 Tools/init_scripts/centos/cigri $(DESTDIR)/etc/init.d/cigri; chkconfig --on cigri; fi
@@ -43,7 +48,7 @@ doc-install:
 	cp -r Doc/scheduler $(DESTDIR)$(DOCDIR)
 	cp -r Tools/sample_jobs $(DESTDIR)$(DOCDIR)
 
-server-install: sanity-check doc-install configuration rc-install
+server-install: sanity-check doc-install sprc configuration rc-install
 	install -d -m 0755 $(DESTDIR)$(CIGRIDIR)
 	cp -r Almighty ClusterQuery Collector Colombo ConfLib DB Hermes Iolib JDLLib Ldap Mailer Net Nikita Phoenix Runner Scheduler Spritz Updator $(DESTDIR)$(CIGRIDIR)
 	-chown root.root -R $(DESTDIR)$(CIGRIDIR)
@@ -77,4 +82,11 @@ user-install: sanity-check doc-install configuration
 	-chmod 755 -R $(DESTDIR)$(CIGRIDIR)
 
 www-install: sanity-check
-	@echo "NOT YET IMPLEMENTED!"
+	install -d $(DESTDIR)$(WWWDIR)/cigri
+	@if [ -f $(DESTDIR)$(WWWDIR)/cigri/config.inc ]; then mv $(DESTDIR)$(WWWDIR)/cigri/config.inc $(DESTDIR)$(WWWDIR)/cigri/config.inc.orig ; fi
+	cp -r www2/* $(DESTDIR)$(WWWDIR)/cigri
+	@if [ -f $(DESTDIR)$(WWWDIR)/cigri/config.inc.orig ]; then mv -f $(DESTDIR)$(WWWDIR)/cigri/config.inc.orig $(DESTDIR)$(WWWDIR)/cigri/config.inc; fi
+	-chown root:$(WWWGROUP) $(DESTDIR)$(WWWDIR)/cigri/config.inc
+	chmod 640 $(DESTDIR)$(WWWDIR)/cigri/config.inc
+	install -m 750 -d $(DESTDIR)$(WWWDIR)/cigri/templates_c
+	-chown $(WWWUSER):$(CIGRIGROUP) $(DESTDIR)$(WWWDIR)/cigri/templates_c

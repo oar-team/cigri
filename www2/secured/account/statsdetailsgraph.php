@@ -1,7 +1,7 @@
 <?php
 include("../../dbfunctions.inc");
-require_once("../../jpgraph/src/jpgraph.php");
-require_once("../../jpgraph/src/jpgraph_bar.php");
+require_once("$JPGRAPH_DIR/jpgraph.php");
+require_once("$JPGRAPH_DIR/jpgraph_bar.php");
 define('NB_BARS',20);
 
 $link = dbconnect();

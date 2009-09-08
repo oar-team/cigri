@@ -1,4 +1,6 @@
 <?php
+require_once "config.inc";
+require_once($SMARTY_DIR.'Smarty.class.php');
 
 // {{{ cigri_register_menu_item()
 // ROLE register a new menu item before displaying in menu.tpl

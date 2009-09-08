@@ -1,6 +1,6 @@
 <?php
-define('SMARTY_DIR','Smarty-2.5.0/libs/');
-require(SMARTY_DIR.'Smarty.class.php'); // Load SMARTY
+#define('SMARTY_DIR','Smarty-2.5.0/libs/');
+#require(SMARTY_DIR.'Smarty.class.php'); // Load SMARTY
 require_once("dbfunctions.inc");
 require_once("outputfunctions.inc");
 		

@@ -1,8 +1,8 @@
 <?php
 include("../dbfunctions.inc");
-require_once("../jpgraph/src/jpgraph.php");
-require_once("../jpgraph/src/jpgraph_pie.php");
-require_once("../jpgraph/src/jpgraph_pie3d.php");
+require_once("$JPGRAPH_DIR/jpgraph.php");
+require_once("$JPGRAPH_DIR/jpgraph_pie.php");
+require_once("$JPGRAPH_DIR/jpgraph_pie3d.php");
 
 function is_blacklisted($cluster,$link) {
   $query = "SELECT eventType FROM events WHERE eventState='ToFIX'
@@ -55,6 +55,7 @@ if ($res[0][0]) {
 
     $graph->title->Set("Grid resources status snapshot at $date\n$totalMax CPUs in the grid");
 	$graph->title->SetFont(FF_FONT1,FS_BOLD);
+	$graph->SetShadow();
 
 	$p1 = new PiePlot3D($data);
 	$p1->SetSize(0.4);
