@@ -70,11 +70,15 @@ user-install: sanity-check doc-install configuration
 	echo '$(CIGRIDIR)/Qfunctions/griddel.pl $$@' >> $(DESTDIR)$(BINDIR)/griddel
 	chmod 755 $(DESTDIR)$(BINDIR)/griddel
 	install -m 6755 Qfunctions/gridstat.rb $(DESTDIR)$(CIGRIDIR)/Qfunctions
+	-chown $(CIGRIOWNER):$(CIGRIGROUP) $(DESTDIR)$(CIGRIDIR)/Qfunctions/gridstat.rb
 	-chmod 6755 $(DESTDIR)$(CIGRIDIR)/Qfunctions/gridstat.rb
+	echo "#!/bin/sh" > $(DESTDIR)$(BINDIR)/gridstat.sh
+	echo "export CIGRICONFDIR=$(CONFDIR)" >> $(DESTDIR)$(BINDIR)/gridstat.sh
+	echo "export CIGRIDIR=$(CIGRIDIR)" >> $(DESTDIR)$(BINDIR)/gridstat.sh
+	echo '$(CIGRIDIR)/Qfunctions/gridstat.rb $$@' >> $(DESTDIR)$(BINDIR)/gridstat.sh
+	chmod 755 $(DESTDIR)$(BINDIR)/gridstat.sh
 	echo "#!/bin/sh" > $(DESTDIR)$(BINDIR)/gridstat
-	echo "export CIGRICONFDIR=$(CONFDIR)" >> $(DESTDIR)$(BINDIR)/gridstat
-	echo "export CIGRIDIR=$(CIGRIDIR)" >> $(DESTDIR)$(BINDIR)/gridstat
-	echo '$(CIGRIDIR)/Qfunctions/gridstat.rb $$@' >> $(DESTDIR)$(BINDIR)/gridstat
+	echo 'sudo -u cigri /usr/local/bin/gridstat.sh $$@' >> $(DESTDIR)$(BINDIR)/gridstat
 	chmod 755 $(DESTDIR)$(BINDIR)/gridstat
 
 www-install: sanity-check
