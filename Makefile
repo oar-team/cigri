@@ -51,8 +51,6 @@ doc-install:
 server-install: sanity-check doc-install sprc configuration rc-install
 	install -d -m 0755 $(DESTDIR)$(CIGRIDIR)
 	cp -r Almighty ClusterQuery Collector Colombo ConfLib DB Hermes Iolib JDLLib Ldap Mailer Net Nikita Phoenix Runner Scheduler Spritz Updator $(DESTDIR)$(CIGRIDIR)
-	-chown root.root -R $(DESTDIR)$(CIGRIDIR)
-	-chmod 755 -R $(DESTDIR)$(CIGRIDIR)
 
 user-install: sanity-check doc-install configuration
 	install -d -m 0755 $(DESTDIR)$(CIGRIDIR)
@@ -60,15 +58,15 @@ user-install: sanity-check doc-install configuration
 	cp -r ConfLib Iolib $(DESTDIR)$(CIGRIDIR)
 	install -d -m 0755 $(DESTDIR)$(CIGRIDIR)/Qfunctions
 	install -m 6755 Qfunctions/gridsub.pl $(DESTDIR)$(CIGRIDIR)/Qfunctions
+	-chown $(CIGRIOWNER):$(CIGRIGROUP) $(DESTDIR)$(CIGRIDIR)/Qfunctions/gridsub.pl
 	-chmod 6755 $(DESTDIR)$(CIGRIDIR)/Qfunctions/gridsub.pl
 	echo "#!/bin/sh" > $(DESTDIR)$(BINDIR)/gridsub
-	echo "export CIGRIDIR=$(CIGRIDIR)" >> $(DESTDIR)$(BINDIR)/gridsub
 	echo '$(CIGRIDIR)/Qfunctions/gridsub.pl $$@' >> $(DESTDIR)$(BINDIR)/gridsub
 	chmod 755 $(DESTDIR)$(BINDIR)/gridsub
 	install -m 6755 Qfunctions/griddel.pl $(DESTDIR)$(CIGRIDIR)/Qfunctions
+	-chown $(CIGRIOWNER):$(CIGRIGROUP) $(DESTDIR)$(CIGRIDIR)/Qfunctions/griddel.pl
 	-chmod 6755 $(DESTDIR)$(CIGRIDIR)/Qfunctions/griddel.pl
 	echo "#!/bin/sh" > $(DESTDIR)$(BINDIR)/griddel
-	echo "export CIGRIDIR=$(CIGRIDIR)" >> $(DESTDIR)$(BINDIR)/griddel
 	echo '$(CIGRIDIR)/Qfunctions/griddel.pl $$@' >> $(DESTDIR)$(BINDIR)/griddel
 	chmod 755 $(DESTDIR)$(BINDIR)/griddel
 	install -m 6755 Qfunctions/gridstat.rb $(DESTDIR)$(CIGRIDIR)/Qfunctions
@@ -78,8 +76,6 @@ user-install: sanity-check doc-install configuration
 	echo "export CIGRIDIR=$(CIGRIDIR)" >> $(DESTDIR)$(BINDIR)/gridstat
 	echo '$(CIGRIDIR)/Qfunctions/gridstat.rb $$@' >> $(DESTDIR)$(BINDIR)/gridstat
 	chmod 755 $(DESTDIR)$(BINDIR)/gridstat
-	-chown root.root -R $(DESTDIR)$(CIGRIDIR)
-	-chmod 755 -R $(DESTDIR)$(CIGRIDIR)
 
 www-install: sanity-check
 	install -d $(DESTDIR)$(WWWDIR)/cigri
