@@ -155,6 +155,8 @@ sub oarsubmit($$$$$$$$$$){
         $propertyString = "";
     }
 
+    my $campId = iolibCigri::get_mjob_id($dbh, $jobId);
+
  	#existing env. variables require double protection
     my $jobEnv = '';
     $jobEnv .= ' export CIGRI_NODE_FILE=\\\\\\$OAR_NODEFILE;';
