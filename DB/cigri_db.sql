@@ -309,6 +309,7 @@ CREATE TABLE `gridstatus` (
 `blacklisted` BOOLEAN DEFAULT 0 ,
 PRIMARY KEY ( `timestamp`,`clusterName` )
 );
+create index clusterName on gridstatus(clusterName);
 
 INSERT IGNORE INTO webusers VALUES ("admin", "");
 
