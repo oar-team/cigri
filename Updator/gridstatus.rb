@@ -127,6 +127,19 @@ end
 # Connect to database
 dbh = db_init()
 
+# Exits if last update is recent
+query = "select unix_timestamp(now()) - max(timestamp) as t from gridstatus"
+seconds_since_last_update = dbh.select_one(query)['t']
+if get_conf("MIN_GRIDSTATUS_UPDATE_FREQ")
+  $min_update_frequency=get_conf("MIN_GRIDSTATUS_UPDATE_FREQ").to_i
+else
+  $min_update_frequency=60
+end
+if seconds_since_last_update < $min_update_frequency
+  puts "[GRIDSTATUS]  Last update is less than #{$min_update_frequency} seconds: no update required."
+  exit 0
+end
+
 # Select all the clusters
 query = "SELECT * from clusters"
 sql_clusters=dbh.select_all(query)

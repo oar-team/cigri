@@ -310,6 +310,7 @@ CREATE TABLE `gridstatus` (
 PRIMARY KEY ( `timestamp`,`clusterName` )
 );
 create index clusterName on gridstatus(clusterName);
+create index timeStamp on gridstatus(timeStamp);
 
 INSERT IGNORE INTO webusers VALUES ("admin", "");
 

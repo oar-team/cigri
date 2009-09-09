@@ -72,7 +72,7 @@ while ($row = mysql_fetch_row($result)) {
 
 # Set the title (containing timestamps)
 $title .= "\nfrom ".date("Y/m/d H:i",mysql_result($result,0,0)). " to ".date("Y/m/d H:i",mysql_result($result,mysql_num_rows($result)-1,0));
-$graph->tabtitle->Set($title);
+#$graph->tabtitle->Set($title);
 
 # Bargraph of total resources
 mysql_free_result($result);
@@ -80,7 +80,7 @@ $barplot = new BarPlot($max,$x);
 $barplot->SetFillColor('khaki1');
 $barplot->SetColor('khaki1');
 $barplot->SetLegend('Total resources');
-$barplot->SetWidth(2);
+#$barplot->SetWidth(2);
 $graph->Add($barplot);
 
 # Bargraph of resources used by cigri
@@ -88,7 +88,7 @@ $barplot = new BarPlot($cigriused,$x);
 $barplot->SetFillColor('brown');
 $barplot->SetColor('brown');
 $barplot->SetLegend('Used by CiGri (cumul)');
-$barplot->SetWidth(2);
+#$barplot->SetWidth(2);
 $graph->Add($barplot);
 
 # Bargraph of resources localy used
@@ -96,7 +96,7 @@ $barplot = new BarPlot($localyused,$x);
 $barplot->SetFillColor('chocolate3');
 $barplot->SetColor('chocolate3');
 $barplot->SetLegend('Localy used or unavailable');
-$barplot->SetWidth(2);
+#$barplot->SetWidth(2);
 $graph->Add($barplot);
 
 # Bargraph of blacklisted resources
@@ -104,7 +104,7 @@ $barplot = new BarPlot($blacklisted,$x);
 $barplot->SetFillColor('darkgray');
 $barplot->SetColor('darkgray');
 $barplot->SetLegend('Blacklisted (cluster unavailable)');
-$barplot->SetWidth(2);
+#$barplot->SetWidth(2);
 $graph->Add($barplot);
 
 # null bargraph for the white legend
@@ -116,7 +116,7 @@ $barplot->SetLegend('No status data');
 #$graph->Add($barplot);
 
 # Graph creation
-$graph->SetImgFormat('jpeg',90);
+#$graph->SetImgFormat('jpeg',90);
 $graph->Stroke();
 
 # Close mysql connection

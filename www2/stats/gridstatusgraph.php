@@ -15,7 +15,9 @@ function is_blacklisted($cluster,$link) {
 
 $link = dbconnect();
 
-$graph = new PieGraph(650,350,"grid".$timerepartition,720);
+#$graph = new PieGraph(650,350,"grid".$timerepartition,720);
+$graph = new PieGraph(650,350,"auto");
+
 
 $query = "SELECT timestamp FROM gridstatus ORDER BY timestamp desc LIMIT 1";
 list($res,$nb) = sqlquery($query,$link);
@@ -57,13 +59,12 @@ if ($res[0][0]) {
 	$graph->title->SetFont(FF_FONT1,FS_BOLD);
 	$graph->SetShadow();
 
-	$p1 = new PiePlot3D($data);
-	$p1->SetSize(0.4);
+	$p1 = new PiePlot($data);
+	$p1->SetSize(0.23);
 	$p1->SetCenter(0.35,0.65);
 	$p1->SetTheme("sand");
 	$p1->SetLegends($legend);
 	$p1->SetSliceColors(array('brown','lightred','gray','lightgreen'));
-
 	$graph->Add($p1);
 	$graph->Stroke();
 }
