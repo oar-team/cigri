@@ -77,11 +77,13 @@ EOF;
             else { $smarty->assign("Timestamp",$nb); }
 
 	    # Getting the running or waiting multijobs
-            $query = "SELECT multipleJobs.MjobsId,MJobsState,MJobsUser,average,stddev,throughput,max(forecasts.timestamp)
+            $query = "SELECT multipleJobs.MjobsId,MJobsState,MJobsUser,average,stddev,throughput
 	              FROM multipleJobs,forecasts
 	              WHERE not MJobsState='TERMINATED'
+                      AND clusterName='GLOBAL'
 		      AND multipleJobs.MjobsId=forecasts.MjobsId
-                      GROUP BY multipleJobs.MJobsId
+                      ORDER BY forecasts.timestamp desc
+		      LIMIT 1
 		      ";
             list($res,$nb) = sqlquery($query,$link);
 	    if ($nb != 0)  {
@@ -109,8 +111,10 @@ EOF;
 		    if ($n) { $res[$i][7]=htmlentities($r[0][0]);}
 		    # Count the running jobs
 		    $query="SELECT count(*) FROM jobs 
-		            WHERE jobMjobsId='$mjobid' 
-		            AND jobState='Running'";
+                            WHERE jobMjobsId='$mjobid'
+                            AND jobState='Running'
+                            AND jobClusterName NOT IN 
+                              (select clusterBlackListClusterName from clusterBlackList where clusterBlackListMJobsID='$mjobid')";
 	            list($r,$n)=sqlquery($query,$link);
 		    if ($n) { $res[$i][9]=htmlentities($r[0][0]);}
 		    # Count the terminated jobs

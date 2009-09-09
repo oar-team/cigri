@@ -16,6 +16,8 @@ class Forecasts
 
 		@average, @stddev = get_average_by_cluster
 		@global_average, @global_stddev = get_global_average
+		@average['GLOBAL']=@global_average
+		@stddev['GLOBAL']=@global_stddev
 
 		if get_conf("TIME_WINDOW_SIZE")
 			time_window_size=get_conf("TIME_WINDOW_SIZE").to_i
@@ -25,6 +27,7 @@ class Forecasts
 		
 		@throughput = get_throughput_by_cluster(time_window_size);
 		@global_throughput = get_global_throughput(time_window_size);
+		@throughput['GLOBAL']=@global_throughput
 	end
 
 
