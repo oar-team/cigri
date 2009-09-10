@@ -116,8 +116,8 @@ foreach my $i (keys(%jobRunningHash)){
                 }else{
                     # the job was killed by the batch scheduler of the cluster
                     # maybe it was too long, or an other job had to pass
-                    print("[UPDATOR]     Error: Can t find the FINISH TAG for the job ${$j}{jobId}\n");
-                    print("[UPDATOR]     Error: cat $remoteFile ==> $cmdResult{STDOUT}\n");
+                    print("[UPDATOR]     Job killed (Can t find the FINISH TAG for the job ${$j}{jobId})\n");
+                    #print("[UPDATOR]     Error: cat $remoteFile ==> $cmdResult{STDOUT}\n");
                     iolibCigri::set_job_state($base, ${$j}{jobId}, "Event");
                     colomboCigri::add_new_job_event($base,${$j}{jobId},"UPDATOR_JOB_KILLED","Can t find the FINISH TAG in the cigri remote file <$remoteFile> : $cmdResult{STDOUT}");
                 }
