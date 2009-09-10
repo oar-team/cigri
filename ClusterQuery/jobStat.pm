@@ -29,23 +29,23 @@ use warnings;
 use OARiolib;
 
 
-my %qstatCmd = ('PBS' => \&pbsstat,
-                'OAR' => \&oarstat,
-                'OAR2' => \&oarstat2,
-                'OAR_mysql' => \&oarstatMysql);
+my %qstatCmd = ( 'OAR' => \&oarstat,
+                 'OAR2' => \&oarstat2);
 
 #arg1 --> cluster name
-#arg2 --> ref to the result hash
-sub jobStat($$){
+#arg2 --> ref to the status hash
+#arg3 --> ref to the resources number hash
+sub jobStat($$$){
     my $cluster = shift;
-    my $resRefHash = shift;
+    my $statusHash = shift;
+    my $resourcesnumberHash = shift;
 
     my $base = iolibCigri::connect();
     my %clusterProperties = iolibCigri::get_cluster_names_batch($base);
     my %result ;
     my $retCode = -1;
     if (defined($cluster) && defined($clusterProperties{$cluster})){
-        $retCode = &{$qstatCmd{$clusterProperties{$cluster}}}($base,$cluster,$resRefHash);
+        $retCode = &{$qstatCmd{$clusterProperties{$cluster}}}($base,$cluster,$statusHash,$resourcesnumberHash);
     }
     iolibCigri::disconnect($base);
     return($retCode);
@@ -53,28 +53,17 @@ sub jobStat($$){
 
 #arg1 --> db ref
 #arg2 --> cluster name
-#arg3 --> ref to the result hash
-sub pbsstat($$$){
+#arg3 --> ref to the status hash
+#arg4 --> ref to the used resources number hash
+sub oarstat($$$$){
     my $dbh = shift;
     my $cluster = shift;
-    my $resRefHash = shift;
-
-    print("PBS NOT IMPLEMENTED -- $cluster\n");
-    my %jobState;
-    undef(%jobState);
-    return(1);
-}
-
-#arg1 --> db ref
-#arg2 --> cluster name
-#arg3 --> ref to the result hash
-sub oarstat($$$){
-    my $dbh = shift;
-    my $cluster = shift;
-    my $resRefHash = shift;
+    my $statusHash = shift;
+    my $resourcesnumberHash = shift;
 
     #print("$cluster --> OAR\n");
     my %jobState;
+    my %jobResources;
     my %cmdResult = SSHcmdClient::submitCmd($cluster,"oarstat -f");
     #print(Dumper(%cmdResult));
     if ($cmdResult{STDERR} ne ""){
@@ -93,23 +82,28 @@ sub oarstat($$$){
             $jobStr =~ /Job Id: (\d+).*job_state = (.).*/s;
             #print("[UPDATOR_DEBUG] $jobStr\n");
             $jobState{$1} = $2;
+            $jobResources{$1} = 1;
         }
     }
 
-    %{$resRefHash} = %jobState;
+    %{$statusHash} = %jobState;
+    %{$resourcesnumberHash} = %jobResources;
     return(1);
 }
 
 #arg1 --> db ref
 #arg2 --> cluster name
-#arg3 --> ref to the result hash
-sub oarstat2($$$){
+#arg3 --> ref to the status hash
+#arg4 --> ref to the used resources number hash
+sub oarstat2($$$$){
     my $dbh = shift;
     my $cluster = shift;
-    my $resRefHash = shift;
+    my $statusHash = shift;
+    my $resourcesnumberHash = shift;
 
     #print("$cluster --> OAR2\n");
     my %jobState;
+    my %jobResources;
     my %cmdResult = SSHcmdClient::submitCmd($cluster,"oarstat -D");
     #print(Dumper(%cmdResult));
     if ($cmdResult{STDERR} ne ""){
@@ -125,47 +119,13 @@ sub oarstat2($$$){
           foreach my $job (keys(%{$oarjobs})) {
             $oarjobs->{$job}->{state} =~ /^(.).*/s; 
             $jobState{$job} = $1 ;
+            $jobResources{$job} = $#{$oarjobs->{$job}->{assigned_resources}}+1;
           }
         }
-        #### Commented because an empty job list is something that is possible ####
-        #}else{
-        #  print("[UPDATOR]     ERROR: There is an error in the oarstat command parsing\n");
-        #       colomboCigri::add_new_cluster_event($dbh,$cluster,0,"UPDATOR_OARSTAT_PARSE",
-        #                   "There is an error in the oarstat command parsing");
-        #       return(-1);
-        #}
-
-        #my @jobsStrs = split(/^\s*\n/m,$qstatStr);
-        ## for each job section, record its state
-        #foreach my $jobStr (@jobsStrs){
-        #    $jobStr =~ /Job_Id: (\d+).*state = (.).*/s;
-        #    #print("[UPDATOR_DEBUG] $jobStr\n");
-        #    $jobState{$1} = $2;
-        #}
     }
 
-    %{$resRefHash} = %jobState;
-    return(1);
-}
-
-#arg1 --> db ref
-#arg2 --> cluster name
-#arg3 --> ref to the result hash
-sub oarstatMysql($$$){
-    my $dbh = shift;
-    my $cluster = shift;
-    my $resRefHash = shift;
-    my $nodeRefHash = shift;
-
-    #print("OAR_mysql -- $cluster\n");
-    my $OARdb = OARiolib::connect($dbh,$cluster);
-    if (!defined($OARdb)){
-        return(-1);
-    }
-    my %jobState = OARiolib::listCurrentJobs($OARdb);
-    OARiolib::disconnect($dbh);
-
-    %{$resRefHash} = %jobState;
+    %{$statusHash} = %jobState;
+    %{$resourcesnumberHash} = %jobResources;
     return(1);
 }
 

@@ -80,6 +80,7 @@ sub get_MJobs_JDL($$);
 sub get_launching_job($$) ;
 sub get_cluster_job_toLaunch($$$) ;
 sub set_job_state($$$) ;
+sub set_job_number_of_resources($$$) ;
 sub get_mjobs_state($$);
 sub set_mjobs_state($$$) ;
 sub set_job_batch_id($$$);
@@ -1273,7 +1274,19 @@ sub set_job_state($$$) {
     $sth->finish();
 }
 
-
+# set the number of resources of a job
+# arg1 --> database ref
+# arg2 --> jobId
+# arg3 --> number of used resources by this job
+sub set_job_number_of_resources($$$) {
+    my $dbh = shift;
+    my $idJob = shift;
+    my $number = shift;
+    my $sth = $dbh->prepare("UPDATE jobs SET jobResources = \"$number\"
+                                WHERE jobId =\"$idJob\"");
+    $sth->execute();
+    $sth->finish();
+}
 
 #get the state of an mjob 
 ## arg1 --> database ref

@@ -95,17 +95,7 @@ class Cluster
 
     # Calculate the number of running jobs on the cluster
     def used_resources
-       query = "SELECT count(*) FROM properties,jobs 
-		          LEFT JOIN clusterBlackList 
-			       ON jobs.jobMJobsId = clusterBlackListMJobsID 
-                   AND jobClusterName=clusterBlackListClusterName 
-			      LEFT JOIN events 
-			       ON eventId=clusterBlackListEventId
-		           WHERE jobClusterName='#{@name}' 
-		           AND jobState='Running'
-		           AND propertiesClusterName=jobClusterName 
-		           AND propertiesMJobsId=jobMJobsId 
-		           AND (eventState != \"ToFIX\" OR eventState is null);"
+       query = "SELECT sum(jobResources) as count FROM jobs WHERE jobClusterName='#{@name}'";
        sql_count=@dbh.select_all(query)
        return sql_count[0]['count'].to_i || 0
     end
@@ -181,9 +171,12 @@ clusters.each do |cluster|
   warn "    Free #{cluster.unit}s: #{free}" if $verbose
   warn "    Jobs launched by CiGri : #{used}" if $verbose
   warn "    To launch : #{tolaunch}" if $verbose
+  #query = "INSERT INTO gridstatus (timestamp,clusterName,maxResources,freeResources,usedResources,blacklisted)
+  #                                VALUES
+  #				  ('#{timestamp}','#{cluster.name}','#{max}','#{free-tolaunch}','#{used+tolaunch}','#{blacklisted}')"
   query = "INSERT INTO gridstatus (timestamp,clusterName,maxResources,freeResources,usedResources,blacklisted)
                                   VALUES
-				  ('#{timestamp}','#{cluster.name}','#{max}','#{free-tolaunch}','#{used+tolaunch}','#{blacklisted}')"
+  				  ('#{timestamp}','#{cluster.name}','#{max}','#{free}','#{used}','#{blacklisted}')"
   dbh.do(query)  
 end
 if $verbose
