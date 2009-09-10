@@ -77,13 +77,13 @@ EOF;
             else { $smarty->assign("Timestamp",$nb); }
 
 	    # Getting the running or waiting multijobs
-            $query = "SELECT multipleJobs.MjobsId,MJobsState,MJobsUser,average,stddev,throughput,max(timestamp)
-	              FROM multipleJobs,forecasts
-	              WHERE not MJobsState='TERMINATED'
-                      AND clusterName='GLOBAL'
-		      AND multipleJobs.MjobsId=forecasts.MjobsId
-                      GROUP BY MjobsId
-                      ORDER BY forecasts.timestamp desc
+            $query = "SELECT multipleJobs.MjobsId,MJobsState,MJobsUser,average,stddev,throughput
+                       FROM multipleJobs,forecasts
+                       WHERE not MJobsState='TERMINATED'
+                       AND clusterName='GLOBAL'
+                       AND multipleJobs.MjobsId=forecasts.MjobsId 
+                       AND timestamp IN 
+                          (SELECT max(timestamp) FROM forecasts where clusterName='GLOBAL' GROUP BY MjobsId)
 		      ";
             list($res,$nb) = sqlquery($query,$link);
 	    if ($nb != 0)  {
