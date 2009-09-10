@@ -287,7 +287,7 @@ CREATE TABLE IF NOT EXISTS forecasts (
 timeStamp DATETIME NOT NULL ,
 mJobsId INT UNSIGNED NOT NULL ,
 clusterName VARCHAR( 100 ) NOT NULL ,
-jobRatio INT UNSIGNED,
+jobRatio FLOAT,
 average FLOAT NOT NULL ,
 stddev FLOAT NOT NULL ,
 throughput FLOAT NOT NULL ,
