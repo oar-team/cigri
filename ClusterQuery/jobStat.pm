@@ -117,8 +117,9 @@ sub oarstat2($$$$){
         my $oarjobs=(eval$cmdResult{STDOUT});
         if (defined %{$oarjobs}) {
           foreach my $job (keys(%{$oarjobs})) {
-            $oarjobs->{$job}->{state} =~ /^(.).*/s; 
-            $jobState{$job} = $1 ;
+            $oarjobs->{$job}->{state} =~ /^(.).*/s;
+            if ($1 eq "L") {$jobState{$job} = "R"}
+            else {$jobState{$job} = $1;}
             $jobResources{$job} = $#{$oarjobs->{$job}->{assigned_resources}}+1;
           }
         }
