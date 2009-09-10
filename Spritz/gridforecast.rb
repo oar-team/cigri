@@ -34,8 +34,11 @@ require 'cigriJobs'
 require 'cigriUtils'
 require 'cigriForecasts'
 
-$verbose = false
-#$verbose = true
+if get_conf("DEBUG")
+  $verbose=get_conf("DEBUG").to_i>=1
+else
+  $verbose=false
+end
 
 if get_conf("TIME_WINDOW_SIZE")
   $time_window_size=get_conf("TIME_WINDOW_SIZE").to_i
@@ -63,12 +66,12 @@ forecasts=Forecasts.new(mjob)
 
 #put forecasts
 
-puts mjob if $verbose
-puts forecasts if $verbose
+warn mjob if $verbose
+warn forecasts if $verbose
 
-printf("Forecast (average method): %.3f\n", forecasts.get_global_average[0]) if $verbose
+$stderr.printf("Forecast (average method): %.3f\n", forecasts.get_global_average[0]) if $verbose
 
-printf("Forecast (throughput method): %.3f\n", forecasts.get_global_throughput($time_window_size)) if $verbose
+$stderr.printf("Forecast (throughput method): %.3f\n", forecasts.get_global_throughput($time_window_size)) if $verbose
 
  
 average=forecasts.get_global_average

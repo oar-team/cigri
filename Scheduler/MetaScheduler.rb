@@ -15,8 +15,11 @@ end
 $:.replace([get_conf("INSTALL_PATH")+"/Iolib/"] | $:)
 $:.unshift(File.dirname($0))
 
-
-$verbose = false
+if get_conf("DEBUG")
+  $verbose=get_conf("DEBUG").to_i>=1
+else
+  $verbose=false
+end
 
 require 'dbi'
 require 'time'
@@ -46,7 +49,7 @@ clusters.each{|cluster| free_resources[cluster.name] = cluster.free_resources}
 
 if $verbose
 	free_resources.sort.each {|cluster, nb| 
-		puts "[METASCHEDULER] #{cluster} => #{nb} free nodes"}  
+		warn "[METASCHEDULER]  #{cluster} => #{nb} free nodes"}  
 end
 
 

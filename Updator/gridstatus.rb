@@ -22,7 +22,11 @@ else
 end
 $:.replace([get_conf("INSTALL_PATH")+"/Iolib/"] | $:)
 
-$verbose = false
+if get_conf("DEBUG")
+  $verbose=get_conf("DEBUG").to_i>=1
+else
+  $verbose=false
+end
 
 require 'dbi'
 require 'time'
@@ -76,7 +80,7 @@ class Cluster
 
     # Calculates the maximum resource units this cluster have
     def max_resources
-        puts "searching max resources of #{@name}" if $verbose
+        warn "searching max resources of #{@name}" if $verbose
         query = "SELECT cast(sum(nodeMaxWeight) as unsigned) as max_resources FROM nodes where nodeClusterName='#{@name}'"
 	sql_sum=@dbh.select_all(query)
 	return sql_sum[0]['max_resources'].to_i || 0
@@ -165,29 +169,29 @@ clusters.each do |cluster|
   total_max+=max
   total_free+=free
   total_used+=used
-  puts cluster.to_s if $verbose
+  warn cluster.to_s if $verbose
   if cluster.status
-    puts "    BLACKLISTED! (#{cluster.status_reason})" if $verbose
+    warn "    BLACKLISTED! (#{cluster.status_reason})" if $verbose
     n_blacklisted+=1
     blacklisted=1
   else
     blacklisted=0
   end
-  puts "    Max #{cluster.unit}s:  #{max}" if $verbose
-  puts "    Free #{cluster.unit}s: #{free}" if $verbose
-  puts "    Jobs launched by CiGri : #{used}" if $verbose
-  puts "    To launch : #{tolaunch}" if $verbose
+  warn "    Max #{cluster.unit}s:  #{max}" if $verbose
+  warn "    Free #{cluster.unit}s: #{free}" if $verbose
+  warn "    Jobs launched by CiGri : #{used}" if $verbose
+  warn "    To launch : #{tolaunch}" if $verbose
   query = "INSERT INTO gridstatus (timestamp,clusterName,maxResources,freeResources,usedResources,blacklisted)
                                   VALUES
 				  ('#{timestamp}','#{cluster.name}','#{max}','#{free-tolaunch}','#{used+tolaunch}','#{blacklisted}')"
   dbh.do(query)  
 end
 if $verbose
-  puts
-  puts "TOTAL:"
-  puts "    Total clusters: #{n_clusters}"
-  puts "    Blacklisted clusters: #{n_blacklisted}"
-  puts "    Max resources:  #{total_max}"
-  puts "    Free resources: #{total_free}"
-  puts "    Jobs Launched by CiGri: #{total_used}"
+  warn ""
+  warn "TOTAL:"
+  warn "    Total clusters: #{n_clusters}"
+  warn "    Blacklisted clusters: #{n_blacklisted}"
+  warn "    Max resources:  #{total_max}"
+  warn "    Free resources: #{total_free}"
+  warn "    Jobs Launched by CiGri: #{total_used}"
 end
