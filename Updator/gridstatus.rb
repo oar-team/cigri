@@ -95,7 +95,7 @@ class Cluster
 
     # Calculate the number of running jobs on the cluster
     def used_resources
-       query = "SELECT sum(jobResources) as count FROM jobs WHERE jobClusterName='#{@name}'";
+       query = "SELECT sum(jobResources) as count FROM jobs WHERE jobClusterName='#{@name}' and jobState=\"Running\"";
        sql_count=@dbh.select_all(query)
        return sql_count[0]['count'].to_i || 0
     end
