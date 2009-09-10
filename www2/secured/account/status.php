@@ -77,13 +77,19 @@ EOF;
             else { $smarty->assign("Timestamp",$nb); }
 
 	    # Getting the running or waiting multijobs
+            # Note: the same thing may be done with a nested query, but mysql performance is very poor in this case :-(
+            $query = "select max(timestamp) from forecasts,multipleJobs where clusterName='GLOBAL' and not mjobsState=\"TERMINATED\" and forecasts.mjobsId=multipleJobs.mjobsId group by forecasts.mjobsId;";
+            list($res,$nb) = sqlquery($query,$link);
+            for($i = 0; $i < $nb;$i++) {
+              $ts[$i]="\"".$res[$i][0]."\"";
+            }
+            $timestamps=implode(",", $ts);
             $query = "SELECT multipleJobs.MjobsId,MJobsState,MJobsUser,average,stddev,throughput
                        FROM multipleJobs,forecasts
                        WHERE not MJobsState='TERMINATED'
                        AND clusterName='GLOBAL'
                        AND multipleJobs.MjobsId=forecasts.MjobsId 
-                       AND timestamp IN 
-                          (SELECT max(timestamp) FROM forecasts where clusterName='GLOBAL' GROUP BY MjobsId)
+                       AND timestamp IN ($timestamps)
 		      ";
             list($res,$nb) = sqlquery($query,$link);
 	    if ($nb != 0)  {
