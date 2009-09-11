@@ -52,7 +52,9 @@ my @MjobsToForecast;
 
  
 foreach my $i (@MjobsToForecast){
-    print("[SPRITZ]      I'm forecasting the MJob $i\n");
+    print("[SPRITZ]      I'm forecasting the MJob $i...\n");
+    print("[SPRITZ]          Updating job stats...\n");
+    
     my $cmd = "$forecaster $i";
     my $output = `$cmd`;
     my ($hashref, $arrayref, $string) = YAML::Load($output) || die "[SPRITZ]      Could not parse output of $forecaster";
@@ -60,6 +62,8 @@ foreach my $i (@MjobsToForecast){
 	my %average = %{$hashref->{average}};
 	my %stddev = %{$hashref->{stddev}};
 	my %throughput = %{$hashref->{throughput}};
+
+        print("[SPRITZ]          Calculating job ratios...\n");
 	
 	foreach my $cluster (sort keys %average){
 
@@ -70,39 +74,60 @@ foreach my $i (@MjobsToForecast){
 	my $max_waiting = iolibCigri::get_max_waiting_jobs_by_cluster($base, $cluster); 
 	my $last_free = iolibCigri::get_last_cluster_free_nb($base, $cluster); 
 
-	#calculate new jobratio	(TCP slow-start)
-	#my $jobratio;
-	#if ($nb_waiting > $max_waiting) {
-	#	$jobratio = 0;
-	#}else{
-	#	if ($old_jobratio == 0) {
-	#		$jobratio = 1/$last_free;
-	#	}else{
-	#		$jobratio = $old_jobratio * 2;
-	#	}	
-	#}
-
-	# two-way adaptative prediction
+        # Jobratio calculation
+        ######################
+        my $predictor;
 	my $jobratio;
-	if ($nb_waiting > $max_waiting) {
-		#avoid division by 0
-		if(($old_jobratio*$last_free) > 0){ 
-			$jobratio = (($old_jobratio*$last_free)-($nb_waiting -$max_waiting))/($old_jobratio*$last_free);
-		}else{
+	if (!defined(ConfLibCigri::get_conf("RATIO_PREDICTOR"))) {
+          $predictor="SIMPLE";
+        }
+	else { $predictor=ConfLibCigri::get_conf("RATIO_PREDICTOR") }
+	# TCP slow-start
+        if ($predictor eq "TCP") {
+		if ($nb_waiting > $max_waiting) {
 			$jobratio = 0;
-		}
-	}else{
-		if($old_jobratio == 0){
-			$jobratio = 1;
 		}else{
-			#avoid division by 0
-			if((($old_jobratio*$last_free) > 0) && $nb_running > 0){
-				$jobratio = 1/($nb_running/($old_jobratio*$last_free));
+			if ($old_jobratio == 0) {
+				$jobratio = 1/$last_free;
 			}else{
-				$jobratio *=2;
+				$jobratio = $old_jobratio * 2;
+			}	
+		}
+	}
+	# Two-way adaptative prediction
+        elsif ($predictor eq "TWO_WAY_ADAPTATIVE") {
+		if ($nb_waiting > $max_waiting) {
+			#avoid division by 0
+			if(($old_jobratio*$last_free) > 0){ 
+				$jobratio = (($old_jobratio*$last_free)-($nb_waiting -$max_waiting))/($old_jobratio*$last_free);
+			}else{
+				$jobratio = 0;
+			}
+		}else{
+			if($old_jobratio == 0){
+				$jobratio = 1;
+			}else{
+				#avoid division by 0
+				if((($old_jobratio*$last_free) > 0) && $nb_running > 0){
+					$jobratio = 1/($nb_running/($old_jobratio*$last_free));
+				}else{
+					$jobratio *=2;
+				}
 			}
 		}
 	}
+
+        # Simple average of used resources per job (no adaptative prediction)
+	else {
+		my $nb_resources_avg = iolibCigri::get_nb_resources_average($base,$i,$cluster);
+ 
+	        if ($nb_resources_avg == 0){  
+       		   $jobratio = 0.5;	# Campain startup
+       		}
+        	else {
+		  $jobratio = 1/$nb_resources_avg;
+        	}
+        }
 
 	$jobratio = 0 if $jobratio < 0;
 

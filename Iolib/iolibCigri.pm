@@ -1570,6 +1570,24 @@ sub get_cluster_remoteWaiting_job_nb($$){
     else { return 0; }
 }
 
+# get average of the number of resources used by each job of a mjob on a cluster
+sub get_nb_resources_average($$$){
+    my $dbh = shift;
+    my $mjob = shift;
+    my $cluster = shift;
+
+    my $sth = $dbh->prepare("SELECT AVG(jobResources)
+                             FROM jobs
+                             WHERE jobState in (\"Running\",\"Terminated\")
+							 AND jobClusterName = \"$cluster\"
+							 AND jobMjobsId = \"$mjob\"
+                            ");
+    $sth->execute();
+    my @res  = $sth->fetchrow_array();
+    $sth->finish();
+    if (defined($res[0])) { return $res[0]; }
+    else { return 0; }
+}
 
 # arg1 --> database ref
 # arg2 --> cluster name
