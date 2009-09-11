@@ -123,7 +123,7 @@ dbh = db_init()
 
 # Exits if last update is recent
 query = "select unix_timestamp(now()) - max(timestamp) as t from gridstatus"
-seconds_since_last_update = dbh.select_one(query)['t']
+seconds_since_last_update = dbh.select_one(query)['t'].to_i
 if get_conf("MIN_GRIDSTATUS_UPDATE_FREQ")
   $min_update_frequency=get_conf("MIN_GRIDSTATUS_UPDATE_FREQ").to_i
 else
