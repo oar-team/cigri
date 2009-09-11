@@ -84,8 +84,10 @@ user-install: sanity-check doc-install configuration
 www-install: sanity-check
 	install -d $(DESTDIR)$(WWWDIR)/cigri
 	@if [ -f $(DESTDIR)$(WWWDIR)/cigri/config.inc ]; then mv $(DESTDIR)$(WWWDIR)/cigri/config.inc $(DESTDIR)$(WWWDIR)/cigri/config.inc.orig ; fi
+	@if [ -f $(DESTDIR)$(WWWDIR)/cigri/templates/index.tpl ]; then mv $(DESTDIR)$(WWWDIR)/cigri/templates/index.tpl $(DESTDIR)$(WWWDIR)/cigri/templates/index.tpl.orig ; fi
 	cp -r www2/* $(DESTDIR)$(WWWDIR)/cigri
 	@if [ -f $(DESTDIR)$(WWWDIR)/cigri/config.inc.orig ]; then mv -f $(DESTDIR)$(WWWDIR)/cigri/config.inc.orig $(DESTDIR)$(WWWDIR)/cigri/config.inc; fi
+	@if [ -f $(DESTDIR)$(WWWDIR)/cigri/templates/index.tpl.orig ]; then mv -f $(DESTDIR)$(WWWDIR)/cigri/templates/index.tpl.orig $(DESTDIR)$(WWWDIR)/cigri/templates/index.tpl; fi
 	-chown root:$(WWWGROUP) $(DESTDIR)$(WWWDIR)/cigri/config.inc
 	chmod 640 $(DESTDIR)$(WWWDIR)/cigri/config.inc
 	install -m 750 -d $(DESTDIR)$(WWWDIR)/cigri/templates_c
