@@ -28,10 +28,11 @@ use warnings;
 use OARiolib;
 
 
-my %nodeCmd = ('PBS' => \&pbsnodes,
+my %nodeCmd = (
                'OAR' => \&oarnodes,
                'OAR2' => \&oarnodes2,
-               'OAR_mysql' => \&oarnodesMysql);
+               'OAR2_3' => \&oarnodes2,
+              );
 
 #arg1 --> cluster name
 sub updateNodeStat($){
@@ -48,17 +49,6 @@ sub updateNodeStat($){
     return($retCode);
 }
 
-#arg1 --> db ref
-#arg2 --> cluster name
-sub pbsnodes($$){
-    my $dbh = shift;
-    my $cluster = shift;
-
-    print("PBS NOT IMPLEMENTED -- $cluster\n");
-    my %nodeState;
-    undef(%nodeState);
-    return(1);
-}
 
 #arg1 --> db ref
 #arg2 --> cluster name
@@ -230,26 +220,6 @@ sub oarnodes2($$){
       return(-1);
       }
     }
-    return(1);
-}
-
-#arg1 --> db ref
-#arg2 --> cluster name
-sub oarnodesMysql($$){
-    my $dbh = shift;
-    my $cluster = shift;
-
-    print("$cluster --> OAR_mysql\n");
-    my $OARdb = OARiolib::connect($dbh,$cluster);
-    if (!defined($OARdb)){
-        return(-1);
-    }
-    my %nodeState = OARiolib::getFreeNodes($OARdb);
-    foreach my $i (keys(%nodeState)){
-        iolibCigri::set_cluster_node_state($dbh, $cluster, $i, $nodeState{$i});
-    }
-    OARiolib::disconnect($dbh);
-
     return(1);
 }
 

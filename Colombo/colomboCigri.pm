@@ -630,6 +630,7 @@ Mjob $ref[2]  \n";
 sub resubmit_job($$){
     my $dbh = shift;
     my $jobId = shift;
+    print("[COLOMBO]     Resubmiting job: $jobId\n");
     $dbh->do("    INSERT INTO parameters (parametersMJobsId,parametersParam,parametersName,parametersPriority)
                 SELECT jobMJobsId, jobParam, jobName, 1
                 FROM jobs

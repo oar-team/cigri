@@ -30,7 +30,8 @@ use OARiolib;
 
 
 my %qstatCmd = ( 'OAR' => \&oarstat,
-                 'OAR2' => \&oarstat2);
+                 'OAR2' => \&oarstat2,
+                 'OAR2_3' => \&oarstat2);
 
 #arg1 --> cluster name
 #arg2 --> ref to the status hash

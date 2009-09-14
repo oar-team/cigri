@@ -36,6 +36,7 @@ use ConfLibCigri qw(init_conf dump_conf get_conf is_conf);
 my %checkpointCmd = (
                 'OAR' => \&oarcheckpoint,
                 'OAR2' => \&oarcheckpoint
+                'OAR2_3' => \&oarcheckpoint
                  );
 
 #arg1 --> cluster name

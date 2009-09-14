@@ -30,10 +30,11 @@ use OARiolib;
 use oarNotify;
 
 
-my %qdelCmd = ( 'PBS' => \&pbsdel,
+my %qdelCmd = ( 
                 'OAR' => \&oardel,
                 'OAR2' => \&oardel2,
-                'OAR_mysql' => \&oardelMysql);
+                'OAR2_3' => \&oardel2,
+               );
 
 #arg1 --> cluster name
 #arg2 --> user
@@ -68,19 +69,6 @@ sub endJobDel(){
     return(0);
 }
 
-#arg1 --> db ref
-#arg2 --> cluster name
-#arg3 --> user
-#arg4 --> jobBatchId to delete
-sub pbsdel($$$$){
-    my $dbh = shift;
-    my $cluster = shift;
-    my $user = shift;
-    my $jobBatchId = shift;
-
-    print("PBS NOT IMPLEMENTED -- $cluster\n");
-    return(1);
-}
 
 #arg1 --> db ref
 #arg2 --> cluster name
@@ -130,28 +118,6 @@ sub oardel2($$$$){
     return(1);
 }
 
-#arg1 --> db ref
-#arg2 --> cluster name
-#arg3 --> user
-#arg4 --> jobBatchId to delete
-sub oardelMysql($$$$){
-    my $dbh = shift;
-    my $cluster = shift;
-    my $user = shift;
-    my $jobBatchId = shift;
-
-    print("OAR_mysql -- $cluster\n");
-    my $OARdb = OARiolib::connect($dbh,$cluster);
-    if (!defined($OARdb)){
-        return(-1);
-    }
-    OARiolib::fragRemoteJob($OARdb,$jobBatchId);
-    OARiolib::disconnect($dbh);
-
-    $clusterToNotify{$cluster} = 1;
-
-    return($retCode);
-}
 
 return 1;
 

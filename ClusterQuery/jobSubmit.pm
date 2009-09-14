@@ -32,10 +32,11 @@ use OARiolib;
 use oarNotify;
 
 
-my %submitCmd = ('PBS' => \&pbssubmit,
+my %submitCmd = (
                   'OAR' => \&oarsubmit,
                   'OAR2' => \&oarsubmit2,
-                  'OAR_mysql' => \&oarsubmitMysql);
+                  'OAR2_3' => \&oarsubmit2,
+                );
 
 #arg1 --> cluster name
 #arg2 --> blacklisted nodes
@@ -86,31 +87,6 @@ sub endJobSubmissions($){
 }
 
 
-#arg1 --> db ref
-#arg2 --> cluster name
-#arg3 --> blacklisted nodes
-#arg4 --> user
-#arg5 --> jobFile to submit
-#arg6 --> walltime
-#arg7 --> job required resources (OAR -l)
-#arg8 --> execDir
-#arg9 --> jobId
-#arg10 -> jobName
-sub pbssubmit($$$$$$$$$$){
-    my $dbh = shift;
-    my $cluster = shift;
-    my $blackNodes = shift;
-    my $user = shift;
-    my $jobFile = shift;
-    my $walltime = shift;
-    my $resources = shift;
-    my $execDir = shift;
-    my $jobId = shift;
-    my $jobName = shift;
-
-    print("PBS NOT IMPLEMENTED -- $cluster\n");
-    return(-1);
-}
 
 #arg1 --> db ref
 #arg2 --> cluster name
@@ -281,39 +257,6 @@ sub oarsubmit2($$$$$$$$$$){
         }
     }
     return(-2);
-}
-
-# DEPRECATED
-#arg1 --> db ref
-#arg2 --> cluster name
-#arg3 --> blacklisted nodes
-#arg4 --> user
-#arg5 --> jobFile to submit
-#arg6 --> walltime
-#arg7 --> weight
-#return jodBatchId or -1 for an error
-sub oarsubmitMysql($$$$$$$){
-    my $dbh = shift;
-    my $cluster = shift;
-    my $blackNodes = shift;
-    my $user = shift;
-    my $jobFile = shift;
-    #not implemented
-    my $walltime = shift;
-    my $weight = shift;
-
-    #print("OAR_mysql -- $cluster\n");
-    my $OARdb = OARiolib::connect($dbh,$cluster);
-    if (!defined($OARdb)){
-        return(-1);
-    }
-    my $jobBatchId = OARiolib::submitJob($OARdb,$dbh,$cluster,$user,$jobFile,$blackNodes);
-    OARiolib::disconnect($dbh);
-
-    # Notify OAR
-    $clusterToNotify{$cluster} = 1;
-
-    return($jobBatchId);
 }
 
 return 1;
