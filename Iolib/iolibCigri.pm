@@ -1222,15 +1222,19 @@ sub get_cluster_job_toLaunch($$$) {
 
         begin_transaction($dbh);
 
-        $dbh->do("INSERT INTO jobs (jobId,jobState,jobMJobsId,jobParam,jobName,jobClusterName,jobTSub)
-        VALUES (NULL,\"toLaunch\",$MJobtoSubmit[0],\"$$parameter{parametersParam}\",\"$$parameter{parametersName}\",\"$clusterName\",\"$time\")");
+        # An empty parameter may happen if no more jobs to submit are left in the bag of task
+        if (defined($$parameter{parametersParam}) && "$$parameter{parametersParam}" ne "") {
 
-        # delete used param
-        $dbh->do("DELETE FROM parameters
+          $dbh->do("INSERT INTO jobs (jobId,jobState,jobMJobsId,jobParam,jobName,jobClusterName,jobTSub)
+          VALUES (NULL,\"toLaunch\",$MJobtoSubmit[0],\"$$parameter{parametersParam}\",\"$$parameter{parametersName}\",\"$clusterName\",\"$time\")");
+
+          # delete used param
+          $dbh->do("DELETE FROM parameters
                   WHERE parametersMJobsId = $MJobtoSubmit[0]
                   AND parametersParam = \"$$parameter{parametersParam}\"
                   LIMIT 1
                  ");
+        }
 
         # delete used entry in jobToSubmit
         my $newNumber = $MJobtoSubmit[1] - 1;
