@@ -65,7 +65,7 @@ my $MJobId;
 
 GetOptions ("jdl|f=s" =>  \$JDLfile,
 			"type|t=s" => \$mJobType,
-			"resubmit|r=i" => \$resubmit,
+			"resubmit|r" => \$resubmit,
 			"suspend|s=i" => \$suspend,
 			"continue|c=i" => \$continue,
 			"job|j=i" => \$jobId,
