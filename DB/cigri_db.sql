@@ -40,6 +40,8 @@ INDEX eventState (eventState),
 PRIMARY KEY (eventId)
 )TYPE = InnoDB;
 
+CREATE INDEX eventMjobsId ON events(eventMjobsId);
+
 DROP TABLE IF EXISTS clusters;
 CREATE TABLE IF NOT EXISTS clusters (
 clusterName VARCHAR( 100 ) NOT NULL ,
