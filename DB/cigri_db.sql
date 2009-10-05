@@ -215,6 +215,8 @@ clusterBlackListEventId INT UNSIGNED NOT NULL ,
 PRIMARY KEY (clusterBlackListClusterName,clusterBlackListEventId)
 )TYPE = InnoDB;
 
+create index clusterBlackListMJobsID on clusterBlackList(clusterBlackListMJobsID);
+
 DROP TABLE IF EXISTS nodeBlackList;
 CREATE TABLE IF NOT EXISTS nodeBlackList (
 nodeBlackListNum INT UNSIGNED NOT NULL ,
