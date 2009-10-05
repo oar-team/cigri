@@ -80,6 +80,7 @@ EOF;
             # Note: the same thing may be done with a nested query, but mysql performance is very poor in this case :-(
             $query = "select max(timestamp) from forecasts,multipleJobs where clusterName='GLOBAL' and not mjobsState=\"TERMINATED\" and forecasts.mjobsId=multipleJobs.mjobsId group by forecasts.mjobsId;";
             list($res,$nb) = sqlquery($query,$link);
+            $ts[0]="00:00:00 0000-00-00";
             for($i = 0; $i < $nb;$i++) {
               $ts[$i]="\"".$res[$i][0]."\"";
             }
