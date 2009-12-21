@@ -58,7 +58,7 @@
                         <th>User</th>
                         <th>Average job duration</th>
                         <th>Job throughput</th>
-			<th>term/run/wait</th>
+			<th>term/run/wait/err</th>
 			<th>resubmissions</th>
         </tr>
         {foreach from=$jobarray item=secondkey}
@@ -68,7 +68,7 @@
                                 <td align="center">{$secondkey[2]}</td>
                                 <td align="center">{$secondkey[3]} s</td>
                                 <td align="center">{$secondkey[5]} j/h</td>
-                                <td align="center">{$secondkey[8]}/{$secondkey[9]}/{$secondkey[7]}</td>
+                                <td align="center">{$secondkey[8]}/{$secondkey[9]}/{$secondkey[7]}/{$secondkey[10]}</td>
                                 <td align="center">{$secondkey[6]}%</td>
             </tr>
         {/foreach}

@@ -4,7 +4,7 @@
 		<h5>MultiJob #{$jobid} Properties - {$MJstate} MultiJob</h5>
 		<p><b>FORECAST</b>: Avg:<b>{$ForecastAvg}</b> / Stddev:<b>{$ForecastStddev}</b> / Troughput:<b>{$ForecastThroughput} j/h</b> / End:<b> {$ForecastDuration} ({$ForecastEnd})</b>
         <br>
-        <b>STATUS</b>: Term: <b>{$n_term}</b> / Run: <b>{$n_run}</b> / RemoteWait: <b>{$n_rwait}</b> / Wait: <b>{$n_wait}</b> / resubmissions: <b>{$resubmissions}</b>%
+        <b>STATUS</b>: Term: <b>{$n_term}</b> / Run: <b>{$n_run}</b> / RemoteWait: <b>{$n_rwait}</b> / Wait: <b>{$n_wait}</b> / Errors: <b>{$n_err}</b> / resubmissions: <b>{$resubmissions}</b>%
         <p>
 
                 <table border="0">

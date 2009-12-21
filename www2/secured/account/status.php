@@ -130,6 +130,13 @@ EOF;
 		            AND jobState='Terminated'";
 	            list($r,$n)=sqlquery($query,$link);
 		    if ($n) { $res[$i][8]=htmlentities($r[0][0]);}
+                    # Count the jobs in error state
+                    $query="SELECT count(*) FROM events
+                            WHERE eventState = 'ToFIX'
+                            AND eventClass ='JOB'
+                            AND eventMJobsId = '$mjobid'";
+                    list($r,$n)=sqlquery($query,$link);
+                    if ($n) { $res[$i][10]=htmlentities($r[0][0]);}
 		    # Calculate the resubmission percentage
 		    if (($r[0][0]+$resubmited) != 0) {
 		      $res[$i][6]=htmlentities(floor($resubmited*100/($r[0][0]+$resubmited)));
