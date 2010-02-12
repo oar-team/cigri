@@ -34,6 +34,7 @@ my %qdelCmd = (
                 'OAR' => \&oardel,
                 'OAR2' => \&oardel2,
                 'OAR2_3' => \&oardel2,
+                'OAR2_4' => \&oardel2,
                );
 
 #arg1 --> cluster name

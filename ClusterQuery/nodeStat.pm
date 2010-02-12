@@ -32,6 +32,7 @@ my %nodeCmd = (
                'OAR' => \&oarnodes,
                'OAR2' => \&oarnodes2,
                'OAR2_3' => \&oarnodes2,
+               'OAR2_4' => \&oarnodes2_4,
               );
 
 #arg1 --> cluster name
@@ -222,6 +223,111 @@ sub oarnodes2($$){
     }
     return(1);
 }
+
+#arg1 --> db ref
+#arg2 --> cluster name
+sub oarnodes2_4($$){
+    my $dbh = shift;
+    my $cluster = shift;
+    my %clusterResourceUnit = iolibCigri::get_cluster_names_resource_unit($dbh);
+    my %clusterProperties = iolibCigri::get_cluster_names_properties($dbh);
+    my $filter_prop;
+    my $filter_val;
+    ($filter_prop,$filter_val)=split(/=/,$clusterProperties{$cluster});
+    if ("$filter_prop" eq "1") { $filter_prop="besteffort"; $filter_val="YES";}
+    my $resourceUnit=$clusterResourceUnit{$cluster};
+    #print("$cluster --> OAR2, unit:$resourceUnit\n");
+    my %nodeState;
+    #my $properties=$clusterProperties{$cluster};
+    #my $cmd="oarnodes -D --sql \"$properties\""; # Doesn't work - quotes problem Mysql/Pg :-(
+    my $cmd="oarnodes.old -D 2>/dev/null";
+   # my %cmdResult = SSHcmdClient::submitCmd($cluster,"oarnodes --backward");
+    my %cmdDump = SSHcmdClient::submitCmd($cluster,$cmd);
+    my $oarnodesStr = $cmdDump{STDOUT};
+    if ($cmdDump{STDERR} eq ""){
+      my $oarnodes=eval($oarnodesStr);
+      if (defined %{$oarnodes}) {
+        foreach my $node (keys(%{$oarnodes})) {
+           my %jobs;
+           my %maxWeight;
+           my %totalWeight;
+           foreach my $resource (keys(%{$oarnodes->{$node}})) {
+             if ("$oarnodes->{$node}->{$resource}->{network_address}" ne "") {
+	       # Get the id of the "cpu" or "core"
+	       $resourceUnitId=$oarnodes->{$node}->{$resource}->{properties}->{$resourceUnit};
+	       # Count resources per cpu or core (yes, we can have several resources per core sometimes
+	       # on shared memory computers were we have several routers for example)
+               $totalWeight{$resourceUnitId}++ if ($oarnodes->{$node}->{$resource}->{properties}->{besteffort} eq "YES"
+	                                           &&
+						   $oarnodes->{$node}->{$resource}->{properties}->{$filter_prop} eq "$filter_val");
+               $maxWeight{$resourceUnitId}++ if (
+	                                         (
+						  $oarnodes->{$node}->{$resource}->{state} eq "Alive"
+	                                             ||
+	                                          (
+						   $oarnodes->{$node}->{$resource}->{state} eq "Absent" 
+						     &&
+						   (
+						    defined($oarnodes->{$node}->{$resource}->{properties}->{cm_availability})
+						       &&
+						    $oarnodes->{$node}->{$resource}->{properties}->{cm_availability} > time() 
+						       &&
+						    $oarnodes->{$node}->{$resource}->{properties}->{cm_availability} != 2147483647
+						   )
+						  )
+						 )
+                                                   && 
+				                  $oarnodes->{$node}->{$resource}->{properties}->{besteffort} eq "YES"
+						   &&
+						  $oarnodes->{$node}->{$resource}->{properties}->{$filter_prop} eq "$filter_val"
+						);
+                 foreach my $line (keys(%{$oarnodes->{$node}->{$resource}})) {
+                     if ($line eq "jobs") { $jobs{$resourceUnitId}++; }
+                 }
+             }else{
+               print("[UPDATOR]     ERROR: There is an error in the oarnodes command ($cmd) parsing: network_address not found\n");
+               colomboCigri::add_new_cluster_event($dbh,$cluster,0,"UPDATOR_PBSNODES_PARSE",
+                           "There is an error in the oarnodes command ($cmd) parsing: network_address not found");
+               return(-1);
+             }
+           }
+	   # We only want the real resources, so we count unique resourceUnit
+	   my $jobs=0;
+	   my $maxWeight=0;
+	   my $totalWeight=0;	    
+	   foreach my $resource (keys(%totalWeight)) { 
+	     $jobs++ if($jobs{$resource});
+	     $maxWeight++ if ($maxWeight{$resource});
+	     $totalWeight++ if ($totalWeight{$resource});
+	   }
+           # database update
+	   if ($totalWeight > 0 ) {
+             iolibCigri::set_cluster_node_free_weight($dbh, $cluster, $node, $maxWeight-$jobs);
+             iolibCigri::set_cluster_node_max_weight($dbh, $cluster, $node, $totalWeight);
+	   }
+           #print "$node: $maxWeight-$jobs\n";
+        }
+      }else{
+        print("[UPDATOR]     ERROR: There is an error in the oarnodes command ($cmd) parsing\n");
+        colomboCigri::add_new_cluster_event($dbh,$cluster,0,"UPDATOR_PBSNODES_PARSE",
+                           "There is an error in the oarnodes command ($cmd) parsing");
+        return(-1);
+      }
+    }else{
+      print("[UPDATOR]     ERROR: There is an error in the execution of the oarnodes command ($cmd) via SSH\n");
+      print("  --> I disable all nodes of the cluster $cluster \n");
+      print("[UPDATOR]     ERROR: $cmdDump{STDERR}\n");
+      # Test if this is an SSH error
+      if (NetCommon::checkSshError($dbh,$cluster,$cmdDump{STDERR}) != 1){
+         colomboCigri::add_new_cluster_event($dbh,$cluster,0,"UPDATOR_PBSNODES_CMD",
+              "There is an error in the execution of the oarnodes command via SSH"
+              ." -->I disable all nodes of the cluster $cluster;$cmdDump{STDERR}");
+      return(-1);
+      }
+    }
+    return(1);
+}
+
 
 return 1;
 

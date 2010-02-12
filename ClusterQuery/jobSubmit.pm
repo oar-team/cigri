@@ -36,6 +36,7 @@ my %submitCmd = (
                   'OAR' => \&oarsubmit,
                   'OAR2' => \&oarsubmit2,
                   'OAR2_3' => \&oarsubmit2,
+                  'OAR2_4' => \&oarsubmit2,
                 );
 
 #arg1 --> cluster name

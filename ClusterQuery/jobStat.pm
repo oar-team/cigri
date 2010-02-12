@@ -31,7 +31,8 @@ use OARiolib;
 
 my %qstatCmd = ( 'OAR' => \&oarstat,
                  'OAR2' => \&oarstat2,
-                 'OAR2_3' => \&oarstat2);
+                 'OAR2_3' => \&oarstat2,
+                 'OAR2_4' => \&oarstat2);
 
 #arg1 --> cluster name
 #arg2 --> ref to the status hash
@@ -102,7 +103,7 @@ sub oarstat2($$$$){
     my $statusHash = shift;
     my $resourcesnumberHash = shift;
 
-    #print("$cluster --> OAR2\n");
+    print("$cluster --> OAR2\n");
     my %jobState;
     my %jobResources;
     my %cmdResult = SSHcmdClient::submitCmd($cluster,"oarstat -D");
@@ -117,11 +118,13 @@ sub oarstat2($$$$){
     }else{
         my $oarjobs=(eval$cmdResult{STDOUT});
         if (defined %{$oarjobs}) {
+          #if ($cluster eq "browalle.ujf-grenoble.fr") { print(Dumper(%{$oarjobs})); };
           foreach my $job (keys(%{$oarjobs})) {
             $oarjobs->{$job}->{state} =~ /^(.).*/s;
             if ($1 eq "L") {$jobState{$job} = "R"}
             else {$jobState{$job} = $1;}
             $jobResources{$job} = $#{$oarjobs->{$job}->{assigned_resources}}+1;
+            #print "  resources for job $job:".$#{$oarjobs->{$job}->{assigned_resources}} ."\n";
           }
         }
     }
