@@ -456,7 +456,8 @@ sub check_events($){
                             FROM events
                             WHERE eventState = \"ToFIX\"
                                 AND (eventType = \"UPDATOR_RET_CODE_ERROR\" 
-						     	OR eventType = \"OAR_OARSUB\"
+                                OR eventType = \"OAR_OARSUB\"
+                                OR eventType = \"JOB_COLLECT\"
                                 OR eventType = \"RUNNER_SUBMIT\")
                             ");
     $sth->execute();

@@ -55,7 +55,7 @@ def check_ssh(cluster)
 end
 
 # Get files into a local archive
-def get_files(cluster,execdir,files,archive)
+def get_files(cluster,execdir,files,archive,mjobid)
   # Construct the ssh pipe
   files=files.collect { |f| f="\"#{f}\"" }
   find_cmd="find . -maxdepth 1 -name "+files.join(" -o -name ")
@@ -72,11 +72,11 @@ def get_files(cluster,execdir,files,archive)
       puts "#{$tag}  Warning: "+files.join(',')+" not found"
     elsif status  == 102
       puts "#{$tag}  ERROR with tar: "+stderr
-      add_new_cluster_event($dbh,cluster,0,"COLLECTOR","ERROR with tar: "+stderr)
+      add_new_mjob_event($dbh,cluster,mjobid,"JOB_COLLECT","ERROR with tar: "+stderr)
       return false
     else
       puts "#{$tag}  Unknown ERROR collecting "+files.join(',')+": "+stderr
-      add_new_cluster_event($dbh,cluster,0,"COLLECTOR","Unknown ERROR collecting "+files.join(',')+": "+stderr)
+      add_new_cluster_event($dbh,cluster,mjobid,"COLLECTOR","Unknown ERROR collecting "+files.join(',')+": "+stderr)
       return false
     end
   end
@@ -150,7 +150,7 @@ tocollectJobs.each do |job|
   if job.name.to_s != ""
     files << "#{job.name}"
   end
-  if job.batchtype.to_s == "OAR2"
+  if job.batchtype.to_s == "OAR2" || job.batchtype.to_s == "OAR2_4"
     files << "OAR*.#{job.batchid}.stderr"
     files << "OAR*.#{job.batchid}.stdout"
   else
@@ -169,14 +169,14 @@ tocollectJobs.each do |job|
   # If the cluster has not been blacklisted...
   if clusters[job.cluster] == "ok"
     # get the files
-    if not get_files(job.cluster,job.execdir,files,repository)
+    if not get_files(job.cluster,job.execdir,files,repository,job.mjobid)
       clusters[job.cluster] = "blacklisted"
       puts "#{$tag}Cluster #{job.cluster} is blacklisted"
     # delete the files from the cluster
     else 
       if not FileTest.zero?("#{repository}.tgz") 
        FileUtils.chmod 0666, "#{$results_dir}/#{job.user}/#{job.mjobid}/#{collect_id[job.mjobid]}/#{job.cluster}/#{job.jid}.tgz"
-       remove_files(job.cluster,job.execdir,files,job.user)
+       remove_files(job.cluster,job.execdir,files,job.localuser)
       else 
         puts "#{$tag}  Warning: empty archive, so not removing files."
       end
