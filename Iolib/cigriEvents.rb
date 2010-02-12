@@ -99,3 +99,15 @@ def add_new_cluster_event(dbh,cluster,mjobid,type,message)
   check_events(dbh)
 end
 
+# Add a new mjob event and check it
+def add_new_mjob_event(dbh,cluster,mjobid,type,message)
+  e=Event.new()
+  e.type=type
+  e.class="MJOB"
+  e.cluster=cluster
+  e.mjobid=mjobid
+  e.message=message
+  e.insert(dbh)
+  check_events(dbh)
+end
+
