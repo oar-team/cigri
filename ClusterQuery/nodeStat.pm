@@ -268,11 +268,11 @@ sub oarnodes2_4($$){
 						   $oarnodes->{$node}->{$resource}->{state} eq "Absent" 
 						     &&
 						   (
-						    defined($oarnodes->{$node}->{$resource}->{properties}->{cm_availability})
+						    defined($oarnodes->{$node}->{$resource}->{properties}->{available_upto})
 						       &&
-						    $oarnodes->{$node}->{$resource}->{properties}->{cm_availability} > time() 
+						    $oarnodes->{$node}->{$resource}->{properties}->{available_upto} > time() 
 						       &&
-						    $oarnodes->{$node}->{$resource}->{properties}->{cm_availability} != 2147483647
+						    $oarnodes->{$node}->{$resource}->{properties}->{available_upto} != 2147483647
 						   )
 						  )
 						 )
