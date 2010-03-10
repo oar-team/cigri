@@ -1585,6 +1585,7 @@ sub get_nb_resources_average($$$){
                              WHERE jobState in (\"Running\",\"Terminated\")
 							 AND jobClusterName = \"$cluster\"
 							 AND jobMjobsId = \"$mjob\"
+							 AND jobResources is not NULL
                             ");
     $sth->execute();
     my @res  = $sth->fetchrow_array();
