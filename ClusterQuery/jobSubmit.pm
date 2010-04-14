@@ -206,15 +206,16 @@ sub oarsubmit2($$$$$$$$$$){
 	if ($resources eq '') {
     	my $resources = iolibCigri::get_default_job_resources();
 	}
-    
-	my $propertyString;
+   
+    my %clusterProperties = iolibCigri::get_cluster_names_properties($dbh);
+    my $filter_prop;
+    my $filter_val;
+    ($filter_prop,$filter_val)=split(/=/,$clusterProperties{$cluster});
+    if ("$filter_prop" eq "1") { $filter_prop="besteffort"; $filter_val="YES";}
+ 
+    my $propertyString="$filter_prop='$filter_val'";
     foreach my $i (@$blackNodes){
-        $propertyString .= " network_address != '\\'$i\\'' AND";
-    }
-    if (defined($propertyString)){
-        $propertyString =~ s/^(.+)AND$/$1/g;
-    }else{
-        $propertyString = "";
+        $propertyString .= " AND network_address != '\\'$i\\''";
     }
 
 	my $campId = iolibCigri::get_mjob_id($dbh, $jobId);
