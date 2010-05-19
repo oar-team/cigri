@@ -2,6 +2,8 @@
 
 # Quickly written script to synchronize cigri users into an irods
 # server and deploy irods environment into users homes
+# usage:
+# ./irods_sync.bash [user]
 
 CIGRI_GROUP=cigri-user
 CIGRI_CONFIGFILE=/etc/cigri.conf
@@ -29,7 +31,13 @@ CLUSTERS=`mysql $OPTS -e "select clusterName from clusters where clusterName not
 
 
 # Get the users of the cigri group
-USERS=`getent group $CIGRI_GROUP |cut -f 4 -d:|sed "s/,/ /g"`
+if [ "$1" != "" ]
+then
+  USERS=$1
+else
+  USERS=`getent group $CIGRI_GROUP |cut -f 4 -d:|sed "s/,/ /g"`
+fi
+
 for user in $USERS
 do
     # Check if the user is already into irods
