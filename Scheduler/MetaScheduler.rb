@@ -55,9 +55,11 @@ end
 
 
 #ensure that test jobs are scheduled first if they exist
-mjobset = get_test_intreatment_mjobset(dbh)
-mjobset += get_default_intreatment_mjobset(dbh)
-
+#mjobset = get_test_intreatment_mjobset(dbh)
+#mjobset += get_default_intreatment_mjobset(dbh)
+#mjobset += get_batch_intreatment_mjobset(dbh)
+mjobset = get_intreatment_mjobset(dbh)
+#pas de raison de s'emmerder pour l'instant
 
 # since updator runs synchronously, keep locally n_waiting jobs 
 # to avoid lauching more than needed
@@ -70,10 +72,13 @@ mjobset.each do |mjob|
 	used_nodes = 0
 
 	if(free_resources["#{cluster.name}"].to_i > 0 && waiting_jb["#{mjob.mjobid}"] > 0)
-		case (mjob.type)
-		  when "test" : used_nodes = TestScheduler.schedule(mjob, cluster.name, free_resources["#{cluster.name}"].to_i)
-		  when "default" : used_nodes = DefaultScheduler.schedule(mjob, cluster.name, free_resources["#{cluster.name}"].to_i)
-  	   end
+		if (mjob.type == "test")
+			used_nodes = TestScheduler.schedule(mjob, cluster.name, free_resources["#{cluster.name}"].to_i)
+		elsif (mjob.type == "batch")
+			used_nodes = BatchScheduler.schedule(mjob, cluster.name, free_resources["#{cluster.name}"].to_i)			
+		else
+			used_nodes = DefaultScheduler.schedule(mjob, cluster.name, free_resources["#{cluster.name}"].to_i)
+  	   	end
 
 		free_resources["#{cluster.name}"] -= used_nodes
 		free_resources["#{cluster.name}"] = 0 if free_resources["#{cluster.name}"].to_i < 0

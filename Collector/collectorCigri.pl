@@ -49,7 +49,7 @@ if ($ARGV[0] =~ /^\d+$/ ){
 foreach my $i (@MjobsToCollect){
     iolibCigri::begin_transaction($base);
     print("\n[COLLECTOR] I collect the MJob $i\n");
-    # get clusters userLogins jobID jobBatchId clusterBatch userGridName
+    # get clusters userLogins jobID jobRemoteId clusterBatch userGridName
     my @jobs = iolibCigri::get_tocollect_MJob_files($base,$i);
     my %clusterVisited;
     my %collectedJobs;
@@ -272,20 +272,20 @@ sub get_file_names($$){
     }
     if($$j{jobName} ne ""){
         if ($clusterType eq "OAR2"){
-            $result{"OAR.$$j{jobBatchId}.stdout"} = "$$j{jobName}.$$j{jobId}.stdout";
-            $result{"OAR.$$j{jobBatchId}.stderr"} = "$$j{jobName}.$$j{jobId}.stderr";
+            $result{"OAR.$$j{jobRemoteId}.stdout"} = "$$j{jobName}.$$j{jobId}.stdout";
+            $result{"OAR.$$j{jobRemoteId}.stderr"} = "$$j{jobName}.$$j{jobId}.stderr";
         }else{
-            $result{"OAR.cigri.tmp.$$j{jobId}.$$j{jobBatchId}.stdout"} = "$$j{jobName}.$$j{jobId}.stdout";
-            $result{"OAR.cigri.tmp.$$j{jobId}.$$j{jobBatchId}.stderr"} = "$$j{jobName}.$$j{jobId}.stderr";
+            $result{"OAR.cigri.tmp.$$j{jobId}.$$j{jobRemoteId}.stdout"} = "$$j{jobName}.$$j{jobId}.stdout";
+            $result{"OAR.cigri.tmp.$$j{jobId}.$$j{jobRemoteId}.stderr"} = "$$j{jobName}.$$j{jobId}.stderr";
         }
         $result{"$$j{jobName}"} = "";
     }else{
         if ($clusterType eq "OAR2"){
-            $result{"OAR.$$j{jobBatchId}.stdout"} = "";
-            $result{"OAR.$$j{jobBatchId}.stderr"} = "";
+            $result{"OAR.$$j{jobRemoteId}.stdout"} = "";
+            $result{"OAR.$$j{jobRemoteId}.stderr"} = "";
         }else{
-            $result{"OAR.cigri.tmp.$$j{jobId}.$$j{jobBatchId}.stdout"} = "";
-            $result{"OAR.cigri.tmp.$$j{jobId}.$$j{jobBatchId}.stderr"} = "";
+            $result{"OAR.cigri.tmp.$$j{jobId}.$$j{jobRemoteId}.stdout"} = "";
+            $result{"OAR.cigri.tmp.$$j{jobId}.$$j{jobRemoteId}.stderr"} = "";
         }
     }
 

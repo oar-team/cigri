@@ -25,7 +25,7 @@ class Cluster
                             OR clusterBlackListMJobsID = 0)
             "
     sql_events=@dbh.select_all(query)
-    if sql_events[0]['count'] == 0
+    if sql_events[0]['count'] == "0"
       return true
     else
       return false

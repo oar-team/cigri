@@ -48,7 +48,16 @@ sub submitCmd($$){
     local $SIG{ALRM} = sub { die "Timeout!\n" };
     alarm $timeout;
 
-    $pid=sshopen3($clusterName, *WRITER, *READER, *ERROR, $command);
+    $pid=sshopen3($clusterName, *WRITER, *READER, *ERROR, 
+	#A revoir!
+#"export PATH=$ENV{PATH} &&\
+# export PERLLIB=$ENV{PERLLIB} &&\
+# export CIGRI_CONF_FILE=$ENV{CIGRI_CONF_FILE} &&\
+# export CIGRI_INSTALL_PATH=$ENV{CIGRI_INSTALL_PATH}&&\
+# export OARCONFFILE=$ENV{OARCONFFILE}&&\
+# export OAR_FILE_NODES=/home/oar/filenode &&\
+# ".
+$command);
     while (<READER>) {
       chomp();
       $stdout.= "$_\n";

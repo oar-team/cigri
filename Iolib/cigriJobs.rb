@@ -5,7 +5,7 @@
 # Job class
 #########################################################################
 class Job
-    attr_reader :jid, :mjobid, :name, :state, :tsub, :tstart, :tstop, :param, :cluster, :batchid, :node, :cdate, :cstatus 
+    attr_reader :jid, :mjobid, :name, :state, :tsub, :tstart, :tstop, :param, :cluster, :remoteid, :node, :cdate, :cstatus 
     attr_accessor :ctype, :cperiod, :user, :localuser, :active, :batchtype, :execdir
 
     # Creation
@@ -20,7 +20,7 @@ class Job
         # Else, we initialize with the provided values
         when 13 
 	 (@jid,@mjobid,@name,@state,@tsub,@tstart,@tstop,@param,\
-	   @cluster,@batchid,@node,@cdate,@cstatus)=args
+	   @cluster,@remoteid,@node,@cdate,@cstatus)=args
 
 		#puts  " #{@jid} #{@mjobid} #{@state} #{@tsub} #{@tstart} #{@tstop}"
         else
@@ -39,7 +39,7 @@ class Job
                    to_unix_time(sql_job['jobTStop']),\
                    sql_job['jobParam'],\
                    sql_job['jobClusterName'],\
-                   sql_job['jobBatchId'],\
+                   sql_job['jobRemoteId'],\
                    sql_job['jobNodeName'],\
                    to_unix_time(sql_job['jobCheckpointDate']),\
                    sql_job['jobCheckpointStatus'])
@@ -55,7 +55,7 @@ class Job
 
     # Printing
     def to_s
-        sprintf "Job #{@jid}: #{@mjobid},#{@cluster},#{@state},#{@tsub},#{@tstart},#{@tstop},#{@user},#{@batchid},#{@active}"
+        sprintf "Job #{@jid}: #{@mjobid},#{@cluster},#{@state},#{@tsub},#{@tstart},#{@tstop},#{@user},#{@remoteid},#{@active}"
     end
 
     # Calculate the job duration (from submission to end or now)
@@ -268,7 +268,9 @@ class MultipleJob < JobSet
 		"
 		active_clusters_sql=@dbh.select_all(query)
 		active_clusters_sql.each do |sql_cluster|
-			cluster = Cluster.new(@dbh, sql_cluster)
+			#un peu curieux, mais évite les ["localhost"] plutôt que localhost
+			sql_cluster2 = String.new(sql_cluster.to_s)[/\w+/]
+			cluster = Cluster.new(@dbh, sql_cluster2)
 			active_clusters << cluster if cluster.active?(@mjobid)
 		end
 
@@ -431,10 +433,14 @@ class MultipleJobSet
     def do
         sql_jobs=@dbh.select_all(@query)
         sql_jobs.each do |sql_job|
-			case(sql_job['MJobsType'])
-				when "test" : mjob=TestMultipleJob.new(@dbh,sql_job['MJobsId'])
-				when "default" : mjob=MultipleJob.new(@dbh,sql_job['MJobsId'])
-				else  mjob=MultipleJob.new(@dbh,sql_job['MJobsId'])
+			if (sql_job['MJobsType'] == "test")
+				mjob=TestMultipleJob.new(@dbh,sql_job['MJobsId'])
+			elsif (sql_job['MJobsType'] == "default")
+				mjob=MultipleJob.new(@dbh,sql_job['MJobsId'])
+			elsif (sql_job['MJobsType'] == "batch") #mouais
+				mjob=MultipleJob.new(@dbh,sql_job['MJobsId'])
+			else 
+				mjob=MultipleJob.new(@dbh,sql_job['MJobsId'])
 			end
             @mjobs << mjob
 		end
@@ -497,7 +503,7 @@ end
 # Get the jobs to collect
 # Returns a JobSet object
 def tocollect_Jobs(dbh)
-  JobSet.new(dbh,"SELECT jobId,jobClusterName,jobMJobsId,jobName,jobBatchId,
+  JobSet.new(dbh,"SELECT jobId,jobClusterName,jobMJobsId,jobName,jobRemoteId,
                          MJobsUser,clusterBatch,propertiesExecDirectory,userLogin
                   FROM jobs,multipleJobs,clusters,properties,users
                   WHERE jobState = \"Terminated\" 
@@ -545,9 +551,14 @@ def get_default_intreatment_mjobset(dbh)
 	return get_mjobset_state_type(dbh, "IN_TREATMENT", "default")
 end
 
+def get_batch_intreatment_mjobset(dbh)
+	return get_mjobset_state_type(dbh, "IN_TREATMENT", "batch")
+end	
+
 def get_test_intreatment_mjobset(dbh)
 	return get_mjobset_state_type(dbh, "IN_TREATMENT", "test")
 end
+
 
 def get_terminated_mjobset(dbh)
 	return get_mjobset_state(dbh, "TERMINATED")
