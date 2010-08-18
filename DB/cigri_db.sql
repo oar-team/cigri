@@ -46,7 +46,7 @@ DROP TABLE IF EXISTS clusters;
 CREATE TABLE IF NOT EXISTS clusters (
 clusterName VARCHAR( 100 ) NOT NULL ,
 clusterAdmin VARCHAR( 100 ) NOT NULL ,
-clusterBatch ENUM('OAR','OAR2') DEFAULT 'OAR' NOT NULL ,
+clusterBatch ENUM('OAR','OAR2','OAR2_4') DEFAULT 'OAR' NOT NULL ,
 clusterAlias VARCHAR( 20 ) ,
 clusterPower FLOAT DEFAULT '1' NOT NULL ,
 clusterResourceUnit VARCHAR( 20 ) ,
