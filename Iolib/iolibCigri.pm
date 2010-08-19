@@ -1676,10 +1676,20 @@ sub get_remote_waiting_jobs_by_cluster($$){
 	my $dbh = shift;
 	my $cluster = shift;
 
+        my $delay;
+        if (defined(ConfLibCigri::get_conf("REMOTE_WAITING_DELAY")) &&
+      (ConfLibCigri::get_conf("REMOTE_WAITING_DELAY") >= 0)) {
+      $delay = ConfLibCigri::get_conf("REMOTE_WAITING_DELAY");
+        }else {
+      $delay=60;
+        }
+
     my $sth = $dbh->prepare("SELECT jobId
                              FROM jobs
                              WHERE jobState = \"RemoteWaiting\"
-							 AND jobClusterName = \"$cluster\" 
+							 AND jobClusterName = \"$cluster\"
+							 AND now() - jobTSub > $delay
+                                                         GROUP BY jobRemoteId 
 							 ORDER BY jobId ASC
                             ");
 
@@ -1783,6 +1793,7 @@ sub get_remoteWaiting_times($){
     my $sth = $dbh->prepare("SELECT jobId, (NOW() - jobTSub) 
 							 FROM jobs WHERE
 								jobState = \"RemoteWaiting\"
+                                                         GROUP BY jobRemoteId;
                             ");
     $sth->execute();
 
