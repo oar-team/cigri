@@ -43,7 +43,7 @@ sub updateNodeStat($){
     my %clusterProperties = iolibCigri::get_cluster_names_batch($base);
     my %result ;
     my $retCode = -1;
-    if (defined($cluster) && defined($clusterProperties{$cluster})){
+    if (defined($cluster) && $clusterProperties{$cluster}){
         $retCode = &{$nodeCmd{$clusterProperties{$cluster}}}($base,$cluster);
     }
     iolibCigri::disconnect($base);
@@ -126,46 +126,58 @@ sub oarnodes2($$){
     my $dbh = shift;
     my $cluster = shift;
     my %clusterResourceUnit = iolibCigri::get_cluster_names_resource_unit($dbh);
+    my %clusterProperties = iolibCigri::get_cluster_names_properties($dbh);
+    my $filter_prop;
+    my $filter_val;
+    ($filter_prop,$filter_val)=split(/=/,$clusterProperties{$cluster});
+    if ("$filter_prop" eq "1") { $filter_prop="besteffort"; $filter_val="YES";}
     my $resourceUnit=$clusterResourceUnit{$cluster};
     #print("$cluster --> OAR2, unit:$resourceUnit\n");
     my %nodeState;
+    #my $properties=$clusterProperties{$cluster};
+    #my $cmd="oarnodes -D --sql \"$properties\""; # Doesn't work - quotes problem Mysql/Pg :-(
     my $cmd="oarnodes -D";
    # my %cmdResult = SSHcmdClient::submitCmd($cluster,"oarnodes --backward");
     my %cmdDump = SSHcmdClient::submitCmd($cluster,$cmd);
     my $oarnodesStr = $cmdDump{STDOUT};
     if ($cmdDump{STDERR} eq ""){
       my $oarnodes=eval($oarnodesStr);
-      if (1) { #defined %{$oarnodes}) {
+      if (%{$oarnodes}) {
         foreach my $node (keys(%{$oarnodes})) {
            my %jobs;
            my %maxWeight;
            my %totalWeight;
-             if ("$oarnodes->{$node}->{network_address}" ne "") {
+           foreach my $resource (keys(%{$oarnodes->{$node}})) {
+             if ("$oarnodes->{$node}->{$resource}->{network_address}" ne "") {
 	       # Get the id of the "cpu" or "core"
-	       $resourceUnitId = $oarnodes->{$node}->{"resource_id"};
+	       $resourceUnitId=$oarnodes->{$node}->{$resource}->{properties}->{$resourceUnit};
 	       # Count resources per cpu or core (yes, we can have several resources per core sometimes
 	       # on shared memory computers were we have several routers for example)
-               $totalWeight{$resourceUnitId}++ if ($oarnodes->{$node}->{besteffort} eq "YES");
+               $totalWeight{$resourceUnitId}++ if ($oarnodes->{$node}->{$resource}->{properties}->{besteffort} eq "YES"
+	                                           &&
+						   $oarnodes->{$node}->{$resource}->{properties}->{$filter_prop} eq "$filter_val");
                $maxWeight{$resourceUnitId}++ if (
 	                                         (
-						  $oarnodes->{$node}->{state} eq "Alive"
+						  $oarnodes->{$node}->{$resource}->{state} eq "Alive"
 	                                             ||
 	                                          (
-						   $oarnodes->{$node}->{state} eq "Absent" 
+						   $oarnodes->{$node}->{$resource}->{state} eq "Absent" 
 						     &&
 						   (
-						    defined($oarnodes->{$node}->{properties}->{cm_availability})
+						    defined($oarnodes->{$node}->{$resource}->{properties}->{cm_availability})
 						       &&
-						    $oarnodes->{$node}->{properties}->{cm_availability} > time() 
+						    $oarnodes->{$node}->{$resource}->{properties}->{cm_availability} > time() 
 						       &&
-						    $oarnodes->{$node}->{properties}->{cm_availability} != 2147483647
+						    $oarnodes->{$node}->{$resource}->{properties}->{cm_availability} != 2147483647
 						   )
 						  )
 						 )
                                                    && 
-				                  $oarnodes->{$node}->{besteffort} eq "YES"
+				                  $oarnodes->{$node}->{$resource}->{properties}->{besteffort} eq "YES"
+						   &&
+						  $oarnodes->{$node}->{$resource}->{properties}->{$filter_prop} eq "$filter_val"
 						);
-                 foreach my $line (keys(%{$oarnodes->{$node}})) {
+                 foreach my $line (keys(%{$oarnodes->{$node}->{$resource}})) {
                      if ($line eq "jobs") { $jobs{$resourceUnitId}++; }
                  }
              }else{
@@ -173,7 +185,7 @@ sub oarnodes2($$){
                colomboCigri::add_new_cluster_event($dbh,$cluster,0,"UPDATOR_PBSNODES_PARSE",
                            "There is an error in the oarnodes command ($cmd) parsing: network_address not found");
                return(-1);
-             
+             }
            }
 	   # We only want the real resources, so we count unique resourceUnit
 	   my $jobs=0;
@@ -185,8 +197,10 @@ sub oarnodes2($$){
 	     $totalWeight++ if ($totalWeight{$resource});
 	   }
            # database update
-           iolibCigri::set_cluster_node_free_weight($dbh, $cluster, $node, $maxWeight-$jobs);
-           iolibCigri::set_cluster_node_max_weight($dbh, $cluster, $node, $totalWeight);
+	   if ($totalWeight > 0 ) {
+             iolibCigri::set_cluster_node_free_weight($dbh, $cluster, $node, $maxWeight-$jobs);
+             iolibCigri::set_cluster_node_max_weight($dbh, $cluster, $node, $totalWeight);
+	   }
            #print "$node: $maxWeight-$jobs\n";
         }
       }else{
@@ -212,7 +226,7 @@ sub oarnodes2($$){
 
 #arg1 --> db ref
 #arg2 --> cluster name
-sub oarnodes2_4CUT($$){
+sub oarnodes2_4($$){
     my $dbh = shift;
     my $cluster = shift;
     my %clusterResourceUnit = iolibCigri::get_cluster_names_resource_unit($dbh);
@@ -232,7 +246,7 @@ sub oarnodes2_4CUT($$){
     my $oarnodesStr = $cmdDump{STDOUT};
     if ($cmdDump{STDERR} eq ""){
       my $oarnodes=eval($oarnodesStr);
-      if (1) { #defined %{$oarnodes}) {
+      if ( %{$oarnodes}) {
         foreach my $node (keys(%{$oarnodes})) {
            my %jobs;
            my %maxWeight;
