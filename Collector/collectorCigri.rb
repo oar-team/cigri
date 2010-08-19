@@ -1,4 +1,4 @@
-#!/usr/bin/ruby -w
+#!/usr/bin/ruby
 # COLLECTOR FOR CIGRI
 # The collector shortcuts the normal cigri ssh mechanism as it makes a
 # pipe through ssh but it checks SSH connexion before collecting each
