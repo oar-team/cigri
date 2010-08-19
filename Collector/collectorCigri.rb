@@ -1,4 +1,4 @@
-#!/usr/bin/ruby -w
+#!/usr/bin/ruby
 # COLLECTOR FOR CIGRI
 # The collector shortcuts the normal cigri ssh mechanism as it makes a
 # pipe through ssh but it checks SSH connexion before collecting each
@@ -17,7 +17,6 @@ $:.replace([get_conf("INSTALL_PATH")+"/Iolib/"] | $:)
 require 'dbi'
 require 'time'
 require 'fileutils'
-require 'ftools'
 require 'open4'
 require 'cigriJobs'
 require 'cigriUtils'
@@ -135,7 +134,7 @@ tocollectJobs.each do |job|
   # Construct the archive directory and set the permission modes
   repository_dir="#{$results_dir}/#{job.user}/#{job.mjobid}/#{collect_id[job.mjobid]}/#{job.cluster}"
   repository="#{repository_dir}/#{job.jid}"
-  File::makedirs(repository_dir) unless File::directory?(repository_dir)
+  FileUtils.mkdir_p(repository_dir) unless File::directory?(repository_dir)
   FileUtils.chmod 0777, "#{$results_dir}/#{job.user}/#{job.mjobid}"
   FileUtils.chmod 0777, "#{$results_dir}/#{job.user}/#{job.mjobid}/#{collect_id[job.mjobid]}"
   FileUtils.chmod 0777, "#{$results_dir}/#{job.user}/#{job.mjobid}/#{collect_id[job.mjobid]}/#{job.cluster}"
