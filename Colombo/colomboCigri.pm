@@ -178,7 +178,7 @@ sub add_new_mjob_event($$$$){
 sub add_new_ssh_event($$$){
     my $dbh = shift;
     my $clusterName = shift;
-    my $eventMessage = shift;
+    my $eventMessage = shift; $eventMessage =~ s/(['"\\])/\\$1/g;
 
     #$dbh->do("LOCK TABLES events WRITE");
     $dbh->begin_work;

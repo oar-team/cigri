@@ -165,20 +165,21 @@ LBL:while (1){
 
 	$exitValue = autofix();
     next LBL if ($exitValue != 0);
-    $exitValue = updator();
-	next LBL if ($exitValue != 0);
+   	$exitValue = updator();
+    next LBL if ($exitValue != 0);
 	$exitValue = gridstatus();
     next LBL if ($exitValue != 0);
     	$exitValue =  spritz();
     next LBL if ($exitValue != 0);
-    $exitValue = metascheduler();
+    	$exitValue = metascheduler();
     next LBL if ($exitValue != 0);
-    $exitValue = runner();
-	next LBL if ($exitValue != 0);
+    	$exitValue = runner();
+    next LBL if ($exitValue != 0);
 	$exitValue = phoenix();
     next LBL if ($exitValue != 0);
 
-    $exitValue = nikita();
+        $exitValue = nikita();
+	
 	if ($exitValue != 0) { 
 	   print "$tag WARNING! Nikita exited abnormaly!\n"; 
 	   sleep(5);

@@ -72,7 +72,6 @@ foreach my $i (keys(%jobRunningHash)){
 	if (defined($j->{batchId})) { #it's a batch ! so we update it all.
 		if (exists $batchIdTreated{$j->{batchId}}) {
 			next; #Already seen, so we don't care
-			#not pretty, but it's (supposedly) working
 		}
 		# Verify if the job is still running on the cluster $i
         	if (!defined($jobState{${$j}{remoteJobId}})){
@@ -81,8 +80,7 @@ foreach my $i (keys(%jobRunningHash)){
 			my @jobIds = iolibCigri::get_jobids_from_batchid($base,$j->{batchId});
 			if (@jobIds == 0) {
 				#empty batch, should not happen
-				print "[UPDATOR]	Empty  batch retrieved from a job batchid, so there's a problem.\n";
-				exit(1);
+				die "[UPDATOR]	Empty batch retrieved from a job batchid, should not happen\n";
 			}
 			print "[UPDATOR] We've got a batch ($j->{batchId}) containing @jobIds \n";		
 
@@ -90,7 +88,7 @@ foreach my $i (keys(%jobRunningHash)){
        			my $remoteFile = "$j->{execDir}/".iolibCigri::get_cigri_remote_file_name($jobIds[0]);
 		       	my $tmpRemoteScript = "$j->{execDir}/".iolibCigri::get_cigri_remote_script_name($jobIds[0]);
 			
-			my %cmdResult = SSHcmdClient::submitCmd($i,"sudo -H -u ${$j}{user} bash -c \"cat $remoteFile\"");
+			my %cmdResult = SSHcmdClient::submitCmd($i,"sudo -H -u $j->{user} bash -c \"cat $remoteFile\"");
 			if ($cmdResult{STDERR} ne ""){
        		        	print("\t[UPDATOR]     ERROR: Can t check the remote file\n");
         		        print("\t[UPDATOR]     ERROR STDERR: $cmdResult{STDERR}");
@@ -108,7 +106,7 @@ foreach my $i (keys(%jobRunningHash)){
 
 
 ########################### START OF THE BATCH PARSING
-
+my %vars;
 my @strTmp = split(/\n/, $cmdResult{STDOUT});
 my %foundThisJobId;
 my $before;
@@ -123,7 +121,7 @@ while(@strTmp) {
 
 	do {
 	        $k = shift @strTmp;
-	        print "read : $k\n";
+	        #print "read : $k\n";
 	        if ($k =~ m/^\s*(.+)\s*=\s*(.+)\s*$/m){
 	                if ($1 eq "BEGIN_DATE") {
 	                        $vars{$1}=$2;
@@ -157,8 +155,8 @@ while(@strTmp) {
                         " for batch $j->{batchId}, database may have problems\n";
         
 		}
-	
-		$foundThisJobId{JOBID} = 1;
+
+		$foundThisJobId{$vars{JOBID}} = 1;
 
 		iolibCigri::update_att_job(
 	                        $base, $vars{JOBID}, $before, $vars{NOW}, $vars{CODE}, $i, $vars{NODE});
@@ -167,7 +165,7 @@ while(@strTmp) {
 	                print "[UPDATOR] Task exited with resubmit code 66, so we resubmit.\n";
 	                iolibCigri::set_job_state($base, $vars{JOBID}, "Event");
 	                colomboCigri::resubmit_job($base,$vars{JOBID});
-	                        #à vérifier si ca fait bien ce qu'on veut
+	                        #a verifier si ca fait bien ce qu'on veut
 	        } elsif ($vars{CODE} == 0) {
 	                print "[UPDATOR] Job $vars{JOBID} terminated with success.\n";
 		        iolibCigri::set_job_state($base, $vars{JOBID}, "Terminated");
@@ -184,13 +182,8 @@ while(@strTmp) {
 		        unless(exists $vars{NOW});
 	
 		$before = $vars{NOW};
-
 	}
-
-
-
 }
-print "Found eof\n"; #ou pas, j'ai codé ca n'importe comment
 
 #end of the loop, now finishing
 
@@ -202,15 +195,15 @@ if (defined $vars{FINISH}) {
                         " for batch ${$j}{batchId}, database may have problems\n";
         }
 
-        print("[UPDATOR] Batch terminated, seems okay\n");
+        print("[UPDATOR] Batch terminated\n");
 
 
 } else { #ni finish ni NEXT_TASK : on a un *gros* problème
 
-        print("[UPDATOR] Batch *not* terminated, problem\n");
+        print("[UPDATOR] Batch incomplete, probably fragged by OAR\n");
+        print("[UPDATOR] We keep already finished jobs and event the others\n");
              # problème : dégager les tâches du batch dont on a pas de nouvelles
 
-        print("[UPDATOR] Job ${$j}{jobId} Error : batch not finished\n");
         for (@jobIds) {
 		if (!exists($foundThisJobId{$_})) {
 			iolibCigri::set_job_state($base, ${$j}{jobId}, Event);
@@ -240,20 +233,12 @@ if (defined $vars{FINISH}) {
 		    print "[UPDATOR] We check the status of our batch $j->{batchId}\n";
 	            #verify if the job is waiting
 	            if (defined($jobState{${$j}{remoteJobId}})){
-	                #my @jobIds = iolibCigri::get_jobids_from_batchid($base,$j->{batchId});
-			#if (@jobIds == 0) {
-		#		#empty batch, should not happen
-	#			print "[UPDATOR]	Empty  batch retrieved from a job batchid, so there's a problem.\n";
-#				exit(1);
-			#}
-			#for (@jobIds) {
-				iolibCigri::set_batch_number_of_resources($base, $j->{batchId} ,$jobResources{${$j}{remoteJobId}});
-	                	if ($jobState{${$j}{remoteJobId}} eq "W"){
-	                    	    iolibCigri::set_batch_state($base, $j->{batchId}, "RemoteWaiting");
-	                	}else{
-	                	    iolibCigri::set_batch_state($base, $j->{batchId}, "Running");
-	                	}
-			#}
+			iolibCigri::set_batch_number_of_resources($base, $j->{batchId} ,$jobResources{${$j}{remoteJobId}});
+                	if ($jobState{${$j}{remoteJobId}} eq "W"){
+                    	    iolibCigri::set_batch_state($base, $j->{batchId}, "RemoteWaiting");
+                	}else{
+                	    iolibCigri::set_batch_state($base, $j->{batchId}, "Running");
+                	}
 	            }
 
 

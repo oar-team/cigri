@@ -117,7 +117,7 @@ sub oarstat2($$$$){
         return(-1);
     }else{
         my $oarjobs=(eval$cmdResult{STDOUT});
-        if (defined %{$oarjobs}) {
+        if (1) { #defined %{$oarjobs}) {
           #if ($cluster eq "browalle.ujf-grenoble.fr") { print(Dumper(%{$oarjobs})); };
           foreach my $job (keys(%{$oarjobs})) {
             $oarjobs->{$job}->{state} =~ /^(.).*/s;

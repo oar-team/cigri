@@ -64,15 +64,15 @@ class Job
             return tstop - tstart
         elsif state == 'Event'
 			return 0
-		else
+	else
 			# tstart = 0 means job is Running, but not started by RM
 			if (tstart == 0)
 				return 0
 			else
-            	return Time.now.to_i - tstart
+            			return Time.now.to_i - tstart
 			end
         end
-     end
+    end
 
      # Sets the checkpoint date of the job
      def update_checkpoint_date(dbh,unix_timestamp)
@@ -251,7 +251,7 @@ class MultipleJob < JobSet
     # Duration of this multiple job
     def duration
         return Time.now.to_i - @tsub if @status != 'TERMINATED'
-        return @last_terminated_date - @tsub else 
+        return @last_terminated_date - @tsub 
     end
 
 	# get list of active Clusters ordered by priority/power
@@ -264,16 +264,18 @@ class MultipleJob < JobSet
                         AND userGridName = MJobsUser
                         AND MJobsId = propertiesMJobsId
                         AND propertiesClusterName = clusterName
-                    ORDER BY propertiesClusterPriority desc,clusterPower desc
+                    ORDER BY propertiesClusterPriority desc,clusterPower DESC
 		"
 		active_clusters_sql=@dbh.select_all(query)
 		active_clusters_sql.each do |sql_cluster|
-			#un peu curieux, mais évite les ["localhost"] plutôt que localhost
-			sql_cluster2 = String.new(sql_cluster.to_s)[/\w+/]
-			cluster = Cluster.new(@dbh, sql_cluster2)
+
+			if RUBY_VERSION.split('.')[1].to_i >= 9 && RUBY_VERSION.split('.')[0].to_i >= 1
+				cluster = Cluster.new(@dbh, sql_cluster[0])
+			else
+				cluster = Cluster.new(@dbh, sql_cluster)
+			end
 			active_clusters << cluster if cluster.active?(@mjobid)
 		end
-
 		return active_clusters
 	end
 
@@ -286,10 +288,10 @@ class MultipleJob < JobSet
 		"
 	
  		sql_sync_state=@dbh.select_all(query)
-    	if sql_sync_state.empty?
-        	return nil
-	    end
-    	return sql_sync_state[0]['data_synchronState']
+    		if sql_sync_state.empty?
+        		return nil
+		end
+    		return sql_sync_state[0]['data_synchronState']
 	end
 
 	def has_errors_to_fix
@@ -415,14 +417,14 @@ class MultipleJobSet
 
     def initialize(dbh,query,init=false)
         if query.empty? 
-	  		raise "Cannot create an mjobset without a request"
-		end
+		raise "Cannot create an mjobset without a request"
+	end
         @dbh=dbh
         @query=query
         @mjobs=[]
-		if init
-          self.do
-		end
+	if init
+        	self.do
+	end
     end
 
     def each
@@ -442,9 +444,9 @@ class MultipleJobSet
 			else 
 				mjob=MultipleJob.new(@dbh,sql_job['MJobsId'])
 			end
-            @mjobs << mjob
-		end
+            		@mjobs << mjob
 	end
+    end
 
 	#concatenate 2 MultiJobSets
 	def +(second)

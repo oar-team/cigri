@@ -85,7 +85,7 @@ if average[0] == 0 || mjob.duration < (2 * average[0])
 else
      forecasted=forecasts.get_forecast_throughput($time_window_size)
      forecaster='throughput'
- end
+end
 
  
 # Make an array with the forecast

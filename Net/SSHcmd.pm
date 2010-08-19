@@ -49,15 +49,15 @@ sub submitCmd($$){
     alarm $timeout;
 
     $pid=sshopen3($clusterName, *WRITER, *READER, *ERROR, 
-	#A revoir!
-#"export PATH=$ENV{PATH} &&\
+"export PATH=/local/bin:/usr/local/bin:\$PATH &&\ #joies de ssh
+# Normalement inutile... 
 # export PERLLIB=$ENV{PERLLIB} &&\
 # export CIGRI_CONF_FILE=$ENV{CIGRI_CONF_FILE} &&\
 # export CIGRI_INSTALL_PATH=$ENV{CIGRI_INSTALL_PATH}&&\
 # export OARCONFFILE=$ENV{OARCONFFILE}&&\
-# export OAR_FILE_NODES=/home/oar/filenode &&\
-# ".
-$command);
+# export OAR_FILE_NODES=/home/oar/filenode &&\ #celle là est vraiment douteuse
+ ".$command);
+   
     while (<READER>) {
       chomp();
       $stdout.= "$_\n";

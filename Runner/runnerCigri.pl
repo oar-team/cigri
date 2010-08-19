@@ -3,6 +3,7 @@
 # This program launches the jobs on the remote clusters
 
 use strict;
+use warnings;
 use Data::Dumper;
 use IO::Socket::INET;
 BEGIN {
@@ -47,11 +48,11 @@ foreach my $j (keys(%clusterNames)){
         while (iolibCigri::get_cluster_job_toLaunch($base,$j,\@jobs) == 0){
 
     		my @cmdSSH;
-		print "[RUNNER] Got @jobs to launch on $j\n";
+		print "[RUNNER] Got ".(scalar @jobs)." to launch on $j\n";
 
 		if (@jobs == 0) {
 	    		print("[RUNNER]	Problem : jobs array void\n"); die();
-		} elsif (! exists ($jobs[0]->{batchId})) {
+		} elsif (!defined ($jobs[0]->{batchId})) {
             		my %job = %{$jobs[0]};
 			print("[RUNNER]      Launch the job $job{id} on the cluster $job{clusterName} ($clusterNames{$j})\n");
            		#print(Dumper(%job));
@@ -132,7 +133,6 @@ foreach my $j (keys(%clusterNames)){
 		} else { # @jobs is a batch
 		
 			print("[RUNNER]      Launch the batch job $jobs[0]->{batchId} on the cluster $jobs[0]->{clusterName} ($clusterNames{$j})\n");
-			print("[RUNNER]      But not yet.\n");
 
             		my $tmpRemoteFile = "~cigri/".iolibCigri::get_cigri_remote_script_name($jobs[0]->{id});
        	    		my $resultFile = "$jobs[0]->{execDir}/".iolibCigri::get_cigri_remote_file_name($jobs[0]->{id});
@@ -144,8 +144,6 @@ foreach my $j (keys(%clusterNames)){
 			}
 
                         #Batch submission script
-                        print "[RUNNER] Job is a batch.\n";
-       		     	print("[RUNNER]      The job $jobs[0]->{id} is in treatment...\n Remote : $tmpRemoteFile\nres:$resultFile\n");	
 
                         @cmdSSH = (  "echo \\#\\!/bin/bash > $tmpRemoteFile;",
                                      "echo \"echo \\\"ISABATCH\\\" >> $resultFile\" >> $tmpRemoteFile;",
@@ -189,7 +187,7 @@ foreach my $j (keys(%clusterNames)){
                                     "rm $tmpRemoteFile ;"
                            );
 
-                        print join "\n",@cmdSSH;
+                        #print join "\n",@cmdSSH;
 
 		}
 
@@ -201,40 +199,61 @@ foreach my $j (keys(%clusterNames)){
                 	print("[RUNNER]      ERROR: $cmdResult{STDERR}");
                 	# test if this is a ssh error
                 	if (NetCommon::checkSshError($base,$jobs[0]->{clusterName},$cmdResult{STDERR}) != 1){
-				iolibCigri::set_batch_state($base,$_->{batchId},"Event");
-
-	 			foreach (@jobs) {
-                	    		# treate the SSH error
-                	    		colomboCigri::add_new_job_event($base,$_->{id},"RUNNER_SUBMIT",$cmdResult{STDERR});
-                		}
+				if (@jobs > 1) {
+					iolibCigri::set_batch_state($base,$jobs[0]->{batchId},"Event");
+	 				foreach (@jobs) {
+                	    			# treate the SSH error
+                	    			colomboCigri::add_new_job_event($base,$_->{id},"RUNNER_SUBMIT",$cmdResult{STDERR});
+                			}
+				} else {
+					iolibCigri::set_job_state($base,$jobs[0]->{id},"Event");
+                	    		colomboCigri::add_new_job_event($base,$jobs[0]->{id},"RUNNER_SUBMIT",$cmdResult{STDERR});
+				}
 			}
                 	exit(66);
             	}else{
                 	my @blackNodes = colomboCigri::get_blacklisted_nodes($base,$jobs[0]->{mjobid},$jobs[0]->{clusterName});
                 	my $remoteScript = "$jobs[0]->{execDir}/".iolibCigri::get_cigri_remote_script_name($jobs[0]->{id});
-                	my $retCode = jobSubmit::jobSubmit($jobs[0]->{clusterName},\@blackNodes,$jobs[0]->{user},$remoteScript,
-				$jobs[0]->{walltime}*@jobs,
+                	
+			#compute the walltime we need
+			$jobs[0]->{walltime} =~ m/(\d\d):(\d\d):(\d\d)/ ;
+			my $wt = ((($1 * 60) + $2) * 60 + $3) * @jobs;
+			$wt = int($wt/3600).":"
+				.int(($wt % 3600) / 60).":"
+				.int($wt % 60);
+			print "[RUNNER] Walltime for this : $wt\n";
+
+			my $retCode = jobSubmit::jobSubmit($jobs[0]->{clusterName},\@blackNodes,$jobs[0]->{user},$remoteScript,
+				$wt,
 				$jobs[0]->{resources},$jobs[0]->{execDir},
 				$jobs[0]->{id}, #on prend la plus grande
 				"Batch".$jobs[0]->{name});
                 	if ($retCode < 0){
                 		if ($retCode == -2){
-                		        print("[RUNNER]      There is a mistake, the job $_->{id} state = ERROR, bad remote id\n");
-	                		iolibCigri::set_batch_state($base, $jobs[0]->{batchId}, "Event");
-
-					foreach (@jobs) {
-	                       			colomboCigri::add_new_job_event($base,$_->{id},"RUNNER_JOBID_PARSE","There is a mistake, the job $_->{id} state = ERROR, bad remote id");
-					}	
+                		        print("[RUNNER]      There is a mistake, the job $jobs[0]->{id} state = ERROR, bad remote id\n");
+					if (@jobs > 1) {
+		                		iolibCigri::set_batch_state($base, $jobs[0]->{batchId}, "Event");
+						foreach (@jobs) {
+	                       				colomboCigri::add_new_job_event($base,$_->{id},"RUNNER_JOBID_PARSE","There is a mistake, the job $_->{id} state = ERROR, bad remote id");
+						}	
+					} else {
+						iolibCigri::set_job_state($base,$jobs[0]->{id},"Event");
+                       				colomboCigri::add_new_job_event($base,$jobs[0]->{id},"RUNNER_JOBID_PARSE","There is a mistake, the job $jobs[0]->{id} state = ERROR, bad remote id");
+					}
                 		}
                 		exit(66);
                 	} else {
-	               		iolibCigri::set_batch_state($base, $jobs[0]->{batchId}, "Running");
-
-				foreach (@jobs) {
-        	        	 	iolibCigri::set_job_remote_id($base,$_->{id},$retCode);
-	                	 	#iolibCigri::set_job_state($base,$_->{id},"Running");
+				if (@jobs > 1) {
+	               			iolibCigri::set_batch_state($base, $jobs[0]->{batchId}, "Running");
+					foreach (@jobs) {
+        		        	 	iolibCigri::set_job_remote_id($base,$_->{id},$retCode);
+	                		 	#iolibCigri::set_job_state($base,$_->{id},"Running");
+					}
+               			} else {
+       		        	 	iolibCigri::set_job_remote_id($base,$jobs[0]->{id},$retCode);
+                		 	iolibCigri::set_job_state($base,$jobs[0]->{id},"Running");
 				}
-               		}
+			}
       		}
 
 	}

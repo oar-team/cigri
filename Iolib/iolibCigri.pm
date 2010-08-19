@@ -1123,7 +1123,7 @@ sub get_launching_job($$) {
     my @ref = $sth->fetchrow_array();
     $sth->finish();
 
-    if (defined($ref[13])) { #it's a batch !...
+    if (defined($ref[13])) { #it's a batch !
 	my $sth = $dbh->prepare("
 	SELECT jobId,jobParam,propertiesJobCmd,jobClusterName,clusterBatch,userLogin,MJobsId,propertiesJobWalltime,propertiesJobResources,propertiesExecDirectory,propertiesCheckpointPeriod,propertiesCheckpointType,jobName,jobBatchId
                              FROM jobs,clusters,multipleJobs,properties,users
@@ -1383,7 +1383,7 @@ sub get_cluster_job_toLaunch($$$) {
 	sort {$a->{id} <=> $b->{id}} @jobs;
     #$dbh->do("UNLOCK TABLES");
     if (defined(($jobs[0])->{id})){
-        print(Dumper(@jobs));
+        #print(Dumper(@jobs));
         @{$results} = @jobs;
         return(0);
     }else{
@@ -2528,15 +2528,15 @@ sub how_many_to_30min($$$) {
     my $clusterName = shift;
 	my $sth = $dbh->prepare("
 
-SELECT average,stddev FROM `forecasts` 
-WHERE 		mjobsid = '".$mjobId."' 
-	AND 	average != 0 
-	AND 	stddev != 0 
-	AND	clusterName = '".$clusterName."'
-ORDER BY timeStamp DESC 
-LIMIT 1			
+		SELECT average,stddev FROM `forecasts` 
+		WHERE 		mjobsid = '".$mjobId."' 
+			AND 	average != 0 
+			AND 	stddev != 0 
+			AND	clusterName = '".$clusterName."'
+		ORDER BY timeStamp DESC 
+		LIMIT 1			
 	
-		");
+	");
     $sth->execute();
 
     my @res  = $sth->fetchrow_array() or return 1;
@@ -2544,9 +2544,9 @@ LIMIT 1
 
     $sth->finish();
 
-    if (!defined($res[0]) or $res[0] > 30*60*1/2 ) { return 1; } #task too long, don't batch 
+    if (!defined($res[0]) or $res[0] > 1*60/2 ) { return 1; } #task too long, don't batch 
 	
-    #placeholder très moyen, mais ca suffira pour le moment
-    return (int((30*60)/$res[0])+1);
+    #plein de magie
+    return ((!defined($res[0]) || $res[0] > 1*60/2 )? 1 : int( (1*60) / $res[0] ));
 
 }
