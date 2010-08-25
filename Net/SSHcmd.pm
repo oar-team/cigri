@@ -49,6 +49,7 @@ sub submitCmd($$){
     alarm $timeout;
 
     $pid=sshopen3($clusterName, *WRITER, *READER, *ERROR, $command);
+   
     while (<READER>) {
       chomp();
       $stdout.= "$_\n";
@@ -115,6 +116,7 @@ sub exitControlMaster($){
     }
     print "[SSH]         CLEARING the control master to $clusterName\n";
     system("$SSH_CMD -O exit $clusterName >/dev/null 2>&1");
+    system("rm -f ~/.ssh/master-*");
 }
 
 
