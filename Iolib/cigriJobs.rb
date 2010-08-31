@@ -34,14 +34,14 @@ class Job
                    sql_job['jobMJobsId'],\
                    sql_job['jobName'],\
                    sql_job['jobState'],\
-                   to_unix_time(sql_job['jobTSub']),\
-                   to_unix_time(sql_job['jobTStart']),\
-                   to_unix_time(sql_job['jobTStop']),\
+                   sql_job['jobTSub'].to_i,\
+                   sql_job['jobTStart'].to_i,\
+                   sql_job['jobTStop'].to_i,\
                    sql_job['jobParam'],\
                    sql_job['jobClusterName'],\
                    sql_job['jobBatchId'],\
                    sql_job['jobNodeName'],\
-                   to_unix_time(sql_job['jobCheckpointDate']),\
+                   sql_job['jobCheckpointDate'].to_i,\
                    sql_job['jobCheckpointStatus'])
         # Update extended attributes if the query gives the needed results
         # (else the accessor will be 'nil')
@@ -177,7 +177,14 @@ class MultipleJob < JobSet
 
     # Creation
     def initialize(dbh,id)
-        super(dbh,"SELECT * FROM jobs WHERE jobMJobsId=#{id}")
+        super(dbh,"SELECT jobId,jobState,jobMJobsId,jobParam,
+                          jobName,jobClusterName,jobNodeName,
+                          jobBatchId,jobRetCode,jobCollectedJobId,
+                          UNIX_TIMESTAMP(jobTSub) as jobTSub,
+                          UNIX_TIMESTAMP(jobTStart) as jobTStart,
+                          UNIX_TIMESTAMP(jobTStop) as jobTStop,
+                          UNIX_TIMESTAMP(jobResources) as jobResources 
+                          FROM jobs WHERE jobMJobsId=#{id}")
 	self.do
         @dbh=dbh
         @mjobid=id
