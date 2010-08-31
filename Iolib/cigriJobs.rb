@@ -108,11 +108,11 @@ class JobSet
 
     # Execute the query and create the jobs of the jobset
     def do
-        sql_jobs=@dbh.select_all(@query)
-        sql_jobs.each do |sql_job|
+        sth = @dbh.execute(@query)
+        sth.fetch_hash do |sql_job|
             job=Job.new(sql_job)
             @jobs << job
-	end
+        end
     end
 
     # Update the "active" attribute for all the jobs in this JobSet
