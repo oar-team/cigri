@@ -62,7 +62,7 @@ class Job
     def duration
         if state == 'Terminated'
             return tstop - tstart
-        elsif state == 'Event'
+        elsif state == 'Event' or state == 'toLaunch'
 			return 0
 	else
 			# tstart = 0 means job is Running, but not started by RM

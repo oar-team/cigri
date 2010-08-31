@@ -62,7 +62,7 @@ class Forecasts
 					duration_hash[job.cluster] = Array.new
 				end
 
-				duration_hash[job.cluster].push(job.duration)
+				duration_hash[job.cluster].push(job.duration) if job.duration != 0
 				#puts "push #{job.duration} for #{job.jid}"
 			end
 	end

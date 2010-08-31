@@ -44,6 +44,7 @@ foreach my $j (keys(%clusterNames)){
     print("[RUNNER]      check for cluster $j\n");
     my $pid=fork;
     if ($pid == 0){
+        $0="Runner_cigri: fork";
         $base = iolibCigri::connect() ;
         while (iolibCigri::get_cluster_job_toLaunch($base,$j,\@jobs) == 0){
 
@@ -227,7 +228,8 @@ foreach my $j (keys(%clusterNames)){
 				$wt,
 				$jobs[0]->{resources},$jobs[0]->{execDir},
 				$jobs[0]->{id}, #on prend la plus grande
-				"Batch".$jobs[0]->{name});
+				(@jobs>1)?"Batch".$jobs[0]->{name}:((length $jobs[0]->{name})?$jobs[0]->{name}:$jobs[0]->{param})
+				);
                 	if ($retCode < 0){
                 		if ($retCode == -2){
                 		        print("[RUNNER]      There is a mistake, the job $jobs[0]->{id} state = ERROR, bad remote id\n");
