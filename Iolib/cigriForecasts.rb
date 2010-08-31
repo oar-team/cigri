@@ -36,14 +36,14 @@ class Forecasts
     def get_global_average
         return [nil,nil] if mjob==nil
         if !mjob.durations.empty?
-	 	mean = (mjob.durations.inject {|sum, d| sum + d}.to_f)/mjob.durations.length
+			 mean = (mjob.durations.inject {|sum, d| sum + d}.to_f)/mjob.durations.length
              std_dev = Math.sqrt(mjob.durations.inject(0){|sum, dif| sum + ((dif-mean)**2)}.to_f/mjob.durations.length)
 
              return [mean,std_dev]
         else
             return [0.0,0.0]
         end
-        return [0.0,0.0]
+            return [0.0,0.0]
     end
 
 	# get average job duration by cluster
@@ -62,24 +62,24 @@ class Forecasts
 					duration_hash[job.cluster] = Array.new
 				end
 
-				duration_hash[job.cluster].push(job.duration) if job.duration != 0
+				duration_hash[job.cluster].push(job.duration)
 				#puts "push #{job.duration} for #{job.jid}"
 			end
-	end
+		end
 
-	duration_hash.each_pair do |cluster, durations|
+		duration_hash.each_pair do |cluster, durations|
 			 clusters_avg[cluster] =  (durations.inject {|sum, d| sum + d}.to_f)/durations.length 
 			
 			clusters_stddev[cluster] =  Math.sqrt(durations.inject(0){|sum, dif| sum + ((dif-clusters_avg[cluster])**2)}.to_f/durations.length)
-	end
+		end
 
 		return [clusters_avg,clusters_stddev]
 
-	end
+    end
 
 	#get global mjob throughput in near past (sliding window)
-	def get_throughput_by_cluster(time_window_size)
-        	return nil if mjob==nil
+ 	def get_throughput_by_cluster(time_window_size)
+        return nil if mjob==nil
 
 		throughput_hash = Hash.new
 		tsub_hash = Hash.new
@@ -88,42 +88,40 @@ class Forecasts
 		if (mjob.status == 'TERMINATED')
 			mjob.jobs.each do |job|
 				if !throughput_hash.has_key?(job.cluster)
-            				throughput_hash[job.cluster] = 0
-            				terminated_hash[job.cluster] = 0
-            			end		
+            		throughput_hash[job.cluster] = 0
+            		terminated_hash[job.cluster] = 0
+            	end		
 				terminated_hash[job.cluster]+=1	
 			end
-		
 			throughput_hash.each_key do |cluster|
 				throughput_hash[cluster] = terminated_hash[cluster].to_f/mjob.duration
 			end
-		
 			return throughput_hash 
 
 		else 
-        		mjob.jobs.each do |job|
+        	mjob.jobs.each do |job|
 				if !throughput_hash.has_key?(job.cluster)                    
 					tsub_hash[job.cluster] = Time.now.to_i
-                    			throughput_hash[job.cluster] = 0
-                    			terminated_hash[job.cluster] = 0
-                		end
-        			if job.state == 'Terminated' && job.tsub > (Time.now - time_window_size).to_i
-                			terminated_hash[job.cluster] += 1
-                 			tsub_hash[job.cluster] = job.tsub if job.tsub < tsub_hash[job.cluster]
-             			end
-         		end
+                    throughput_hash[job.cluster] = 0
+                    terminated_hash[job.cluster] = 0
+                end
+        		if job.state == 'Terminated' && job.tsub > (Time.now - time_window_size).to_i
+                	terminated_hash[job.cluster] += 1
+                 	tsub_hash[job.cluster] = job.tsub if job.tsub < tsub_hash[job.cluster]
+             	end
+         	end
 		
 			throughput_hash.each_key do |cluster|
 				if terminated_hash[cluster] != 0
 					throughput_hash[cluster] = terminated_hash[cluster].to_f / (Time.now.to_i - tsub_hash[cluster])
-         				puts "Calculated troughtput on cluster #{cluster}: #{throughput_hash[cluster]} (#{throughput_hash[cluster]*3600} j/h) - #{terminated_hash[cluster]} jobs during window" if $verbose
+         			puts "Calculated troughtput on cluster #{cluster}: #{throughput_hash[cluster]} (#{throughput_hash[cluster]*3600} j/h) - #{terminated_hash[cluster]} jobs during window" if $verbose
 				else
 					throughput_hash[cluster] = nil
 				end
-        		end
+        	end
 		end
 		return throughput_hash
-	end
+     end
 
 
 	#get job throughput by cluster (a hash) in near past (sliding window)
@@ -141,13 +139,13 @@ class Forecasts
              end
          end
          if n != 0
-         	t = n.to_f / (Time.now.to_i - first_submited_date).to_f
-         	puts "Calculated troughtput: #{t} (#{t*3600} j/h) - #{n} jobs during  window" if $verbose
-             	return t
+         t = n.to_f / (Time.now.to_i - first_submited_date).to_f
+         puts "Calculated troughtput: #{t} (#{t*3600} j/h) - #{n} jobs during  window" if $verbose
+             return t
          else
              return 0.0
          end
-	end
+     end
 
  
 
@@ -178,20 +176,21 @@ class Forecasts
 	# Make a forecast based on the job throughput in the last window seconds
 	# Returns a number of seconds
 	def get_forecast_throughput(window)
-    		throughput = get_global_throughput(window)
+    	throughput = get_global_throughput(window)
+    	
 		if throughput != 0
-				a=( (mjob.n_waiting.to_f + mjob.n_running.to_f/2) / throughput ).to_i
-        			return ( (mjob.n_waiting.to_f + mjob.n_running.to_f/2) / throughput ).to_i
-     		else
-        		return 0
-    		end
+			a=( (mjob.n_waiting.to_f + mjob.n_running.to_f/2) / throughput ).to_i
+        	return ( (mjob.n_waiting.to_f + mjob.n_running.to_f/2) / throughput ).to_i
+     	else
+        	return 0
+    	end
 	end
 
 
  	def self.forecast_throughput(mjob,window)
     	throughput=Forecasts.new(mjob).get_global_throughput(window)
     	
-	if throughput != 0
+		if throughput != 0
 			a=( (mjob.n_waiting.to_f + mjob.n_running.to_f/2) / throughput ).to_i
         	return ( (mjob.n_waiting.to_f + mjob.n_running.to_f/2) / throughput ).to_i
      	else
