@@ -750,6 +750,8 @@ FROM
         forecasts
 WHERE
         MjobsId = '{$jobid}'
+        AND clustername='GLOBAL'
+ORDER BY timestamp DESC
 LIMIT 1
 EOF;
 	list($res,$nb) = sqlquery($query,$link);
