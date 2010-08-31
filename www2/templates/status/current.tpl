@@ -68,7 +68,7 @@
                                 <td align="center">{$secondkey[2]}</td>
                                 <td align="center">{$secondkey[3]} s</td>
                                 <td align="center">{$secondkey[5]} j/h</td>
-                                <td align="center">{$secondkey[8]}/{$secondkey[9]}/{$secondkey[7]}/{$secondkey[10]}</td>
+                                <td align="center">{$secondkey[8]}/{$secondkey[9]}/{$secondkey[7]}/{if $secondkey[10] > 0}<font color="#FF0000">{/if}{$secondkey[10]}{if $secondkey[10] > 0}</font>{/if}</td>
                                 <td align="center">{$secondkey[6]}%</td>
             </tr>
         {/foreach}
