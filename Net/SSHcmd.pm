@@ -98,6 +98,9 @@ sub checkControlmaster($){
        $SSH_CONTROL_MASTER_KEEPALIVE=ConfLibCigri::get_conf("SSH_CONTROL_MASTER_KEEPALIVE");
     }
     if (system("$SSH_CMD -O check $clusterName >/dev/null 2>&1")) {
+      # Just to be sure, exit from the old control master
+      exitControlMaster($clusterName);
+      # Start a sleep for the control master
       print "[SSH]         Starting a control master to $clusterName\n";
       system("$SSH_CMD -f -M $clusterName sleep $SSH_CONTROL_MASTER_KEEPALIVE &");
       sleep(5);
@@ -116,7 +119,7 @@ sub exitControlMaster($){
     }
     print "[SSH]         CLEARING the control master to $clusterName\n";
     system("$SSH_CMD -O exit $clusterName >/dev/null 2>&1");
-    system("rm -f ~/.ssh/master-*");
+    system("rm -f ~/.ssh/master*$clusterName*");
 }
 
 
