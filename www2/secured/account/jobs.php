@@ -795,9 +795,14 @@ EOF;
                     list($r,$n)=sqlquery($query,$link);
                     if ($n) { $smarty->assign("n_wait",htmlentities($r[0][0]));}
                     # Count the running jobs
-                    $query="SELECT count(*) FROM jobs
+                    $query="SELECT count(*) FROM jobs 
                             WHERE jobMjobsId='$mjobid'
-                            AND ( jobState='Running' OR jobState = 'toLaunch' )";
+                            AND (jobState='Running' or jobState='toLaunch')
+                            AND jobClusterName NOT IN
+                              (select clusterBlackListClusterName from clusterBlackList,events
+                               WHERE clusterBlackListMJobsID='$mjobid'
+                                     AND clusterBlackListEventId=events.eventId 
+                                     AND eventState=\"ToFIX\")";
                     list($r,$n)=sqlquery($query,$link);
                     if ($n) { $smarty->assign("n_run",htmlentities($r[0][0]));}
                     # Count the remote waiting
