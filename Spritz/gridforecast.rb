@@ -61,7 +61,9 @@ end
 
 
 # Get the multiple job
+warn "Getting the mjob" if $verbose
 mjob=MultipleJob.new(dbh,ARGV[0])
+warn "Getting the forecast" if $verbose
 forecasts=Forecasts.new(mjob)
 
 #put forecasts
@@ -69,12 +71,11 @@ forecasts=Forecasts.new(mjob)
 warn mjob if $verbose
 warn forecasts if $verbose
 
-$stderr.printf("Forecast (average method): %.3f\n", forecasts.get_global_average[0]) if $verbose
+average=forecasts.get_global_average
+
+$stderr.printf("Forecast (average method): %.3f\n", average[0]) if $verbose
 
 $stderr.printf("Forecast (throughput method): %.3f\n", forecasts.get_global_throughput($time_window_size)) if $verbose
-
- 
-average=forecasts.get_global_average
 
 # Use the average forcaster at the beginning of the job
 # and use the throughput forecaster after
