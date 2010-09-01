@@ -100,6 +100,14 @@ class Cluster
        return sql_count[0]['count'].to_i || 0
     end
 
+    # Claculate the number of resources that will be used by waiting jobs
+    def waiting_resources
+      # TODO: estimate this number with jobratio per mjob (here it only works for sequential jobs)
+      query = "SELECT count(*) as count from jobs WHERE jobClusterName='#{@name}' and jobState=\"RemoteWaiting\"";
+      sql_count=@dbh.select_all(query)
+      return sql_count[0]['count'].to_i || 0
+    end
+
     # Claculate the number of resources that will be used in a near futur
     def tolaunch_resources
        query = "SELECT cast(sum(jobsToSubmitNumber) as unsigned) as count 
@@ -154,7 +162,7 @@ clusters.each do |cluster|
   n_clusters+=1
   max=cluster.max_resources
   free=cluster.free_resources
-  used=cluster.used_resources
+  used=cluster.used_resources + cluster.waiting_resources
   tolaunch=cluster.tolaunch_resources
   total_max+=max
   total_free+=free

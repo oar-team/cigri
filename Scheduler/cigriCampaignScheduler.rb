@@ -37,6 +37,7 @@ end
 class DefaultScheduler
 	def self.schedule(mjob, cluster_name, free_resources)
 		nb_jobs_to_submit = free_resources * mjob.job_ratio(cluster_name)
+                warn "nb_jobs_to_submit = #{free_resources} * #{mjob.job_ratio(cluster_name)}" if $verbose
 		nb_jobs_to_submit = $max_jobs if nb_jobs_to_submit.to_i > $max_jobs
 	        used_nodes = mjob.add_job_to_launch(cluster_name, nb_jobs_to_submit)
 		puts "[DEFAULT_SCHEDULER added toLaunch MJob: #{mjob.mjobid}; cluster; #{cluster_name}; nb jobs: #{used_nodes} " if used_nodes > 0

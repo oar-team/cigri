@@ -59,6 +59,14 @@ class Cluster
 
   end
 
+    # Claculate the number of resources that will be used by waiting jobs
+    def waiting_resources
+      # TODO: estimate this number with jobratio per mjob (here it only works for sequential jobs)
+      query = "SELECT count(*) as count from jobs WHERE jobClusterName='#{@name}' and jobState=\"RemoteWaiting\"";
+      sql_count=@dbh.select_all(query)
+      return sql_count[0]['count'].to_i || 0
+    end
+
 end
 
 

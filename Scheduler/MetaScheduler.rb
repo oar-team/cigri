@@ -45,7 +45,10 @@ free_resources = Hash.new()
 
 # Select all the clusters and get free nodes
 clusters=get_cigri_clusters(dbh)
-clusters.each{|cluster| free_resources[cluster.name] = cluster.free_resources}
+clusters.each do |cluster|
+  free_resources[cluster.name] = cluster.free_resources - cluster.waiting_resources
+  warn "#{cluster.name}: #{cluster.free_resources} - #{cluster.waiting_resources}" if $verbose
+end
 
 if $verbose
 	free_resources.sort.each {|cluster, nb| 
