@@ -46,11 +46,12 @@ my %clusterNames = iolibCigri::get_cluster_names_batch($base);
 foreach my $i (keys(%clusterNames)){
     my $pid=fork;
     if ($pid == 0){
+      $0="updatorCigri: $i free nodes checking";
       print("[UPDATOR]     Query free nodes on $i which has a batch-scheduler of the type : $clusterNames{$i}\n");
 
       if (nodeStat::updateNodeStat($i) == -1){
           #something wrong happens
-          print("[UPDATOR] BAD ERROR quering $i!!");
+          print("[UPDATOR] HELL ERROR nodestat $i!!");
           exit(66);
       }else{
           exit(0);
@@ -72,8 +73,10 @@ foreach my $i (keys(%jobRunningHash)){
     print "[UPDATOR]     Checking $i jobs...\n";
     my $pid=fork;
     if ($pid == 0){
+      my $base = iolibCigri::connect();
+      $0="updatorCigri: $i jobs checking";
       if (jobStat::jobStat($i, \%jobState, \%jobResources) == -1){
-          print("[UPDATOR] BAD ERROR quering $i!!");
+          print("[UPDATOR] HELL ERROR jobstat $i!!");
           exit(66);
       }
 
@@ -84,7 +87,8 @@ foreach my $i (keys(%jobRunningHash)){
               # Check the result file on the cluster
               my $remoteFile = "${$j}{execDir}/".iolibCigri::get_cigri_remote_file_name(${$j}{jobId});
               my $tmpRemoteScript = "${$j}{execDir}/".iolibCigri::get_cigri_remote_script_name(${$j}{jobId});
-              print("[UPDATOR]     Check the job ${$j}{jobId} \n");
+              print("[UPDATOR]     Check the job ${$j}{jobId} on $i\n");
+              $0="updatorCigri: Checking job ${$j}{jobId} on $i";
               my %cmdResult = SSHcmdClient::submitCmd($i,"sudo -H -u ${$j}{user} bash -c \"cat $remoteFile\"");
               if ($cmdResult{STDERR} ne ""){
                   print("\t[UPDATOR]     ERROR: Can t check the remote file\n");
@@ -95,6 +99,7 @@ foreach my $i (keys(%jobRunningHash)){
                       iolibCigri::set_job_state($base, ${$j}{jobId}, "Event");
                       colomboCigri::add_new_job_event($base,${$j}{jobId},"UPDATOR_JOB_KILLED","Can t check the remote file <$remoteFile> : $cmdResult{STDERR}");
                   }else{
+                    print("[UPDATOR] HELL ERROR checking $i!!");
                     exit(66);
                   }
               }else{
@@ -139,6 +144,7 @@ foreach my $i (keys(%jobRunningHash)){
               # test if this is a ssh error
               if ($cmdResultRm{STDERR} ne ""){
                   NetCommon::checkSshError($base,$i,$cmdResultRm{STDERR}) ;
+                  print("[UPDATOR] HELL ERROR cleaning $i!!");
                   exit(66);
               }
           }else{
@@ -153,6 +159,7 @@ foreach my $i (keys(%jobRunningHash)){
               }
           }
       }
+   iolibCigri::disconnect($base);
    exit (0);
    }
 }
