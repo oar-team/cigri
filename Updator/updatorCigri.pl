@@ -44,12 +44,21 @@ my %clusterNames = iolibCigri::get_cluster_names_batch($base);
 
 # Exec through ssh : pbsnodes command
 foreach my $i (keys(%clusterNames)){
-    print("[UPDATOR]     Query free nodes on $i which has a batch-scheduler of the type : $clusterNames{$i}\n");
+    my $pid=fork;
+    if ($pid == 0){
+      print("[UPDATOR]     Query free nodes on $i which has a batch-scheduler of the type : $clusterNames{$i}\n");
 
-    if (nodeStat::updateNodeStat($i) == -1){
-        #something wrong happens
-        exit(66);
+      if (nodeStat::updateNodeStat($i) == -1){
+          #something wrong happens
+          print("[UPDATOR] BAD ERROR quering $i!!");
+          exit(66);
+      }else{
+          exit(0);
+      }
     }
+}
+foreach my $i (keys(%clusterNames)){
+  wait;
 }
 
 # Update jobs which are in the Running state
@@ -61,86 +70,94 @@ foreach my $i (keys(%jobRunningHash)){
     my %jobResources = ();
     my $remotewaiting_timeout;
     print "[UPDATOR]     Checking $i jobs...\n";
-    if (jobStat::jobStat($i, \%jobState, \%jobResources) == -1){
-        exit(66);
-    }
+    my $pid=fork;
+    if ($pid == 0){
+      if (jobStat::jobStat($i, \%jobState, \%jobResources) == -1){
+          print("[UPDATOR] BAD ERROR quering $i!!");
+          exit(66);
+      }
 
-    #print(Dumper(%jobState));
-    foreach my $j (@{$jobRunningHash{$i}}){
-        # Verify if the job is still running on the cluster $i
-        if (!defined($jobState{${$j}{batchJobId}})){
-            # Check the result file on the cluster
-            my $remoteFile = "${$j}{execDir}/".iolibCigri::get_cigri_remote_file_name(${$j}{jobId});
-            my $tmpRemoteScript = "${$j}{execDir}/".iolibCigri::get_cigri_remote_script_name(${$j}{jobId});
-            print("[UPDATOR]     Check the job ${$j}{jobId} \n");
-            my %cmdResult = SSHcmdClient::submitCmd($i,"sudo -H -u ${$j}{user} bash -c \"cat $remoteFile\"");
-            if ($cmdResult{STDERR} ne ""){
-                print("\t[UPDATOR]     ERROR: Can t check the remote file\n");
-                print("\t[UPDATOR]     ERROR STDERR: $cmdResult{STDERR}");
-                # Can t read the file
-                # test if this is a ssh error
-                if (NetCommon::checkSshError($base,$i,$cmdResult{STDERR}) != 1){
-                    iolibCigri::set_job_state($base, ${$j}{jobId}, "Event");
-                    colomboCigri::add_new_job_event($base,${$j}{jobId},"UPDATOR_JOB_KILLED","Can t check the remote file <$remoteFile> : $cmdResult{STDERR}");
-                }else{
+      #print(Dumper(%jobState));
+      foreach my $j (@{$jobRunningHash{$i}}){
+          # Verify if the job is still running on the cluster $i
+          if (!defined($jobState{${$j}{batchJobId}})){
+              # Check the result file on the cluster
+              my $remoteFile = "${$j}{execDir}/".iolibCigri::get_cigri_remote_file_name(${$j}{jobId});
+              my $tmpRemoteScript = "${$j}{execDir}/".iolibCigri::get_cigri_remote_script_name(${$j}{jobId});
+              print("[UPDATOR]     Check the job ${$j}{jobId} \n");
+              my %cmdResult = SSHcmdClient::submitCmd($i,"sudo -H -u ${$j}{user} bash -c \"cat $remoteFile\"");
+              if ($cmdResult{STDERR} ne ""){
+                  print("\t[UPDATOR]     ERROR: Can t check the remote file\n");
+                  print("\t[UPDATOR]     ERROR STDERR: $cmdResult{STDERR}");
+                  # Can t read the file
+                  # test if this is a ssh error
+                  if (NetCommon::checkSshError($base,$i,$cmdResult{STDERR}) != 1){
+                      iolibCigri::set_job_state($base, ${$j}{jobId}, "Event");
+                      colomboCigri::add_new_job_event($base,${$j}{jobId},"UPDATOR_JOB_KILLED","Can t check the remote file <$remoteFile> : $cmdResult{STDERR}");
+                  }else{
                     exit(66);
-                }
-            }else{
-                my @strTmp = split(/\n/, $cmdResult{STDOUT});
-                my %fileVars;
-                foreach my $k (@strTmp){
-                    if ($k =~ m/\s*(.+)\s*=\s*(.+)\s*/m){
-                        $fileVars{$1} = $2;
-                    }
-                }
-                #print(Dumper(%fileVars));
-                if (defined($fileVars{FINISH})){
-                    # the job is finished
-                    iolibCigri::update_att_job($base,${$j}{jobId},$fileVars{BEGIN_DATE},$fileVars{END_DATE},$fileVars{RET_CODE},$i,$fileVars{NODE});
-                    if ($fileVars{RET_CODE} == 0){
-                        print("\t\tJob ${$j}{jobId} Terminated\n");
-                        iolibCigri::set_job_state($base, ${$j}{jobId}, "Terminated");
-                    }else{
-                        print("\t\tJob ${$j}{jobId} Error\n");
-			if ($fileVars{RET_CODE} == 66){
-		          print "[UPDATOR]     Job ${$j}{jobId} exited with resubmit code 66, so we resubmit.\n";
-			  iolibCigri::set_job_state($base, ${$j}{jobId}, "Event");
-		          colomboCigri::resubmit_job($base,${$j}{jobId});
+                  }
+              }else{
+                  my @strTmp = split(/\n/, $cmdResult{STDOUT});
+                  my %fileVars;
+                  foreach my $k (@strTmp){
+                      if ($k =~ m/\s*(.+)\s*=\s*(.+)\s*/m){
+                          $fileVars{$1} = $2;
+                      }
+                  }
+                  #print(Dumper(%fileVars));
+                  if (defined($fileVars{FINISH})){
+                      # the job is finished
+                      iolibCigri::update_att_job($base,${$j}{jobId},$fileVars{BEGIN_DATE},$fileVars{END_DATE},$fileVars{RET_CODE},$i,$fileVars{NODE});
+                      if ($fileVars{RET_CODE} == 0){
+                          print("\t\tJob ${$j}{jobId} Terminated\n");
+                          iolibCigri::set_job_state($base, ${$j}{jobId}, "Terminated");
+                      }else{
+                          print("\t\tJob ${$j}{jobId} Error\n");
+	  		  if ($fileVars{RET_CODE} == 66){
+	  	            print "[UPDATOR]     Job ${$j}{jobId} exited with resubmit code 66, so we resubmit.\n";
+			    iolibCigri::set_job_state($base, ${$j}{jobId}, "Event");
+		            colomboCigri::resubmit_job($base,${$j}{jobId});
 
-			}else{
-                          iolibCigri::set_job_state($base, ${$j}{jobId}, "Event");
-                          colomboCigri::add_new_job_event($base,${$j}{jobId},"UPDATOR_RET_CODE_ERROR","Executable exited with error code $fileVars{RET_CODE}; $cmdResult{STDERR}\nCheck OAR.${$j}{jobName}.${$j}{batchJobId}.stderr on ${$j}{clusterName} for more infos");
-                          #exit(66);
-			}
-                    }
-                }else{
-                    # the job was killed by the batch scheduler of the cluster
-                    # maybe it was too long, or an other job had to pass
-                    print("[UPDATOR]     Job killed (Can t find the FINISH TAG for the job ${$j}{jobId})\n");
-                    #print("[UPDATOR]     Error: cat $remoteFile ==> $cmdResult{STDOUT}\n");
-                    iolibCigri::set_job_state($base, ${$j}{jobId}, "Event");
-                    colomboCigri::add_new_job_event($base,${$j}{jobId},"UPDATOR_JOB_KILLED","Can t find the FINISH TAG in the cigri remote file <$remoteFile> : $cmdResult{STDOUT}");
-                }
-            }
-            # cigri script, log and OAR files must be deleted ---> A FAIRE
-            my %cmdResultRm = SSHcmdClient::submitCmd($i,"sudo -H -u ${$j}{user} bash -c \"rm -f $remoteFile $tmpRemoteScript\"");
-            # test if this is a ssh error
-            if ($cmdResultRm{STDERR} ne ""){
-                NetCommon::checkSshError($base,$i,$cmdResultRm{STDERR}) ;
-                exit(66);
-            }
-        }else{
-            #verify if the job is waiting
-            if (defined($jobState{${$j}{batchJobId}})){
-                iolibCigri::set_job_number_of_resources($base, ${$j}{jobId},$jobResources{${$j}{batchJobId}});
-                if ($jobState{${$j}{batchJobId}} eq "W"){
-                    iolibCigri::set_job_state($base, ${$j}{jobId}, "RemoteWaiting");
-                }else{
-                    iolibCigri::set_job_state($base, ${$j}{jobId}, "Running");
-                }
-            }
-        }
-    }
+		  	  }else{
+                            iolibCigri::set_job_state($base, ${$j}{jobId}, "Event");
+                            colomboCigri::add_new_job_event($base,${$j}{jobId},"UPDATOR_RET_CODE_ERROR","Executable exited with error code $fileVars{RET_CODE}; $cmdResult{STDERR}\nCheck OAR.${$j}{jobName}.${$j}{batchJobId}.stderr on ${$j}{clusterName} for more infos");
+                            #exit(66);
+			  }
+                      }
+                  }else{
+                      # the job was killed by the batch scheduler of the cluster
+                      # maybe it was too long, or an other job had to pass
+                      print("[UPDATOR]     Job killed (Can t find the FINISH TAG for the job ${$j}{jobId})\n");
+                      #print("[UPDATOR]     Error: cat $remoteFile ==> $cmdResult{STDOUT}\n");
+                      iolibCigri::set_job_state($base, ${$j}{jobId}, "Event");
+                      colomboCigri::add_new_job_event($base,${$j}{jobId},"UPDATOR_JOB_KILLED","Can t find the FINISH TAG in the cigri remote file <$remoteFile> : $cmdResult{STDOUT}");
+                  }
+              }
+              # cigri script, log and OAR files must be deleted ---> A FAIRE
+              my %cmdResultRm = SSHcmdClient::submitCmd($i,"sudo -H -u ${$j}{user} bash -c \"rm -f $remoteFile $tmpRemoteScript\"");
+              # test if this is a ssh error
+              if ($cmdResultRm{STDERR} ne ""){
+                  NetCommon::checkSshError($base,$i,$cmdResultRm{STDERR}) ;
+                  exit(66);
+              }
+          }else{
+              #verify if the job is waiting
+              if (defined($jobState{${$j}{batchJobId}})){
+                  iolibCigri::set_job_number_of_resources($base, ${$j}{jobId},$jobResources{${$j}{batchJobId}});
+                  if ($jobState{${$j}{batchJobId}} eq "W"){
+                      iolibCigri::set_job_state($base, ${$j}{jobId}, "RemoteWaiting");
+                  }else{
+                      iolibCigri::set_job_state($base, ${$j}{jobId}, "Running");
+                  }
+              }
+          }
+      }
+   exit (0);
+   }
+}
+foreach my $i (keys(%jobRunningHash)){
+  wait;
 }
 
 #update the state of MJobs
