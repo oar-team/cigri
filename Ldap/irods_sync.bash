@@ -10,12 +10,14 @@ CIGRI_CONFIGFILE=/etc/cigri.conf
 IRODS_ADMIN_HOST=quath.ujf-grenoble.fr
 IRODS_ADMIN_USER=irods
 IRODS_ADMIN_PATH=/applis/ciment/stow/x86_64/iRODS-2.4.1/clients/icommands/bin
-IRODS_DEFAULT_HOST=quath.ujf-grenoble.fr
+IRODS_DEFAULT_HOST=ciment-icat.ujf-grenoble.fr
 IRODS_DEFAULT_ZONE=cigri
 IRODS_DEFAULT_PORT=1247
 IRODS_INIT_CMD="/applis/ciment/stow/x86_64/iRODS-2.4.1/clients/icommands/bin/iinit"
 PASSWD_BACKUP_FILE=~cigri/irods_passwords
 IGNORE_CLUSTERS="browalle.ujf-grenoble.fr|cmserver.e-ima.ujf-grenoble.fr|p2chpd-cluster.univ-lyon1.fr|psmn-cluster.ens-lyon.fr|healthphy.ujf-grenoble.fr|zephir.mirage.ujf-grenoble.fr|edel.imag.fr|genepi.imag.fr"
+ADD_HOSTS="killeen.ujf-grenoble.fr"
+DEFAULT_QUOTA=500000000000
 
 touch $PASSWD_BACKUP_FILE
 chmod 600 $PASSWD_BACKUP_FILE
@@ -29,6 +31,7 @@ rm -f $CONF
 # Get the cluster list
 OPTS="-B -h $DATABASE_HOST -u $DATABASE_USER_NAME -p$DATABASE_USER_PASSWORD -D $DATABASE_NAME --skip-column-names" 
 CLUSTERS=`mysql $OPTS -e "select clusterName from clusters where clusterName not in (select clusterBlackListClusterName from clusterBlackList, events where eventState=\"ToFIX\" and clusterBlackListEventId=eventId and eventClass= \"CLUSTER\")" |awk '{print $1}'|egrep -v "$IGNORE_CLUSTERS"`
+CLUSTERS="$CLUSTERS $ADD_HOSTS"
 
 # Get the users of the cigri group
 if [ "$1" != "" -a "$1" != "-f" ]
@@ -70,9 +73,14 @@ do
       echo "    Creating $user into IRODS..."
       ssh $IRODS_ADMIN_USER@$IRODS_ADMIN_HOST "$IRODS_ADMIN_PATH/iadmin mkuser $user rodsuser" || exit 1
       ssh $IRODS_ADMIN_USER@$IRODS_ADMIN_HOST "$IRODS_ADMIN_PATH/iadmin moduser $user password $password" || exit 1
+      ssh $IRODS_ADMIN_USER@$IRODS_ADMIN_HOST "$IRODS_ADMIN_PATH/iadmin atg cigri $user" || exit 1
     else
       echo "    IRODS user $user already exists."
     fi
+
+      # Set quota for the newly created user
+      echo "    Setting intial irods quota for $user..."
+      ssh $IRODS_ADMIN_USER@$IRODS_ADMIN_HOST "$IRODS_ADMIN_PATH/iadmin suq $user total $DEFAULT_QUOTA" || exit 1
 
     # Check users irods environments on the clusters
     for cluster in $CLUSTERS
