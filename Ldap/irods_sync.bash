@@ -15,9 +15,10 @@ IRODS_DEFAULT_ZONE=cigri
 IRODS_DEFAULT_PORT=1247
 IRODS_INIT_CMD="/applis/ciment/stow/x86_64/iRODS-2.4.1/clients/icommands/bin/iinit"
 PASSWD_BACKUP_FILE=~cigri/irods_passwords
-IGNORE_CLUSTERS="browalle.ujf-grenoble.fr|cmserver.e-ima.ujf-grenoble.fr|p2chpd-cluster.univ-lyon1.fr|psmn-cluster.ens-lyon.fr|healthphy.ujf-grenoble.fr|zephir.mirage.ujf-grenoble.fr|edel.imag.fr|genepi.imag.fr"
+IGNORE_CLUSTERS="browalle.ujf-grenoble.fr|cmserver.e-ima.ujf-grenoble.fr|p2chpd-cluster.univ-lyon1.fr|psmn-cluster.ens-lyon.fr|healthphy.ujf-grenoble.fr|zephir.mirage.ujf-grenoble.fr|edel.imag.fr"
 ADD_HOSTS="killeen.ujf-grenoble.fr"
 DEFAULT_QUOTA=500000000000
+SSH_COMMAND="ssh -o BatchMode=yes"
 
 touch $PASSWD_BACKUP_FILE
 chmod 600 $PASSWD_BACKUP_FILE
@@ -65,43 +66,52 @@ do
     fi
 
     # Check if the user is already into irods
-    ssh $IRODS_ADMIN_USER@$IRODS_ADMIN_HOST "$IRODS_ADMIN_PATH/iadmin lu $user" |grep "No rows found" >/dev/null
+    $SSH_COMMAND $IRODS_ADMIN_USER@$IRODS_ADMIN_HOST "$IRODS_ADMIN_PATH/iadmin lu $user" |grep "No rows found" >/dev/null
     if [ $? -eq 0 ]
     then
 
       # Create an irods account
       echo "    Creating $user into IRODS..."
-      ssh $IRODS_ADMIN_USER@$IRODS_ADMIN_HOST "$IRODS_ADMIN_PATH/iadmin mkuser $user rodsuser" || exit 1
-      ssh $IRODS_ADMIN_USER@$IRODS_ADMIN_HOST "$IRODS_ADMIN_PATH/iadmin moduser $user password $password" || exit 1
-      ssh $IRODS_ADMIN_USER@$IRODS_ADMIN_HOST "$IRODS_ADMIN_PATH/iadmin atg cigri $user" || exit 1
+      $SSH_COMMAND $IRODS_ADMIN_USER@$IRODS_ADMIN_HOST "$IRODS_ADMIN_PATH/iadmin mkuser $user rodsuser" || exit 1
+      $SSH_COMMAND $IRODS_ADMIN_USER@$IRODS_ADMIN_HOST "$IRODS_ADMIN_PATH/iadmin moduser $user password $password" || exit 1
+      $SSH_COMMAND $IRODS_ADMIN_USER@$IRODS_ADMIN_HOST "$IRODS_ADMIN_PATH/iadmin atg cigri $user" || exit 1
     else
       echo "    IRODS user $user already exists."
     fi
 
       # Set quota for the newly created user
       echo "    Setting intial irods quota for $user..."
-      ssh $IRODS_ADMIN_USER@$IRODS_ADMIN_HOST "$IRODS_ADMIN_PATH/iadmin suq $user total $DEFAULT_QUOTA" || exit 1
+      $SSH_COMMAND $IRODS_ADMIN_USER@$IRODS_ADMIN_HOST "$IRODS_ADMIN_PATH/iadmin suq $user total $DEFAULT_QUOTA" || exit 1
 
     # Check users irods environments on the clusters
     for cluster in $CLUSTERS
     do
+        # Get the remote username
+        echo "    Getting remote login name for $user on $cluster..."
+        remote_user=`mysql $OPTS -e "select userLogin from users where userGridName=\"$user\" and userClusterName=\"$cluster\""`
+        if [ "$remote_user" = "" ]
+        then
+          remote_user=$user
+        fi 
+               
         # Check if the user already has an irods environment
-        ALREADY=`ssh $cluster "sudo -H -u $user bash -c '[ -f ~/.irods/.irodsEnv ] && echo 1 || echo 0'"`
-        if [ \( $? -eq 0 -a "$ALREADY" = "0" \) -o "$FORCE" = "1" ]
+        echo "    Checking $remote_user on $cluster..."
+        ALREADY=`$SSH_COMMAND $cluster "sudo -H -u $remote_user bash -c '[ -f ~/.irods/.irodsEnv ] && echo 1 || echo 0'"`
+        if [ $? -eq 0  -a \( "$ALREADY" = "0" -o "$FORCE" = "1" \) ]
         then
           # Create an irods environment file
-          echo "    Creating $cluster:~$user/.irods/.irodsEnv"
-          ssh $cluster "sudo -H -u $user bash -c 'mkdir -p ~/.irods;chmod 700 ~/.irods'"
-          ssh $cluster "sudo -H -u $user bash -c 'echo -e \"irodsHost $IRODS_DEFAULT_HOST\nirodsPort $IRODS_DEFAULT_PORT\nirodsUserName $user\nirodsZone $IRODS_DEFAULT_ZONE\" > ~/.irods/.irodsEnv'"
+          echo "    Creating $cluster:~$remote_user/.irods/.irodsEnv"
+          $SSH_COMMAND $cluster "sudo -H -u $remote_user bash -c 'mkdir -p ~/.irods;chmod 700 ~/.irods'"
+          $SSH_COMMAND $cluster "sudo -H -u $remote_user bash -c 'echo -e \"irodsHost $IRODS_DEFAULT_HOST\nirodsPort $IRODS_DEFAULT_PORT\nirodsUserName $user\nirodsZone $IRODS_DEFAULT_ZONE\" > ~/.irods/.irodsEnv'"
         fi
 
         # Check if the user already has an irods password file
-        ALREADY=`ssh $cluster "sudo -H -u $user bash -c '[ -f ~/.irods/.irodsA ] && echo 1 || echo 0'"`
-        if [ \( $? -eq 0 -a "$ALREADY" = "0" \) -o "$FORCE" = "1" ]
+        ALREADY=`$SSH_COMMAND $cluster "sudo -H -u $remote_user bash -c '[ -f ~/.irods/.irodsA ] && echo 1 || echo 0'"`
+        if [ $? -eq 0 -a \( "$ALREADY" = "0" -o "$FORCE" = "1" \) ]
         then
           # Init irods password 
-          echo "    Creating $cluster:~$user/.irods/.irodsA"
-          ssh $cluster "sudo -H -u $user bash -c '$IRODS_INIT_CMD $password'"
+          echo "    Creating $cluster:~$remote_user/.irods/.irodsA"
+          $SSH_COMMAND $cluster "sudo -H -u $remote_user bash -c '$IRODS_INIT_CMD $password'"
         fi
     done
 done
