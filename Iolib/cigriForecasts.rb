@@ -58,18 +58,18 @@ class Forecasts
 		
         if !mjob.durations.empty?
 			mjob.jobs.each do |job|
+                           if job.duration != 0
 				if !duration_hash.has_key?(job.cluster)
 					duration_hash[job.cluster] = Array.new
 				end
-
-				duration_hash[job.cluster].push(job.duration) if job.duration != 0
+				duration_hash[job.cluster].push(job.duration)
 				#puts "push #{job.duration} for #{job.jid}"
+                           end
 			end
 	end
 
 	duration_hash.each_pair do |cluster, durations|
 			 clusters_avg[cluster] =  (durations.inject {|sum, d| sum + d}.to_f)/durations.length 
-			
 			clusters_stddev[cluster] =  Math.sqrt(durations.inject(0){|sum, dif| sum + ((dif-clusters_avg[cluster])**2)}.to_f/durations.length)
 	end
 
