@@ -79,12 +79,15 @@ sub get_IN_TREATMENT_MJobs($);
 sub get_MJobs_JDL($$);
 sub get_launching_job($$) ;
 sub get_cluster_job_toLaunch($$$) ;
+sub get_jobids_from_batchid($$) ;
 sub set_job_state($$$) ;
+sub set_batch_state($$$) ;
 sub set_job_number_of_resources($$$) ;
+sub set_batch_number_of_resources($$$) ;
 sub get_mjobs_state($$);
 sub set_mjobs_state($$$) ;
-sub set_job_batch_id($$$);
-sub get_job_id_from_batchid($$$);
+sub set_job_remote_id($$$);
+sub get_job_id_from_remoteid($$$);
 sub get_job_to_update_state($);
 sub get_nb_freeNodes($);
 sub get_nb_remained_jobs($);
@@ -125,6 +128,7 @@ sub get_job_user($$);
 sub update_mjob_forecast($$$$$$$$);
 sub get_last_jobratio($$$);
 sub get_MjobsId($$) ;
+sub how_many_to_30min($$$);
 
 # Connect to the database and give the ref
 sub connect() {
@@ -247,7 +251,7 @@ sub add_mjobs($$$) {
 
 	#TODO temporary while admissions rules not available
 	$mJobsType = 'default' if (!defined($mJobsType));
-	if(($mJobsType ne "default") && ($mJobsType ne "test")){
+	if(($mJobsType ne "default") && ($mJobsType ne "test") && ($mJobsType ne "batch")){
 		return(-5);
 	}
     my $quoted_jdl =  $dbh->quote($jdl);
@@ -281,6 +285,7 @@ sub add_mjobs($$$) {
                         my $paramName;
                         my @tmp;
                         ($paramName, @tmp) = split (' ', $_, 2);
+                        $paramName=~s/\//_/g;
                         print("Insert ($id,\'$_\',\'$paramName\')\n");
                         $doRet = $dbh->do("INSERT INTO parameters (parametersMJobsId,parametersParam,parametersName) VALUES ($id,\'$_\',\'$paramName\')");
                         if ($doRet != 1){
@@ -1101,7 +1106,8 @@ sub get_MJobs_JDL($$){
 sub get_launching_job($$) {
     my $dbh = shift;
     my $clusterName = shift;
-    my $sth = $dbh->prepare("SELECT jobId,jobParam,propertiesJobCmd,jobClusterName,clusterBatch,userLogin,MJobsId,propertiesJobWalltime,propertiesJobResources,propertiesExecDirectory,propertiesCheckpointPeriod,propertiesCheckpointType,jobName
+    my @jobs;
+    my $sth = $dbh->prepare("SELECT jobId,jobParam,propertiesJobCmd,jobClusterName,clusterBatch,userLogin,MJobsId,propertiesJobWalltime,propertiesJobResources,propertiesExecDirectory,propertiesCheckpointPeriod,propertiesCheckpointType,jobName,jobBatchId
                              FROM jobs,clusters,multipleJobs,properties,users
                              WHERE jobState=\"toLaunch\"
                                  AND clusterName = \"$clusterName\"
@@ -1111,48 +1117,96 @@ sub get_launching_job($$) {
                                  AND MJobsUser = userGridName
                                  AND userClusterName = clusterName
                                  AND jobClusterName = clusterName
-                                 LIMIT 1
+                             LIMIT 1
                             ");
     $sth->execute();
 
     my @ref = $sth->fetchrow_array();
     $sth->finish();
 
-    my %result = (
-        'id'            => $ref[0],
-        'param'         => $ref[1],
-        'cmd'           => $ref[2],
-        'clusterName'   => $ref[3],
-        'batch'         => $ref[4],
-        'user'          => $ref[5],
-        'mjobid'        => $ref[6],
-        'walltime'      => $ref[7],
-        'resources'     => $ref[8],
-        'execDir'       => $ref[9],
-	'checkpointPeriod' => $ref[10],
-	'checkpointType' => $ref[11],
-	'name' => $ref[12]
-    );
+    if (defined($ref[13])) { #it's a batch !
+	my $sth = $dbh->prepare("
+	SELECT jobId,jobParam,propertiesJobCmd,jobClusterName,clusterBatch,userLogin,MJobsId,propertiesJobWalltime,propertiesJobResources,propertiesExecDirectory,propertiesCheckpointPeriod,propertiesCheckpointType,jobName,jobBatchId
+                             FROM jobs,clusters,multipleJobs,properties,users
+                             WHERE jobState=\"toLaunch\"
+				 AND jobClusterName = \"$ref[3]\"
+				 AND MJobsId = \"$ref[6]\"
+                                 AND clusterName = \"$clusterName\"
+                                 AND MJobsId = jobMJobsId
+                                 AND propertiesClusterName = clusterName
+                                 And propertiesMJobsId = MJobsId
+                                 AND MJobsUser = userGridName
+                                 AND userClusterName = clusterName
+                                 AND jobClusterName = clusterName
+                                 AND jobBatchId = \"$ref[13]\"
+                            ");
+	
+	$sth->execute();
+	my @temp;
+	while (@ref = $sth->fetchrow_array()) {
 
-    return %result;
+		push @jobs, 
+			{
+				'id'            => $ref[0],
+        			'param'         => $ref[1],
+        			'cmd'           => $ref[2],
+        			'clusterName'   => $ref[3],
+        			'batch'         => $ref[4],
+        			'user'          => $ref[5],
+        			'mjobid'        => $ref[6],
+        			'walltime'      => $ref[7],
+        			'resources'     => $ref[8],
+        			'execDir'       => $ref[9],
+				'checkpointPeriod' => $ref[10],
+				'checkpointType' => $ref[11],
+				'name'		=> $ref[12],
+				'batchId'	=> $ref[13]
+			};
+		#On fait un array de jobs à envoyer en batch, un seul veut dire pas de batch
+		#print "%"x100, Dumper(@jobs), "%"x100;
+	}
+    } else {
+	    unshift @jobs, 
+		{
+        		'id'            => $ref[0],
+        		'param'         => $ref[1],
+        		'cmd'           => $ref[2],
+        		'clusterName'   => $ref[3],
+        		'batch'         => $ref[4],
+        		'user' 	        => $ref[5],
+        		'mjobid'        => $ref[6],
+        		'walltime'      => $ref[7],
+        		'resources'     => $ref[8],
+        		'execDir'       => $ref[9],
+			'checkpointPeriod' => $ref[10],
+			'checkpointType'=> $ref[11],
+			'name' 		=> $ref[12],
+			'batchId'	=> $ref[13]
+
+    	    	};
+	    
+
+    }
+    return \@jobs;
 }
 
 # give a job to launch on a specified cluster
 # arg1 --> database ref
 # arg2 --> cluster name
-# arg3 --> ref to the job to submit (type = hashtable)
-# return a hashtable
+# arg3 --> ref to the job to submit (type = array of hashtables)
+# return an array of hashtables
 sub get_cluster_job_toLaunch($$$) {
     my $dbh = shift;
     my $clusterName = shift;
-    my $job = shift;
+    my $results = shift;
 
     #$dbh->do("LOCK TABLES jobs WRITE, jobsToSubmit WRITE, nodes WRITE, parameters WRITE, clusters WRITE, multipleJobs WRITE, properties WRITE, users WRITE, clusterBlackList WRITE, nodeBlackList WRITE, events WRITE");
     #print("Take the LOCK for cluster $clusterName\n");
-    my $sth = $dbh->prepare("SELECT jobsToSubmitMJobsId, jobsToSubmitNumber
-                             FROM jobsToSubmit
+    my $sth = $dbh->prepare("SELECT jobsToSubmitMJobsId, jobsToSubmitNumber,MJobsType
+                             FROM jobsToSubmit, multipleJobs
                              WHERE jobsToSubmitClusterName = \"$clusterName\"
                                  AND jobsToSubmitNumber > 0
+				 AND jobsToSubmitMJobsId = MJobsId
                              LIMIT 1
                             ");
     $sth->execute();
@@ -1160,7 +1214,9 @@ sub get_cluster_job_toLaunch($$$) {
     $sth->finish();
 
     if (defined($MJobtoSubmit[0])){
-        #Verif if the scheduler is right
+        my $isabatch = ($MJobtoSubmit[2] eq "batch");
+
+	#Verif if the scheduler is right
         
 		#OLDSCHED------------------------------------------
 		# if (colomboCigri::is_cluster_active($dbh,$clusterName,$MJobtoSubmit[0]) != 0){
@@ -1179,18 +1235,46 @@ sub get_cluster_job_toLaunch($$$) {
         # }
 
         #Lock for integrity in multi-process mode
-        $dbh->do("SELECT GET_LOCK(\"cigriParamLock\",3000)");
         
-        # get parameter for this MJob on this cluster
-        $sth = $dbh->prepare("SELECT parametersParam,parametersName
-                              FROM parameters
-                              WHERE $MJobtoSubmit[0] = parametersMJobsId
-                              ORDER BY parametersPriority DESC
-                              LIMIT 1");
-        $sth->execute();
-        my $parameter = $sth->fetchrow_hashref();
-        $sth->finish();
-	 
+	my @parametersName; my @parameters;
+	if (!$isabatch) {
+	        $dbh->do("SELECT GET_LOCK(\"cigriParamLock\",3000)");
+
+        	# get parameter for this MJob on this cluster
+        	$sth = $dbh->prepare("SELECT parametersParam,parametersName
+                	              FROM parameters
+                        	      WHERE $MJobtoSubmit[0] = parametersMJobsId
+                  	              ORDER BY parametersPriority DESC
+                          	      LIMIT 1");
+        
+		$sth->execute();
+		while($a = $sth->fetchrow_hashref()) {
+			unshift @parameters, $a->{parametersParam} ;
+        		unshift @parametersName, $a->{parametersName};
+		}
+        	#print "We have... ".(join ":",@parameters)." !\n";
+		$sth->finish();
+	 } else {
+
+		# get parameter for this MJob on this cluster
+        	my $nbj = how_many_to_30min($dbh,$MJobtoSubmit[0],$clusterName);
+
+       	        $dbh->do("SELECT GET_LOCK(\"cigriParamLock\",3000)");
+
+		$sth = $dbh->prepare("SELECT parametersParam,parametersName
+                	              FROM parameters
+                        	      WHERE $MJobtoSubmit[0] = parametersMJobsId
+                  	              ORDER BY parametersPriority DESC
+				     LIMIT $nbj                     	      ");
+        
+		$sth->execute();
+		while($a = $sth->fetchrow_hashref()) {
+			unshift @parameters, $a->{parametersParam} ;
+        		unshift @parametersName, $a->{parametersName};
+		}
+		print "We have... ".(join ":",@parameters)." !\n";
+		$sth->finish();
+	 }
       #OLDSCHED
       #  if (!defined($parameter)){
       #      #$dbh->do("UNLOCK TABLES");
@@ -1221,49 +1305,119 @@ sub get_cluster_job_toLaunch($$$) {
         #}
 
         begin_transaction($dbh);
+	if (!$isabatch) {
+        	# An empty parameter may happen if no more jobs to submit are left in the bag of task
+        	if (defined($parameters[0]) && 
+		    "$parameters[0]" ne "") {
+                $parametersName[0]=~s/\//_/g;
 
-        # An empty parameter may happen if no more jobs to submit are left in the bag of task
-        if (defined($$parameter{parametersParam}) && "$$parameter{parametersParam}" ne "") {
+          	$dbh->do("INSERT INTO jobs (jobId,jobState,jobMJobsId,jobParam,jobName,jobClusterName,jobTSub)
+          	VALUES (NULL,\"toLaunch\",$MJobtoSubmit[0],\"$parameters[0]\",\"$parametersName[0]\",\"$clusterName\",\"$time\")");
 
-          $dbh->do("INSERT INTO jobs (jobId,jobState,jobMJobsId,jobParam,jobName,jobClusterName,jobTSub)
-          VALUES (NULL,\"toLaunch\",$MJobtoSubmit[0],\"$$parameter{parametersParam}\",\"$$parameter{parametersName}\",\"$clusterName\",\"$time\")");
+          	# delete used param
+          	$dbh->do("DELETE FROM parameters
+          	        WHERE parametersMJobsId = $MJobtoSubmit[0]
+          	        AND parametersParam = \"$parameters[0]\"
+          	        LIMIT 1
+          	       ");
+        	}
 
-          # delete used param
-          $dbh->do("DELETE FROM parameters
-                  WHERE parametersMJobsId = $MJobtoSubmit[0]
-                  AND parametersParam = \"$$parameter{parametersParam}\"
-                  LIMIT 1
-                 ");
-        }
+        	# delete used entry in jobToSubmit
+        	my $newNumber = $MJobtoSubmit[1] - 1;
+        	#print("$newNumber\n");
+        	$dbh->do("UPDATE jobsToSubmit SET jobsToSubmitNumber = $newNumber
+                	    WHERE jobsToSubmitMJobsId = $MJobtoSubmit[0]
+                 	    AND jobsToSubmitClusterName = \"$clusterName\"
+                 	");
 
-        # delete used entry in jobToSubmit
-        my $newNumber = $MJobtoSubmit[1] - 1;
-        #print("$newNumber\n");
-        $dbh->do("UPDATE jobsToSubmit SET jobsToSubmitNumber = $newNumber
-                    WHERE jobsToSubmitMJobsId = $MJobtoSubmit[0]
-                          AND jobsToSubmitClusterName = \"$clusterName\"
-                 ");
+        	# set to BUSY used nodes
+        	#$dbh->do("UPDATE nodes SET nodeState = \"BUSY\" WHERE nodeId = $MJobtoSubmit[1]");
+	} else {
+		my $batchId = 0;
+		$sth = $dbh->prepare("SELECT max(jobBatchId)+1 as BatchId FROM jobs");
+		$sth->execute();
 
-        # set to BUSY used nodes
-        #$dbh->do("UPDATE nodes SET nodeState = \"BUSY\" WHERE nodeId = $MJobtoSubmit[1]");
+		my $href = $sth->fetchrow_hashref();
+		if (exists $href->{BatchId}) {
+			$batchId = $href->{BatchId};
+		}
+		print "Batch Id = $batchId, parameters : @parameters\n";
+
+		$sth->finish();		
+
+		for (0..@parameters-1) {
+			unless (defined $parameters[$_] && "$parameters[$_]" ne "") {
+				next; #On skippe les paramètres vides
+			}
+	
+                        $parametersName[$_]=~s/\//_/g;
+			$dbh->do("INSERT INTO jobs (jobId,jobState,jobMJobsId,jobParam,jobName,jobClusterName,jobTSub,jobBatchId)
+       			VALUES (NULL,\"toLaunch\",$MJobtoSubmit[0],\"$parameters[$_]\",\"$parametersName[$_]\",\"$clusterName\",\"$time\",\"$batchId\")");
+			
+		}
+
+
+		my $paramsquery = " AND (parametersParam = \"".
+			join("\" OR parametersParam = \"",@parameters).
+			"\")";
+		#delete used param
+          	$dbh->do("DELETE FROM parameters
+       	  	        WHERE parametersMJobsId = $MJobtoSubmit[0]".
+			$paramsquery
+			."LIMIT ".scalar @parameters);
+
+        	# delete used entry in jobToSubmit
+        	my $newNumber = ($MJobtoSubmit[1] - @parameters);
+        	#print("$newNumber\n");
+        	$dbh->do("UPDATE jobsToSubmit SET jobsToSubmitNumber = $newNumber
+                	    WHERE jobsToSubmitMJobsId = $MJobtoSubmit[0]
+                 	    AND jobsToSubmitClusterName = \"$clusterName\"
+                 	");
+
+	}
 
         commit_transaction($dbh);
             
         $dbh->do("SELECT RELEASE_LOCK(\"cigriParamLock\")");
-    }
+    } 
 
-    my %jobTmp = get_launching_job($dbh,$clusterName);
+
+    my @jobs = @{get_launching_job($dbh,$clusterName)};
+	sort {$a->{id} <=> $b->{id}} @jobs;
     #$dbh->do("UNLOCK TABLES");
-    if (defined($jobTmp{id})){
-        #print(Dumper(%jobTmp));
-        %{$job} = %jobTmp;
+    if (defined(($jobs[0])->{id})){
+        #print(Dumper(@jobs));
+        @{$results} = @jobs;
         return(0);
     }else{
         return(2);
     }
 }
 
+#get all jobids that are in the batchid
+#(the first is the smallest jobId)
+# arg1 --> database ref
+# arg2 --> batchId
+sub get_jobids_from_batchid($$) {
+	my $dbh = shift;
+	my $batchId = shift;
+	my @jobs;
 
+    	my $sth = $dbh->prepare("SELECT jobId
+                             FROM jobs
+                             WHERE jobBatchId = \"$batchId\"
+                             ORDER BY jobId ASC
+				");
+    	$sth->execute();
+	my $a;
+	while ($a = $sth->fetchrow_hashref()) {
+		push @jobs, $a->{jobId};
+	}
+    	$sth->finish();
+	return @jobs;
+
+	
+}
 # set the state of a job
 # arg1 --> database ref
 # arg2 --> jobId
@@ -1278,6 +1432,21 @@ sub set_job_state($$$) {
     $sth->finish();
 }
 
+# set the state of all jobs from a batch
+# arg1 --> database ref
+# arg2 --> jobBatchId
+# arg3 --> state
+sub set_batch_state($$$) {
+    my $dbh = shift;
+    my $idBatch = shift;
+    my $state = shift;
+    my $sth = $dbh->prepare("UPDATE jobs SET jobState = \"$state\"
+                                WHERE jobBatchId =\"$idBatch\"");
+    $sth->execute();
+    $sth->finish();
+}
+
+
 # set the number of resources of a job
 # arg1 --> database ref
 # arg2 --> jobId
@@ -1288,6 +1457,20 @@ sub set_job_number_of_resources($$$) {
     my $number = shift;
     my $sth = $dbh->prepare("UPDATE jobs SET jobResources = \"$number\"
                                 WHERE jobId =\"$idJob\"");
+    $sth->execute();
+    $sth->finish();
+}
+
+# set the number of resources of a batch
+# arg1 --> database ref
+# arg2 --> jobBatchId
+# arg3 --> number of used resources by this job
+sub set_batch_number_of_resources($$$) {
+    my $dbh = shift;
+    my $idBatch = shift;
+    my $number = shift;
+    my $sth = $dbh->prepare("UPDATE jobs SET jobResources = \"$number\"
+                                WHERE jobBatchId =\"$idBatch\"");
     $sth->execute();
     $sth->finish();
 }
@@ -1322,29 +1505,29 @@ sub set_mjobs_state($$$) {
                 WHERE MJobsId =\"$idmJob\"");
 }
 
-# set the batch id of a job
+# set the remote id of a job
 # arg1 --> database ref
 # arg2 --> jobId
-# arg3 --> remote batch id
-sub set_job_batch_id($$$){
+# arg3 --> remote id
+sub set_job_remote_id($$$){
     my $dbh = shift;
     my $idJob = shift;
-    my $batchId = shift;
-    my $sth = $dbh->prepare("UPDATE jobs SET jobBatchId = \"$batchId\"
+    my $remoteId = shift;
+    my $sth = $dbh->prepare("UPDATE jobs SET jobRemoteId = \"$remoteId\"
                                 WHERE jobId =\"$idJob\"");
     $sth->execute();
     $sth->finish();
 }
 
-# get the id of a job using it's batch id and cluster
+# get the id of a job using its remote id and cluster
 # arg1 --> database ref
-# arg2 --> jobBatchId
+# arg2 --> jobRemoteId
 # arg3 --> clusterName
-sub get_job_id_from_batchid($$$){
+sub get_job_id_from_remoteid($$$){
     my $dbh = shift;
-    my $batchId = shift;
+    my $remoteId = shift;
     my $clusterName = shift;
-    my $sth = $dbh->prepare("SELECT jobId FROM jobs WHERE jobBatchId = \"$batchId\"
+    my $sth = $dbh->prepare("SELECT jobId FROM jobs WHERE jobRemoteId = \"$remoteId\"
                                 AND jobClusterName =\"$clusterName\"");
     $sth->execute();
     my @res  = $sth->fetchrow_array();
@@ -1356,10 +1539,10 @@ sub get_job_id_from_batchid($$$){
 
 # give cluster names where jobs in Running state are executed
 # arg1 --> database ref
-# return a hashtable of array refs : ${${$resul{pawnee}}[0]}{batchJobId} --> give the first batchId for the cluster pawnee
+# return a hashtable of array refs : $resul{pawnee}->[0]->{remoteJobId} --> give the first remoteId for the cluster pawnee
 sub get_job_to_update_state($){
     my $dbh = shift;
-    my $sth = $dbh->prepare("SELECT jobBatchId,jobClusterName,jobId,userLogin,MJobsId,propertiesExecDirectory,jobState,unix_timestamp(jobTSub),jobName
+    my $sth = $dbh->prepare("SELECT jobRemoteId,jobClusterName,jobId,userLogin,MJobsId,propertiesExecDirectory,jobState,unix_timestamp(jobTSub),jobName,jobBatchId
                              FROM jobs,multipleJobs,users,properties
                              WHERE (jobState = \"Running\" or jobState = \"RemoteWaiting\")
                                 and MJobsId = jobMJobsId
@@ -1376,18 +1559,19 @@ sub get_job_to_update_state($){
         if (colomboCigri::is_cluster_active($dbh,$ref[1],$ref[4]) == 0){
             my $tmp = {
                     "jobId" => $ref[2],
-                    "batchJobId" => $ref[0],
+                    "remoteJobId" => $ref[0],
                     "clusterName" => $ref[1],
                     "user" => $ref[3],
                     "execDir" => $ref[5],
 		    "jobState" => $ref[6],
 		    "jobTSub" => $ref[7],
-		    "jobName" => $ref[8]
+		    "jobName" => $ref[8],
+		    "batchId" => $ref[9]
             };
             push(@{$resul{$ref[1]}},$tmp);
         }
 	else {
-	  print "Job $ref[2] from Mjob $ref[4] is in the blaklisted cluster $ref[1]\n";
+	  print "Job $ref[2] from Mjob $ref[4] is in the blacklisted cluster $ref[1]\n";
 	}
     }
     $sth->finish();
@@ -1495,10 +1679,20 @@ sub get_remote_waiting_jobs_by_cluster($$){
 	my $dbh = shift;
 	my $cluster = shift;
 
+        my $delay;
+        if (defined(ConfLibCigri::get_conf("REMOTE_WAITING_DELAY")) &&
+      (ConfLibCigri::get_conf("REMOTE_WAITING_DELAY") >= 0)) {
+      $delay = ConfLibCigri::get_conf("REMOTE_WAITING_DELAY");
+        }else {
+      $delay=60;
+        }
+
     my $sth = $dbh->prepare("SELECT jobId
                              FROM jobs
                              WHERE jobState = \"RemoteWaiting\"
-							 AND jobClusterName = \"$cluster\" 
+							 AND jobClusterName = \"$cluster\"
+							 AND now() - jobTSub > $delay
+                                                         GROUP BY jobRemoteId 
 							 ORDER BY jobId ASC
                             ");
 
@@ -1602,6 +1796,7 @@ sub get_remoteWaiting_times($){
     my $sth = $dbh->prepare("SELECT jobId, (NOW() - jobTSub) 
 							 FROM jobs WHERE
 								jobState = \"RemoteWaiting\"
+                                                         GROUP BY jobRemoteId;
                             ");
     $sth->execute();
 
@@ -1841,7 +2036,7 @@ sub get_tocollect_MJobs($$){
 sub get_tocollect_MJob_files($$){
     my $dbh = shift;
     my $MJobId = shift;
-    my $sth = $dbh->prepare("   SELECT jobClusterName, userLogin, jobBatchId, clusterBatch, jobId, userGridName, jobName, propertiesExecDirectory
+    my $sth = $dbh->prepare("   SELECT jobClusterName, userLogin, jobRemoteId, clusterBatch, jobId, userGridName, jobName, propertiesExecDirectory
                                 FROM jobs, multipleJobs, users, clusters, properties
                                 WHERE jobMJobsId = $MJobId
                                 AND jobMJobsId = MJobsId
@@ -2009,7 +2204,7 @@ sub get_tofrag_MJobs($){
 # return --> an array of jobsId
 sub get_tofrag_jobs($){
     my $dbh = shift;
-    my $sth = $dbh->prepare("    SELECT jobId, jobBatchId, clusterName, clusterBatch, userLogin, eventId
+    my $sth = $dbh->prepare("    SELECT jobId, jobRemoteId, clusterName, clusterBatch, userLogin, eventId
                                 FROM fragLog, events, jobs, users, clusters, multipleJobs
                                 WHERE fragLogEventId = eventId
                                 AND eventState = \"ToFIX\"
@@ -2337,3 +2532,35 @@ sub get_MjobsId($$) {
     else { return 0; }
 }
 
+#How many jobs to get a 30-min batch ?
+#arg1 --> dbh
+#arg2 --> mJobId
+#arg3 --> cluster
+sub how_many_to_30min($$$) {
+    my $dbh = shift;
+    my $mjobId = shift;
+    my $clusterName = shift;
+	my $sth = $dbh->prepare("
+
+		SELECT average,stddev FROM `forecasts` 
+		WHERE 		mjobsid = '".$mjobId."' 
+			AND 	average != 0 
+			AND 	stddev != 0 
+			AND	clusterName = '".$clusterName."'
+		ORDER BY timeStamp DESC 
+		LIMIT 1			
+	
+	");
+    $sth->execute();
+
+    my @res  = $sth->fetchrow_array() or return 1;
+	#aka nothing have been forecasted, don't batch
+
+    $sth->finish();
+
+    if (!defined($res[0]) or $res[0] > 1*60/2 ) { return 1; } #task too long, don't batch 
+	
+    #plein de magie
+    return ((!defined($res[0]) || $res[0] > 1*60/2 )? 1 : int( (1*60) / $res[0] ));
+
+}

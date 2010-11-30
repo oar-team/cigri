@@ -39,11 +39,11 @@ my %qdelCmd = (
 
 #arg1 --> cluster name
 #arg2 --> user
-#arg3 --> jobBatchId to delete
+#arg3 --> jobRemoteId to delete
 sub jobDel($$$){
     my $cluster = shift;
     my $user = shift;
-    my $jobBatchId = shift;
+    my $jobRemoteId = shift;
 
     my $base = iolibCigri::connect();
     my %clusterProperties = iolibCigri::get_cluster_names_batch($base);
@@ -51,7 +51,7 @@ sub jobDel($$$){
     my $retCode = -1;
     if (defined($cluster) && defined($clusterProperties{$cluster})){
         print "clusterProperties ($cluster):" . $clusterProperties{$cluster} ."\n";
-	$retCode = &{$qdelCmd{$clusterProperties{$cluster}}}($base,$cluster,$user,$jobBatchId);
+	$retCode = &{$qdelCmd{$clusterProperties{$cluster}}}($base,$cluster,$user,$jobRemoteId);
     }
     iolibCigri::disconnect($base);
     return($retCode);
@@ -74,15 +74,15 @@ sub endJobDel(){
 #arg1 --> db ref
 #arg2 --> cluster name
 #arg3 --> user
-#arg4 --> jobBatchId to delete
+#arg4 --> jobRemoteId to delete
 sub oardel($$$$){
     my $dbh = shift;
     my $cluster = shift;
     my $user = shift;
-    my $jobBatchId = shift;
+    my $jobRemoteId = shift;
 
     print("$cluster --> OAR\n");
-    my %cmdResult = SSHcmdClient::submitCmd($cluster,"sudo -u $user oardel $jobBatchId");
+    my %cmdResult = SSHcmdClient::submitCmd($cluster,"sudo -u $user oardel $jobRemoteId");
     print(Dumper(%cmdResult));
     if ($cmdResult{STDERR} ne ""){
         # test if this is a ssh error
@@ -98,15 +98,15 @@ sub oardel($$$$){
 #arg1 --> db ref
 #arg2 --> cluster name
 #arg3 --> user
-#arg4 --> jobBatchId to delete
+#arg4 --> jobRemoteId to delete
 sub oardel2($$$$){
     my $dbh = shift;
     my $cluster = shift;
     my $user = shift;
-    my $jobBatchId = shift;
+    my $jobRemoteId = shift;
 
     print("$cluster --> OAR2\n");
-    my %cmdResult = SSHcmdClient::submitCmd($cluster,"sudo -u $user oardel $jobBatchId 2>&1");
+    my %cmdResult = SSHcmdClient::submitCmd($cluster,"sudo -u $user oardel $jobRemoteId 2>&1");
     print(Dumper(%cmdResult));
     if ($cmdResult{STDERR} ne ""){
         # test if this is a ssh error

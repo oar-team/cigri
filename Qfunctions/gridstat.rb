@@ -102,18 +102,18 @@ if !options[:summary] and !options[:user] and !ARGV.empty?
   
 
 	  	mjob.jobs.each do |job|
-    		printf("Job %s: %s\n  Cluster: %s\n  Node: %s\n  BatchId: %s\n  Params: %s\n",
-        		job.jid,job.state,job.cluster,job.node,job.batchid,job.param)
+    		printf("Job %s: %s\n  Cluster: %s\n  Node: %s\n  RemoteId: %s\n  Params: %s\n",
+        		job.jid,job.state,job.cluster,job.node,job.remoteid,job.param)
 		end
 	  else
     	 	puts forecasts.to_s
 	  end
 
 	else
-	  puts "\"id\",\"state\",\"cluster\",\"node\",\"batchid\",\"params\""
+	  puts "\"id\",\"state\",\"cluster\",\"node\",\"remoteid\",\"params\""
 	  mjob.jobs.each do |job|
 	    printf("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n",
-    	    job.jid,job.state,job.cluster,job.node,job.batchid,job.param)
+    	    job.jid,job.state,job.cluster,job.node,job.remoteid,job.param)
 	  end
 	end
 else

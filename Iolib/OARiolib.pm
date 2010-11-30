@@ -119,12 +119,12 @@ sub getFreeNodes($) {
 
 # frag a job
 # arg1 --> database ref
-# arg2 --> jobBatchId
+# arg2 --> jobRemoteId
 sub fragRemoteJob($$) {
     my $dbh = shift;
-    my $jobBatchId = shift;
+    my $jobRemoteId = shift;
 
-    $dbh->do("UPDATE jobs SET toFrag = \"Yes\" WHERE idJob = $jobBatchId");
+    $dbh->do("UPDATE jobs SET toFrag = \"Yes\" WHERE idJob = $jobRemoteId");
     return 1;
 }
 
@@ -156,7 +156,7 @@ sub get_date() {
 # arg4 --> username
 # arg5 --> jobFile
 # arg6 --> blacklisted nodes
-# return jobBatchId
+# return jobRemoteId
 sub submitJob($$$$$$) {
     my $dbh = shift;
     my $cigriDB = shift;

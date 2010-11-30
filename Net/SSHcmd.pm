@@ -48,7 +48,8 @@ sub submitCmd($$){
     local $SIG{ALRM} = sub { die "Timeout!\n" };
     alarm $timeout;
 
-    $pid=sshopen3($clusterName, *WRITER, *READER, *ERROR, $command);
+    $pid=sshopen3($clusterName, *WRITER, *READER, *ERROR, 
+"export PATH=/local/bin:/usr/local/bin:\$PATH &&".$command);
    
     while (<READER>) {
       chomp();

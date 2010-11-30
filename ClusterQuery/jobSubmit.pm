@@ -48,7 +48,7 @@ my %submitCmd = (
 #arg7 --> execution directory
 #arg8 --> jobId
 #arg9 --> jobName
-#return jobBatchId or -1 or -2 if something wrong happens
+#return jobRemoteId or -1 or -2 if something wrong happens
 sub jobSubmit($$$$$$$$$){
     my $cluster = shift;
     my $blackNodes = shift;
@@ -99,7 +99,7 @@ sub endJobSubmissions($){
 #arg8 --> execDir
 #arg9 -> jobId
 #arg10 -> jobName
-#return jodBatchId or
+#return jodRemoteId or
 #   -1 : for a command execution error
 #   -2 : for a jobId parse error
 sub oarsubmit($$$$$$$$$$){
@@ -164,7 +164,7 @@ sub oarsubmit($$$$$$$$$$){
     }
     my @strTmp = split(/\n/, $cmdResult{STDOUT});
     foreach my $k (@strTmp){
-        # search cluster batchId of the job
+        # search cluster remoteId of the job
         if ($k =~ /\s*IdJob\s=\s(\d+)/){
             return($1);
         }
@@ -182,7 +182,7 @@ sub oarsubmit($$$$$$$$$$){
 #arg8 --> execDir
 #arg9 --> jobId
 #arg10 -> jobName
-#return jodBatchId or
+#return jobRemoteId or
 #   -1 : for a command execution error
 #   -2 : for a jobId parse error
 sub oarsubmit2($$$$$$$$$$){
@@ -253,7 +253,7 @@ sub oarsubmit2($$$$$$$$$$){
 
     my @strTmp = split(/\n/, $cmdResult{STDOUT});
     foreach my $k (@strTmp){
-        # search cluster batchId of the job
+        # search cluster RemoteId of the job
         if ($k =~ /\s*JOB_ID\s*=\s*(\d+)/){
             return($1);
         }

@@ -43,7 +43,7 @@ sub updateNodeStat($){
     my %clusterProperties = iolibCigri::get_cluster_names_batch($base);
     my %result ;
     my $retCode = -1;
-    if (defined($cluster) && defined($clusterProperties{$cluster})){
+    if (defined($cluster) && $clusterProperties{$cluster}){
         $retCode = &{$nodeCmd{$clusterProperties{$cluster}}}($base,$cluster);
     }
     iolibCigri::disconnect($base);
@@ -142,7 +142,7 @@ sub oarnodes2($$){
     my $oarnodesStr = $cmdDump{STDOUT};
     if ($cmdDump{STDERR} eq ""){
       my $oarnodes=eval($oarnodesStr);
-      if (defined %{$oarnodes}) {
+      if (%{$oarnodes}) {
         foreach my $node (keys(%{$oarnodes})) {
            my %jobs;
            my %maxWeight;
@@ -246,7 +246,7 @@ sub oarnodes2_4($$){
     my $oarnodesStr = $cmdDump{STDOUT};
     if ($cmdDump{STDERR} eq ""){
       my $oarnodes=eval($oarnodesStr);
-      if (defined %{$oarnodes}) {
+      if ( %{$oarnodes}) {
         foreach my $node (keys(%{$oarnodes})) {
            my %jobs;
            my %maxWeight;

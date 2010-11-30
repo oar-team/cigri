@@ -19,8 +19,8 @@ def to_unix_time(time)
   if time.nil?
     return 0
   else
-    year, month, day, hour, minute, sec = time.to_s.split(/ |:|-/)
-    unix_sec = Time.local(year, month, day, hour, minute, sec).to_i
+    year, month, day, hour, minute, sec = time.to_s.split(/ |:|-|T/)
+    unix_sec = Time.mktime(year, month, day, hour, minute, sec).to_i
     return unix_sec
   end
 end

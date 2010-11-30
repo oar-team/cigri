@@ -25,8 +25,8 @@ class Cluster
                             OR clusterBlackListMJobsID = 0)
             "
     sql_events=@dbh.select_all(query)
-    if sql_events[0]['count'] == 0
-      return true
+    if sql_events[0]['count'].to_i == 0
+	return true
     else
       return false
     end
@@ -36,9 +36,9 @@ class Cluster
   def free_resources
 	if get_conf("FLOOD_RATE")
             flood_rate=get_conf("FLOOD_RATE")
-    else
+    	else
             flood_rate = 0
-    end
+    	end
 
 	query = "SELECT sum(nodeMaxWeight) 
              FROM nodes

@@ -150,8 +150,8 @@ tocollectJobs.each do |job|
     files << "#{job.name}"
   end
   if job.batchtype.to_s == "OAR2" || job.batchtype.to_s == "OAR2_4"
-    files << "OAR*.#{job.batchid}.stderr"
-    files << "OAR*.#{job.batchid}.stdout"
+    files << "OAR*.#{job.remoteid}.stderr"
+    files << "OAR*.#{job.remoteid}.stdout"
   else
     puts "#{$tag}Warning: #{job.batchtype} batch type files not collected"
   end
