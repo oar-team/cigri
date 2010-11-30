@@ -1,8 +1,8 @@
 #!/bin/sh
 ### BEGIN INIT INFO
 # Provides:          cigri
-# Required-Start:    networking apache2 sendmail mysql
-# Required-Stop:     networking apache2 sendmail mysql
+# Required-Start:    networking apache2 exim4 mysql
+# Required-Stop:     networking apache2 exim4 mysql
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 6
 # Short-Description: CiGri (Ciment Grid) server
@@ -15,7 +15,7 @@ set -e
 CIGRI_UNIX_USER="cigri"
 CIGRI_CONF_FILE="/etc/cigri.conf"
 [ -e /etc/cigri.conf ] || exit 0
-id "$CIGRI_UNIX_USER" &>/dev/null || exit 0
+id "$CIGRI_UNIX_USER" >/dev/null 2>&1|| exit 0
 CIGRI_INSTALL_PATH=$(grep "INSTALL_PATH" $CIGRI_CONF_FILE  | sed -e 's/.*= *"\(.*\)"/\1/g')
 [ "$CIGRI_INSTALL_PATH" ] || exit 0
 
@@ -23,11 +23,9 @@ CIGRI_INSTALL_PATH=$(grep "INSTALL_PATH" $CIGRI_CONF_FILE  | sed -e 's/.*= *"\(.
 # Start the CiGri daemons
 start() {
 	echo -n "Starting CiGri:"
-	cd "$CIGRI_INSTALL_PATH"
-	su "$CIGRI_UNIX_USER" -c "nohup ./Almighty/AlmightyCigri.pl 2>&1 > cigri.log &"
+	start-stop-daemon -d $CIGRI_INSTALL_PATH -m -p /var/run/cigri.pid -c $CIGRI_UNIX_USER -b --exec ./Almighty/AlmightyCigri.pl --start -- 2>&1 > cigri.log
         if [ "$?" -eq 0 ] ; then
-	  cd Collector
-	  su "$CIGRI_UNIX_USER" -c "nohup ./automatic_collect.sh 2>&1 > cigri_collector.log &" 
+	  start-stop-daemon -d $CIGRI_INSTALL_PATH/Collector -m -p /var/run/cigri_collector.pid -c $CIGRI_UNIX_USER -b --exec automatic_collect.sh --start -- 2>&1 > cigri_collector.log
           exit 0
         else
           exit 1
