@@ -146,8 +146,9 @@ tocollectJobs.each do |job|
     job.execdir = "~#{job.localuser}"
   end
   # Construct the list of files to fetch
-  if job.name.to_s != ""
-    files << "#{job.name}"
+    puts "#{$tag} Job name: #{job.first_param}" if $verbose
+  if job.first_param.to_s != ""
+    files << "#{job.first_param}"
   end
   if job.batchtype.to_s == "OAR2" || job.batchtype.to_s == "OAR2_4"
     files << "OAR*.#{job.remoteid}.stderr"

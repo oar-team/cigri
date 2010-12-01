@@ -81,6 +81,12 @@ class Job
          dbh.do(query)
      end
 
+     # Get the first parameter (used as the name of the output file)
+     def first_param
+        @param.to_s.split[0]
+     end
+
+
 end
 
 #########################################################################
@@ -512,7 +518,7 @@ end
 # Get the jobs to collect
 # Returns a JobSet object
 def tocollect_Jobs(dbh)
-  JobSet.new(dbh,"SELECT jobId,jobClusterName,jobMJobsId,jobName,jobRemoteId,
+  JobSet.new(dbh,"SELECT jobId,jobClusterName,jobMJobsId,jobName,jobRemoteId,jobParam,
                          MJobsUser,clusterBatch,propertiesExecDirectory,userLogin
                   FROM jobs,multipleJobs,clusters,properties,users
                   WHERE jobState = \"Terminated\" 
