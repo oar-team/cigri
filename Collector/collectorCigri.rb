@@ -57,7 +57,7 @@ end
 def get_files(cluster,execdir,files,archive,mjobid)
   # Construct the ssh pipe
   files=files.collect { |f| f="\"#{f}\"" }
-  find_cmd="find . -maxdepth 1 -name "+files.join(" -o -name ")
+  find_cmd="find . -wholename "+files.join(" -o -name ")
   cmd="#{$ssh_cmd} #{cluster} 'cd #{execdir} || exit 100 && files=`#{find_cmd}`;test \"$files\" || exit 101 && tar cf - $files|gzip -c -; [ ${PIPESTATUS[0]} = 0 ] || exit 102' > #{archive}.tgz"
   puts "#{$tag} #{archive}.tgz"
   puts "#{$tag}   Sending command: #{cmd}" if $verbose
@@ -148,7 +148,7 @@ tocollectJobs.each do |job|
   # Construct the list of files to fetch
     puts "#{$tag} Job name: #{job.first_param}" if $verbose
   if job.first_param.to_s != ""
-    files << "#{job.first_param}"
+    files << "./#{job.first_param}"
   end
   if job.batchtype.to_s == "OAR2" || job.batchtype.to_s == "OAR2_4"
     files << "OAR*.#{job.remoteid}.stderr"
