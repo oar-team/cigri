@@ -64,10 +64,11 @@ sub init_jdl($) {
         my $clusterName = $1;
         my ($devNull, $clusterBlock) = split(/{/, $i);
         next if (!defined($clusterBlock));
-        my @linesConf = split(/;/, $clusterBlock);
+        my @linesConf = split(/\s*;/, $clusterBlock);
         foreach my $j (@linesConf){
-            if ($j =~ m/^\s*(\w+)\s*=\s*([\w\.\/\-\:=\/]+)\s*$/){
+            if ($j =~ m/^\s*(\w+)\s*=\s*([\w\.\/\-\:=\/%_\s]+)\s*$/){
                 $clusterConf{$clusterName}{$1} = $2;
+                $clusterConf{$clusterName}{$1} =~ s/%/;/g;
             }
         }
     }

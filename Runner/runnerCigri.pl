@@ -51,6 +51,15 @@ foreach my $j (keys(%clusterNames)){
     		my @cmdSSH;
 		print "[RUNNER] Got ".(scalar @jobs)." to launch on $j\n";
 
+                my $prologue="";
+                if (defined($jobs[0]->{prologue}) && $jobs[0]->{prologue} ne "") {
+                  if (!defined ($jobs[0]->{prologueStat}) || "$jobs[0]->{prologueStat}" ne "1") {
+                    print "[RUNNER] There's a prologue to execute.\n";
+                    $prologue = $jobs[0]->{prologue};
+                    $prologue =~ s/\n/;/g ;
+                  }
+                }
+
 		if (@jobs == 0) {
 	    		print("[RUNNER]	Problem : jobs array void\n"); die();
 		} elsif (!defined ($jobs[0]->{batchId})) {
@@ -192,7 +201,9 @@ foreach my $j (keys(%clusterNames)){
 
 		}
 
-       		my $cmdString = join(" ", @cmdSSH);
+       		my $cmdString;
+                if ($prologue ne "") { $cmdString = $prologue." ".join(" ", @cmdSSH); }
+                else { $cmdString = join(" ", @cmdSSH); }
 	       	#print  " ---------  $cmdString\n";
         	my %cmdResult = SSHcmd::submitCmd($jobs[0]->{clusterName},$cmdString);
 
@@ -255,6 +266,9 @@ foreach my $j (keys(%clusterNames)){
        		        	 	iolibCigri::set_job_remote_id($base,$jobs[0]->{id},$retCode);
                 		 	iolibCigri::set_job_state($base,$jobs[0]->{id},"Running");
 				}
+                	        if ($prologue ne "") {
+                                  iolibCigri::set_mjob_prologue_state($base,$jobs[0]->{mjobid},$jobs[0]->{clusterName},1);
+                                }
 			}
       		}
 

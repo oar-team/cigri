@@ -155,6 +155,8 @@ propertiesData_synchronState ENUM('','INITIATED','IN_TREATMENT','ERROR','TERMINA
 propertiesCheckpointType VARCHAR(32) ,
 propertiesCheckpointPeriod INT ,
 propertiesClusterPriority INT UNSIGNED,
+propertiesPrologue TEXT,
+propertiesPrologueStat INT,
 INDEX propertiesMJobsId (propertiesMJobsId),
 PRIMARY KEY (propertiesClusterName,propertiesMJobsId)
 )TYPE = InnoDB;

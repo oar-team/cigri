@@ -349,9 +349,10 @@ sub add_mjobs($$$) {
                         my $jobWalltime = "1:00:00";
                         my $jobResources = "/resource_id=1";
                         my $execDir = "~";
-						my $checkpoint_type="";
-						my $checkpoint_period=0;
-						my $priority = 1;
+			my $checkpoint_type="";
+			my $checkpoint_period=0;
+			my $priority = 1;
+			my $prologue = "";
                         if (defined($JDLParserCigri::clusterConf{$j}{walltime})){
                             $jobWalltime = $JDLParserCigri::clusterConf{$j}{walltime};
                         }
@@ -374,9 +375,12 @@ sub add_mjobs($$$) {
 			if (defined($JDLParserCigri::clusterConf{$j}{priority})){
 			    $priority = $JDLParserCigri::clusterConf{$j}{priority};
 			}
+                        if (defined($JDLParserCigri::clusterConf{$j}{prologue})){
+                            $prologue = $JDLParserCigri::clusterConf{$j}{prologue};
+                        }
 
-                        $dbh->do("INSERT INTO properties (propertiesClusterName,propertiesMJobsId,propertiesJobCmd,propertiesJobWalltime,propertiesJobResources,propertiesExecDirectory,propertiesCheckpointType,propertiesCheckpointPeriod,propertiesClusterPriority)
-                                  VALUES (\"$j\",$id,\"$JDLParserCigri::clusterConf{$j}{execFile}\",\"$jobWalltime\",\"$jobResources\",\"$execDir\",\"$checkpoint_type\",\"$checkpoint_period\",\"$priority\")");
+                        $dbh->do("INSERT INTO properties (propertiesClusterName,propertiesMJobsId,propertiesJobCmd,propertiesJobWalltime,propertiesJobResources,propertiesExecDirectory,propertiesCheckpointType,propertiesCheckpointPeriod,propertiesClusterPriority,propertiesPrologue)
+                                  VALUES (\"$j\",$id,\"$JDLParserCigri::clusterConf{$j}{execFile}\",\"$jobWalltime\",\"$jobResources\",\"$execDir\",\"$checkpoint_type\",\"$checkpoint_period\",\"$priority\",\"$prologue\")");
                     }else{
                         rollback_transaction($dbh);
                         return -3;
@@ -1107,7 +1111,7 @@ sub get_launching_job($$) {
     my $dbh = shift;
     my $clusterName = shift;
     my @jobs;
-    my $sth = $dbh->prepare("SELECT jobId,jobParam,propertiesJobCmd,jobClusterName,clusterBatch,userLogin,MJobsId,propertiesJobWalltime,propertiesJobResources,propertiesExecDirectory,propertiesCheckpointPeriod,propertiesCheckpointType,jobName,jobBatchId
+    my $sth = $dbh->prepare("SELECT jobId,jobParam,propertiesJobCmd,jobClusterName,clusterBatch,userLogin,MJobsId,propertiesJobWalltime,propertiesJobResources,propertiesExecDirectory,propertiesCheckpointPeriod,propertiesCheckpointType,jobName,jobBatchId,propertiesPrologueStat,propertiesPrologue
                              FROM jobs,clusters,multipleJobs,properties,users
                              WHERE jobState=\"toLaunch\"
                                  AND clusterName = \"$clusterName\"
@@ -1126,7 +1130,7 @@ sub get_launching_job($$) {
 
     if (defined($ref[13])) { #it's a batch !
 	my $sth = $dbh->prepare("
-	SELECT jobId,jobParam,propertiesJobCmd,jobClusterName,clusterBatch,userLogin,MJobsId,propertiesJobWalltime,propertiesJobResources,propertiesExecDirectory,propertiesCheckpointPeriod,propertiesCheckpointType,jobName,jobBatchId
+	SELECT jobId,jobParam,propertiesJobCmd,jobClusterName,clusterBatch,userLogin,MJobsId,propertiesJobWalltime,propertiesJobResources,propertiesExecDirectory,propertiesCheckpointPeriod,propertiesCheckpointType,jobName,jobBatchId,propertiesPrologueStat,propertiesPrologue
                              FROM jobs,clusters,multipleJobs,properties,users
                              WHERE jobState=\"toLaunch\"
 				 AND jobClusterName = \"$ref[3]\"
@@ -1160,7 +1164,9 @@ sub get_launching_job($$) {
 				'checkpointPeriod' => $ref[10],
 				'checkpointType' => $ref[11],
 				'name'		=> $ref[12],
-				'batchId'	=> $ref[13]
+				'batchId'	=> $ref[13],
+				'prologueStat'	=> $ref[14],
+				'prologue'	=> $ref[15]
 			};
 		#On fait un array de jobs à envoyer en batch, un seul veut dire pas de batch
 		#print "%"x100, Dumper(@jobs), "%"x100;
@@ -1181,8 +1187,9 @@ sub get_launching_job($$) {
 			'checkpointPeriod' => $ref[10],
 			'checkpointType'=> $ref[11],
 			'name' 		=> $ref[12],
-			'batchId'	=> $ref[13]
-
+			'batchId'	=> $ref[13],
+			'prologueStat'	=> $ref[14],
+			'prologue'	=> $ref[15]
     	    	};
 	    
 
@@ -1446,6 +1453,20 @@ sub set_batch_state($$$) {
     $sth->finish();
 }
 
+# set the state of a prologue (1 means "done")
+# arg1 --> database ref
+# arg2 --> jobId
+# arg3 --> state
+sub set_mjob_prologue_state($$$$) {
+    my $dbh = shift;
+    my $id = shift;
+    my $cluster = shift;
+    my $state = shift;
+    my $sth = $dbh->prepare("UPDATE properties SET propertiesPrologueStat = \"$state\"
+                                WHERE propertiesMJobsId =\"$id\" and propertiesClusterName=\"$cluster\"");
+    $sth->execute();
+    $sth->finish();
+}
 
 # set the number of resources of a job
 # arg1 --> database ref
