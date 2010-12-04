@@ -308,7 +308,7 @@ if (defined $vars{FINISH}) {
 	
 				}else{
 	                          iolibCigri::set_job_state($base, ${$j}{jobId}, "Event");
-	                          colomboCigri::add_new_job_event($base,${$j}{jobId},"UPDATOR_RET_CODE_ERROR","Executable exited with error code $fileVars{RET_CODE}; $cmdResult{STDERR}\nCheck OAR.${$j}{jobName}.${$j}{RemoteJobId}.stderr on ${$j}{clusterName} for more infos");
+	                          colomboCigri::add_new_job_event($base,${$j}{jobId},"UPDATOR_RET_CODE_ERROR","Executable exited with error code $fileVars{RET_CODE}; $cmdResult{STDERR}\nCheck OAR.${$j}{jobName}.${$j}{remoteJobId}.stderr on ${$j}{clusterName} for more infos");
 	                          #exit(66);
 				}
 	                    }
