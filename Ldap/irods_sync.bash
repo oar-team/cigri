@@ -10,7 +10,7 @@ CIGRI_CONFIGFILE=/etc/cigri.conf
 IRODS_ADMIN_HOST=quath.ujf-grenoble.fr
 IRODS_ADMIN_USER=irods
 IRODS_ADMIN_PATH=/applis/ciment/stow/x86_64/iRODS-2.4.1/clients/icommands/bin
-IRODS_DEFAULT_HOST=ciment-icat.ujf-grenoble.fr
+IRODS_DEFAULT_HOST=195.220.82.20
 IRODS_DEFAULT_ZONE=cigri
 IRODS_DEFAULT_PORT=1247
 IRODS_INIT_CMD="/applis/ciment/stow/x86_64/iRODS-2.4.1/clients/icommands/bin/iinit"
@@ -102,7 +102,12 @@ do
           # Create an irods environment file
           echo "    Creating $cluster:~$remote_user/.irods/.irodsEnv"
           $SSH_COMMAND $cluster "sudo -H -u $remote_user bash -c 'mkdir -p ~/.irods;chmod 700 ~/.irods'"
-          $SSH_COMMAND $cluster "sudo -H -u $remote_user bash -c 'echo -e \"irodsHost $IRODS_DEFAULT_HOST\nirodsPort $IRODS_DEFAULT_PORT\nirodsUserName $user\nirodsZone $IRODS_DEFAULT_ZONE\" > ~/.irods/.irodsEnv'"
+          irods_host=`mysql $OPTS -e "select clusterIrodsServer from clusters where clusterName=\"$cluster\""`
+          if [ "$irods_host" = "" ]
+          then
+            irods_host=$IRODS_DEFAULT_HOST
+          fi
+          $SSH_COMMAND $cluster "sudo -H -u $remote_user bash -c 'echo -e \"irodsHost $irods_host\nirodsPort $IRODS_DEFAULT_PORT\nirodsUserName $user\nirodsZone $IRODS_DEFAULT_ZONE\" > ~/.irods/.irodsEnv'"
         fi
 
         # Check if the user already has an irods password file
