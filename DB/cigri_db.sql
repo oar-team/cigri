@@ -94,6 +94,7 @@ INDEX jobState (jobState),
 INDEX jobMJobsId (jobMJobsId),
 INDEX jobClusterName (jobClusterName),
 INDEX jobCollectedJobId (jobCollectedJobId),
+INDEX jobBatchId (jobBatchId),
 PRIMARY KEY (jobId)
 )TYPE = InnoDB;
 
