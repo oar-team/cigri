@@ -202,7 +202,7 @@ foreach my $j (keys(%clusterNames)){
 		}
 
        		my $cmdString;
-                if ($prologue ne "") { $cmdString = $prologue." ".join(" ", @cmdSSH); }
+                if ($prologue ne "") { $cmdString = "sudo -H -u $jobs[0]->{user} bash -c \"cd ~; ".$prologue."\"; ".join(" ", @cmdSSH); }
                 else { $cmdString = join(" ", @cmdSSH); }
 	       	#print  " ---------  $cmdString\n";
         	my %cmdResult = SSHcmd::submitCmd($jobs[0]->{clusterName},$cmdString);
