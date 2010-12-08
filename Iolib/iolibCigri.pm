@@ -2579,9 +2579,9 @@ sub how_many_to_30min($$$) {
 
     $sth->finish();
 
-    if (!defined($res[0]) or $res[0] > 1*60/2 ) { return 1; } #task too long, don't batch 
+    if (!defined($res[0]) or $res[0] > 5*60/2 ) { return 1; } #task too long, don't batch 
 	
     #plein de magie
-    return ((!defined($res[0]) || $res[0] > 1*60/2 )? 1 : int( (1*60) / $res[0] ));
+    return ((!defined($res[0]) || $res[0] > 5*60/2 )? 1 : int( (5*60) / $res[0] ));
 
 }
