@@ -13,9 +13,9 @@ IRODS_ADMIN_PATH=/applis/ciment/stow/x86_64/iRODS-2.4.1/clients/icommands/bin
 IRODS_DEFAULT_HOST=195.220.82.20
 IRODS_DEFAULT_ZONE=cigri
 IRODS_DEFAULT_PORT=1247
-IRODS_INIT_CMD="/applis/ciment/stow/x86_64/iRODS-2.4.1/clients/icommands/bin/iinit"
+IRODS_INIT_CMD='/applis/ciment/stow/`uname -m`/iRODS-2.4.1/clients/icommands/bin/iinit'
 PASSWD_BACKUP_FILE=~cigri/irods_passwords
-IGNORE_CLUSTERS="browalle.ujf-grenoble.fr|cmserver.e-ima.ujf-grenoble.fr|p2chpd-cluster.univ-lyon1.fr|psmn-cluster.ens-lyon.fr|healthphy.ujf-grenoble.fr|zephir.mirage.ujf-grenoble.fr|edel.imag.fr"
+IGNORE_CLUSTERS="browalle.ujf-grenoble.fr|cmserver.e-ima.ujf-grenoble.fr|p2chpd-cluster.univ-lyon1.fr|psmn-cluster.ens-lyon.fr|zephir.mirage.ujf-grenoble.fr|edel.imag.fr|adonis.imag.fr"
 ADD_HOSTS="killeen.ujf-grenoble.fr"
 DEFAULT_QUOTA=500000000000
 SSH_COMMAND="ssh -o BatchMode=yes"
