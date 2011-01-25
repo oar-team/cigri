@@ -5,7 +5,7 @@
 # usage:
 # ./irods_sync.bash [-f] [user]
 
-CIGRI_GROUP=cigri-user
+CIGRI_GROUP=realuser
 CIGRI_CONFIGFILE=/etc/cigri.conf
 IRODS_ADMIN_HOST=quath.ujf-grenoble.fr
 IRODS_ADMIN_USER=irods
@@ -74,7 +74,7 @@ do
       echo "    Creating $user into IRODS..."
       $SSH_COMMAND $IRODS_ADMIN_USER@$IRODS_ADMIN_HOST "$IRODS_ADMIN_PATH/iadmin mkuser $user rodsuser" || exit 1
       $SSH_COMMAND $IRODS_ADMIN_USER@$IRODS_ADMIN_HOST "$IRODS_ADMIN_PATH/iadmin moduser $user password $password" || exit 1
-      $SSH_COMMAND $IRODS_ADMIN_USER@$IRODS_ADMIN_HOST "$IRODS_ADMIN_PATH/iadmin atg cigri $user" || exit 1
+      $SSH_COMMAND $IRODS_ADMIN_USER@$IRODS_ADMIN_HOST "$IRODS_ADMIN_PATH/iadmin atg cigri-user $user" || exit 1
     else
       echo "    IRODS user $user already exists."
     fi
@@ -96,8 +96,11 @@ do
                
         # Check if the user already has an irods environment
         echo "    Checking $remote_user on $cluster..."
+        WHOAMI_OK=`$SSH_COMMAND $cluster "sudo -H -u $remote_user bash -c 'whoami > /dev/null && echo 1 || echo 0'"`
+        HOMEDIR=`$SSH_COMMAND $cluster "getent passwd $remote_user |cut -d: -f6"`
+        HOMEDIR_OK=`$SSH_COMMAND $cluster "sudo -H -u $remote_user bash -c 'touch $HOMEDIR/.test_sync_irods && echo 1 || echo 0'"`
         ALREADY=`$SSH_COMMAND $cluster "sudo -H -u $remote_user bash -c '[ -f ~/.irods/.irodsEnv ] && echo 1 || echo 0'"`
-        if [ $? -eq 0  -a \( "$ALREADY" = "0" -o "$FORCE" = "1" \) ]
+        if [ $? -eq 0  -a \( "$ALREADY" = "0" -o "$FORCE" = "1" \) -a "$WHOAMI_OK" = "1" -a "$HOMEDIR_OK" = "1" ]
         then
           # Create an irods environment file
           echo "    Creating $cluster:~$remote_user/.irods/.irodsEnv"
@@ -112,7 +115,7 @@ do
 
         # Check if the user already has an irods password file
         ALREADY=`$SSH_COMMAND $cluster "sudo -H -u $remote_user bash -c '[ -f ~/.irods/.irodsA ] && echo 1 || echo 0'"`
-        if [ $? -eq 0 -a \( "$ALREADY" = "0" -o "$FORCE" = "1" \) ]
+        if [ $? -eq 0 -a \( "$ALREADY" = "0" -o "$FORCE" = "1" \) -a "$WHOAMI_OK" = "1" -a "$HOMEDIR_OK" = "1" ]
         then
           # Init irods password 
           echo "    Creating $cluster:~$remote_user/.irods/.irodsA"
