@@ -53,10 +53,18 @@ foreach my $j (keys(%clusterNames)){
 
                 my $prologue="";
                 if (defined($jobs[0]->{prologue}) && $jobs[0]->{prologue} ne "") {
-                  if (!defined ($jobs[0]->{prologueStat}) || "$jobs[0]->{prologueStat}" ne "1") {
+                  if (!defined ($jobs[0]->{prologueStat}) || "$jobs[0]->{prologueStat}" eq "" || "$jobs[0]->{prologueStat}" eq "0" ) {
                     print "[RUNNER] There's a prologue to execute.\n";
-                    $prologue = $jobs[0]->{prologue};
-                    $prologue =~ s/\n/;/g ;
+                    $jobs[0]->{prologue} =~ s/\n/;/g ;
+                    $prologue = " [ -f ~/cigri_prologue.$jobs[0]->{mjobid} ] || ( touch ~/cigri_prologue.".$jobs[0]->{mjobid}." ;";
+                    $prologue .= $jobs[0]->{prologue};
+                    $prologue .= "; rm -f ~/cigri_prologue.".$jobs[0]->{mjobid}." );" ;
+                    $prologue =~ s/;;/;/g ;
+
+                    # Shouldn't be done at this stage, but since we have no error checking specific to the prolog
+                    # let's do this dirty "ok the prolog has been sent"          
+                    iolibCigri::set_mjob_prologue_state($base,$jobs[0]->{mjobid},$jobs[0]->{clusterName},1);
+
                   }
                 }
 
