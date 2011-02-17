@@ -17,7 +17,7 @@ IRODS_INIT_CMD='/applis/ciment/stow/`uname -m`/iRODS-2.4.1/clients/icommands/bin
 PASSWD_BACKUP_FILE=~cigri/irods_passwords
 IGNORE_CLUSTERS="browalle.ujf-grenoble.fr|cmserver.e-ima.ujf-grenoble.fr|p2chpd-cluster.univ-lyon1.fr|psmn-cluster.ens-lyon.fr|zephir.mirage.ujf-grenoble.fr|edel.imag.fr|adonis.imag.fr"
 ADD_HOSTS="killeen.ujf-grenoble.fr"
-DEFAULT_QUOTA=500000000000
+DEFAULT_QUOTA=200000000000
 SSH_COMMAND="ssh -o BatchMode=yes"
 
 touch $PASSWD_BACKUP_FILE
