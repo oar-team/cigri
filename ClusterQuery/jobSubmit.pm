@@ -140,6 +140,7 @@ sub oarsubmit($$$$$$$$$$){
     $jobEnv .= ' export CIGRI_NODEFILE=\\\\\\$OAR_NODEFILE;';
     $jobEnv .= " export CIGRI_JOB_ID=$jobId;";
     $jobEnv .= " export CIGRI_JOBID=$jobId;";
+    $jobEnv .= " export CIGRI_CLUSTER=$cluster;";
     $jobEnv .= " export CIGRI_CAMPAIGNID=$campId;";
     $jobEnv .= " export CIGRI_CAMPAIGN_ID=$campId;";
     $jobEnv .= " export CIGRI_JOB_NAME=$jobName;";
@@ -226,6 +227,7 @@ sub oarsubmit2($$$$$$$$$$){
 	$jobEnv .= ' export CIGRI_NODEFILE=\\\\\\$OAR_NODEFILE;'; 
 	$jobEnv .= " export CIGRI_JOB_ID=$jobId;"; 
 	$jobEnv .= " export CIGRI_JOBID=$jobId;"; 
+        $jobEnv .= " export CIGRI_CLUSTER=$cluster;";
 	$jobEnv .= " export CIGRI_CAMPAIGNID=$campId;"; 
 	$jobEnv .= " export CIGRI_CAMPAIGN_ID=$campId;"; 
 	$jobEnv .= " export CIGRI_JOB_NAME=$jobName;"; 

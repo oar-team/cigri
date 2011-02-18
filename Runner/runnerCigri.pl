@@ -56,9 +56,9 @@ foreach my $j (keys(%clusterNames)){
                   if (!defined ($jobs[0]->{prologueStat}) || "$jobs[0]->{prologueStat}" eq "" || "$jobs[0]->{prologueStat}" eq "0" ) {
                     print "[RUNNER] There's a prologue to execute.\n";
                     $jobs[0]->{prologue} =~ s/\n/;/g ;
-                    $prologue = " [ -f ~/cigri_prologue.$jobs[0]->{mjobid} ] || ( touch ~/cigri_prologue.".$jobs[0]->{mjobid}." ;";
+                    $prologue = " [ -f ~/cigri_prologue.$jobs[0]->{mjobid}.$j ] || ( touch ~/cigri_prologue.".$jobs[0]->{mjobid}.".$j ;";
                     $prologue .= $jobs[0]->{prologue};
-                    $prologue .= "; rm -f ~/cigri_prologue.".$jobs[0]->{mjobid}." );" ;
+                    $prologue .= "; rm -f ~/cigri_prologue.".$jobs[0]->{mjobid}.".$j );" ;
                     $prologue =~ s/;;/;/g ;
 
                     # Shouldn't be done at this stage, but since we have no error checking specific to the prolog
