@@ -1,0 +1,14 @@
+{
+  "name": "Minimal campaign description",
+  "nb_jobs": 2,
+  "exec_file": "$HOME/script",
+  "clusters": {
+    "my.cluster.fr": {
+    },
+    "my.other_cluster.fr": {
+    },
+    "my.last_cluster.fr": {
+      "exec_file": "$HOME/path/script"
+    }
+  }
+}
