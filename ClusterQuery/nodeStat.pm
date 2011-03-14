@@ -181,10 +181,10 @@ sub oarnodes2($$){
                      if ($line eq "jobs") { $jobs{$resourceUnitId}++; }
                  }
              }else{
-               print("[UPDATOR]     ERROR: There is an error in the oarnodes command ($cmd) parsing: network_address not found\n");
-               colomboCigri::add_new_cluster_event($dbh,$cluster,0,"UPDATOR_PBSNODES_PARSE",
-                           "There is an error in the oarnodes command ($cmd) parsing: network_address not found");
-               return(-1);
+               print("[UPDATOR]     WARNING: oarnodes command ($cmd) parsing: network_address not found\n");
+               #colomboCigri::add_new_cluster_event($dbh,$cluster,0,"UPDATOR_PBSNODES_PARSE",
+                #           "There is an error in the oarnodes command ($cmd) parsing: network_address not found");
+               #return(-1);
              }
            }
 	   # We only want the real resources, so we count unique resourceUnit
@@ -285,10 +285,10 @@ sub oarnodes2_4($$){
                      if ($line eq "jobs") { $jobs{$resourceUnitId}++; }
                  }
              }else{
-               print("[UPDATOR]     ERROR: There is an error in the oarnodes command ($cmd) parsing: network_address not found\n");
-               colomboCigri::add_new_cluster_event($dbh,$cluster,0,"UPDATOR_PBSNODES_PARSE",
-                           "There is an error in the oarnodes command ($cmd) parsing: network_address not found");
-               return(-1);
+               print("[UPDATOR]     WARNING: oarnodes command ($cmd) parsing: network_address not found\n");
+               #colomboCigri::add_new_cluster_event($dbh,$cluster,0,"UPDATOR_PBSNODES_PARSE",
+                #           "There is an error in the oarnodes command ($cmd) parsing: network_address not found");
+               #return(-1);
              }
            }
 	   # We only want the real resources, so we count unique resourceUnit
