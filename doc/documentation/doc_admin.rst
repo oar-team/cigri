@@ -11,13 +11,7 @@
 
 -------------------------------------------------------------------------------
 
-Modules Description
-===================
-
 .. include:: doc_modules.rst
-
-Database scheme
-===============
 
 #.. include:: doc_database.rst
       
