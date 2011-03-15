@@ -9,18 +9,18 @@ doc-admin: doc_admin.html
 
 pdf: doc_admin.pdf
 
- %.html: %.rst
+%.html: %.rst
 	rst2html -stg $< $@
 
 %.tex: %.rst
-	rst2newlatex $< $@
+	rst2latex $< $@
 
 %.pdf: %.tex
 	pdflatex $< $@
 	pdflatex $< $@
 
 clean:
-	for i in doc_admin; do rm -f $$i.pdf $$i.html $$i.tex $$i.aux $$i.log $$i.out; done
+	for i in doc_admin; do rm -f $$i.pdf $$i.html $$i.tex $$i.aux $$i.log $$i.out $$i.toc; done
 
 
 # The following the what is used in OAR

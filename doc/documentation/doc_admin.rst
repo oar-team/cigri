@@ -11,9 +11,11 @@
 
 -------------------------------------------------------------------------------
 
+.. include:: doc_lib.rst
+
 .. include:: doc_modules.rst
 
-#.. include:: doc_database.rst
+.. include:: doc_database.rst
       
 .. include:: ../../CHANGELOG
 
