@@ -1,0 +1,4 @@
+cigri_checkout:
+ - svn_checkout:
+   - exec_chroot: bash -c "cd /root && svn checkout $$cigri_svn"
+
