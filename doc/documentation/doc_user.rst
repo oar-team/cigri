@@ -1,23 +1,16 @@
-===============
- Documentation
-===============
+====================
+ User Documentation
+====================
 
 .. include:: doc_header.rst
 
-:Dedication: For developers and experimenters.
+:Dedication: For users.
 
 .. section-numbering::
 .. contents:: Table of Contents
 
 -------------------------------------------------------------------------------
 
-.. include:: doc_lib.rst
+.. include:: doc_jdl.rst
 
-.. include:: doc_modules.rst
-
-.. include:: doc_database.rst
-      
 .. include:: ../../CHANGELOG
-
-
-
