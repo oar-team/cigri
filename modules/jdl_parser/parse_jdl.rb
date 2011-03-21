@@ -8,5 +8,5 @@ filename = ARGV[0]
 abort ("JDL file \"#{filename}\" not readable. Aborting") unless File.readable?(filename)
 
 
-p Cigri::JDLParser.parse(File.read(filename))
+p Cigri::JDLParser.save(nil, File.read(filename))
 
