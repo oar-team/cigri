@@ -1,6 +1,7 @@
 {
   "name": "Minimal campaign description",
   "nb_jobs": 2,
+  "resources": "nodes=1",
   "exec_file": "$HOME/script",
   "clusters": {
     "my.cluster.fr": {

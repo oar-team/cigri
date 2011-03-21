@@ -45,6 +45,7 @@ Global Settings
 
 - output_destination: some server (not used with iRods) where output
   files will be gathered
+- Any field described in `Cluster Settings`_
 
 Remarks:
 
@@ -55,6 +56,9 @@ Remarks:
 
 Cluster Settings
 ----------------
+
+Settings in this section can be defined in the global section to act
+as value on all clusters.
 
 - campaign_type: Values other than best-effort may require approval
   from platform admins
@@ -76,7 +80,7 @@ Cluster Settings
 
   - Default: $HOME
 
-- resources: resources that are asked to the underlying batch
+- resources*: resources that are asked to the underlying batch
   scheduler (-l in OAR)
 - dimensional_grouping: allow to execute several jobs in parallel in a
   single submission if possible
@@ -93,14 +97,14 @@ Cluster Settings
 Remarks:
 
 - *resources*: if several type of resources are asked, the default
-   resources (nodes, cpus, cores, ...) MUST BE first
-   Example: "resources": "/nodes=3+other_type_of_resource=2"
+  resources (nodes, cpus, cores, ...) **MUST BE** first. Example:
+  "resources": "nodes=3+other_type_of_resource=2"
 - *dimensional_grouping*: enabling this feature will speedup
-   execution, howaver, jobs must not write in common files
+  execution, however, jobs must not write in common files
 - *dimensional_grouping*: should be activated for jobs requiring a
-   small number of resources (typically, one core)
+  small number of resources (typically, one core)
 - *temporal_grouping*: should be activated for short jobs (typically
-   less than 5 minutes).
+  less than 5 minutes).
 
 Example of JDL
 --------------
@@ -109,6 +113,7 @@ Here is an example of a JDL file described in JSON: ::
   {
     "name": "Some campaign",
     "nb_jobs": 2,
+    "resources": "nodes=1",
     "exec_file": "$HOME/script.sh",
     "clusters": {
       "my.cluster.fr": {

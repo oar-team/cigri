@@ -2,7 +2,7 @@ require 'json'
 
 # Mandatory attributes in the JDL
 MANDATORY_CLUSTER = %w{exec_file}
-MANDATORY_GLOBAL = %w{name clusters}
+MANDATORY_GLOBAL = %w{name clusters resources}
 
 module Cigri
   
