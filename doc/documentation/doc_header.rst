@@ -8,4 +8,6 @@
 :Status: Testing
 :Copyright: licenced under the ????
 :Abstract:
-  Cigri is a tool for campaigns management.
+  |soft| is a tool for campaigns management.
+
+.. |soft| replace:: CiGri

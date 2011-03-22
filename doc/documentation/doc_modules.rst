@@ -1,7 +1,7 @@
 Modules Description
 ===================
 
-Cigri is divided in several independent modules. Each module has a
+|soft| is divided in several independent modules. Each module has a
 specific unique role. This section depicts the roles of the different
 modules.
 
@@ -12,10 +12,20 @@ This module is dedicated to launching jobs on the clusters. It reads
 the jobs to launch from the database table *jobs_to_launch* and
 submits them to the API lib.
 
+Columbo
+-------
+
+This modules investigates problems.
+
+It can:
+
+- Detect infinite resubmissions
+- ...
+
 Almighty
 --------
 
-Almighty is the central component of cigri. It is a coordinator as it
+Almighty is the central component of |soft|. It is a coordinator as it
 chooses what other module to launch. 
 
 Modules are launched in this order:

@@ -4,7 +4,7 @@ Libraries Description
 iolib
 -----
 
-iolib is the library handling all interractions with the cigri database
+iolib is the library handling all interractions with the |soft| database
 
 clusterlib
 ----------
@@ -16,4 +16,4 @@ communicate with other APIs as well.
 apilib
 ------
 
-Library handling the CiGri API that serves REST queries.
+Library handling the |soft| API that serves REST queries.

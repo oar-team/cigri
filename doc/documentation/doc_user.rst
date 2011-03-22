@@ -11,13 +11,13 @@
 
 -------------------------------------------------------------------------------
 
-Cigri Tour
+|soft| Tour
 ==========
 
 General Presentation
 --------------------
 
-Cigri is a campaign management tool. It is design to run on top of
+|soft| is a campaign management tool. It is design to run on top of
 multiple clusters each managed by a batch scheduler.
 
 Campaigns
@@ -34,10 +34,10 @@ for its random generator could be schematized by: ::
     program.exe i
   end
 
-Cigri Features
+|soft| Features
 --------------
 
-Cigri includes many features including but not limited to:
+|soft| includes many features including but not limited to:
 
 - Multiple campaigns management
 - Multiple users
@@ -49,12 +49,12 @@ TODO
 Campaigns types
 ---------------
 
-Cigri distinguishes 4 different types of campaigns:
+|soft| distinguishes 4 different types of campaigns:
 
-- **Normal** campaigns: with this type of campaigns, Cigri submits
+- **Normal** campaigns: with this type of campaigns, |soft| submits
   jobs to the batch schedulers. Normal campaigns are the best for the
   users because the jobs are assured to have the requested
-  time. However, because the first role of Cigri is to use idle
+  time. However, because the first role of |soft| is to use idle
   resources with minimum impact on the other users, this type of
   campaign will most likely require an authorization from the admins.
 

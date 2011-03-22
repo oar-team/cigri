@@ -35,16 +35,6 @@ Global Settings
   - BLCR
   - ...
 
-- output_gathering_method: 
-
-  - **None**
-  - iRods: files will be put in iRods at the end of the execution
-  - collector: a collector will pass regularly to gather files
-  - scp: a simple scp will be done on the output files after the
-    completion
-
-- output_destination: some server (not used with iRods) where output
-  files will be gathered
 - Any field described in `Cluster Settings`_
 
 Remarks:
@@ -73,7 +63,7 @@ as value on all clusters.
 
 - walltime: maximum duration of the jobs
 
-  - **Default** defined in cigri.conf
+  - **Default** defined in |soft| configuration file
 
 - exec_file*: script to execute
 - exec_directory: path to a directory execution.
@@ -87,6 +77,21 @@ as value on all clusters.
     cluster and can therefore be different between 2 clusters. Users
     should answer this field.
 
+- prologue: commands that are executed before each job
+- epilogue: commands that are executed after each job
+- output_gathering_method: method to use to gather results in a single
+  place
+
+  - **None**
+  - iRods: files will be put in iRods at the end of the execution
+  - collector: a collector will pass regularly to gather files
+  - scp: a simple scp will be done on the output files after the
+    completion
+
+- output_file: file or directory to save
+- output_destination: some server (not used with iRods) where output
+  files will be gathered
+
 - dimensional_grouping: allow to execute several jobs in parallel in a
   single submission if possible
 
@@ -94,7 +99,8 @@ as value on all clusters.
   - **false**
 
 - temporal_grouping: allow to execute several jobs one after the other
-  in a single submission
+  in a single submission. The number of jobs is computed automatically
+  by |soft|
 
   - **true**
   - false
@@ -110,6 +116,8 @@ Remarks:
   small number of resources (typically, one core)
 - *temporal_grouping*: should be activated for short jobs (typically
   less than 5 minutes).
+- output_gathering_method is defined
+
 
 Example of JDL
 --------------
@@ -120,6 +128,8 @@ Here is an example of a JDL file described in JSON: ::
     "nb_jobs": 2,
     "resources": "nodes=1",
     "exec_file": "$HOME/script.sh",
+    "output_gathering_method": "scp",
+    "output_destination": "my.dataserver.fr",
     "clusters": {
       "my.cluster.fr": {
       },
@@ -130,3 +140,4 @@ Here is an example of a JDL file described in JSON: ::
       }
     }
   }
+
