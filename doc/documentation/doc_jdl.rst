@@ -73,15 +73,20 @@ as value on all clusters.
 
 - walltime: maximum duration of the jobs
 
-  - Default defined in cigri.conf
+  - **Default** defined in cigri.conf
 
 - exec_file*: script to execute
 - exec_directory: path to a directory execution.
 
-  - Default: $HOME
+  - **Default**: $HOME
 
 - resources*: resources that are asked to the underlying batch
   scheduler (-l in OAR)
+  
+  - **Default**: /<resource_unit>=1. Resource_unit is defined per
+    cluster and can therefore be different between 2 clusters. Users
+    should answer this field.
+
 - dimensional_grouping: allow to execute several jobs in parallel in a
   single submission if possible
 
