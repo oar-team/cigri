@@ -11,9 +11,9 @@ The JDL has 2 main parts:
 #. The global settings
 #. The cluster settings
 
-Emphasized values correspond to the default.
+**Emphasized** values correspond to the default.
 
-Attributes with a "*" are mandatory.
+Attributes followed by a "*" are mandatory.
 
 Global Settings
 ---------------

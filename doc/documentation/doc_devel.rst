@@ -1,6 +1,6 @@
-=====================
- Admin Documentation
-=====================
+==========================
+ Developper Documentation
+==========================
 
 .. include:: doc_header.rst
 
@@ -11,9 +11,11 @@
 
 -------------------------------------------------------------------------------
 
-Setting up Cigri
-================
+.. include:: doc_lib.rst
 
-Use the makefile.
+.. include:: doc_modules.rst
 
-TODO
+.. include:: doc_database.rst
+      
+.. include:: ../../CHANGELOG
+

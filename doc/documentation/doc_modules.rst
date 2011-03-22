@@ -22,3 +22,10 @@ Modules are launched in this order:
 
 #. module 1
 #. module 2 
+
+
+JDL_parser
+----------
+
+The JDL parser module is used to parse and save when a new campaign is
+submitted.
