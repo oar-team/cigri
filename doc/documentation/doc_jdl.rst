@@ -2,7 +2,7 @@ Job Description Language (JDL)
 ==============================
 
 To describe a campaign, we use a Job Description Language (JDL). The
-JDL is based on the JSON [#]_. 
+JDL is based on JSON [#]_.
 
 .. [#] See http://www.json.org/ for more information about JSON
 

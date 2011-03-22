@@ -10,4 +10,4 @@
 :Abstract:
   |soft| is a tool for campaigns management.
 
-.. |soft| replace:: CiGri
+.. |soft| replace:: CiGri-ng

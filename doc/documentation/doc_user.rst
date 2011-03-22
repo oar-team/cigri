@@ -12,7 +12,7 @@
 -------------------------------------------------------------------------------
 
 |soft| Tour
-==========
+===========
 
 General Presentation
 --------------------
@@ -35,7 +35,7 @@ for its random generator could be schematized by: ::
   end
 
 |soft| Features
---------------
+---------------
 
 |soft| includes many features including but not limited to:
 
