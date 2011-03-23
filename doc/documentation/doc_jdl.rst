@@ -1,3 +1,5 @@
+.. -*- rst-mode; coding: utf-8; ispell-local-dictionary: "american"; mode: flyspell -*-
+
 Job Description Language (JDL)
 ==============================
 
