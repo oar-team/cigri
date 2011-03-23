@@ -1,3 +1,5 @@
+.. -*- rst-mode -*-
+
 Modules Description
 ===================
 
@@ -66,3 +68,8 @@ JDL_parser
 
 The JDL parser module is used to parse and save when a new campaign is
 submitted.
+
+.. Local Variables:
+.. ispell-local-dictionary: "american"
+.. mode: flyspell
+.. End:

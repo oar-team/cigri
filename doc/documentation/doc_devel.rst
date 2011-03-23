@@ -1,3 +1,5 @@
+.. -*- rst-mode -*-
+
 ==========================
  Developper Documentation
 ==========================
@@ -19,3 +21,7 @@
       
 .. include:: ../../CHANGELOG
 
+.. Local Variables:
+.. ispell-local-dictionary: "american"
+.. mode: flyspell
+.. End:

@@ -1,3 +1,5 @@
+.. -*- rst-mode -*-
+
 ====================
  User Documentation
 ====================
@@ -81,3 +83,8 @@ Campaigns types
 .. include:: doc_jdl.rst
 
 .. include:: ../../CHANGELOG
+
+.. Local Variables:
+.. ispell-local-dictionary: "american"
+.. mode: flyspell
+.. End:

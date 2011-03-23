@@ -1,3 +1,5 @@
+.. -*- rst-mode -*-
+
 =====================
  Admin Documentation
 =====================
@@ -12,8 +14,13 @@
 -------------------------------------------------------------------------------
 
 Setting up |soft|
-================
+=================
 
 Use the makefile.
 
 TODO
+
+.. Local Variables:
+.. ispell-local-dictionary: "american"
+.. mode: flyspell
+.. End:

@@ -1,3 +1,5 @@
+.. -*- rst-mode -*-
+
 Libraries Description
 =====================
 
@@ -6,7 +8,7 @@ Different libraries may be used by |soft| components.
 iolib
 -----
 
-Library handling all interractions with the |soft| database. It
+Library handling all interactions with the |soft| database. It
 provides a connection method that gives a database handle, and many
 useful queries.
 
@@ -25,3 +27,8 @@ apilib
 ------
 
 Library handling the |soft| API that serves REST queries.
+
+.. Local Variables:
+.. ispell-local-dictionary: "american"
+.. mode: flyspell
+.. End:

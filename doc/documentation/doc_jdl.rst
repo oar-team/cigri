@@ -1,4 +1,4 @@
-.. -*- rst-mode; coding: utf-8; ispell-local-dictionary: "american"; mode: flyspell -*-
+.. -*- rst-mode -*-
 
 Job Description Language (JDL)
 ==============================
@@ -124,7 +124,12 @@ as value on all clusters.
 Example of JDL
 --------------
 
-Here is an example of a JDL file described in JSON: ::
+Here is an example of a JDL file described in JSON:
 
 .. include:: ../../modules/jdl_parser/example.json
-   :literal:
+   :literal: 
+
+.. Local Variables:
+.. ispell-local-dictionary: "american"
+.. mode: flyspell
+.. End:
