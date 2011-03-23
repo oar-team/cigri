@@ -29,12 +29,6 @@ Global Settings
   - **normal**: jobs using the param_file or nb_jobs
   - desktop_computing: jobs launched with always the same parameters
 
-- checkpointing_type:
-  
-  - **None**
-  - BLCR
-  - ...
-
 - Any field described in `Cluster Settings`_
 
 Remarks:
@@ -104,6 +98,12 @@ as value on all clusters.
 
   - **true**
   - false
+
+- checkpointing_type:
+  
+  - **None**
+  - BLCR
+  - ...
 
 Remarks:
 
