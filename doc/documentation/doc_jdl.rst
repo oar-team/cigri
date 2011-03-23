@@ -31,12 +31,12 @@ Global Settings
 
 - Any field described in `Cluster Settings`_
 
-Remarks:
+.. NOTE::
 
-- If the job_type is not desktop_computing, then one of *param_file*
-  or *nb_jobs* is mandatory
-- *nb_jobs* is just syntactic sugar equivalent with a *param_file*
-  containing a number from 0 to nb_jobs on each line
+  - If the job_type is not desktop_computing, then one of *param_file*
+    or *nb_jobs* is mandatory
+  - *nb_jobs* is just syntactic sugar equivalent with a *param_file*
+    containing a number from 0 to nb_jobs on each line
 
 Cluster Settings
 ----------------
@@ -105,39 +105,24 @@ as value on all clusters.
   - BLCR
   - ...
 
-Remarks:
+.. NOTE::
 
-- *resources*: if several type of resources are asked, the default
-  resources (nodes, cpus, cores, ...) **MUST BE** first. Example:
-  "resources": "nodes=3+other_type_of_resource=2"
-- *dimensional_grouping*: enabling this feature will speedup
-  execution, however, jobs must not write in common files
-- *dimensional_grouping*: should be activated for jobs requiring a
-  small number of resources (typically, one core)
-- *temporal_grouping*: should be activated for short jobs (typically
-  less than 5 minutes).
-- output_gathering_method is defined
+  - *resources*: if several type of resources are asked, the default
+    resources (nodes, cpus, cores, ...) **MUST BE** first. Example:
+    "resources": "nodes=3+other_type_of_resource=2"
+  - *dimensional_grouping*: enabling this feature will speedup
+    execution, however, jobs must not write in common files
+  - *dimensional_grouping*: should be activated for jobs requiring a
+    small number of resources (typically, one core)
+  - *temporal_grouping*: should be activated for short jobs (typically
+    less than 5 minutes).
+  - output_gathering_method is defined
 
 
 Example of JDL
 --------------
+
 Here is an example of a JDL file described in JSON: ::
 
-  {
-    "name": "Some campaign",
-    "nb_jobs": 2,
-    "resources": "nodes=1",
-    "exec_file": "$HOME/script.sh",
-    "output_gathering_method": "scp",
-    "output_destination": "my.dataserver.fr",
-    "clusters": {
-      "my.cluster.fr": {
-      },
-      "my.other_cluster.fr": {
-      },
-      "my.last_cluster.fr": {
-        "exec_file": "$HOME/path/script"
-      }
-    }
-  }
-
+.. include:: ../../modules/jdl_parser/example.json
+   :literal:
