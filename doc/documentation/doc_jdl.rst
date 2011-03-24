@@ -66,7 +66,7 @@ as value on all clusters.
 
   - **Default**: $HOME
 
-- resources*: resources that are asked to the underlying batch
+- resources: resources that are asked to the underlying batch
   scheduler (-l in OAR)
   
   - **Default**: /<resource_unit>=1. Resource_unit is defined per
