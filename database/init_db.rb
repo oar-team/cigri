@@ -84,6 +84,10 @@ if options[:type].eql?('psql')
   cmd = "#{options[:dryrun]}sudo -u postgres psql -q -d #{options[:database]} -f #{options[:sql]}"
   system(cmd)
   abort "[ERROR] Unable to execute: #{cmd}" unless $?.success?
+  # The following is a trick to grant privileges on every table of the database
+  cmd = "#{options[:dryrun]}sudo -u postgres psql -qAt -c \"select 'grant select, insert, update, delete on ' || tablename || ' to #{options[:user]};' from pg_tables where schemaname = 'public'\" #{options[:database]}| sudo -u postgres psql #{options[:database]}"
+  system(cmd)
+  abort "[ERROR] Unable to execute: #{cmd}" unless $?.success?
 elsif options[:type].eql?('mysql')
   puts 'Enter mysql login info:'
   login = gets.chomp
