@@ -1,4 +1,4 @@
 cigri_checkout:
  - svn_checkout:
-   - exec_chroot: bash -c "cd /root && svn checkout $$cigri_svn"
+   - exec_chroot: bash -c "cd /home/kameleon && svn checkout $$cigri_svn"
 

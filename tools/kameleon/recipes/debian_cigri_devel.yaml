@@ -22,7 +22,7 @@ global:
  # Extra packages to install on the minimal base system
  #extra_packages: "vim less bzip2 openssh-server rsync gnupg locales debian-keyring console-tools mingetty"
  # If you're building a OAR appliance, use this package list:
- extra_packages: "vim less bzip2 openssh-server rsync gnupg locales debian-keyring ruby libyaml-perl libjson-perl mysql-server mysql-client sudo libdbi-perl libdbd-mysql-perl perl-suid taktuk pidentd console-tools mingetty curl librestclient-ruby librspec-ruby libjson-ruby subversion" 
+ extra_packages: "vim less bzip2 openssh-server rsync gnupg locales debian-keyring ruby libyaml-perl libjson-perl mysql-server mysql-client sudo libdbi-perl libdbd-mysql-perl perl-suid taktuk pidentd console-tools mingetty curl librestclient-ruby librspec-ruby libjson-ruby subversion postgresql" 
  #
  # Network configuration
  network_hostname: cigri
@@ -52,6 +52,7 @@ steps:
    - building_appliance
    - building_kvm_images
  - oar/oar_precheck
+ - cigri/cigri_precheck
 # - checkpoint_resume
  - bootstrap
  - system_config
@@ -69,10 +70,10 @@ steps:
  - oar/oar_devel
  - oar/oar_clean
  - cigri/cigri_checkout
+ - cigri/cigri_init
 # - kameleon/kameleon_debian_install
  - autologin
  - strip
- - umount_proc
 # - xen_domu
 # - oar/oar_build_tgz
  - build_appliance:
@@ -91,5 +92,5 @@ steps:
 #   - save_as_qcow2
 #   - save_as_vdi
 #   - save_as_iso
- - clean
+# - clean
 

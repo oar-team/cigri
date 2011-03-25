@@ -1,0 +1,11 @@
+Kameleon recipe and steps for making a cigri-devel appliance
+============================================================
+
+Warning: kameleon version >= 1.2.2 required
+
+Run `kameleon debian_cigri_devel` from this directory or for better customization:
+
+- cp recipes/debian_cigri_devel.yaml /var/lib/kameleon/recipes/my_debian_cigri_devel.yaml
+- vi /var/lib/kameleon/recipes/my_debian_cigri_devel.yaml
+- kameleon my_debian_cigri_devel
+
