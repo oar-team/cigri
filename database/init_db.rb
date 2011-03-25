@@ -79,9 +79,9 @@ if options[:type].eql?('psql')
   BASE_CMD = "#{options[:dryrun]}sudo -u postgres psql -q -c "
 
   puts 'Executing commands:'
-  system("#{BASE_CMD} \"CREATE DATABASE #{options[:database]}\"")
   system("#{BASE_CMD} \"CREATE ROLE #{options[:user]} LOGIN PASSWORD \'#{options[:password]}\'\"")
-  cmd = "#{options[:dryrun]}psql -q -U #{options[:user]} -h 127.0.0.1 -d #{options[:database]} -f #{options[:sql]}"
+  system("#{BASE_CMD} \"CREATE DATABASE #{options[:database]} OWNER #{options[:user]}\"")
+  cmd = "#{options[:dryrun]}sudo -u postgres psql -q -d #{options[:database]} -f #{options[:sql]}"
   system(cmd)
   abort "[ERROR] Unable to execute: #{cmd}" unless $?.success?
 elsif options[:type].eql?('mysql')
