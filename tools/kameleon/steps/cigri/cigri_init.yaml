@@ -4,3 +4,5 @@ cigri_init:
    - exec_on_clean: chroot $$chroot bash -c "\"/etc/init.d/postgresql stop\""
  - init_db:
    - exec_chroot: bash -c "unset RUBYOPT && cd /home/kameleon/`basename svn://scm.gforge.inria.fr/svn/cigri/branches/cigri-3`/database && ./init_db.rb -d cigri3 -u cigri3 -p cigri3 -t psql -s ./psql_structure.sql"
+ - create_user: 
+   - exec_chroot: bash -c "useradd -m -d /var/lib/cigri -c \"Cigri server\" cigri"
