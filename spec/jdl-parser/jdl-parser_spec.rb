@@ -1,7 +1,7 @@
-require 'modules/jdl_parser/cigri_jdl_parser'
+require 'modules/jdl-parser/jdl-parser'
 require 'cigri'
 
-describe 'jdl_parser' do
+describe 'jdl-parser' do
 
   describe 'successes with minimal campaigns' do
     it 'should success with the cluster options used' do
@@ -43,6 +43,6 @@ describe 'jdl_parser' do
     it 'should fail if no param_file or nb_jobs or jobs_type=desktop_computing given' do
       lambda{Cigri::JDLParser.parse('{"name":"n","clusters":{"c":{"exec_file":"e"}}}')}.should raise_error Cigri::Exception
     end
-  end
+  end # parameters file
   
 end # jdl_parser
