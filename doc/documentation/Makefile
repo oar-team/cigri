@@ -11,7 +11,7 @@ doc-user: doc_user.html
 
 doc-devel: doc_devel.html
 
-pdf: doc_admin.pdf doc_user.pdf
+pdf: doc_admin.pdf doc_user.pdf doc_devel.pdf
 
 %.html: %.rst
 	rst2html -stg $< $@
