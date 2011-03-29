@@ -6,12 +6,14 @@
 #
 #$LOAD_PATH << './lib'
 #require 'cigri-conflib'
-#config=CigriConflib::Conf.new
+#config=Cigri::Conf.new
 #puts config.get("INSTALL_PATH")
 #
 #
 
-module CigriConflib
+require 'cigri-logger'
+
+module Cigri
 
   if ENV['CIGRICONFDIR'] && File.exists?("#{ENV['CIGRICONFDIR']}/cigri.conf")
   then
@@ -29,11 +31,12 @@ module CigriConflib
     attr_accessor :config_file
   
     def initialize(config_file = CONFIG_FILE)
+      @logger = Cigri::Logger.new('Conflib', STDOUT)
       begin
         @file=File.new(config_file,"r")
         self.scan
       rescue
-        warn "Conf: unable to open config file #{config_file}!"
+        @logger.error("unable to open config file #{config_file}!")
       end
     end
   
@@ -50,7 +53,7 @@ module CigriConflib
       if @conf.has_key?(key)
         return @conf[key]
       else
-        warn "Conf: no key #{key}"
+        @logger.error("Conf: no key #{key}")
       end
     end
   end 

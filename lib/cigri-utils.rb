@@ -1,6 +1,6 @@
 require 'cigri-conflib'
 
-config=CigriConflib::Conf.new
+config=Cigri::Conf.new
 
 def db_connect()
   db_conn = 
