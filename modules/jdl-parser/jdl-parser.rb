@@ -1,5 +1,6 @@
 require 'json'
 require 'cigri'
+require 'cigri-conflib'
 
 # Mandatory attributes in the JDL
 MANDATORY_CLUSTER = %w{exec_file}
@@ -47,13 +48,18 @@ module Cigri
     
     #saves the JSON in the database
     def self.save(dbh, json)
+      logger = Cigri::Logger.new('JDL Parser', STDOUT)
+      logger.debug("Saving JDL")
       begin
         self.parse(json)
       rescue Exception => e
+        logger.error("JDL file not well defined: #{json}")
         puts e
-        raise Cigri::Exception, 'JSON badly defined, not saving in the database'
+        raise Cigri::Exception, 'JDL badly defined, not saving in the database'
       end
+      logger.debug("JDL file is well defined")
       
+      logger.info("Campaign saved in database")
     end # def self.save
   end # class JDLParser
 end
