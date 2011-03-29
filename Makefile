@@ -26,6 +26,9 @@ usage:
 	@echo "Usage: make [ OPTIONS=<...> ] <server-install | user-install | www-install | rc-install>"
 	@echo "       where OPTIONS := { CIGRIOWNER | CIGRIGROUP | PREFIX | MANDIR | CIGRIDIR | BINDIR | SBINDIR | DOCDIR }"
 
+rdoc:
+	rdoc --op doc/rdoc
+
 # all: usage
 # install: usage
 # usage:
