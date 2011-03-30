@@ -5,6 +5,10 @@ Libraries Description
 
 Different libraries may be used by |soft| components. 
 
+conflib
+-------
+Library handling the configuration file and variables. The configuration file is a bash-style VAR=VALUE collection of lines. This library offers a way to open a given or default configuration file and rapid access to the variables. 
+
 iolib
 -----
 

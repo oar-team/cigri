@@ -46,7 +46,7 @@ module Cigri
       end
     end
   
-    # Scan (or re-scan) the configuration file
+    # Scan (or re-scan) the configuration file and return the number of variables
     def scan
       @conf={}
       file=File.new(@config_file,"r")
