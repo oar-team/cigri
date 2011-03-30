@@ -1,0 +1,5 @@
+cigri_deps:
+ - rspec:
+   - exec_chroot: bash -c "gem install rspec"
+ - restfully:
+   - exec_chroot: bash -c "gem install restfully --source http://gemcutter.org"
