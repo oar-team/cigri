@@ -11,23 +11,24 @@
 #
 #
 
-require 'cigri-logger'
-
 module Cigri
 
-  if ENV['CIGRICONFDIR'] && File.exists?("#{ENV['CIGRICONFDIR']}/cigri.conf")
+  if ENV['CIGRICONFDIR'] && File.readable?("#{ENV['CIGRICONFDIR']}/cigri.conf")
   then
     # Get the cigri.conf config file from the $CIGRICONFDIR directory
-    CONFIG_FILE="#{ENV['CIGRICONFDIR']}/cigri.conf"
-  elsif ENV['CIGRIDIR'] && File.exists?("#{ENV['CIGRIDIR']}/cigri.conf")
+    CONFIG_FILE = "#{ENV['CIGRICONFDIR']}/cigri.conf"
+  elsif ENV['CIGRIDIR'] && File.readable?("#{ENV['CIGRIDIR']}/cigri.conf")
     # or get the cigri.conf config file from the $CIGRIDIR directory
-    CONFIG_FILE="#{ENV['CIGRIDIR']}/cigri.conf"
-  elsif File.exists?("./cigri.conf")
+    CONFIG_FILE = "#{ENV['CIGRIDIR']}/cigri.conf"
+  elsif File.readable?('./cigri.conf')
     # or get the cigri.conf config file from the current directory
-    CONFIG_FILE="./cigri.conf"
+    CONFIG_FILE = './cigri.conf'
+  elsif File.readable?('./etc/cigri.conf')
+    # or get the cigri.conf config etc directory from the current directory
+    CONFIG_FILE = './etc/cigri.conf'
   else
     # or at a last resort, get the cigri.conf config file from the /etc/ directory
-    CONFIG_FILE="/etc/cigri.conf"
+    CONFIG_FILE = "/etc/cigri.conf"
   end
   
   class Conf
@@ -36,24 +37,22 @@ module Cigri
   
     # Open the cigri configuration file and scan it
     def initialize(config_file = CONFIG_FILE)
-      @logger = Cigri::Logger.new('Conflib', STDOUT)
+      @config_file = config_file
       begin
-        @config_file=config_file
         self.scan
       rescue
-        @logger.error("unable to open config file #{config_file}!")
-        exit 1
+        raise "unable to open config file #{config_file}!"
       end
     end
   
     # Scan (or re-scan) the configuration file and return the number of variables
     def scan
-      @conf={}
-      file=File.new(@config_file,"r")
+      @conf = {}
+      file = File.new(@config_file, 'r')
       file.each do |line|
-        a=line.scan(/^\s*([^#=\s]+)\s*=\s*"([^#]*)"/)
-        key,val=a[0]
-        @conf[key]=val if key
+        a = line.scan(/^\s*([^#=\s]+)\s*=\s*"([^#]*)"/)
+        key, val = a[0]
+        @conf[key] = val if key
       end
       return @conf.length
     end  
@@ -68,8 +67,7 @@ module Cigri
       if @conf.has_key?(key)
         return @conf[key]
       else
-        @logger.error("Conf: no key #{key}")
-        exit 2
+        raise "Conf: no key #{key}"
       end
     end
   end 

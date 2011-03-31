@@ -1,4 +1,4 @@
-#!/usr/bin/env ruby
+#!/usr/bin/ruby -w
 
 $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '../..', 'lib'))
 
