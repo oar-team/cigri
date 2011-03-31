@@ -29,10 +29,17 @@ usage:
 	@echo "Usage: make < rdoc | tests >"
 
 rdoc:
-	rdoc --op doc/rdoc
+	rdoc -o doc/rdoc
+
+yard:
+	yard -o doc/yard lib modules
+
+spec: tests
+
+rspec: tests
 
 tests:	spec/*/*_spec.rb
 	rspec $? ${SPEC_OPTS}
 
 clean:
-	rm -rf doc/rdoc
+	rm -rf doc/rdoc doc/yard
