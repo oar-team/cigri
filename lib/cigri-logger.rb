@@ -11,6 +11,7 @@ module Cigri
     # Create a new Logger: logger = Logger.new('module', STDOUT [, shift_age, shift_size])
     # Params:
     #   - progname: Name of the module you want to log
+    #   - level: level of verbosity (FATAL, ERROR, WARN, INFO, DEBUG)
     #   - logdev: location of the file to save the log (can be a stream as well)
     #   - shift_age: number of logfiles to keep
     #   - shift_size: maximum size of a logfile

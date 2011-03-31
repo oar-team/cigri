@@ -32,6 +32,6 @@ rdoc:
 	rdoc --op doc/rdoc
 
 tests:	spec/*/*_spec.rb
-	spec $? ${SPEC_OPTS}
+	rspec $? ${SPEC_OPTS}
 
 

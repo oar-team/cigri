@@ -30,8 +30,5 @@ describe 'cigri-conflib' do
     it 'should scan the config file and return the number of variables' do
       @config.scan.should > 0
     end
-
   end # end methods
-    
-  
 end # cigri-conflib
