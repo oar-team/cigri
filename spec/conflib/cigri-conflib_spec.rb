@@ -4,7 +4,7 @@ describe 'cigri-conflib' do
 
   describe 'initialize failures' do
     it 'should fail when a non-existant file is given' do
-      lambda{Cigri::Conf.new("/tmp/qsdfghjklm.conf")}.should raise_error Exception
+      lambda{Cigri::Conf.new("/tmp/qsdfghjklm.conf")}.should raise_error Cigri::Exception
     end
   end # initialize failures
   
