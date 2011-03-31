@@ -16,7 +16,7 @@ module Cigri
     #   - shift_age: number of logfiles to keep
     #   - shift_size: maximum size of a logfile
     ##
-    def initialize(progname, logdev, level = nil, shift_age = nil, shift_size = nil)
+    def initialize(progname, logdev, level = Cigri::Logger::INFO, shift_age = nil, shift_size = nil)
       config = Cigri::Conf.new
       shift_age = config.get('LOG_SHIFT_AGE') if (not shift_age) and config.exists?('LOG_SHIFT_AGE')
       shift_size = config.get('LOG_SHIFT_SIZE') if (not shift_size) and config.exists?('LOG_SHIFT_SIZE')

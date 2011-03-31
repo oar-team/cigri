@@ -1,3 +1,5 @@
+require 'cigri-conflib'
+require 'cigri-iolib'
 require 'cigri-logger'
 require 'cigri-utils'
 
