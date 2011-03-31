@@ -34,4 +34,5 @@ rdoc:
 tests:	spec/*/*_spec.rb
 	rspec $? ${SPEC_OPTS}
 
-
+clean:
+	rm -rf doc/rdoc
