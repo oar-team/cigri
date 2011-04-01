@@ -11,6 +11,8 @@
 #
 #
 
+require 'cigri-exception'
+
 module Cigri
 
   if ENV['CIGRICONFDIR'] && File.readable?("#{ENV['CIGRICONFDIR']}/cigri.conf")

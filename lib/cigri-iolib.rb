@@ -1,3 +1,5 @@
+require 'pp'
+
 def cigri_submit(dbh, json)
-  puts 'saving DB'
+  pp json
 end
