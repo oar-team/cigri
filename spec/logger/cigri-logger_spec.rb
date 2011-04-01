@@ -67,18 +67,22 @@ describe 'cigri-logger' do
   
   describe 'shift options' do
     it 'should generate 2 logfiles' do
-      logger = Cigri::Logger.new('spec', file, Cigri::Logger::DEBUG, 2, 100)
+      logger = Cigri::Logger.new('spec', file, Cigri::Logger::DEBUG, 2, 200)
       (0..10).each{log(logger)}
       files = Dir.glob("#{file}*")
       files.length.should == 2
       files.each {|f| File.delete(f)}
     end
-    it 'should be smaller than the given size (or contain 2 lines if 1 line is longer than size)' do
-      logger = Cigri::Logger.new('spec', file, Cigri::Logger::DEBUG, 1, 100)
-      log(logger)
-      file.should satisfy { |file|
-        File.size(file) <= 100 or File.readlines(file).length == 2
-      }
+    it 'should be smaller than the given size' do
+      logger = Cigri::Logger.new('spec', file, Cigri::Logger::DEBUG, 1, 256)
+      log(logger) #log procuces a file of size 417
+      File.size(file).should <= 256
+      File.delete(file)
+    end
+    it 'should be smaller than the given size' do
+      logger = Cigri::Logger.new('spec', file, Cigri::Logger::DEBUG, 1, 200)
+      log(logger) #log procuces 6 lines
+      File.readlines(file).length.should == 3
       File.delete(file)
     end
   end # shift options
