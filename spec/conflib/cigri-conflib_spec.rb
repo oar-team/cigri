@@ -31,4 +31,14 @@ describe 'cigri-conflib' do
       @config.scan.should > 0
     end
   end # end methods
+  
+  describe 'unique cigri conf' do
+    it 'should return a conf type' do
+      Cigri.conf.should be_a(Cigri::Conf)
+    end
+    it 'should only return one object' do
+      Cigri.conf.should == Cigri.conf
+    end
+  end
+  
 end # cigri-conflib
