@@ -1,10 +1,10 @@
 require 'cigri-conflib'
-
-config=Cigri::Conf.new
+require 'dbi'
 
 def db_connect()
-  db_conn = 
-  dbh = DBI.connect("DBI:#{config.get('DATABASE_TYPE')}:#{config.get('DATABASE_NAME')}:#{config.get('DATABASE_HOST')}", 
+  config = Cigri::Conf.new
+  str = "DBI:#{config.get('DATABASE_TYPE')}:#{config.get('DATABASE_NAME')}:#{config.get('DATABASE_HOST')}"
+  dbh = DBI.connect(str, 
                     "#{config.get('DATABASE_USER_NAME')}", 
                     "#{config.get('DATABASE_USER_PASSWORD')}")
   return dbh unless block_given?

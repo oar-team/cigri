@@ -63,7 +63,8 @@ module Cigri
     # Saves the JSON in the database given in parameter
     ##
     def self.save(dbh, json)
-      logger = Cigri::Logger.new('JDL Parser', STDOUT)
+      config = Cigri::Conf.new
+      logger = Cigri::Logger.new('JDL Parser', config.get('LOG_FILE'))
       logger.debug("Saving JDL")
       begin
         res = self.parse(json)
@@ -71,9 +72,14 @@ module Cigri
         logger.error("JDL file not well defined: #{json}")
         raise Cigri::Exception, 'JDL badly defined, not saving in the database'
       end
-      logger.debug("JDL file is well defined")
-      cigri_submit(dbh, res)
-      logger.info("Campaign saved in database")
+      logger.debug('JDL file is well defined')
+      begin
+        cigri_submit(dbh, res)
+        logger.info('Campaign saved in database')
+      rescue Exception => e
+        logger.error('Campaing could not be saved in DB:' + e.message)
+        raise e
+      end
     end # def self.save
   end # class JDLParser
 end
