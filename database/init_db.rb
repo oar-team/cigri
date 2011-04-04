@@ -92,9 +92,9 @@ elsif options[:type].eql?('mysql')
   puts 'Enter mysql login info:'
   login = gets.chomp
   puts "Enter mysql #{login} user password:"
-  system ('stty -echo')
+  system('stty -echo')
   pwd = gets.chomp
-  system ('stty echo')
+  system('stty echo')
   puts ''
   BASE_CMD = "#{options[:dryrun]}mysql -u #{login} -p#{pwd} -e "
   

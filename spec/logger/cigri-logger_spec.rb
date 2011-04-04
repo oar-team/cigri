@@ -68,7 +68,7 @@ describe 'cigri-logger' do
   describe 'shift options' do
     it 'should generate 2 logfiles' do
       logger = Cigri::Logger.new('spec', file, Cigri::Logger::DEBUG, 2, 200)
-      (0..10).each{log(logger)}
+      10.times{log(logger)}
       files = Dir.glob("#{file}*")
       files.length.should == 2
       files.each {|f| File.delete(f)}
