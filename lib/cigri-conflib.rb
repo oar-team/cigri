@@ -34,7 +34,7 @@ module Cigri
   end
   
   #Only read the configuration file once.
-  conf = nil
+  @conf = nil
   def conf
     return @conf if @conf
     @conf = Cigri::Conf.new()
