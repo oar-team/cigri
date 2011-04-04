@@ -33,6 +33,14 @@ module Cigri
     CONFIG_FILE = "/etc/cigri.conf"
   end
   
+  #Only read the configuration file once.
+  conf = nil
+  def conf
+    return @conf if @conf
+    @conf = Cigri::Conf.new()
+  end
+  module_function :conf
+  
   class Conf
     attr_reader :conf
     attr_accessor :config_file

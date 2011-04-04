@@ -14,7 +14,7 @@ module Cigri
     #   - logdev: location of the file to save the log (can be STDOUT or STDERR). Default = STDOUT
     ##
     def initialize(progname, logdev = 'STDOUT')
-      config = Cigri::Conf.new
+      config = Cigri.conf
       level = config.get('LOG_LEVEL') if config.exists?('LOG_LEVEL')
       logdev = STDOUT if logdev.eql? 'STDOUT'
       logdev = STDERR if logdev.eql? 'STDERR'

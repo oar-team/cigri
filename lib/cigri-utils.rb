@@ -2,7 +2,7 @@ require 'cigri-conflib'
 require 'dbi'
 
 def db_connect()
-  config = Cigri::Conf.new
+  config = Cigri.conf
   str = "DBI:#{config.get('DATABASE_TYPE')}:#{config.get('DATABASE_NAME')}:#{config.get('DATABASE_HOST')}"
   dbh = DBI.connect(str, 
                     "#{config.get('DATABASE_USER_NAME')}", 

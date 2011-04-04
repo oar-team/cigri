@@ -63,7 +63,7 @@ module Cigri
     # Saves the JSON in the database given in parameter
     ##
     def self.save(dbh, json)
-      config = Cigri::Conf.new
+      config = Cigri.conf
       logger = Cigri::Logger.new('JDL Parser', config.get('LOG_FILE'))
       logger.debug("Saving JDL")
       begin
