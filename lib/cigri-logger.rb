@@ -11,19 +11,16 @@ module Cigri
     # Create a new Logger: logger = Logger.new('module', STDOUT [, shift_age, shift_size])
     # Params:
     #   - progname: Name of the module you want to log
-    #   - level: level of verbosity (FATAL, ERROR, WARN, INFO, DEBUG)
-    #   - logdev: location of the file to save the log (can be a stream as well)
-    #   - shift_age: number of logfiles to keep
-    #   - shift_size: maximum size of a logfile
+    #   - logdev: location of the file to save the log (can be STDOUT or STDERR). Default = STDOUT
     ##
-    def initialize(progname, logdev, level = Cigri::Logger::INFO, shift_age = nil, shift_size = nil)
+    def initialize(progname, logdev = 'STDOUT')
       config = Cigri::Conf.new
-      shift_age = config.get('LOG_SHIFT_AGE') if (not shift_age) and config.exists?('LOG_SHIFT_AGE')
-      shift_size = config.get('LOG_SHIFT_SIZE') if (not shift_size) and config.exists?('LOG_SHIFT_SIZE')
-      level = config.get('LOG_LEVEL') if (not level) and config.exists?('LOG_LEVEL')
-      super(logdev, shift_age, shift_size)
-      self.level = level
+      level = config.get('LOG_LEVEL') if config.exists?('LOG_LEVEL')
+      logdev = STDOUT if logdev.eql? 'STDOUT'
+      logdev = STDERR if logdev.eql? 'STDERR'
+      super(logdev)
       self.progname = progname
+      self.level = Logger.const_get(level)
       self.formatter = proc { |severity, datetime, progname, msg|
         date = datetime.strftime('%Y-%m-%d %H:%M:%S.') << "%d" % datetime.usec
         "[%5s] [#{date}] [#{progname}] #{msg}\n" % severity
