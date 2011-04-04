@@ -1,15 +1,18 @@
 require 'json'
 require 'cigri'
 
-# Mandatory attributes in the JDL
-MANDATORY_CLUSTER = %w{exec_file}
-MANDATORY_GLOBAL = %w{name clusters}
-
 module Cigri
   ##
   # Class defined to handle the submission of the JDL file in cigri.
   ##
   class JDLParser
+    
+    # Mandatory attributes in the clusters field of the JDL
+    MANDATORY_CLUSTER = %w{exec_file}
+    # Mandatory attributes in the campaign of the JDl
+    MANDATORY_GLOBAL  = %w{name clusters}
+    # All the fields that can be used in a campaign description
+    ALL_GLOBAL        = MANDATORY_GLOBAL + %w{param_file nb_jobs jobs_type}
     
     ##
     # Parses the json string given as parameter.
@@ -19,8 +22,9 @@ module Cigri
     # 
     # == Returns:
     # Objects corresponding to the json string
+    #
     # == Exceptions:
-    # cigri::exception if the JDL is not well formed
+    # Cigri::Exception if the JDL is not well formed
     ##
     def self.parse(str) 
       json = JSON.parse(str)
@@ -61,8 +65,20 @@ module Cigri
     
     ##
     # Saves the JSON in the database given in parameter
+    #
+    # == Parameters:
+    # dbh:: handle to a database
+    # json:: string to parse
+    # user:: username of the submitter
+    # 
+    # == Returns:
+    # Nothing
+    #
+    # == Exceptions:
+    # Cigri::Exception if the JDL is not well formed
+    # Exception if there was an error when saving in the database
     ##
-    def self.save(dbh, json)
+    def self.save(dbh, json, user)
       config = Cigri.conf
       logger = Cigri::Logger.new('JDL Parser', config.get('LOG_FILE'))
       logger.debug("Saving JDL")
@@ -71,15 +87,60 @@ module Cigri
       rescue Cigri::Exception => e
         logger.error("JDL file not well defined: #{json}")
         raise Cigri::Exception, 'JDL badly defined, not saving in the database'
+      
       end
+      default_values!(res, config)
+      expand_jdl!(res)
+      
       logger.debug('JDL file is well defined')
+      
+      # Submit the campaign
       begin
-        cigri_submit(dbh, res)
+        cigri_submit(dbh, res, user)
         logger.info('Campaign saved in database')
       rescue Exception => e
         logger.error('Campaing could not be saved in DB:' + e.message)
         raise e
       end
     end # def self.save
+    
+    def self.expand_jdl!(jdl)
+      raise Cigri::Exception, 'JDL does not contain the "clusters" field' unless jdl['clusters']
+      jdl.each do |key, val|
+        unless ALL_GLOBAL.include?(key)
+          jdl['clusters'].each_value do |cluster|
+            cluster[key] = val unless cluster[key]
+          end
+         jdl.delete(key)
+        end
+      end
+    end # def self.expand_jdl!
+    
+    private
+    
+    # Fixed defauls values
+    DEFAULT_VALUES = {'jobs_type'               => 'normal', 
+                      'type'                    => 'best-effort',
+                      'exec_directory'          => '$HOME',
+                      'output_gathering_method' => 'None',
+                      'dimensional_grouping'    => 'false',
+                      'temporal_grouping'       => 'true',
+                      'checkpointing_type'      => 'None'}
+    # Default values defined by configuration file
+    DEFAULT_VALUES_CONF = {'walltime'  => 'DEFAULT_JOB_WALLTIME', 
+                           'resources' => 'DEFAULT_JOB_RESOURCES'}
+    
+    def self.default_values!(jdl, config)
+      raise Cigri::Exception, 'JDL does not contain the "clusters" field' unless jdl['clusters']
+      
+      jdl['clusters'].each_value do |cluster|
+        DEFAULT_VALUES.each do |key, val|
+          cluster[key] = val unless jdl[key]
+        end
+        DEFAULT_VALUES_CONF.each do |key, val|
+          cluster[key] = config.get(val) unless jdl[key] or cluster[key]
+        end
+      end
+    end # default_values!
   end # class JDLParser
 end

@@ -13,6 +13,6 @@ filename = ARGV[0]
 abort("JDL file \"#{filename}\" not readable. Aborting") unless File.readable?(filename)
 
 db_connect() do |dbh|
-  p Cigri::JDLParser.save(dbh, File.read(filename))  
+  Cigri::JDLParser.save(dbh, File.read(filename), 'Username')  
 end
 
