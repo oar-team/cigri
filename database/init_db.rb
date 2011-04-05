@@ -85,9 +85,21 @@ if options[:type].eql?('psql')
   system(cmd)
   abort "[ERROR] Unable to execute: #{cmd}" unless $?.success?
   # The following is a trick to grant privileges on every table of the database
-  cmd = "#{options[:dryrun]}sudo -u postgres psql -qAt -c \"select 'grant select, insert, update, delete on ' || tablename || ' to #{options[:user]};' from pg_tables where schemaname = 'public'\" #{options[:database]}| sudo -u postgres psql #{options[:database]}"
-  system(cmd)
-  abort "[ERROR] Unable to execute: #{cmd}" unless $?.success?
+  cmd = "sudo -u postgres psql -qAt -c \"select 'grant select, insert, update, delete on ' || tablename || ' to #{options[:user]};' from pg_tables where schemaname = 'public'\" #{options[:database]} | sudo -u postgres psql #{options[:database]}"
+  if options[:dryrun].length > 0
+    puts cmd
+  else
+    system(cmd)
+    abort "[ERROR] Unable to execute: #{cmd}" unless $?.success?
+  end
+  # The following is a trick to grant privileges on every sequence of the database
+  cmd = "sudo -u postgres psql -qAt -c \"select 'grant select, update on ' || relname || ' to #{options[:user]};' from pg_class where relkind = 'S'\" #{options[:database]} | sudo -u postgres psql #{options[:database]}"
+  if options[:dryrun].length > 0
+    puts cmd
+  else
+    system(cmd)
+    abort "[ERROR] Unable to execute: #{cmd}" unless $?.success?
+  end
 elsif options[:type].eql?('mysql')
   puts 'Enter mysql login info:'
   login = gets.chomp

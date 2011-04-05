@@ -107,6 +107,7 @@ module Cigri
     def self.expand_jdl!(jdl)
       raise Cigri::Exception, 'JDL does not contain the "clusters" field' unless jdl['clusters']
       jdl.each do |key, val|
+      puts key
         unless ALL_GLOBAL.include?(key)
           jdl['clusters'].each_value do |cluster|
             cluster[key] = val unless cluster[key]
@@ -118,9 +119,10 @@ module Cigri
     
     private
     
+    # Default global fixed values
+    DEFAULT_VALUES_GLOBAL = {'jobs_type' => 'normal'}
     # Fixed defauls values
-    DEFAULT_VALUES = {'jobs_type'               => 'normal', 
-                      'type'                    => 'best-effort',
+    DEFAULT_VALUES = {'type'                    => 'best-effort',
                       'exec_directory'          => '$HOME',
                       'output_gathering_method' => 'None',
                       'dimensional_grouping'    => 'false',
@@ -129,13 +131,24 @@ module Cigri
     # Default values defined by configuration file
     DEFAULT_VALUES_CONF = {'walltime'  => 'DEFAULT_JOB_WALLTIME', 
                            'resources' => 'DEFAULT_JOB_RESOURCES'}
+    # Default global values defined by configuration file
+    DEFAULT_VALUES_GLOBAL_CONF = {}
     
     def self.default_values!(jdl, config)
       raise Cigri::Exception, 'JDL does not contain the "clusters" field' unless jdl['clusters']
       
+      #set default values for global attributes
+      DEFAULT_VALUES_GLOBAL.each do |key, val|
+        jdl[key] = val unless jdl[key]
+      end
+      DEFAULT_VALUES_GLOBAL_CONF.each do |key, val|
+        jdl[key] = config.get(val) unless jdl[key]
+      end
+      
+      # set default values for clusters attriburtes
       jdl['clusters'].each_value do |cluster|
         DEFAULT_VALUES.each do |key, val|
-          cluster[key] = val unless jdl[key]
+          cluster[key] = val unless jdl[key] or cluster[key]
         end
         DEFAULT_VALUES_CONF.each do |key, val|
           cluster[key] = config.get(val) unless jdl[key] or cluster[key]
