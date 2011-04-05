@@ -81,7 +81,7 @@ CREATE INDEX jobs_to_launch_idx_cluster_id ON jobs_to_launch (cluster_id);
 
 DROP TABLE IF EXISTS jobs;
 DROP TYPE IF EXISTS job_state;
-CREATE TYPE job_state as ENUM('running','remote_waiting','terminated','event');
+CREATE TYPE job_state as ENUM('to_launch', 'running','remote_waiting','terminated','event');
 CREATE TABLE  jobs (
   id BIGSERIAL NOT NULL,
   name VARCHAR(255),
