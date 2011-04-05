@@ -107,7 +107,6 @@ module Cigri
     def self.expand_jdl!(jdl)
       raise Cigri::Exception, 'JDL does not contain the "clusters" field' unless jdl['clusters']
       jdl.each do |key, val|
-      puts key
         unless ALL_GLOBAL.include?(key)
           jdl['clusters'].each_value do |cluster|
             cluster[key] = val unless cluster[key]

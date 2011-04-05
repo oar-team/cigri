@@ -37,20 +37,24 @@ end
 # Method defined to get the last inserted id in a database
 # == Usage
 #    db_connect() do |dbh|
-#      dbh.do('INSERT .....')
-#      ID = last_inserted_id(dbh)
+#      dbh.do('INSERT ... INTO table')
+#      ID = last_inserted_id(dbh, 'table_row_seq')
 #    end
+#
+# == Parameters
+# dbh:: databale handle
+# seqname:: sequence name to retreive the last-id
 ##
-def last_inserted_id(dbh)
+def last_inserted_id(dbh, seqname)
   db = Cigri.conf.get('DATABASE_TYPE')
   if db.eql? 'Pg'
-    id = dbh.execute("SELECT CURRVAL('$seq')")
-    p id
+    row = dbh.select_one("SELECT currval('#{seqname}')")
   elsif db.eql? 'Mysql'
-  
+    row = dbh.select_one("SELECT LAST_INSERT_ID()")
   else
     raise Cigri::Excaption, "impossible to retreive last inserted id: database type \"#{db}\" is not supported"
   end
+  return row[0]
 end
 
 #sub get_last_insert_id($$){
