@@ -104,6 +104,12 @@ module Cigri
       end
     end # def self.save
     
+    ##
+    # Expands the JDL: if options are defined for every cluster, copy them in the cluster
+    #
+    # == Parameters
+    # - jdl represented as a json bject (hash + array)
+    ##
     def self.expand_jdl!(jdl)
       raise Cigri::Exception, 'JDL does not contain the "clusters" field' unless jdl['clusters']
       jdl.each do |key, val|

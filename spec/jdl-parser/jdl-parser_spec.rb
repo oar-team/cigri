@@ -3,7 +3,6 @@ require 'modules/jdl-parser/jdl-parser'
 require 'spec_helper'
 
 describe 'jdl-parser' do
-
   describe 'successes with minimal campaigns' do
     it 'should success with the cluster options used' do
       lambda{Cigri::JDLParser.parse('{"name":"n", "nb_jobs":0,"clusters":{"c":{"exec_file":"e"}}}')}.should_not raise_error
@@ -45,5 +44,36 @@ describe 'jdl-parser' do
       lambda{Cigri::JDLParser.parse('{"name":"n","clusters":{"c":{"exec_file":"e"}}}')}.should raise_error Cigri::Exception
     end
   end # parameters file
+  
+  describe 'expanding JDL' do
+    it 'should expand global options' do
+       a = Cigri::JDLParser.expand_jdl!(Cigri::JDLParser.parse('{"name":"n","nb_jobs":0,"exec_file":"e","clusters":{"c":{}}}'))
+       b = Cigri::JDLParser.parse('{"name":"n","nb_jobs":0,"clusters":{"c":{"exec_file":"e"}}}')
+       a.should == b
+    end
+    it 'should expand global options unless the option is defined in cluster' do
+       a = Cigri::JDLParser.expand_jdl!(Cigri::JDLParser.parse('{"name":"n","nb_jobs":0,"exec_file":"e","clusters":{"c":{"exec_file":"toto"}}}'))
+       b = Cigri::JDLParser.parse('{"name":"n","nb_jobs":0,"clusters":{"c":{"exec_file":"toto"}}}')
+       a.should == b
+    end
+  end
+  
+  describe 'save' do
+    it 'should be able to save a correct json' do
+      dbh = db_connect() do |dbh|
+        lambda{Cigri::JDLParser.save(dbh, '{"name":"n","nb_jobs":0,"clusters":{"my.cluster.fr":{"exec_file":"e"}}}', 'testuser')}.should_not raise_error
+      end
+    end
+    
+    it 'should fail if dbh is bad' do
+      lambda{Cigri::JDLParser.save({}, '{"name":"n","nb_jobs":0,"clusters":{"my.cluster.fr":{"exec_file":"e"}}}', 'testuser')}.should raise_error
+    end
+    
+    it 'should not be able to save an incorrect json' do
+      db_connect() do |dbh|
+        lambda{Cigri::JDLParser.save(dbh, '{"name":"n", "clusters":{"my.cluster.fr":{"exec_file":"e"}}}', 'testuser')}.should raise_error Cigri::Exception
+      end
+    end
+  end # save
   
 end # jdl_parser
