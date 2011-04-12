@@ -44,7 +44,7 @@ tests:	spec/*/*_spec.rb
 cov: rcov
 
 rcov: spec/*/*_spec.rb modules/*/* lib/*
-	rcov -I lib spec/**/*.rb
+	rcov -I lib spec/**/*.rb --exclude gems -o doc/rcov -T
 
 clean:
-	rm -rf doc/rdoc doc/yard .yardoc
+	rm -rf doc/rdoc doc/yard doc/rcov .yardoc
