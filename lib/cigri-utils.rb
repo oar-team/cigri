@@ -42,8 +42,11 @@ end
 #    end
 #
 # == Parameters
-# dbh:: databale handle
-# seqname:: sequence name to retreive the last-id
+# - dbh: databale handle
+# - seqname: sequence name to retreive the last-id
+#
+# == Exceptions
+# - Cigri::Exception if database type defined in cigri.conf not supported 
 ##
 def last_inserted_id(dbh, seqname)
   db = Cigri.conf.get('DATABASE_TYPE')
@@ -56,28 +59,3 @@ def last_inserted_id(dbh, seqname)
   end
   return row[0]
 end
-
-#sub get_last_insert_id($$){
-#    my $dbh = shift;
-#    my $seq = shift;
-#    
-#    my $id;
-#    my $sth;
-#    if ($Db_type eq "Pg"){
-#        $sth = $dbh->prepare("SELECT CURRVAL('$seq')");
-#        $sth->execute();
-#        my $ref = $sth->fetchrow_hashref();
-#        my @tmp_array = values(%$ref);
-#        $id = $tmp_array[0];
-#        $sth->finish();
-#    }else{
-#        $sth = $dbh->prepare("SELECT LAST_INSERT_ID()");
-#        $sth->execute();
-#        my $ref = $sth->fetchrow_hashref();
-#        my @tmp_array = values(%$ref);
-#        $id = $tmp_array[0];
-#        $sth->finish();
-#    }
-
-#    return($id);
-#}
