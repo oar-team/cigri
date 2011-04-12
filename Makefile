@@ -38,13 +38,22 @@ spec: tests
 
 rspec: tests
 
-tests:	spec/*/*_spec.rb
+tests: spec/*/*_spec.rb
 	rspec $? ${SPEC_OPTS}
 
 cov: rcov
 
-rcov: spec/*/*_spec.rb modules/*/* lib/*
-	rcov -I lib spec/**/*.rb --exclude gems -o doc/rcov -T
+rcov: spec/*/*_spec.rb modules/*/* lib/* spec/spec_helper.rb
+	rcov -I lib:spec spec/**/*.rb --exclude gems -o doc/rcov -T
+
+test-setup:
+	database/init_db.rb -u cigritest -p cigritest -d cigritest -t psql -s database/psql_structure.sql
+	database/init_db.rb -u cigritest -p cigritest -d cigritest -t mysql -s database/mysql_structure.sql
+
+test-clean:
+	-sudo -u postgres psql -c "drop database cigritest"
+	-sudo -u postgres psql -c "drop role cigritest"
+	-mysql -u root -p -e "drop database cigritest; drop user cigritest@localhost"
 
 clean:
 	rm -rf doc/rdoc doc/yard doc/rcov .yardoc

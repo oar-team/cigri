@@ -1,6 +1,6 @@
-require 'modules/jdl-parser/jdl-parser'
 require 'cigri'
-require 'rspec'
+require 'modules/jdl-parser/jdl-parser'
+require 'spec_helper'
 
 describe 'jdl-parser' do
 

@@ -1,5 +1,5 @@
 require 'cigri-logger'
-require 'rspec'
+require 'spec_helper'
 
 describe 'cigri-logger' do
   file = '/tmp/rspec-cigri.log'

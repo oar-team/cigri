@@ -55,7 +55,7 @@ end
 # == Exceptions
 # - Cigri::Exception if database type defined in cigri.conf not supported 
 ##
-def last_inserted_id(dbh, seqname)
+def last_inserted_id(dbh, seqname = '')
   db = CONF.get('DATABASE_TYPE')
   if db.eql? 'Pg'
     row = dbh.select_one("SELECT currval('#{seqname}')")
