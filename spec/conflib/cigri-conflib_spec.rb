@@ -31,6 +31,10 @@ describe 'cigri-conflib' do
     it 'should scan the config file and return the number of variables' do
       @config.scan.should > 0
     end
+    
+    it 'should raise an excetion when getting an unexisting key' do
+      lambda{@config.get('fbuisghsdui')}.should raise_error Cigri::Exception
+    end
   end # end methods
   
   describe 'unique cigri conf' do
