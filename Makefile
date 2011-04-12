@@ -26,7 +26,7 @@ install: usage
 
 usage:
 	@echo "WORK IN PROGRESS..."
-	@echo "Usage: make < rdoc | yard | tests >"
+	@echo "Usage: make < rdoc | yard | tests | cov >"
 
 rdoc:
 	rdoc -o doc/rdoc
@@ -40,6 +40,11 @@ rspec: tests
 
 tests:	spec/*/*_spec.rb
 	rspec $? ${SPEC_OPTS}
+
+cov: rcov
+
+rcov: spec/*/*_spec.rb modules/*/* lib/*
+	rcov -I lib spec/**/*.rb
 
 clean:
 	rm -rf doc/rdoc doc/yard .yardoc

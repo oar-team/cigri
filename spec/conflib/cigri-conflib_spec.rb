@@ -1,4 +1,5 @@
 require 'cigri-conflib'
+require 'rspec'
 
 describe 'cigri-conflib' do
 
