@@ -1,12 +1,73 @@
 require 'cigri-conflib'
 require 'cigri-exception'
 require 'cigri-logger'
-require 'cigri-utils'
-require 'json'
+require 'dbi'
 
+# Configuration for IOLIB
 CONF = Cigri.conf
+# logger to use in IOLIB
 LOGGER = Cigri::Logger.new('IOLIB', CONF.get('LOG_FILE'))
 
+##
+# Method to obtain a database handle from the information given in cigri.conf
+# If a block is given, it will disconnect automatically at the end of execution
+# == Usage:
+# - dbh = db_connect()
+#   ...
+#   dbh.disconnect
+# - db_connect() do |dbh|
+#   ...
+#   end
+#
+# == Returns:
+# database handle
+#
+# == Yields
+# database handle
+#
+# == Exceptions:
+# - Cigri::Exceptions if config badly defined
+# - DBI exceptions
+##
+def db_connect()
+  str = "DBI:#{CONF.get('DATABASE_TYPE')}:#{CONF.get('DATABASE_NAME')}:#{CONF.get('DATABASE_HOST')}"
+  dbh = DBI.connect(str, 
+                    "#{CONF.get('DATABASE_USER_NAME')}", 
+                    "#{CONF.get('DATABASE_USER_PASSWORD')}")
+  return dbh unless block_given?
+  yield dbh
+  dbh.disconnect()
+end
+
+
+##
+# Method defined to get the last inserted id in a database
+# == Usage
+#    db_connect() do |dbh|
+#      dbh.do('INSERT ... INTO table')
+#      ID = last_inserted_id(dbh, 'table_row_seq')
+#    end
+#
+# == Parameters
+# - dbh: databale handle
+# - seqname: sequence name to retreive the last-id
+#
+# == Exceptions
+# - Cigri::Exception if database type defined in cigri.conf not supported 
+##
+def last_inserted_id(dbh, seqname)
+  db = CONF.get('DATABASE_TYPE')
+  if db.eql? 'Pg'
+    row = dbh.select_one("SELECT currval('#{seqname}')")
+  elsif db.eql? 'Mysql'
+    row = dbh.select_one("SELECT LAST_INSERT_ID()")
+  else
+    raise Cigri::Exception, "impossible to retreive last inserted id: database type \"#{db}\" is not supported"
+  end
+  return row[0]
+end
+
+##
 # This method saves a new campaign into the cigri database.
 # It considers that the JDL has been checked before submitting and is 
 # therefore correct.
@@ -20,6 +81,7 @@ LOGGER = Cigri::Logger.new('IOLIB', CONF.get('LOG_FILE'))
 # - Cigri::Exception: if no cluster used in the campaign are defined
 # - Exception: Error with the database
 #
+##
 def cigri_submit(dbh, json, user)
   LOGGER.debug('Saving campaign into database')
   dbh['AutoCommit'] = false
@@ -69,8 +131,7 @@ def cigri_submit(dbh, json, user)
   end
 end
 
-
-#
+##
 # Returns the ID in the database of the cluster corresponding to the name
 #
 # == Parameters
@@ -80,14 +141,14 @@ end
 # == Returns
 # - ID of the cluster
 # - nil if cluster not found
-#
+##
 def get_cluster_id(dbh, cluster_name)
   row = dbh.select_one("SELECT id FROM clusters WHERE name = '#{cluster_name}'")
   return row[0] if row
   nil
 end
 
-#
+##
 # Returns the IDs in the database of the clusters corresponding to the names
 #
 # == Parameters
@@ -97,7 +158,7 @@ end
 # == Returns
 # - hash (name=>ID)
 # - nil if clusters not found or if no clusters_names defined
-#
+##
 def get_clusters_ids(dbh, clusters_names)
   return nil unless clusters_names.length > 0
   rows = dbh.select_all("SELECT name, id FROM clusters WHERE name IN ('#{clusters_names.join('\',\'')}')")

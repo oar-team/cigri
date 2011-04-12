@@ -1,5 +1,5 @@
-require 'json'
 require 'cigri'
+require 'json'
 
 module Cigri
   ##

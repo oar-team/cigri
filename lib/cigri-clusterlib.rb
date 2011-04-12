@@ -12,7 +12,6 @@
 
 require 'cigri-logger'
 require 'cigri-conflib'
-require 'rubygems'
 require 'restfully'
 #require 'pp'
 #require 'cigri-iolib'
