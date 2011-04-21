@@ -486,6 +486,7 @@ sub check_events($){
             # notify admin by email, but not on OAR errors(which can be a lot)
 		    if($ref[4] ne "OAR_OARSUB"){
 	            mailer::sendMail("clusterBlackList = $ref[1] for the MJob $ref[2]; eventId = $ref[0]",$msg);
+                    print "Disabled EMAIL to admin in the code!\n";
 			}
 
 		    # notify the user
@@ -508,7 +509,8 @@ sub check_events($){
 			if($nb_blcluster == $nb_cluster){
 				print "[COLOMBO]       all clusters were blacklisted for the
 Mjob $ref[2]  \n";
-				add_new_mjob_event($dbh,$ref[2],"FRAG","Auto-frag: all clusters blacklisted");
+				#add_new_mjob_event($dbh,$ref[2],"FRAG","Auto-frag: all clusters blacklisted");
+                                print "[COLOMBO]       BB 04/2011 disabled Auto-frag... seems buggy in some cases\n";
 				#TODO emathias: mail everybody 
 			}else{
 				my $job_to_resubmit = get_jobid_from_blacklistid($dbh,$id);
