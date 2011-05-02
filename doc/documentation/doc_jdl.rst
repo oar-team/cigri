@@ -26,6 +26,7 @@ Global Settings
 - param_file: path to the file containing all the parameters to run
   for the campaign
 - nb_jobs: number of jobs
+- params: array of parameters
 - jobs_type: 
 
   - **normal**: jobs using the param_file or nb_jobs
@@ -36,9 +37,11 @@ Global Settings
 .. NOTE::
 
   - If the job_type is not desktop_computing, then one of *param_file*
-    or *nb_jobs* is mandatory
+    or *nb_jobs* or *params* is mandatory
   - *nb_jobs* is just syntactic sugar equivalent with a *param_file*
     containing a number from 0 to nb_jobs on each line
+  - If *param_file* or *nb_jobs* is given, they will be changed into
+    *params*. It's just there to facilitate submissions.
 
 Cluster Settings
 ----------------

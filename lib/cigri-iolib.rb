@@ -95,28 +95,33 @@ def cigri_submit(dbh, json, user)
     campaign_id = last_inserted_id(dbh, 'campaigns_id_seq')
     
     #add campaigns properties
+    query = 'INSERT INTO campaign_properties 
+             (name, value, cluster_id, campaign_id)
+             VALUES (?, ?, ?, ?)'
     at_least_one_cluster = false
-    sth = dbh.prepare("SELECT id FROM clusters where name = ?")
-    json['clusters'].each_key do |cluster|
-      sth.execute(cluster)
-      cluster_id = sth.first
-      if cluster_id
-        cluster_id = cluster_id[0]
-        at_least_one_cluster = true
-        query = 'INSERT INTO campaign_properties 
-                 (name, value, cluster_id, campaign_id)
-                 VALUES (?, ?, ?, ?)'
-        dbh.do(query, '', '', cluster_id, campaign_id)
-      else
-        LOGGER.warn("Cluster '#{cluster}' unknown, campaign_property not added for this cluster")
+    dbh.prepare("SELECT id FROM clusters where name = ?") do |sth|
+      json['clusters'].each_key do |cluster|
+        sth.execute(cluster)
+        cluster_id = sth.first
+        if cluster_id
+          cluster_id = cluster_id[0]
+          at_least_one_cluster = true
+          dbh.do(query, '', '', cluster_id, campaign_id)
+        else
+          LOGGER.warn("Cluster '#{cluster}' unknown, campaign_property not added for this cluster")
+        end
       end
+      raise Cigri::Exception, "No clusters usable for the campaign" unless at_least_one_cluster
     end
-    raise Cigri::Exception, "No clusters usable for the campaign" unless at_least_one_cluster
-    sth.finish()
     
     #create bag_of_tasks
     unless json['jobs_type'].eql?('desktop_computing')
-      
+      query = 'INSERT INTO bag_of_tasks 
+               (name, param, campaign_id)
+               VALUES (?, ?, ?)'
+      json['params'].each do |param|
+        dbh.do(query, param.split.first, param, campaign_id)
+      end
     else
       raise Cigri::Exception, 'Desktop_computing campaigns are not yet sopported'
     end

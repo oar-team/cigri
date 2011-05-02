@@ -1,6 +1,7 @@
 {
   "name": "Some campaign",
-  "nb_jobs": 2,
+
+  "param_file" : "/home/gcharrie/repositories/cigri/branches/cigri-3/modules/jdl-parser/example.json",
   "resources": "nodes=1",
   "exec_file": "$HOME/script.sh",
   "output_gathering_method": "scp",

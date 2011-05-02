@@ -1,5 +1,6 @@
 require 'cigri'
 require 'json'
+require 'pp'
 
 module Cigri
   ##
@@ -40,9 +41,9 @@ module Cigri
         end
       end
       MANDATORY_CLUSTER.each do |field|
-        res['clusters'].each do |cluster|
-          unless cluster[1][field] or res[field]
-            raise Cigri::Exception, "Cluster #{cluster[0]} does not have mandatory field \"#{field}\"" 
+        res['clusters'].each_value do |cluster|
+          unless cluster[field] or res[field]
+            raise Cigri::Exception, "Cluster #{cluster} does not have mandatory field \"#{field}\"" 
           end
         end
       end
@@ -53,7 +54,7 @@ module Cigri
       end
       
       #verify there are parameters for the campaign
-      unless res['param_file'] or res['nb_jobs'] or 
+      unless res['param_file'] or res['nb_jobs'] or res['params'] or
              (res['jobs_type'] and res['jobs_type'].downcase.eql?('desktop_computing'))
         raise Cigri::Exception, 'No parameters for your campaign are defined.' +
         'You must define param_file or nb_jobs or ' +
@@ -89,8 +90,10 @@ module Cigri
         raise Cigri::Exception, 'JDL badly defined, not saving in the database'
       
       end
+      
       default_values!(res, config)
       expand_jdl!(res)
+      set_params!(res)
       
       logger.debug('JDL file is well defined')
       
@@ -121,6 +124,25 @@ module Cigri
         end
       end
     end # def self.expand_jdl!
+    
+    ##
+    # Fills the params attribute if needed (not when desktop_computing)
+    #
+    # == Parameters
+    # - jdl represented as objects (hash + arrays)
+    ##
+    def self.set_params!(jdl)
+      return if (jdl['jobs_type'] and jdl['jobs_type'].downcase.eql?('desktop_computing'))
+
+      if jdl['nb_jobs']
+        params = (0...jdl['nb_jobs']).to_a.collect{|a| a.to_s}
+        jdl.delete('nb_jobs')
+      elsif jdl['param_file']
+        raise Cigri::Exception, "Parameter file '#{jdl['param_file']}' is not readable" unless File.readable?(jdl['param_file'])
+        params = File.readlines(jdl['param_file']).map!{|a| a.strip}
+      end
+      jdl['params'] = params
+    end # def self.get_params!
     
     private
     
