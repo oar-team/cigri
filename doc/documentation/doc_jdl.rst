@@ -126,7 +126,7 @@ Example of JDL
 
 Here is an example of a JDL file described in JSON:
 
-.. include:: ../../modules/jdl_parser/example.json
+.. include:: ../../modules/jdl-parser/example.json
    :literal: 
 
 .. Local Variables:
