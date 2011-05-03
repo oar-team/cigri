@@ -68,6 +68,16 @@ describe 'jdl-parser' do
       Cigri::JDLParser::set_params!(b)
       a.should == b
     end
+    it 'should read a file and expand the params' do
+      filename = '/tmp/cigri_rspec_example_file'
+      str = "param 1\n param 2    \n    param3"
+      File.open(filename, 'w') {|f| f.write(str) }
+      a = Cigri::JDLParser.parse('{"name":"n","params":["param 1","param 2","param3"],"clusters":{"c":{"exec_file":"toto"}}}')
+      b = Cigri::JDLParser.parse('{"name":"n","param_file":"' + filename + '","clusters":{"c":{"exec_file":"toto"}}}')
+      Cigri::JDLParser::set_params!(b)
+      File.delete(filename)
+      a.should == b
+    end
   end
   
   describe 'save' do

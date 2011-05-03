@@ -140,6 +140,7 @@ module Cigri
       elsif jdl['param_file']
         raise Cigri::Exception, "Parameter file '#{jdl['param_file']}' is not readable" unless File.readable?(jdl['param_file'])
         params = File.readlines(jdl['param_file']).map!{|a| a.strip}
+        jdl.delete('param_file')
       end
       jdl['params'] = params
     end # def self.get_params!
