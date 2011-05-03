@@ -138,7 +138,10 @@ module Cigri
         params = (0...jdl['nb_jobs']).to_a.collect{|a| a.to_s}
         jdl.delete('nb_jobs')
       elsif jdl['param_file']
-        jdl['param_file']['$HOME'] = '~' if jdl['param_file']['$HOME']
+        #catch all environment variables and replace them
+        jdl['param_file'].scan(/\$\w*/).each do |match|
+          jdl['param_file'][match] = ENV[match.delete('$')]
+        end
         jdl['param_file'] = File.expand_path(jdl['param_file'])
         raise Cigri::Exception, "Parameter file '#{jdl['param_file']}' is not readable" unless File.readable?(jdl['param_file'])
         params = File.readlines(jdl['param_file']).map!{|a| a.strip}
