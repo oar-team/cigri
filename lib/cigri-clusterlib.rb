@@ -4,7 +4,7 @@
 # to the local resource manager of the clusters. It is based on
 # REST calls.
 #
-# Example:
+# == Example:
 #  cluster=Cigri::Cluster.new(1)
 #  cluster.get_resources.each do |resource|
 #    puts resource['id']
@@ -17,14 +17,15 @@ require 'restfully'
 #require 'cigri-iolib'
 
 module Cigri
-
+  ##
   # Meta class for REST Clusters
   # This class defines the interface for cluster objects.
+  ##
   class RestCluster
     def initialize(cluster_id)
       # To get into the iolib:
       options={}
-      options[:base_uri]="http://localhost/oarapi-priv"
+      options[:base_uri]="http://localhost/oarapi-priv/"
       options[:username]="kameleon"
       options[:password]="kameleon"
       #
@@ -35,6 +36,11 @@ module Cigri
     def get_resources
       raise "Method must be overridden"
     end
+
+    # Get the running jobs
+    def get_jobs
+      raise "Method must be overridden"
+    end
     
     # Submit the given job
     def submit_job(job)
@@ -43,28 +49,32 @@ module Cigri
   end
 
 
-
+  ##
   # Cluster object factory
   # This class allows us to create cluster objects of the 
   # type given by the "batch" field.
   # 
-  # Example: 
+  # == Example: 
   #  cluster=Cigri::Cluster.new(6)
-  # Assuming the cluster which id is 6 is of the type oar2_5, 
-  # this will return a OarCluster object.
-  #
+  #  Assuming the cluster which id is 6 is of the type oar2_5, 
+  #  this will return a OarCluster object.
+  ##
   class Cluster 
 
 
 
-   #
+   ##
    # Oar REST API methods definitions.
    # Check the RestCluster class for definitions
-   # 
+   ##
    class OarCluster < RestCluster
 
      def get_resources
        @api.resources
+     end 
+ 
+     def get_jobs
+       @api.jobs
      end 
 
      def submit_job(job)
@@ -75,10 +85,10 @@ module Cigri
 
 
  
-   #
+   ##
    # g5k REST API methods definitions
    # Check the RestCluster class for definitions
-   # 
+   ##
    class G5kCluster < RestCluster
 
      def get_resources
@@ -91,9 +101,9 @@ module Cigri
    end
 
    
-   #
+   ##
    # Switch to create objects of the correct type
-   #
+   ##
    def Cluster::new(cluster_id)
      # To get from iolib
      type="oar2_5"
