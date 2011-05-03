@@ -2,6 +2,7 @@
 
 $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '../..', 'lib'))
 $LOAD_PATH.unshift(File.join(File.dirname(__FILE__)))
+$LOAD_PATH.unshift("#{ENV["CIGRIDIR"]}/lib")
 
 require 'cigri'
 require 'jdl-parser'
