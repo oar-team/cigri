@@ -129,7 +129,7 @@ Example of JDL
 
 Here is an example of a JDL file described in JSON:
 
-.. include:: ../../modules/jdl-parser/example.json
+.. include:: ./example.json
    :literal: 
 
 .. Local Variables:

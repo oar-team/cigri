@@ -1,5 +1,5 @@
 require 'cigri'
-require 'modules/jdl-parser/jdl-parser'
+require 'jdl-parser'
 require 'spec_helper'
 
 describe 'jdl-parser' do
