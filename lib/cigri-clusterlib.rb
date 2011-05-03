@@ -83,7 +83,6 @@ module Cigri
    end
 
 
-
  
    ##
    # g5k REST API methods definitions
@@ -100,6 +99,14 @@ module Cigri
      end
    end
 
+
+
+   ##
+   # Lists the available types
+   ##
+   def self.available_types
+     ["oar2_5","g5k"]
+   end
    
    ##
    # Switch to create objects of the correct type
@@ -107,6 +114,9 @@ module Cigri
    def Cluster::new(cluster_id)
      # To get from iolib
      type="oar2_5"
+     if not available_types.include?(type)
+       raise "#{type} is not listed into the available_types!"
+     end
      classe = 
        case type
          when /oar2_5/

@@ -176,5 +176,31 @@ def get_clusters_ids(dbh, clusters_names)
 end
 
 
-
-
+##
+# Insert a new cluster into the database
+#
+# == Parameters
+# - dbh: database handle
+# - all the fields of the clusters database
+# 
+#
+# == Returns
+# - false if failed
+##
+def new_cluster(dbh, name, api_url, api_username, api_password, ssh_host, batch, resource_unit, power, properties)
+  LOGGER.debug("Creating the new cluster #{name}")
+  dbh['AutoCommit'] = false
+  begin
+    query = 'INSERT into clusters
+             (name,api_url,api_username,api_password,ssh_host,batch,resource_unit,power,properties)
+             VALUES (?,?,?,?,?,?,?,?,?)'
+    dbh.do(query,name,api_url,api_username,api_password,ssh_host,batch,resource_unit,power,properties)
+    dbh.commit()
+  rescue Exception => e
+    LOGGER.error("Error inserting cluster #{name}: " + e.inspect)
+    dbh.rollback()
+    raise e
+  ensure
+    dbh['AutoCommit'] = true
+  end
+end
