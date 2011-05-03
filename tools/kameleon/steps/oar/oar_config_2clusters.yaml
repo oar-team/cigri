@@ -10,7 +10,7 @@ oar_config_2clusters:
      - |
        cat /etc/hosts | grep pode1 >/dev/null|| echo '127.0.0.3 pode pode1 pode2 ' >> /etc/hosts
  - create_resources2:
-   - exec_chroot: oarproperty -a cluster
+   - exec_chroot: oarproperty -a cluster -c
    - exec_chroot: oarnodesetting -a -h pode1 -p cpu=4 -p core=8 -p cpuset=0
    - exec_chroot: oarnodesetting -a -h pode1 -p cpu=4 -p core=9 -p cpuset=0
    - exec_chroot: oarnodesetting -a -h pode1 -p cpu=4 -p core=10 -p cpuset=0
