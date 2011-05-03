@@ -47,4 +47,24 @@ describe 'cigri-iolib' do
       end
     end
   end # get_cluster_id
+  
+  describe 'get_clusters_ids' do
+    it 'should return an empty hash if no clusters are passed' do
+      db_connect() do |dbh|
+        get_clusters_ids(dbh, []).should == {}
+      end
+    end
+    it 'should return a hash ID if the clusters exists' do
+      db_connect() do |dbh|
+        res = get_clusters_ids(dbh, %w{my.cluster.fr my.other_cluster.fr my.last_cluster.fr})
+        res.should be_a(Hash)
+        res.size.should == 2
+      end
+    end
+    it 'should return an empty hash if the clusters does not exist' do
+      db_connect() do |dbh|
+        get_clusters_ids(dbh, %w{suihf  duighuisd}).should == {}
+      end
+    end
+  end # get_cluster_id
 end # cigri-iolib

@@ -162,12 +162,12 @@ end
 #
 # == Returns
 # - hash (name=>ID)
-# - nil if clusters not found or if no clusters_names defined
 ##
 def get_clusters_ids(dbh, clusters_names)
-  return nil unless clusters_names.length > 0
+
+  return {} unless clusters_names.length > 0
   rows = dbh.select_all("SELECT name, id FROM clusters WHERE name IN ('#{clusters_names.join('\',\'')}')")
-  return nil unless rows
+  return {} unless rows
   res = {}
   rows.each do |row|
     res[row['name']] = row['id']
