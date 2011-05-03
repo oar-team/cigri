@@ -7,7 +7,7 @@ $LOAD_PATH.unshift("#{ENV["CIGRIDIR"]}/lib")
 require 'cigri'
 require 'jdl-parser'
 
-abort("Usage: #{File.basename(__FILE__)} JDL_FILE") unless ARGV.length == 1
+abort("Usage: #{File.basename(__FILE__)} <JDL_FILE>") unless ARGV.length == 1
 
 filename = ARGV[0]
 
