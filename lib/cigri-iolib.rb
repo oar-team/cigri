@@ -164,14 +164,8 @@ end
 # - hash (name=>ID)
 ##
 def get_clusters_ids(dbh, clusters_names)
-
-  return {} unless clusters_names.length > 0
-  rows = dbh.select_all("SELECT name, id FROM clusters WHERE name IN ('#{clusters_names.join('\',\'')}')")
-  return {} unless rows
   res = {}
-  rows.each do |row|
-    res[row['name']] = row['id']
-  end
+  dbh.select_all("SELECT name, id FROM clusters WHERE name IN ('#{clusters_names.join('\',\'')}')"){|row| res[row['name']] = row['id']}
   res
 end
 
@@ -204,3 +198,21 @@ def new_cluster(dbh, name, api_url, api_username, api_password, ssh_host, batch,
     dbh['AutoCommit'] = true
   end
 end
+
+##
+# Get the different types of clusters
+# 
+# == Parameters
+# - dbh: database handle
+#
+# == Returns
+# - Array of types
+##
+def get_cluster_types(dbh) 
+  return dbh.select_all('SELECT batch FROM clusters GROUP BY batch')
+end
+
+
+
+
+
