@@ -1,4 +1,4 @@
-oar_config_2clusters:
+oar_config_3clusters:
  - update_hostfile2:
    - append_file:
      - /etc/hosts

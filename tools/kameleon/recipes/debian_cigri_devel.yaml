@@ -66,7 +66,7 @@ steps:
  - oar/oar_debian_install
  - oar/oar_system_config
  - oar/oar_config
- - oar/oar_config_2clusters
+ - oar/oar_config_3clusters
  - oar/oar_devel
  - oar/oar_clean
  - cigri/cigri_deps
