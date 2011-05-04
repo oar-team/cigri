@@ -67,14 +67,4 @@ describe 'cigri-iolib' do
       end
     end
   end # get_cluster_id
-  
-  describe 'get_cluster_types' do
-    it 'should return an array of size 2' do
-      db_connect() do |dbh|
-        types = get_cluster_types(dbh)
-        types.should be_a(Array)
-        types.size.should == 1
-      end
-    end
-  end # get_cluster_types
 end # cigri-iolib
