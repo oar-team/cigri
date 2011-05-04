@@ -123,7 +123,16 @@ module Cigri
 
 
    ##
-   # Lists the available types
+   # Lists the available batch types
+   #
+   # Those types are the only allowed into the batch field of the clusters table.
+   # Each of these types correspond to a Class that defines the methods to access
+   # to the cluster using the corresponding REST API.
+   # Currently, here are the supported types and corresponding classes:
+   # - oar2_5 : OarCluster
+   # - g5k : G5kCluster
+   # All the classes have to implement the methods listed into the RestCluster class.
+   #
    ##
    def self.available_types
      ["oar2_5","g5k"]
@@ -131,6 +140,8 @@ module Cigri
    
    ##
    # Switch to create objects of the correct type
+   #
+   # See RestCluster.new() for usage
    ##
    def Cluster::new(opts)
      # To get from iolib
