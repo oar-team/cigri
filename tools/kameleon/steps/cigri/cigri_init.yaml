@@ -10,5 +10,5 @@ cigri_init:
    - exec_chroot: bash -c "cp /home/kameleon/`basename $$cigri_svn`/etc/cigri.conf /etc"
    - exec_chroot: bash -c "chown cigri /etc/cigri.conf && chmod 600 /etc/cigri.conf"
  - init_clusters:
-   - exec_chroot: bash -c "cd /home/kameleon/`basename $$cigri_svn` && ./sbin/new_cluster.rb localhost http://localhost/oarapi-priv kameleon kameleon localhost oar2_5 core 10 \"cluster='node'\""
-   - exec_chroot: bash -c "cd /home/kameleon/`basename $$cigri_svn` && ./sbin/new_cluster.rb pode http://pode/oarapi-priv kameleon kameleon pode oar2_5 core 10 \"cluster='pode'\""
+   - exec_chroot: bash -c "cd /home/kameleon/`basename $$cigri_svn` && ./sbin/new_cluster.rb localhost http://localhost/oarapi-priv/ kameleon kameleon localhost oar2_5 core 10 \"cluster='node'\""
+   - exec_chroot: bash -c "cd /home/kameleon/`basename $$cigri_svn` && ./sbin/new_cluster.rb pode http://pode/oarapi-priv/ kameleon kameleon pode oar2_5 core 10 \"cluster='pode'\""
