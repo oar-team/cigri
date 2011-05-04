@@ -103,17 +103,17 @@ describe 'jdl-parser' do
   describe 'save' do
     it 'should be able to save a correct json' do
       dbh = db_connect() do |dbh|
-        lambda{Cigri::JDLParser.save(dbh, '{"name":"n","nb_jobs":10,"clusters":{"my.cluster.fr":{"exec_file":"e"}}}', 'testuser')}.should_not raise_error
+        lambda{Cigri::JDLParser.save(dbh, '{"name":"n","nb_jobs":10,"clusters":{"tchernobyl":{"exec_file":"e"}}}', 'testuser')}.should_not raise_error
       end
     end
     
     it 'should fail if dbh is bad' do
-      lambda{Cigri::JDLParser.save({}, '{"name":"n","nb_jobs":10,"clusters":{"my.cluster.fr":{"exec_file":"e"}}}', 'testuser')}.should raise_error
+      lambda{Cigri::JDLParser.save({}, '{"name":"n","nb_jobs":10,"clusters":{"tchernobyl":{"exec_file":"e"}}}', 'testuser')}.should raise_error
     end
     
     it 'should not be able to save an incorrect json' do
       db_connect() do |dbh|
-        lambda{Cigri::JDLParser.save(dbh, '{"name":"n", "clusters":{"my.cluster.fr":{"exec_file":"e"}}}', 'testuser')}.should raise_error Cigri::Exception
+        lambda{Cigri::JDLParser.save(dbh, '{"name":"n", "clusters":{"tchernobyl":{"exec_file":"e"}}}', 'testuser')}.should raise_error Cigri::Exception
       end
     end
   end # save

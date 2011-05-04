@@ -56,7 +56,7 @@ describe 'cigri-iolib' do
     end
     it 'should return a hash ID if the clusters exists' do
       db_connect() do |dbh|
-        res = get_clusters_ids(dbh, %w{tchernobyl threemile fukushima})
+        res = get_clusters_ids(dbh, %w{tchernobyl threemile non_existing.cluster})
         res.should be_a(Hash)
         res.size.should == 2
       end
