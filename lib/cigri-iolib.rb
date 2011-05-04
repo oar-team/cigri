@@ -200,6 +200,27 @@ def new_cluster(dbh, name, api_url, api_username, api_password, ssh_host, batch,
 end
 
 ##
+# Get cluster informations
+# 
+# == Parameters
+# - dbh: database handle
+# - id: id of the cluster
+#
+# == Returns
+# - hash
+##
+def get_cluster(dbh,id)
+  sth = dbh.execute("SELECT * FROM clusters WHERE id=#{id}")
+  res=sth.fetch_hash
+  if res.nil?
+    LOGGER.error("No cluster with id=#{id}!")
+    raise Cigri::Exception, "No cluster with id=#{id}!"
+  else
+    res
+  end
+end  
+
+##
 # Get the different types of clusters
 # 
 # == Parameters
@@ -211,8 +232,4 @@ end
 def get_cluster_types(dbh) 
   return dbh.select_all('SELECT batch FROM clusters GROUP BY batch')
 end
-
-
-
-
 

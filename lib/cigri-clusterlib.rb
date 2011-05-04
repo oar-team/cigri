@@ -5,16 +5,15 @@
 # REST calls.
 #
 # == Example:
-#  cluster=Cigri::Cluster.new(1)
+#  cluster=Cigri::Cluster.new(:name => "pode")
 #  cluster.get_resources.each do |resource|
 #    puts resource['id']
 #  end
 
 require 'cigri-logger'
 require 'cigri-conflib'
+require 'cigri-iolib'
 require 'restfully'
-#require 'pp'
-#require 'cigri-iolib'
 
 module Cigri
   ##
@@ -22,13 +21,35 @@ module Cigri
   # This class defines the interface for cluster objects.
   ##
   class RestCluster
-    def initialize(cluster_id)
-      # To get into the iolib:
+    # description is a hash containing all the fields describing a cluster
+    attr_reader :description
+
+    ##
+    # Creates a new restcluster object, getting it by its id or its name
+    # == Parameters
+    # A hash containing :id or :name
+    # - :id : id of the cluster
+    # - :name : name of the cluster
+    ##
+    def initialize(opts={})
+      # Get the cluster from database
+      db_connect() do |dbh|
+        if not id=opts[:id]
+          if not name=opts[:name]
+            raise Cigri::Exception, "At least :id or :name should be passed to RestCluster constructor!"
+          else
+            id=get_cluster_id(dbh,name)
+            raise Cigri::Exception, "No cluster found by that name: #{name}" if id.nil?
+          end
+        end
+        @description=get_cluster(dbh,id)
+      end
+      # Set up restfully options
       options={}
-      options[:base_uri]="http://localhost/oarapi-priv/"
-      options[:username]="kameleon"
-      options[:password]="kameleon"
-      #
+      options[:base_uri]=@description["api_url"]
+      options[:username]=@description["api_username"]
+      options[:password]=@description["api_password"]
+      # Create the restfully session
       @api=Restfully::Session.new(options).root
     end
 
@@ -111,7 +132,7 @@ module Cigri
    ##
    # Switch to create objects of the correct type
    ##
-   def Cluster::new(cluster_id)
+   def Cluster::new(opts)
      # To get from iolib
      type="oar2_5"
      if not available_types.include?(type)
@@ -124,7 +145,7 @@ module Cigri
          when /g5k/
            G5kCluster
        end
-     classe::new(type)
+     classe::new(opts)
    end
 
   end
