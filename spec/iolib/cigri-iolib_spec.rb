@@ -38,7 +38,7 @@ describe 'cigri-iolib' do
   describe 'get_cluster_id' do
     it 'should return an ID if the cluster exists' do
       db_connect() do |dbh|
-        get_cluster_id(dbh, 'my.cluster.fr').should be_a(Integer)
+        get_cluster_id(dbh, 'tchernobyl').should be_a(Integer)
       end
     end
     it 'should return nil if the cluster does not exist' do
@@ -56,7 +56,7 @@ describe 'cigri-iolib' do
     end
     it 'should return a hash ID if the clusters exists' do
       db_connect() do |dbh|
-        res = get_clusters_ids(dbh, %w{my.cluster.fr my.other_cluster.fr my.last_cluster.fr})
+        res = get_clusters_ids(dbh, %w{tchernobyl threemile fukushima})
         res.should be_a(Hash)
         res.size.should == 2
       end
