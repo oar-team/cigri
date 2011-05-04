@@ -218,18 +218,5 @@ def get_cluster(dbh,id)
   else
     res
   end
-end  
-
-##
-# Get the different types of clusters
-# 
-# == Parameters
-# - dbh: database handle
-#
-# == Returns
-# - Array of types
-##
-def get_cluster_types(dbh) 
-  return dbh.select_all('SELECT batch FROM clusters GROUP BY batch')
 end
 
