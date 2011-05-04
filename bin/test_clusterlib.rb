@@ -8,6 +8,9 @@ require 'cigri-clusterlib'
 
 cluster=Cigri::Cluster.new(:name => "tchernobyl")
 cluster.get_resources.each do |resource|
-  puts resource['id']
+  puts resource['id'].to_s+" ("+resource['network_address']+")"
+  resource.jobs.each do |job|
+    puts "  job: "+job['id'].to_s
+  end
 end
 
