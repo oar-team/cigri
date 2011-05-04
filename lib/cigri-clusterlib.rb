@@ -76,8 +76,8 @@ module Cigri
   # type given by the "batch" field.
   # 
   # == Example: 
-  #  cluster=Cigri::Cluster.new(6)
-  #  Assuming the cluster which id is 6 is of the type oar2_5, 
+  #  cluster=Cigri::Cluster.new(:name => "pode")
+  #  Assuming the cluster which name is "pode" is of the type oar2_5, 
   #  this will return a OarCluster object.
   ##
   class Cluster 
