@@ -144,8 +144,8 @@ module Cigri
    # See RestCluster.new() for usage
    ##
    def Cluster::new(opts)
-     # To get from iolib
-     type="oar2_5"
+     tmp_cluster=RestCluster.new(opts)
+     type=tmp_cluster.description["batch"]
      if not available_types.include?(type)
        raise "#{type} is not listed into the available_types!"
      end
