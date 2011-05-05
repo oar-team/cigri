@@ -13,7 +13,7 @@ module Cigri
     # Mandatory attributes in the campaign of the JDl
     MANDATORY_GLOBAL  = %w{name clusters}
     # All the fields that can be used in a campaign description
-    ALL_GLOBAL        = MANDATORY_GLOBAL + %w{param_file nb_jobs jobs_type}
+    ALL_GLOBAL        = MANDATORY_GLOBAL + %w{param_file nb_jobs jobs_type params}
     
     ##
     # Parses the json string given as parameter.
@@ -147,7 +147,7 @@ module Cigri
         params = File.readlines(jdl['param_file']).map!{|a| a.strip}
         jdl.delete('param_file')
       end
-      jdl['params'] = params
+      jdl['params'] = params unless jdl['params']
     end # def self.get_params!
     
     private
