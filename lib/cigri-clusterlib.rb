@@ -52,6 +52,25 @@ module Cigri
       # Create the restfully session
       @api=Restfully::Session.new(options).root
     end
+    
+    #
+    # Parse the properties of the cluster if any
+    # == returns
+    #  - an array of { property => value }
+    #  - or nil if no property is available
+    def parse_properties
+      if @description["properties"]
+        res={}
+        properties=@description["properties"].split(/\s*and\s*/i)
+        properties.each do |property|
+          ( key, value ) = property.split(/\s*=\s*/)
+          res[key]=value.delete("'\"")
+        end
+        return res
+      else
+        return nil
+      end 
+    end
 
     # Get the resources
     def get_resources
@@ -91,7 +110,20 @@ module Cigri
    class OarCluster < RestCluster
 
      def get_resources
-       @api.resources
+       # Get the resources from the api
+       resources=@api.full_resources
+       # Filter the resources depending on cluster properties
+       properties=parse_properties
+       return resources unless properties
+       res=[]
+       resources.each do |resource|
+         not_found=0
+         properties.each_pair do |key,value|
+           not_found=1 if resource[key] != value
+         end
+         res << resource unless not_found==1
+       end
+       return res
      end 
  
      def get_jobs

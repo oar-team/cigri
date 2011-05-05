@@ -1,0 +1,17 @@
+{
+  "name": "test1",
+  "resources": "core=1",
+  "exec_file": "$HOME/cigri-3/tmp/test1.sh",
+  "clusters": {
+    "tchernobyl": {
+    },
+    "fukushima": {
+    }
+  },
+  "params": [ 
+    "param1 1", 
+    "param2 2", 
+    "param3 3", 
+    "param4 4" 
+  ]
+}
