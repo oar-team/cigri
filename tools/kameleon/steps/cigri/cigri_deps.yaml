@@ -3,3 +3,5 @@ cigri_deps:
    - exec_chroot: bash -c "gem install rspec"
  - restfully:
    - exec_chroot: bash -c "gem install restfully --source http://gemcutter.org"
+ - gem_path:
+   - exec_chroot: bash -c "echo export PATH=/var/lib/gems/1.8/bin/:$PATH >> /home/kameleon/.bashrc"
