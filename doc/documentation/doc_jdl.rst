@@ -76,6 +76,7 @@ as value on all clusters.
     cluster and can therefore be different between 2 clusters. Users
     should answer this field.
 
+- properties: properties passed to OAR to select resources
 - prologue: commands that are executed before each job
 - epilogue: commands that are executed after each job
 - output_gathering_method: method to use to gather results in a single
