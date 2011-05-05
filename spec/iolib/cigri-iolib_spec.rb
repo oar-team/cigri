@@ -9,8 +9,8 @@ describe 'cigri-iolib' do
   after(:each) do
     Cigri.conf.conf['DATABASE_TYPE'] = @old_db
   end
-  %w{Pg Mysql}.each do |db_type|
-
+  #%w{Pg Mysql}.each do |db_type|
+  %w{Pg}.each do |db_type|
     describe "#{db_type}" do
       before(:each) do
         Cigri.conf.conf['DATABASE_TYPE'] = db_type
