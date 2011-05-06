@@ -6,7 +6,7 @@ require 'dbi'
 # Configuration for IOLIB
 CONF = Cigri.conf
 # logger to use in IOLIB
-LOGGER = Cigri::Logger.new('IOLIB', CONF.get('LOG_FILE'))
+IOLIBLOGGER = Cigri::Logger.new('IOLIB', CONF.get('LOG_FILE'))
 
 ##
 # Method to obtain a database handle from the information given in cigri.conf
@@ -83,7 +83,7 @@ end
 #
 ##
 def cigri_submit(dbh, json, user)
-  LOGGER.debug('Saving campaign into database')
+  IOLIBLOGGER.debug('Saving campaign into database')
   dbh['AutoCommit'] = false
   begin
     #INSERT INTO campaigns
@@ -108,7 +108,7 @@ def cigri_submit(dbh, json, user)
           at_least_one_cluster = true
           dbh.do(query, '', '', cluster_id, campaign_id)
         else
-          LOGGER.warn("Cluster '#{cluster}' unknown, campaign_property not added for this cluster")
+          IOLIBLOGGER.warn("Cluster '#{cluster}' unknown, campaign_property not added for this cluster")
         end
       end
       raise Cigri::Exception, "No clusters usable for the campaign" unless at_least_one_cluster
@@ -128,7 +128,7 @@ def cigri_submit(dbh, json, user)
     
     dbh.commit()
   rescue Exception => e
-    LOGGER.error('Error running campaign submission: ' + e.inspect)
+    IOLIBLOGGER.error('Error running campaign submission: ' + e.inspect)
     dbh.rollback()
     raise e
   ensure
@@ -182,7 +182,7 @@ end
 # - false if failed
 ##
 def new_cluster(dbh, name, api_url, api_username, api_password, ssh_host, batch, resource_unit, power, properties)
-  LOGGER.debug("Creating the new cluster #{name}")
+  IOLIBLOGGER.debug("Creating the new cluster #{name}")
   dbh['AutoCommit'] = false
   begin
     query = 'INSERT into clusters
@@ -191,7 +191,7 @@ def new_cluster(dbh, name, api_url, api_username, api_password, ssh_host, batch,
     dbh.do(query,name,api_url,api_username,api_password,ssh_host,batch,resource_unit,power,properties)
     dbh.commit()
   rescue Exception => e
-    LOGGER.error("Error inserting cluster #{name}: " + e.inspect)
+    IOLIBLOGGER.error("Error inserting cluster #{name}: " + e.inspect)
     dbh.rollback()
     raise e
   ensure
@@ -213,7 +213,7 @@ def get_cluster(dbh,id)
   sth = dbh.execute("SELECT * FROM clusters WHERE id=#{id}")
   res=sth.fetch_hash
   if res.nil?
-    LOGGER.error("No cluster with id=#{id}!")
+    IOLIBLOGGER.error("No cluster with id=#{id}!")
     raise Cigri::Exception, "No cluster with id=#{id}!"
   else
     res

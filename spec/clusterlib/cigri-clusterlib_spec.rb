@@ -4,11 +4,11 @@ require 'spec_helper'
 
 describe 'cigri-clusterlib' do
   before(:all) do
-    @old_LOGGER=LOGGER
+    #@old_LOGGER=LOGGER
     LOGGER = Cigri::Logger.new('clusterlib tests', "STDOUT")
   end
   after(:all) do
-    LOGGER=@old_LOGGER
+    #LOGGER=@old_LOGGER
   end
   describe "Initialize" do
     it 'should not succeed when no arg given' do

@@ -4,11 +4,11 @@ module Cigri
   # LOGGER exists
   ##
   class Exception < Exception
-    def initialize(msg)
-      if defined? LOGGER and LOGGER.class == Cigri::Logger
-        LOGGER.error('Exception raised: ' + msg)
+    def initialize(msg, logger = nil)
+      if logger and logger.class == Cigri::Logger
+        logger.error('Exception raised: ' + msg)
       end
-      super
+      super(msg)
     end
   end
 end
