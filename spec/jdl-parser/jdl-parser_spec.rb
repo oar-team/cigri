@@ -116,6 +116,13 @@ describe 'jdl-parser' do
         lambda{Cigri::JDLParser.save(dbh, '{"name":"n", "clusters":{"tchernobyl":{"exec_file":"e"}}}', 'testuser')}.should raise_error Cigri::Exception
       end
     end
+
+    it 'should return an id' do
+      db_connect() do |dbh|
+        Cigri::JDLParser.save(dbh, '{"name":"n","nb_jobs":10,"clusters":{"tchernobyl":{"exec_file":"e"}}}', 'testuser').should be_an(Integer)
+      end
+    end
+
   end # save
   
 end # jdl_parser
