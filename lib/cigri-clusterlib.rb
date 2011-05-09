@@ -15,6 +15,8 @@ require 'cigri-conflib'
 require 'cigri-iolib'
 require 'restfully'
 
+CLUSTERLIBLOGGER = Cigri::Logger.new('CLUSTERLIB', CONF.get('LOG_FILE'))
+
 module Cigri
   ##
   # Meta class for REST Clusters
@@ -36,10 +38,10 @@ module Cigri
       db_connect() do |dbh|
         if not id=opts[:id]
           if not name=opts[:name]
-            raise Cigri::Exception, "At least :id or :name should be passed to RestCluster constructor!"
+            raise Cigri::Exception.new("At least :id or :name should be passed to RestCluster constructor!",CLUSTERLIBLOGGER)
           else
             id=get_cluster_id(dbh,name)
-            raise Cigri::Exception, "No cluster found by that name: #{name}" if id.nil?
+            raise Cigri::Exception.new("No cluster found by that name: #{name}",CLUSTERLIBLOGGER) if id.nil?
           end
         end
         @description=get_cluster(dbh,id)
@@ -114,7 +116,7 @@ module Cigri
        resources=@api.full_resources
        # Filter the resources depending on cluster properties
        properties=parse_properties
-       return resources unless properties
+       return resources.to_a unless properties
        res=[]
        resources.each do |resource|
          not_found=0
@@ -179,7 +181,7 @@ module Cigri
      tmp_cluster=RestCluster.new(opts)
      type=tmp_cluster.description["batch"]
      if not available_types.include?(type)
-       raise "#{type} is not listed into the available_types!"
+       raise Cigri::Exception.new("#{type} is not listed into the available_types!",CLUSTERLIBLOGGER)
      end
      classe = 
        case type

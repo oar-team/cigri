@@ -3,13 +3,6 @@ require 'dbi'
 require 'spec_helper'
 
 describe 'cigri-clusterlib' do
-  before(:all) do
-    #@old_LOGGER=LOGGER
-    LOGGER = Cigri::Logger.new('clusterlib tests', "STDOUT")
-  end
-  after(:all) do
-    #LOGGER=@old_LOGGER
-  end
   describe "Initialize" do
     it 'should not succeed when no arg given' do
       lambda{Cigri::Cluster.new()}.should raise_error Exception
@@ -27,10 +20,10 @@ describe 'cigri-clusterlib' do
 
   describe "Tchernobyl resources" do
     before(:all) do
-      @cluster=Cigri::Cluster.new(:name => "tchernobyl")
+      @cluster=Cigri::Cluster.new(:name => "fukushima")
     end
-    it 'should return a Resfully Collection' do
-      @cluster.get_resources.should be_a(Restfully::Collection)
+    it 'should return an array' do
+      @cluster.get_resources.should be_an(Array)
     end
   end # Resources check
 end # cigri-clusterlib
