@@ -73,7 +73,7 @@ module Cigri
     # user:: username of the submitter
     # 
     # == Returns:
-    # Nothing
+    # Campaign id if correctly created, nil if not
     #
     # == Exceptions:
     # Cigri::Exception if the JDL is not well formed
@@ -99,8 +99,9 @@ module Cigri
       
       # Submit the campaign
       begin
-        cigri_submit(dbh, res, user)
+        campaign_id=cigri_submit(dbh, res, user)
         logger.info('Campaign saved in database')
+        return campaign_id
       rescue Exception => e
         logger.error('Campaing could not be saved in DB:' + e.message)
         raise e

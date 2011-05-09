@@ -81,6 +81,8 @@ end
 # - Cigri::Exception: if no cluster used in the campaign are defined
 # - Exception: Error with the database
 #
+# == Output
+# - Campaign id
 ##
 def cigri_submit(dbh, json, user)
   IOLIBLOGGER.debug('Saving campaign into database')
@@ -131,6 +133,7 @@ def cigri_submit(dbh, json, user)
     end
     
     dbh.commit()
+    return campaign_id
   rescue Exception => e
     IOLIBLOGGER.error('Error running campaign submission: ' + e.inspect)
     dbh.rollback()
