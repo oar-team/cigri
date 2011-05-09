@@ -106,7 +106,11 @@ def cigri_submit(dbh, json, user)
         if cluster_id
           cluster_id = cluster_id[0]
           at_least_one_cluster = true
-          dbh.do(query, '', '', cluster_id, campaign_id)
+          %w{checkpointing_type dimensional_grouping epilogue exec_file 
+            output_destination output_file output_gathering_method prologue 
+            properties resources temporal_grouping walltime}.each do |prop|
+            dbh.do(query, prop, json['clusters'][cluster][prop], cluster_id, campaign_id) if json['clusters'][cluster][prop]
+          end
         else
           IOLIBLOGGER.warn("Cluster '#{cluster}' unknown, campaign_property not added for this cluster")
         end

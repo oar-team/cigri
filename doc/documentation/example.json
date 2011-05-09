@@ -6,11 +6,11 @@
   "output_gathering_method": "scp",
   "output_destination": "my.dataserver.fr",
   "clusters": {
-    "my.cluster.fr": {
+    "tchernobyl": {
     },
     "my.other_cluster.fr": {
     },
-    "my.last_cluster.fr": {
+    "fukushima": {
       "exec_file": "$HOME/path/script"
     }
   }
