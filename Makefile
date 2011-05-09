@@ -41,29 +41,8 @@ tests: spec/*/*_spec.rb
 
 cov: rcov
 
-rcov: spec/*/*_spec.rb modules/*/* lib/* spec/spec_helper.rb
+rcov: spec/*/*_spec.rb lib/* spec/spec_helper.rb
 	rcov -I lib:spec spec/**/*.rb --exclude gems -o doc/rcov -T
-
-test-setup: test-setup-pg test-setup-mysql
-
-test-setup-pg:
-	database/init_db.rb -u cigritest -p cigritest -d cigritest -t psql -s database/psql_structure.sql
-	sudo -u postgres psql cigritest -f spec/init_fill.sql
-
-test-setup-mysql:
-	database/init_db.rb -u cigritest -p cigritest -d cigritest -t mysql -s database/mysql_structure.sql
-	mysql -u cigritest -pcigritest cigritest < spec/init_fill.sql
-
-
-test-clean: test-clean-pg test-clean-mysql
-
-test-clean-pg:
-	-sudo -u postgres psql -c "drop database cigritest"
-	-sudo -u postgres psql -c "drop role cigritest"
-
-test-clean-mysql:
-	-mysql -u root -p -e "drop database cigritest; drop user cigritest@localhost"
-
 
 install: install-cigri-libs install-cigri-user-cmds install-sudoers
 
@@ -71,7 +50,7 @@ install-sudoers:
 	install -d -m 0755 $(DESTDIR)/etc/sudoers.d
 	install -m 0440 etc/sudoers.d/cigri $(DESTDIR)/etc/sudoers.d/cigri
 	perl -i -pe "s#/usr/local/share/cigri#$(CIGRIDIR)#g" $(DESTDIR)/etc/sudoers.d/cigri
-		
+
 install-cigri-libs:
 	install -d -m 0755 $(DESTDIR)/$(CIGRIDIR)
 	install -d -m 0755 $(DESTDIR)/$(CIGRIDIR)/lib
