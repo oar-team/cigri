@@ -44,7 +44,7 @@ cov: rcov
 rcov: spec/*/*_spec.rb lib/* spec/spec_helper.rb
 	rcov -I lib:spec spec/**/*.rb --exclude gems -o doc/rcov -T
 
-install: install-cigri-libs install-cigri-user-cmds install-sudoers
+install: install-cigri-libs install-cigri-modules install-cigri-user-cmds install-sudoers
 
 install-sudoers:
 	install -d -m 0755 $(DESTDIR)/etc/sudoers.d
@@ -55,6 +55,10 @@ install-cigri-libs:
 	install -d -m 0755 $(DESTDIR)/$(CIGRIDIR)
 	install -d -m 0755 $(DESTDIR)/$(CIGRIDIR)/lib
 	@for file in lib/*; do install -m 0644 $$file $(DESTDIR)/$(CIGRIDIR)/lib/; done
+
+install-cigri-modules:
+	install -d -m 0755 $(DESTDIR)/$(CIGRIDIR)
+	@for file in modules/*; do install -m 0744 $$file $(DESTDIR)/$(CIGRIDIR)/; done
 
 install-cigri-user-cmds:
 	install -d -m 0755 $(DESTDIR)/$(CIGRIDIR)
