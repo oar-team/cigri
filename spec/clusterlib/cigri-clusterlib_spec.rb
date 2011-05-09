@@ -20,7 +20,7 @@ describe 'cigri-clusterlib' do
 
   describe "Tchernobyl resources" do
     before(:all) do
-      @cluster=Cigri::Cluster.new(:name => "fukushima")
+      @cluster=Cigri::Cluster.new(:name => "tchernobyl")
     end
     it 'should return an array' do
       @cluster.get_resources.should be_an(Array)
