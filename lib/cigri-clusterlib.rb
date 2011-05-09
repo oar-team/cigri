@@ -133,7 +133,7 @@ module Cigri
      end 
 
      def submit_job(job)
-       raise "not yet implemented"      
+       @api.jobs.submit(job)
      end
    end
 
