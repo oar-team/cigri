@@ -8,7 +8,7 @@
           ZIRST 51, avenue Jean Kuntzmann
           38330 MONTBONNOT SAINT MARTIN
 :Status: Testing
-:Copyright: licenced under the ????
+:Copyright: Licenced under the ????
 :Abstract:
   |soft| is a tool for campaigns management.
 

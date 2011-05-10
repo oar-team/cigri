@@ -13,13 +13,19 @@ doc-devel: doc_devel.html
 
 pdf: doc_admin.pdf doc_user.pdf doc_devel.pdf
 
-%.html: %.rst
+doc_devel.html: doc_lib.rst doc_modules.rst doc_database.rst ../../CHANGELOG
+
+doc_user.html: doc_jdl.rst ../../CHANGELOG example.json
+
+doc_admin.html: 
+
+%.html: %.rst doc_header.rst
 	rst2html -stg $< $@
 
-%.tex: %.rst
+%.tex: %.rst doc_header.rst
 	rst2latex $< $@
 
-%.pdf: %.tex
+%.pdf: %.tex doc_header.rst
 	pdflatex $< $@
 	pdflatex $< $@
 
