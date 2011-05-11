@@ -85,10 +85,9 @@ module Cigri
       logger.debug("Saving JDL")
       begin
         res = self.parse(json)
-      rescue Cigri::Exception => e
+      rescue JSON::ParserError => e
         logger.error("JDL file not well defined: #{json}")
         raise Cigri::Exception, 'JDL badly defined, not saving in the database'
-      
       end
       
       default_values!(res, config)
