@@ -67,4 +67,11 @@ describe 'cigri-iolib' do
       end
     end
   end # get_cluster_id
+  
+  describe 'delete_campaign' do
+    it 'should delete a campaign' do
+      raise "TODO"
+    end
+  end # delete_campaign
+  
 end # cigri-iolib

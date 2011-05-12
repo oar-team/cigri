@@ -69,6 +69,12 @@ install-cigri-user-cmds:
                              s#CIGRIUSER=.*#CIGRIUSER='$(CIGRIUSER)'\;#;;\
                              s#CMD=.*#CMD='gridsub'\;#;;\
                                 " $(DESTDIR)$(BINDIR)/gridsub
+	install -m 0755 bin/griddel.rb $(DESTDIR)/$(CIGRIDIR)/bin/griddel
+	install -m 0755 tools/sudowrapper.sh $(DESTDIR)/$(BINDIR)/griddel
+	perl -i -pe "s#CIGRIDIR=.*#CIGRIDIR='$(CIGRIDIR)'\;#;;\
+                             s#CIGRIUSER=.*#CIGRIUSER='$(CIGRIUSER)'\;#;;\
+                             s#CMD=.*#CMD='griddel'\;#;;\
+                                " $(DESTDIR)$(BINDIR)/griddel
 
 clean:
 	rm -rf doc/rdoc doc/yard doc/rcov .yardoc

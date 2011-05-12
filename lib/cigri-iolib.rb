@@ -2,6 +2,7 @@ require 'cigri-conflib'
 require 'cigri-exception'
 require 'cigri-logger'
 require 'dbi'
+require 'pp'
 
 # Configuration for IOLIB
 CONF = Cigri.conf
@@ -183,7 +184,6 @@ end
 # == Parameters
 # - dbh: database handle
 # - all the fields of the clusters database
-# 
 #
 # == Returns
 # - false if failed
@@ -226,4 +226,38 @@ def get_cluster(dbh,id)
     res
   end
 end
+
+##
+# delete_campaign
+#
+# == Parameters
+# - dbh: database handle
+# - id: campaign id to delete
+#
+##
+def delete_campaign(dbh, id)
+  IOLIBLOGGER.debug("Received requerst to delete campaign '#{id}'")
+  dbh['AutoCommit'] = false
+  begin
+    #TODO check user is owner of campaign
+    #TODO frag jobs !!!!!
+
+    to_delete = {'campaigns' => 'id', 'bag_of_tasks' => 'campaign_id' ,
+                 'campaign_properties' => 'campaign_id'}
+    to_delete.each do |k, v|
+      res = dbh.do("DELETE FROM #{k} WHERE #{v} = #{id}")
+      pp res
+    end
+    dbh.commit()
+  rescue Exception => e
+    IOLIBLOGGER.error('Error during campaign deletion: ' + e.inspect)
+    dbh.rollback()
+    raise e
+  ensure
+    dbh['AutoCommit'] = true
+  end
+end
+
+
+
 
