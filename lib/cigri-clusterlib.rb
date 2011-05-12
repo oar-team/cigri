@@ -52,14 +52,28 @@ module Cigri
       options[:username]=@description["api_username"]
       options[:password]=@description["api_password"]
       # Create the restfully session
-      @api=Restfully::Session.new(options).root
+      @session=Restfully::Session.new(options)
+      @api=@session.root
     end
-    
-    #
+  
+    ##
+    # Create a restfully resource given an uri
+    # == returns
+    # A Restfully::Resource object
+    ##
+    def get_rest_resource(uri,options={:reload => false})
+      uri = URI.join(@session.base_uri.to_s,uri)
+      resource=Restfully::Resource.new(uri, @session)
+      resource.reload if options[:reload]
+      resource
+    end
+ 
+    ##
     # Parse the properties of the cluster if any
     # == returns
     #  - an array of { property => value }
     #  - or nil if no property is available
+    ##
     def parse_properties
       if @description["properties"]
         res={}
@@ -88,6 +102,12 @@ module Cigri
     def submit_job(job)
       raise "Method must be overridden"
     end
+
+    # Delete the given job
+    def delete_job(job_id)
+      raise "Method must be overridden"
+    end
+
   end
 
 
@@ -129,12 +149,22 @@ module Cigri
      end 
  
      def get_jobs
-       @api.jobs
+       @api.jobs.to_a
      end 
 
      def submit_job(job)
        @api.jobs.submit(job)
      end
+
+     def get_job(job_id)
+       get_rest_resource("jobs/#{job_id}",:reload => true)
+     end
+
+     def delete_job(job_id)
+       job = get_rest_resource("jobs/#{job_id}")
+       job.delete
+     end
+ 
    end
 
 

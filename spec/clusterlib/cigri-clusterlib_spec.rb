@@ -26,4 +26,20 @@ describe 'cigri-clusterlib' do
       @cluster.get_resources.should be_an(Array)
     end
   end # Resources check
+  
+  describe "Job submission" do
+    before(:all) do
+      @cluster=Cigri::Cluster.new(:name => "tchernobyl")
+      @job=@cluster.submit_job(:command => "sleep 300")
+    end
+    it "should return an id" do
+      @job["id"].should be_an(Integer)
+    end
+    it "should have created a job" do
+      @cluster.get_job(@job["id"])["id"].should == @job["id"]
+    end
+    it "should be able to ask for the job to be deleted" do
+      @cluster.delete_job(@job["id"]).should be_true
+    end
+  end # Job submission
 end # cigri-clusterlib
