@@ -75,7 +75,9 @@ CREATE INDEX bag_of_tasks_idx_campaign_id ON bag_of_tasks (campaign_id);
 DROP TABLE IF EXISTS jobs_to_launch;
 CREATE TABLE  jobs_to_launch (
   task_id BIGINT NOT NULL,
-  cluster_id INTEGER NOT NULL
+  cluster_id INTEGER NOT NULL,
+  tag VARCHAR(255),
+  runner_options TEXT
 );
 CREATE INDEX jobs_to_launch_idx_cluster_id ON jobs_to_launch (cluster_id);
 
