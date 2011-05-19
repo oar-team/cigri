@@ -52,6 +52,8 @@ This module is dedicated to launching jobs on the clusters. It reads
 the jobs to launch from the database table *jobs_to_launch* and
 submits them to the API lib.
 It runs asynchronously, forked as one daemon for each cluster. Each runner waits for jobs and submit to the cluster it is responsible of. It submits the jobs as fast as it can but waits as soon as there's a waiting job. So, it has to check for the status of it's own jobs. An optimization algorithm tries to submit several jobs at a time (as oar array jobs) if the cluster "eats" the jobs quick enough.
+The scheduler may have to pass some informations to the runner. So, there's a "runner_options" field that is a json hash read by the runner as options values. For example, the { type : "besteffort" } option may be passed to tell to the runner that the jobs must be ran as best-effort.
+Jobs may also be tagged by the scheduler. For example, all the jobs having the same tag are groupped by the runner when the { grouping: "temporal" } option is passed.
 
 Nikita
 ------
