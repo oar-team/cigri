@@ -232,26 +232,30 @@ end
 #
 # == Parameters
 # - dbh: database handle
+# - user: user requesting campaign deletion
 # - id: campaign id to delete
 #
 # == Return
-# - nil if the campaign "id" does not exist
 # - true if campaign was deleted successfully
+# - false if the user does not have the rights to delete the campaign
+# - nil if the campaign "id" does not exist
 #
 ##
-def delete_campaign(dbh, id)
+def delete_campaign(dbh, user, id)
   IOLIBLOGGER.debug("Received requerst to delete campaign '#{id}'")
   
-  # Check that the campaign exists
-  row = dbh.select_one("SELECT * FROM campaigns WHERE id = #{id}")
-  unless row
+  # Check that the campaign exists and that the user os the right owner
+  row = dbh.select_one("SELECT grid_user FROM campaigns WHERE id = #{id}")
+  if not row
     IOLIBLOGGER.debug("Asked to delete a campaign that does not exist (#{id})")
     return nil
+  elsif row[0] != user
+    IOLIBLOGGER.debug("User #{user} asked to delete campaign #{id} belonging to #{row[0]}.")
+    return false
   end
   
   dbh['AutoCommit'] = false
   begin
-    #TODO check user is owner of campaign
     #TODO frag jobs !!!!!
     to_delete = {'campaigns' => 'id', 'bag_of_tasks' => 'campaign_id' ,
                  'campaign_properties' => 'campaign_id'}
