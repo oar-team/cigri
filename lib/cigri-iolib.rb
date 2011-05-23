@@ -234,28 +234,43 @@ end
 # - dbh: database handle
 # - id: campaign id to delete
 #
+# == Return
+# - nil if the campaign "id" does not exist
+# - true if campaign was deleted successfully
+#
 ##
 def delete_campaign(dbh, id)
   IOLIBLOGGER.debug("Received requerst to delete campaign '#{id}'")
+  
+  # Check that the campaign exists
+  row = dbh.select_one("SELECT * FROM campaigns WHERE id = #{id}")
+  unless row
+    IOLIBLOGGER.debug("Asked to delete a campaign that does not exist (#{id})")
+    return nil
+  end
+  
   dbh['AutoCommit'] = false
   begin
     #TODO check user is owner of campaign
     #TODO frag jobs !!!!!
-
     to_delete = {'campaigns' => 'id', 'bag_of_tasks' => 'campaign_id' ,
                  'campaign_properties' => 'campaign_id'}
+    nb = dbh.do("DELETE FROM jobs_to_launch WHERE task_id in (SELECT id from bag_of_tasks where campaign_id = #{id})")
+    IOLIBLOGGER.debug("Deleted #{nb} 'jobs_to_launch' for campaign #{id}")
     to_delete.each do |k, v|
-      res = dbh.do("DELETE FROM #{k} WHERE #{v} = #{id}")
-      pp res
+      nb = dbh.do("DELETE FROM #{k} WHERE #{v} = #{id}")
+      IOLIBLOGGER.debug("Deleted #{nb} rows from table '#{k}' for campaign #{id}")
     end
     dbh.commit()
+    IOLIBLOGGER.info("Deleted campaign #{id}")
   rescue Exception => e
-    IOLIBLOGGER.error('Error during campaign deletion: ' + e.inspect)
+    IOLIBLOGGER.error('Error during campaign deletion, rolling back changes: ' + e.inspect)
     dbh.rollback()
     raise e
   ensure
     dbh['AutoCommit'] = true
   end
+  true
 end
 
 
