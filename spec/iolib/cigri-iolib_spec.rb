@@ -1,6 +1,9 @@
 require 'cigri-iolib'
 require 'dbi'
+require 'json'
 require 'spec_helper'
+
+CORRECT_JSON = JSON.parse('{"name":"Some campaign","jobs_type":"normal","clusters":{"tchernobyl":{"exec_directory":"$HOME","temporal_grouping":"true","checkpointing_type":"None","exec_file":"$HOME/script.sh","walltime":"01:00:00","output_gathering_method":"scp","resources":"nodes=1","type":"best-effort","dimensional_grouping":"false","output_destination":"my.dataserver.fr","properties":""},"fukushima":{"exec_directory":"$HOME","temporal_grouping":"true","checkpointing_type":"None","exec_file":"$HOME/path/script","walltime":"01:00:00","output_gathering_method":"scp","resources":"nodes=1","type":"best-effort","dimensional_grouping":"false","output_destination":"my.dataserver.fr","properties":""},"my.other_cluster.fr":{"exec_directory":"$HOME","temporal_grouping":"true","checkpointing_type":"None","exec_file":"$HOME/script.sh","walltime":"01:00:00","output_gathering_method":"scp","resources":"nodes=1","type":"best-effort","dimensional_grouping":"false","output_destination":"my.dataserver.fr","properties":""}},"params":["0","1"]}')
 
 describe 'cigri-iolib' do
   before(:all) do
@@ -68,8 +71,44 @@ describe 'cigri-iolib' do
     end
   end # get_cluster_id
   
+  describe 'cigri_submit' do
+    it 'should submit a campaign' do
+      db_connect() do |dbh|
+        id = cigri_submit(dbh, CORRECT_JSON, 'kameleon')
+        id.should be_a(Integer)
+        delete_campaign(dbh, 'kameleon', id)
+      end
+    end
+    
+    it 'should fail to submit if json not correct' do
+      db_connect() do |dbh|
+        lambda{cigri_submit(dbh, '', 'kameleon')}.should raise_error DBI::ProgrammingError
+      end
+    end
+  end # cigri_submit
+  
   describe 'delete_campaign' do
-    xit 'should delete a campaign'
+    it 'should delete an existing campaign' do
+      db_connect() do |dbh|
+      
+        id = cigri_submit(dbh, CORRECT_JSON, 'kameleon')
+        delete_campaign(dbh, 'kameleon', id).should == true
+      end
+    end
+    
+    it 'should fail to delete an non existing campaign' do
+      db_connect() do |dbh|
+        delete_campaign(dbh, 'kameleon', -1).should == nil
+      end
+    end
+    
+    it 'should fail to delete a campaign when the wrong owner asks' do
+      db_connect() do |dbh|
+        id = cigri_submit(dbh, CORRECT_JSON, 'kameleon')
+        delete_campaign(dbh, 'toto', id).should == false
+      end
+    end
+    
   end # delete_campaign
   
 end # cigri-iolib
