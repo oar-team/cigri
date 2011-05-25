@@ -42,7 +42,7 @@ global:
  checkpoint_file: /var/tmp/cigri_devel_checkpoint.tgz
  # 
  # OAR specific
- oar_repository: "deb http://oar.imag.fr/debian/2.5 unstable main"
+ oar_repository: "deb http://oar.imag.fr/mirror/oar/2.5/debian squeeze-snapshots main"
  cigri_svn: "svn://scm.gforge.inria.fr/svn/cigri/branches/cigri-3"
  
 steps:
