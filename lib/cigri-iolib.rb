@@ -244,12 +244,12 @@ end
 def delete_campaign(dbh, user, id)
   IOLIBLOGGER.debug("Received requerst to delete campaign '#{id}'")
   
-  # Check that the campaign exists and that the user os the right owner
+  # Check that the campaign exists and that the user is the right owner
   row = dbh.select_one("SELECT grid_user FROM campaigns WHERE id = #{id}")
   if not row
     IOLIBLOGGER.debug("Asked to delete a campaign that does not exist (#{id})")
     return nil
-  elsif row[0] != user
+  elsif row[0] != user && user != "root"
     IOLIBLOGGER.debug("User #{user} asked to delete campaign #{id} belonging to #{row[0]}.")
     return false
   end
