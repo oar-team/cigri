@@ -14,6 +14,7 @@ require 'cigri-logger'
 require 'cigri-conflib'
 require 'cigri-iolib'
 require 'rest_client'
+require 'cigri-restclientlib'
 
 CLUSTERLIBLOGGER = Cigri::Logger.new('CLUSTERLIB', CONF.get('LOG_FILE'))
 
@@ -73,6 +74,11 @@ module Cigri
       else
         return nil
       end 
+    end
+
+    # name of a cluster
+    def name
+      @description["name"]
     end
 
     # Get the resources
@@ -208,6 +214,26 @@ module Cigri
        end
      classe::new(opts)
    end
+
+  end
+
+  ##
+  # Class for operations on a set of clusters
+  ##
+  class ClusterSet < Array
+
+    # A cluster set is an array of cluster selected from the DB
+    def initialize(where_clause=nil)
+      db_connect() do |dbh|
+        select_clusters(dbh,where_clause).each do |id|
+          push Cluster.new(:id => id)
+        end
+      end
+    end
+
+    def remove_blacklisted
+      # TODO
+    end
 
   end
 

@@ -228,6 +228,27 @@ def get_cluster(dbh,id)
 end
 
 ##
+# Select clusters
+# 
+# == Parameters
+# - dbh: database handle
+# - where_clause: the part after the where of an sql query into the cluster table
+#
+# == Returns
+# - array of cluster ids
+##
+def select_clusters(dbh,where_clause)
+  res=[]
+  if where_clause.nil?
+    where_clause=""
+  else
+    where_clause="WHERE #{where_clause}"
+  end 
+  dbh.select_all("SELECT id FROM clusters #{where_clause}"){|row| res.push(row["id"])}
+  res
+end
+
+##
 # delete_campaign
 #
 # == Parameters
