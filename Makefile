@@ -58,7 +58,7 @@ install-cigri-libs:
 
 install-cigri-modules:
 	install -d -m 0755 $(DESTDIR)/$(CIGRIDIR)
-	@for file in modules/*; do install -m 0744 $$file $(DESTDIR)/$(CIGRIDIR)/; done
+	@for file in modules/*; do install -m 0755 $$file $(DESTDIR)/$(CIGRIDIR)/; done
 
 install-cigri-user-cmds:
 	install -d -m 0755 $(DESTDIR)/$(CIGRIDIR)
