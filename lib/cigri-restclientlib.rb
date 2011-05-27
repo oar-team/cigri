@@ -34,6 +34,7 @@ module Cigri
     # Converts the given uri, to something relative
     # to the base of the API
     def rel_uri(uri)
+      raise Cigri::Exception, "uri shouldn't be nil" if uri.nil?
       abs_uri=@base_uri.merge(uri).to_s
       target_uri=URI.parse(abs_uri).to_s
       @base_uri.route_to(target_uri).to_s
@@ -67,12 +68,27 @@ module Cigri
       parse(@api[uri].get(:accept => @content_type))
     end
 
+    # Get a link by relation or nil if not found
+    def get_link_by_rel(resource,rel)
+      if defined? resource["links"]
+        resource["links"].each do |link|
+          return link["href"] if link["rel"] == rel
+        end
+        return nil
+      end
+    end
+
     # Get a collection
     # A collection is an "items" array, and may be paginated
     def get_collection(uri)
       res=get(uri)
       collection=res["items"]
-      # TODO: manage pagination (next link)
+      next_link=get_link_by_rel(res,"next")
+      while next_link do
+        res=get(next_link)
+        collection.concat(res["items"])
+        next_link=get_link_by_rel(res,"next")
+      end
       collection
     end
 
