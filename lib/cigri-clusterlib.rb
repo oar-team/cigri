@@ -13,7 +13,7 @@
 require 'cigri-logger'
 require 'cigri-conflib'
 require 'cigri-iolib'
-require 'restfully'
+require 'rest_client'
 
 CLUSTERLIBLOGGER = Cigri::Logger.new('CLUSTERLIB', CONF.get('LOG_FILE'))
 
@@ -34,6 +34,7 @@ module Cigri
     # - :name : name of the cluster
     ##
     def initialize(opts={})
+
       # Get the cluster from database
       db_connect() do |dbh|
         if not id=opts[:id]
@@ -46,28 +47,14 @@ module Cigri
         end
         @description=get_cluster(dbh,id)
       end
-      # Set up restfully options
-      options={}
-      options[:base_uri]=@description["api_url"]
-      options[:username]=@description["api_username"]
-      options[:password]=@description["api_password"]
-      # Create the restfully session
-      @session=Restfully::Session.new(options)
-      @api=@session.root
+
+      # Create a rest_client api instance
+      @api = RestAPI.new(@description["api_url"], 
+                         @description["api_username"],
+                         @description["api_password"],
+                         "application/json")
     end
   
-    ##
-    # Create a restfully resource given an uri
-    # == returns
-    # A Restfully::Resource object
-    ##
-    def get_rest_resource(uri,options={:reload => false})
-      uri = URI.join(@session.base_uri.to_s,uri)
-      resource=Restfully::Resource.new(uri, @session)
-      resource.reload if options[:reload]
-      resource
-    end
- 
     ##
     # Parse the properties of the cluster if any
     # == returns
@@ -133,10 +120,10 @@ module Cigri
 
      def get_resources
        # Get the resources from the api
-       resources=@api.full_resources
+       resources=@api.get_collection("resources")
        # Filter the resources depending on cluster properties
        properties=parse_properties
-       return resources.to_a unless properties
+       return resources unless properties
        res=[]
        resources.each do |resource|
          not_found=0
@@ -149,20 +136,19 @@ module Cigri
      end 
  
      def get_jobs
-       @api.jobs.to_a
+       @api.get_collection("jobs")
      end 
 
      def submit_job(job)
-       @api.jobs.submit(job)
+       @api.post("jobs",job)
      end
 
      def get_job(job_id)
-       get_rest_resource("jobs/#{job_id}",:reload => true)
+       @api.get("jobs/#{job_id}")
      end
 
      def delete_job(job_id)
-       job = get_rest_resource("jobs/#{job_id}")
-       job.delete
+       @api.delete("jobs/#{job_id}")
      end
  
    end

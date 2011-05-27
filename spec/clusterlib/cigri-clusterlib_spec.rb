@@ -1,8 +1,36 @@
+require 'cigri-restclientlib'
 require 'cigri-clusterlib'
 require 'dbi'
 require 'spec_helper'
+require 'json'
+require 'yaml'
 
-describe 'cigri-clusterlib' do
+describe 'cigri-restclientlib (RestAPI)' do
+  describe "Initialize" do
+    it 'should not raise error' do
+      lambda{Cigri::RestAPI.new("http://localhost/oarapi","","","application/json")}.should_not raise_error Exception
+    end
+    it 'should have a root ok in JSON' do
+      rest=Cigri::RestAPI.new("http://localhost/oarapi","","","application/json")
+      lambda{rest.get("")}.should_not raise_error Exception
+    end
+    it 'should have a root ok in YAML' do
+      rest=Cigri::RestAPI.new("http://localhost/oarapi","","","text/yaml")
+      lambda{rest.get("")}.should_not raise_error Exception
+    end
+  end
+  describe "Resources" do
+    before(:all) do
+      @rest=Cigri::RestAPI.new("http://localhost/oarapi","","","application/json")
+    end
+    it 'should return a hash' do
+      @rest.get("resources").should be_an(Hash)
+    end
+  end
+
+end
+
+describe 'cigri-clusterlib (Cluster)' do
   describe "Initialize" do
     it 'should not succeed when no arg given' do
       lambda{Cigri::Cluster.new()}.should raise_error Exception
