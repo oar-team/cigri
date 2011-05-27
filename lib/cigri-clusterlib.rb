@@ -49,7 +49,7 @@ module Cigri
       end
 
       # Create a rest_client api instance
-      @api = RestAPI.new(@description["api_url"], 
+      @api = RestSession.new(@description["api_url"], 
                          @description["api_username"],
                          @description["api_password"],
                          "application/json")

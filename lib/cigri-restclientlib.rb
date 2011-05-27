@@ -17,7 +17,7 @@ module Cigri
 
 
   # Restclient interface to (partially) HATEOAS REST API
-  class RestAPI
+  class RestSession
     attr_reader :content_type, :base_uri
 
     # Connect to a restfull API
