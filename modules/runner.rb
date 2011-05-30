@@ -17,11 +17,11 @@ begin
 
 
   %w{INT TERM}.each do |signal|
-  Signal.trap(signal){ 
-    #cleanup!
-    logger.warn('Interruption caught: exiting.')
-    exit(1)
-  }
+    Signal.trap(signal){ 
+      #cleanup!
+      logger.warn('Interruption caught: exiting.')
+      exit(1)
+    }
   end
   
   logger.info("Starting runner on #{ARGV[0]}")
