@@ -17,7 +17,8 @@ It can:
 
 - Detect infinite resubmissions
 - Blacklist a cluster
-- Resubmit a best-effort killed job (ie put a job back into the *bag_of_tasks* table)
+- Resubmit a best-effort killed job (ie put a job back into the
+  *bag_of_tasks* table)
 - Send notifications to users
 - ...
 
@@ -37,13 +38,16 @@ is able to give a forecast of what should happen in the future.
 Metascheduler
 -------------
 
-The metascheduler decides which jobs are to be launched. It decides which jobs of which campaign are to be run on the different clusters and puts them into the *jobs_to_launch* table. Ordering is made by calling different schedulers depending on the type of campaign.
-
+The meta-scheduler is in charge of sharing the resources between the
+different campaigns. 
 
 Scheduler
 ---------
 
-Decide what to execute and where.
+Once resources have been shared by the meta-scheduler, the scheduler
+will decide how to execute the campaigns (temporal/dimensional
+grouping) and add the jobs to the *job_to_launch* table with the
+proper options.
 
 Runner
 ------
