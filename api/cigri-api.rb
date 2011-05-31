@@ -1,4 +1,3 @@
-p File.join(File.expand_path(File.dirname(__FILE__)), 'config/environment')
 require File.join(File.expand_path(File.dirname(__FILE__)), 'config/environment')
 
 $LOAD_PATH.unshift(File.join(ENV['CIGRIDIR'], 'lib'))
@@ -13,16 +12,18 @@ class API < Sinatra::Base
   
   def initialize(*args)
     super 
-    @apiliblogger = Cigri::Logger.new('APILIB', '/tmp/test')#Cigri.conf.get('LOG_FILE'))
+    @apiliblogger = Cigri::Logger.new('APILIB', 'STDOUT')#Cigri.conf.get('LOG_FILE'))
+  end
+  
+  before do
+    @apiliblogger.debug("Received request: #{request.inspect}")
   end
   
   get '/' do
-    @apiliblogger.info("Received request: #{request.inspect}")
     Time.now.to_s + "\n"
   end
 
   post '/' do
-    APILIBLOGGER.info('Reveiced request:' + request.inspect)
     answer = ''
     request.body.rewind
     db_connect() do |dbh|
@@ -33,6 +34,21 @@ class API < Sinatra::Base
         answer = e.inspect
       end
     end
-    answer += "\n"
+    answer << "\n"
+  end
+  
+  delete '/:id' do |id|
+    res = ''
+    db_connect() do |dbh|
+      res = delete_campaign(dbh, 'root', id)
+    end
+    if res == nil
+      answer = "Campaign #{id} does not exist"
+    elsif res
+      answer = "Campaign #{id} deleted"
+    else
+      answer = "Campaign #{id} does not belong to you"
+    end
+    answer << "\n"
   end
 end

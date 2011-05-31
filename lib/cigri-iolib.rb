@@ -298,8 +298,6 @@ def delete_campaign(dbh, user, id)
   true
 end
 
-
-
 ##
 # Returns an array of the campaigns currently running (state = in_treatment)
 #
