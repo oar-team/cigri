@@ -312,4 +312,56 @@ def get_running_campaigns(dbh)
   dbh.select_all("SELECT id FROM campaigns WHERE state = 'in_treatment'")
 end
 
+# Class for handling datarecords
+class Datarecord
+  attr_reader :props, :table
 
+  # Creates a new record in the given table with the given 
+  # properties (hash) or get the record if :id is given.
+  def initialize(table,props={})
+    # Get a DB handler
+    @dbh=db_connect()
+    @table=table
+    # No id given, then create a new record
+    if not props[:id]
+      @props=props
+      @props[:id]=new_record(table,props)
+    # If an id is given, then get the object from the database
+    else
+      @props=get_record(table,props[:id],props[:what])
+    end
+  end
+
+  # Creates a new record and return its id
+  def new_record(table,props={})
+    query = "INSERT into #{table}\n"
+    what=[]
+    values=[]
+    props.each do |key,value|
+      what << key
+      values << "'#{value}'"
+    end    
+    query += "(" + what.join(',') + ") VALUES (" + values.join(',') +")"
+    @dbh.do(query)
+    last_inserted_id(@dbh, "#{table}_id_seq")    
+  end
+
+  # Get a new record and return its properties
+  def get_record(table,id,what)
+    what="*" if what.nil?
+    sth=@dbh.prepare("SELECT #{what} FROM #{table} WHERE id=#{id}")
+    sth.execute
+    sth.fetch_hash
+  end
+ 
+  def to_s
+    res="#{@table} record id #{@props[:id]}: \n"
+    @props.each {|key, value| res+="  #{key}: #{value}\n" }
+    return res
+  end 
+
+  def id
+    @props.id
+  end
+
+end 
