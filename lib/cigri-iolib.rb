@@ -249,14 +249,14 @@ def select_clusters(dbh,where_clause)
 end
 
 ##
-# delete_campaign
+# Deletes a campaign and all the data linked to it in the database
 #
 # == Parameters
 # - dbh: database handle
 # - user: user requesting campaign deletion
 # - id: campaign id to delete
 #
-# == Return
+# == Returns
 # - true if campaign was deleted successfully
 # - false if the user does not have the rights to delete the campaign
 # - nil if the campaign "id" does not exist
@@ -299,5 +299,19 @@ def delete_campaign(dbh, user, id)
 end
 
 
+
+##
+# Returns an array of the campaigns currently running (state = in_treatment)
+#
+# == Parameters
+# - dbh: dababase handle
+#
+# == Returns
+# Array of campaigns
+#
+##
+def get_running_campaigns(dbh)
+  dbh.select_all("SELECT id FROM campaigns WHERE state = 'in_treatment'")
+end
 
 

@@ -111,4 +111,12 @@ describe 'cigri-iolib' do
     
   end # delete_campaign
   
+  describe 'get_running_campaigns' do
+    it 'should return an array' do
+      db_connect() do |dbh|
+        get_running_campaigns(dbh).should be_a(Array)
+      end
+    end
+  end # get_running_campaigns
+  
 end # cigri-iolib

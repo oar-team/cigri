@@ -18,5 +18,9 @@ begin
   
   logger.debug('Starting')
   
+  db_connect() do |dbh|
+    pp get_running_campaigns(dbh)
+  end
+  
   logger.debug('Exiting')
 end
