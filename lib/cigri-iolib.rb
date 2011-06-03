@@ -351,7 +351,8 @@ class Datarecord
     what="*" if what.nil?
     sth=@dbh.prepare("SELECT #{what} FROM #{table} WHERE id=#{id}")
     sth.execute
-    sth.fetch_hash
+    # The inject part is to convert string keys into symbols to optimize memory
+    sth.fetch_hash.inject({}){|h,(k,v)| h[k.to_sym] = v; h}
   end
  
   def to_s
@@ -361,7 +362,7 @@ class Datarecord
   end 
 
   def id
-    @props.id
+    @props[:id].to_i
   end
 
 end 

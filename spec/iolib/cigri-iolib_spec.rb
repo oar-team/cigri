@@ -118,5 +118,20 @@ describe 'cigri-iolib' do
       end
     end
   end # get_running_campaigns
+
+  describe 'Datarecord' do
+    before(:all) do
+      db_connect() do |dbh|
+        @job=Datarecord.new('jobs',:campaign_id => "100" , :state => "terminated")
+      end
+    end
+    it 'should create a new record into the job table and return an id' do
+      @job.id.should > 1
+    end
+    it 'should get back this record from the database when the id is given' do
+      job=Datarecord.new('jobs',:id => @job.id)
+      job.props[:campaign_id].to_i.should == 100
+    end
+  end #  Datarecord
   
 end # cigri-iolib
