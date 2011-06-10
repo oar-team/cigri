@@ -81,6 +81,15 @@ module Cigri
       @records
     end
 
+    # Get n jobs to launch on cluster cluster_id
+    def get_next(cluster_id,n)
+      fill(get("jobs_to_launch,bag_of_tasks","*","cluster_id=#{cluster_id} 
+                                                    AND task_id=id
+                                                    ORDER by task_id
+                                                    LIMIT #{n}
+                                                 "))
+    end
+
   end # Class JobtolaunchSet
 
 
