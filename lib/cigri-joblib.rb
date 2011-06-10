@@ -1,6 +1,8 @@
 #!/usr/bin/ruby -w
 #
 # This library contains the classes relative to Jobs
+# It may be considered as an extension to the iolib, as
+# it still makes SQL queries, but more in a "meta" way
 #
 
 require 'cigri-logger'
