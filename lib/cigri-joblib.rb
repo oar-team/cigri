@@ -25,6 +25,20 @@ module Cigri
 
   end # class Job
 
+  # Jobset class
+  class Jobset < Dataset
+
+    def initialize(props={})
+      super("jobs",props)
+    end
+
+    def jobs
+      @records
+    end
+ 
+  end # Class Jobset
+
+
   # Job to launch class
   # A Job to launch instance can be get from the database or newly created
   # See Datarecord class for more doc

@@ -366,17 +366,20 @@ class Datarecord
     end
   end
  
+  # For fancy printing
   def to_s
     res="#{@table} record id #{@props[:id]}: \n"
     @props.each {|key, value| res+="  #{key}: #{value}\n" }
     return res
   end 
 
+  # Delete the record from the database
   def delete
     sth=@dbh.prepare("DELETE FROM #{@table} where id=#{props[:id]}")
     sth.execute
   end
 
+  # Quick access to the id of the datarecord
   def id
     @props[:id].to_i
   end
@@ -385,5 +388,42 @@ end
 
 # Class for handling datasets
 # A dataset is a set of datarecords
-#class Dataset
-#end
+class Dataset
+  attr_reader :records, :table
+
+  # Creates a new dataset
+  # - If props[:values] is given, then insert the dataset into the given table (TODO)
+  # - If props[:where] is given, then get the dataset from the database
+  # - The table value may be coma separated list of tables (for joins)
+  def initialize(table,props={})
+    # Get a DB handler
+    @dbh=db_connect()
+    @table=table
+    @records=[]
+    if props[:where]
+      get(table,props[:what],props[:where]).each do |record_props|
+        record_props[:nodb]=true
+        @records << Datarecord.new(table,record_props)
+      end
+    end
+  end
+
+  def get(table,what,where)
+    what="*" if what.nil?
+    sth=@dbh.prepare("SELECT #{what} FROM #{table} WHERE #{where}")
+    sth.execute
+    result=[]
+    sth.fetch_hash do |row|
+      # The inject part is to convert string keys into symbols to optimize memory
+      result << row.inject({}){|h,(k,v)| h[k.to_sym] = v; h}
+    end
+    return result
+  end
+  
+  def each
+    @records.each do |record|
+      yield record
+    end
+  end
+
+end
