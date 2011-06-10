@@ -132,6 +132,10 @@ describe 'cigri-iolib' do
       job=Datarecord.new('jobs',:id => @job.id)
       job.props[:campaign_id].to_i.should == 100
     end
+    it 'should be able to delete itself from the database' do
+      lambda { @job.delete }.should_not raise_error Exception
+    end
+
   end #  Datarecord
   
 end # cigri-iolib

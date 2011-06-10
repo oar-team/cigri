@@ -327,8 +327,13 @@ class Datarecord
       @props=props
       @props[:id]=new_record(table,props)
     # If an id is given, then get the object from the database
+    # or simply initiate it from the props if props[:nodb] is true
     else
-      @props=get_record(table,props[:id],props[:what])
+      if props[:nodb]
+        @props=props
+      else
+        @props=get_record(table,props[:id],props[:what])
+      end
     end
   end
 
@@ -352,7 +357,13 @@ class Datarecord
     sth=@dbh.prepare("SELECT #{what} FROM #{table} WHERE id=#{id}")
     sth.execute
     # The inject part is to convert string keys into symbols to optimize memory
-    sth.fetch_hash.inject({}){|h,(k,v)| h[k.to_sym] = v; h}
+    record=sth.fetch_hash
+    if record.nil?
+      IOLIBLOGGER.warn("Datarecord #{id} not found into #{table}")
+      return nil
+    else      
+      return record.inject({}){|h,(k,v)| h[k.to_sym] = v; h}
+    end
   end
  
   def to_s
@@ -361,8 +372,18 @@ class Datarecord
     return res
   end 
 
+  def delete
+    sth=@dbh.prepare("DELETE FROM #{@table} where id=#{props[:id]}")
+    sth.execute
+  end
+
   def id
     @props[:id].to_i
   end
 
-end 
+end
+
+# Class for handling datasets
+# A dataset is a set of datarecords
+#class Dataset
+#end
