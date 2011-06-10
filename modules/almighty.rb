@@ -65,6 +65,7 @@ begin
   #Main almighty loop
   while true do
     logger.debug('New iteration')
+    system("#{File.dirname(__FILE__)}/meta-scheduler.rb")
     sleep 10
   end
 end
