@@ -26,14 +26,25 @@ module Cigri
   end # class Job
 
   # Jobset class
+  # Example: 
+  #  jobs=Cigri::Jobset.new(:where => "name like 'obiwan%'")
+  #  jobs=Cigri::Jobset.new
+  #  jobs.get_running
   class Jobset < Dataset
 
+    # Creates the new jobset
     def initialize(props={})
       super("jobs",props)
     end
 
+    # Alias to the dataset records
     def jobs
       @records
+    end
+
+    # Fill the jobset with the currently running jobs
+    def get_running
+      fill(get("jobs","*","state = 'running'"))
     end
  
   end # Class Jobset
@@ -56,14 +67,72 @@ module Cigri
   # A Campaign instance can be get from the database or newly created
   # See Datarecord class for more doc
   class Campaign < Datarecord
-    attr_reader :props
+    attr_reader :props, :clusters
 
     # Creates a new campaign entry or get it from the database
     def initialize(props={})
       super("campaign",props)
+      @clusters={}
+    end
+
+    # Fills the @cluster hash with the properties (JDL) of this campaign
+    # This hash looks like:
+    #  {1=>
+    #    [{"resources"=>"core=1"},
+    #     {"exec_file"=>"$HOME/cigri-3/tmp/test1.sh"}],
+    #   3=>
+    #    [{"resources"=>"core=1"},
+    #     {"exec_file"=>"$HOME/cigri-3/tmp/test1.sh"}]}
+    #
+    def get_clusters
+      get_campaign_properties(@dbh,id).each do |row|
+        cluster_id=row["cluster_id"]
+        @clusters[cluster_id]=[] if @clusters[cluster_id].nil?
+        @clusters[cluster_id] << { row["name"] => row["value"] }
+      end
     end
 
   end # class Campaign
+
+  # Campaignset class
+  # Example: 
+  #  campaigns=Cigri::Campaigns.new
+  #  campaigns.get_running
+  class Campaignset < Dataset
+
+    # Creates the new campaignset
+    def initialize(props={})
+      super("campaigns",props)
+      to_campaigns
+    end
+
+    # Alias to the dataset records
+    def campaigns
+      @records
+    end
+
+    # Convert the datarecords objects to campaign objects
+    # couldn't find someting similar to "extend Module"...
+    def to_campaigns
+      campaigns=[]
+      @records.each do |record|
+        props=record.props
+        props[:nodb]=true
+        campaigns << Campaign.new(props)
+      end
+      @records = campaigns
+    end
+
+    # Fill the campaignset with the currently running campaigns
+    def get_running
+      fill(get("campaigns","*","state = 'in_treatment'"))
+      to_campaigns
+    end
+ 
+  end # Class Campaignset
+
+
+
 
 
 end # module Cigri

@@ -313,6 +313,20 @@ def get_running_campaigns(dbh)
 end
 
 ##
+# Returns the properties of a given campaign
+#
+# == Parameters
+# - dbh: dababase handle
+#
+# == Returns
+# Array of campaigns
+#
+##
+def get_campaign_properties(dbh,id)
+  dbh.select_all("SELECT * FROM campaign_properties WHERE campaign_id = #{id}")
+end
+
+##
 # Class for handling datarecords
 # Shouldn't be used directly, but from Job, Campaign,...
 # Examples:
@@ -415,10 +429,15 @@ class Dataset
     @table=table
     @records=[]
     if props[:where]
-      get(table,props[:what],props[:where]).each do |record_props|
-        record_props[:nodb]=true
-        @records << Datarecord.new(table,record_props)
-      end
+      fill(get(table,props[:what],props[:where]))
+    end
+  end
+
+  # Fill the records array with the given values
+  def fill(values)
+    values.each do |record_props|
+      record_props[:nodb]=true
+      @records << Datarecord.new(table,record_props)
     end
   end
 
