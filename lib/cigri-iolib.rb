@@ -443,18 +443,18 @@ class Datarecord
 
   # Creates a new record and return its id
   def new_record(table,props={})
-    dbh=db_connect()
-    query = "INSERT into #{table}\n"
-    what=[]
-    values=[]
-    props.each do |key,value|
-      what << key
-      values << "'#{value}'"
-    end    
-    query += "(" + what.join(',') + ") VALUES (" + values.join(',') +")"
-    dbh.do(query)
-    return last_inserted_id(dbh, "#{table}_id_seq")
-    dbh.disconnect
+    db_connect() do |dbh|
+      query = "INSERT into #{table}\n"
+      what=[]
+      values=[]
+      props.each do |key,value|
+        what << key
+        values << "'#{value}'"
+      end    
+      query += "(" + what.join(',') + ") VALUES (" + values.join(',') +")"
+      dbh.do(query)
+      return last_inserted_id(dbh, "#{table}_id_seq")
+    end
   end
 
   # Get a new record and return its properties
