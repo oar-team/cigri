@@ -63,6 +63,28 @@ module Cigri
 
   end # class Jobtolaunch
 
+  # JobtolaunchSet class
+  # Example: 
+  #  jobs=Cigri::JobtolaunchSet.new({:where => "cluster_id=1"})
+  class JobtolaunchSet < Dataset
+
+    # Creates the new jobset
+    def initialize(props={})
+      if props[:where]
+        props[:where] += " AND task_id=id"
+      end
+      super("jobs_to_launch,bag_of_tasks",props)
+    end
+
+    # Alias to the dataset records
+    def jobs
+      @records
+    end
+
+  end # Class JobtolaunchSet
+
+
+
   # Campaign class
   # A Campaign instance can be get from the database or newly created
   # See Datarecord class for more doc
@@ -85,18 +107,22 @@ module Cigri
     #     {"exec_file"=>"$HOME/cigri-3/tmp/test1.sh"}]}
     #
     def get_clusters
-      get_campaign_properties(@dbh,id).each do |row|
-        cluster_id=row["cluster_id"]
-        @clusters[cluster_id]={} if @clusters[cluster_id].nil?
-        @clusters[cluster_id][row["name"]]=row["value"]
+      dbh=db_connect() do |dbh|
+        get_campaign_properties(dbh,id).each do |row|
+          cluster_id=row["cluster_id"]
+          @clusters[cluster_id]={} if @clusters[cluster_id].nil?
+          @clusters[cluster_id][row["name"]]=row["value"]
+        end
       end
     end
 
     # Return false if the campaign has no more tasks to run
     # Else, returns the number of tasks remaining
     def have_remaining_tasks?
-      count=get_campaign_remaining_tasks_number(@dbh,id)
-      return count if count != 0
+      dbh=db_connect() do |dbh|
+        count=get_campaign_remaining_tasks_number(dbh,id)
+        return count if count != 0
+      end
     end
 
     # Return false if campaign has no active clusters

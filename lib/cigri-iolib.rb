@@ -425,8 +425,6 @@ class Datarecord
   # Creates a new record in the given table with the given 
   # properties (hash) or get the record if :id is given.
   def initialize(table,props={})
-    # Get a DB handler
-    @dbh=db_connect()
     @table=table
     # No id given, then create a new record
     if not props[:id]
@@ -445,6 +443,7 @@ class Datarecord
 
   # Creates a new record and return its id
   def new_record(table,props={})
+    dbh=db_connect()
     query = "INSERT into #{table}\n"
     what=[]
     values=[]
@@ -453,17 +452,20 @@ class Datarecord
       values << "'#{value}'"
     end    
     query += "(" + what.join(',') + ") VALUES (" + values.join(',') +")"
-    @dbh.do(query)
-    last_inserted_id(@dbh, "#{table}_id_seq")    
+    dbh.do(query)
+    return last_inserted_id(dbh, "#{table}_id_seq")
+    dbh.disconnect
   end
 
   # Get a new record and return its properties
   def get_record(table,id,what)
+    dbh=db_connect()
     what="*" if what.nil?
-    sth=@dbh.prepare("SELECT #{what} FROM #{table} WHERE id=#{id}")
+    sth=dbh.prepare("SELECT #{what} FROM #{table} WHERE id=#{id}")
     sth.execute
     # The inject part is to convert string keys into symbols to optimize memory
     record=sth.fetch_hash
+    dbh.disconnect
     if record.nil?
       IOLIBLOGGER.warn("Datarecord #{id} not found into #{table}")
       return nil
@@ -481,8 +483,10 @@ class Datarecord
 
   # Delete the record from the database
   def delete
-    sth=@dbh.prepare("DELETE FROM #{@table} where id=#{props[:id]}")
-    sth.execute
+    db_connect() do |dbh|
+      sth=dbh.prepare("DELETE FROM #{@table} where id=#{props[:id]}")
+      sth.execute
+    end
   end
 
   # Quick access to the id of the datarecord
