@@ -9,6 +9,11 @@ CONF = Cigri.conf
 # logger to use in IOLIB
 IOLIBLOGGER = Cigri::Logger.new('IOLIB', CONF.get('LOG_FILE'))
 
+
+#######################################################################
+######################### iolib functions #############################
+#######################################################################
+
 ##
 # Method to obtain a database handle from the information given in cigri.conf
 # If a block is given, it will disconnect automatically at the end of execution
@@ -325,6 +330,84 @@ end
 def get_campaign_properties(dbh,id)
   dbh.select_all("SELECT * FROM campaign_properties WHERE campaign_id = #{id}")
 end
+
+
+##
+# Returns the number of remaining tasks for a given campaign
+#
+# == Parameters
+# - dbh: dababase handle
+# - id: campaign id
+#
+# == Returns
+# Number of tasks (integer)
+#
+##
+def get_campaign_remaining_tasks_number(dbh,id)
+  row=dbh.select_one("SELECT COUNT(*) FROM bag_of_tasks 
+                                  LEFT JOIN jobs_to_launch ON id=task_id
+                                  WHERE task_id is null AND campaign_id=#{id};")
+  return row[0]
+end
+
+##
+# Returns "number" tasks of campaign "id"
+#
+# == Parameters
+# - dbh: dababase handle
+# - id: campaign id
+# - number: number of tasks to return (infinite if nil)
+#
+# == Returns
+# Array of ids
+#
+##
+def get_tasks_for_campaign(dbh,id,number)
+  tasks=[]
+  if not number.nil?
+    limit="LIMIT #{number}"
+  else
+    limit=""
+  end
+  dbh.select_all("SELECT id FROM bag_of_tasks 
+                            LEFT JOIN jobs_to_launch ON id=task_id
+                            WHERE task_id is null AND campaign_id=#{id}
+                            ORDER by id
+                            #{limit};").each do |row|
+    tasks << row["id"]
+  end
+  return tasks
+end
+
+##
+# Insert jobs into the queue of a given cluster (jobs_to_launch table)
+# 
+# == Parameters
+#
+##
+def add_jobs_to_launch(dbh,tasks,cluster_id,tag,runner_options)
+  dbh['AutoCommit'] = false
+  begin
+    query = 'INSERT into jobs_to_launch
+             (task_id,cluster_id,tag,runner_options)
+             VALUES (?,?,?,?)'
+    tasks.each do |task_id|
+      dbh.do(query,task_id,cluster_id,tag,runner_options)
+    end
+    dbh.commit()
+  rescue Exception => e
+    IOLIBLOGGER.error("Error inserting tasks into jobs_to_launch: " + e.inspect)
+    dbh.rollback()
+    raise e
+  ensure
+    dbh['AutoCommit'] = true
+  end
+end
+
+
+#######################################################################
+######################### iolib classes ###############################
+#######################################################################
 
 ##
 # Class for handling datarecords

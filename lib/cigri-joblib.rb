@@ -87,9 +87,26 @@ module Cigri
     def get_clusters
       get_campaign_properties(@dbh,id).each do |row|
         cluster_id=row["cluster_id"]
-        @clusters[cluster_id]=[] if @clusters[cluster_id].nil?
-        @clusters[cluster_id] << { row["name"] => row["value"] }
+        @clusters[cluster_id]={} if @clusters[cluster_id].nil?
+        @clusters[cluster_id][row["name"]]=row["value"]
       end
+    end
+
+    # Return false if the campaign has no more tasks to run
+    # Else, returns the number of tasks remaining
+    def have_remaining_tasks?
+      count=get_campaign_remaining_tasks_number(@dbh,id)
+      return count if count != 0
+    end
+
+    # Return false if campaign has no active clusters
+    def have_active_clusters?
+      have=0
+      @clusters.each do |cluster|
+        #TODO: should check for blacklisted clusters (colombo)
+        have += 1
+      end
+      return have if have != 0
     end
 
   end # class Campaign
