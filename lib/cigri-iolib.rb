@@ -312,7 +312,16 @@ def get_running_campaigns(dbh)
   dbh.select_all("SELECT id FROM campaigns WHERE state = 'in_treatment'")
 end
 
+##
 # Class for handling datarecords
+# Shouldn't be used directly, but from Job, Campaign,...
+# Examples:
+#  - To insert a new job:
+#  j=Cigri::Job.new(:campaign_id => 1, :state => "to_launch", :name => "obiwan1")
+#  - To get a job from the id:
+#  job=Cigri::Job.new(:id => 29)
+#
+##
 class Datarecord
   attr_reader :props, :table
 
@@ -386,8 +395,13 @@ class Datarecord
 
 end
 
+##
 # Class for handling datasets
 # A dataset is a set of datarecords
+# Shouldn' be used directly, but from Jobset, Campaignset,...
+# Example:
+#  jobs=Cigri::Jobset.new(:where => "name like 'obiwan%'")
+#
 class Dataset
   attr_reader :records, :table
 
@@ -408,6 +422,7 @@ class Dataset
     end
   end
 
+  # Get a dataset from the database
   def get(table,what,where)
     what="*" if what.nil?
     sth=@dbh.prepare("SELECT #{what} FROM #{table} WHERE #{where}")
@@ -420,6 +435,7 @@ class Dataset
     return result
   end
   
+  # Iterator
   def each
     @records.each do |record|
       yield record
