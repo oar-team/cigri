@@ -93,7 +93,27 @@ module Cigri
       return self.length
     end
 
-    # Delete
+    # Remove the jobs from the queue and the bag of task
+    def remove
+      # Remove from the queue
+      self.delete('jobs_to_launch','task_id')
+      # Remove from the bag of tasks
+      bag=Dataset.new('bag_of_tasks',{:where => "id in (#{self.ids.join(',')})"})
+      bag.delete
+    end
+
+    # Register the jobs into the jobs table
+    def register
+      values=[]
+      @records.each do |record|
+        values << {
+                    :campaign_id => record.props[:campaign_id],
+                    :state => "to_launch",
+                    :param => record.props[:param]
+                  }
+      end
+      jobs=Jobset.new(:values => values)  
+    end
 
   end # Class JobtolaunchSet
 

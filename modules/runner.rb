@@ -52,9 +52,11 @@ begin
     tolaunch_jobs=Cigri::JobtolaunchSet.new
     if tolaunch_jobs.get_next(cluster.id,n) > 0
       logger.debug("Got #{tolaunch_jobs.length} jobs to launch")
-      tolaunch_jobs.delete('jobs_to_launch','task_id') # Remove the jobs from the queue
-                         # Create the new jobs
-                         # Submit the new jobs
+      tolaunch_jobs.remove
+              # Remove the jobs from the queue
+      tolaunch_jobs.register
+              # Create the new jobs
+              # Submit the new jobs
     end
     sleep 10
   end

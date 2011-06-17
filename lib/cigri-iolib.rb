@@ -507,7 +507,7 @@ class Dataset
   attr_reader :records, :table
 
   # Creates a new dataset
-  # - If props[:values] is given, then insert the dataset into the given table (TODO)
+  # - If props[:values] is given, then insert the dataset into the given table
   # - If props[:where] is given, then get the dataset from the database
   # - The table value may be coma separated list of tables (for joins)
   def initialize(table,props={})
@@ -517,13 +517,18 @@ class Dataset
     @records=[]
     if props[:where]
       fill(get(table,props[:what],props[:where]))
+    elsif props[:values]
+      fill(props[:values],false)
     end
   end
 
   # Fill the records array with the given values
-  def fill(values)
+  def fill(values,nodb=true)
+    IOLIBLOGGER.debug("Making #{values.length} inserts into #{table}") unless nodb
     values.each do |record_props|
-      record_props[:nodb]=true
+      if nodb
+        record_props[:nodb]=true 
+      end
       @records << Datarecord.new(table,record_props)
     end
   end
