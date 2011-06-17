@@ -4,6 +4,7 @@ $LOAD_PATH.unshift("./lib")
 
 require 'cigri'
 require 'cigri-clusterlib'
+require 'cigri-joblib'
 
 begin
   config = Cigri.conf
@@ -15,7 +16,7 @@ begin
     cluster=Cigri::Cluster.new(:name => ARGV[0])
   end
 
-
+  # Signal traping
   %w{INT TERM}.each do |signal|
     Signal.trap(signal){ 
       #cleanup!
@@ -24,11 +25,37 @@ begin
     }
   end
   
-  logger.info("Starting runner on #{ARGV[0]}")
-  
+
+  # Default configuration
+  if config.exists?('') 
+    n=config.get('RUNNER_DEFAULT_INITIAL_NUMBER_OF_JOBS')
+  else
+    n=5
+  end
+ 
   #Main runner loop
+  logger.info("Starting runner on #{ARGV[0]}")
   while true do
     logger.debug('New iteration')
+
+    ##########################################################################
+    # Jobs checking
+    ##########################################################################
+    # TODO
+
+    ##########################################################################
+    # Jobs submission
+    ##########################################################################
+    #
+    # Get the jobs to launch
+    # 
+    tolaunch_jobs=Cigri::JobtolaunchSet.new
+    if tolaunch_jobs.get_next(cluster.id,n) > 0
+      logger.debug("Got #{tolaunch_jobs.length} jobs to launch")
+      tolaunch_jobs.delete('jobs_to_launch','task_id') # Remove the jobs from the queue
+                         # Create the new jobs
+                         # Submit the new jobs
+    end
     sleep 10
   end
 end

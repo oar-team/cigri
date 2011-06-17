@@ -90,7 +90,10 @@ module Cigri
                                                     ORDER by task_id
                                                     LIMIT #{n}
                                                  "))
+      return self.length
     end
+
+    # Delete
 
   end # Class JobtolaunchSet
 

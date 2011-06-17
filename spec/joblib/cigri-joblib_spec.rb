@@ -43,17 +43,28 @@ describe 'cigri-joblib' do
   end #  Job
 
   describe 'Jobset' do
-    it 'should return 2 jobs' do
+    before(:all) do
       j1=Cigri::Job.new(:campaign_id => 9999998, :state => "to_launch", :name => "obiwan1")
       j2=Cigri::Job.new(:campaign_id => 9999998, :state => "to_launch", :name => "obiwan2")
-      jobs=Cigri::Jobset.new(:where => "name like 'obiwan%'")
+      @jobs=Cigri::Jobset.new(:where => "name like 'obiwan%'")
       j1.delete
       j2.delete
+    end
+    it 'should have a length of 2' do
+      @jobs.length.should == 2
+    end
+    it 'should return 2 jobs' do
       count=0
-      jobs.each do |job|
+      @jobs.each do |job|
         count += 1 if job.props[:campaign_id].to_i == 9999998
       end
       count.should == 2
+    end
+    it 'should return an array of ids' do
+      @jobs.ids.should be_an(Array)
+    end
+    it 'should have integers into the array of ids' do
+      @jobs.ids[0].should be_an(Integer)
     end
   end 
   

@@ -25,7 +25,7 @@ module Cigri
   ##
   class RestCluster
     # description is a hash containing all the fields describing a cluster
-    attr_reader :description
+    attr_reader :description, :id
 
     ##
     # Creates a new restcluster object, getting it by its id or its name
@@ -47,6 +47,7 @@ module Cigri
           end
         end
         @description=get_cluster(dbh,id)
+        @id=id
       end
 
       # Create a rest_client api instance

@@ -548,4 +548,26 @@ class Dataset
     end
   end
 
+  # Returns an array of all the ids of the datarecords of this dataset
+  def ids
+    @records.collect {|record| record.id}
+  end
+
+  # Return the number of data records
+  def length
+    @records.length
+  end
+
+  # Delete all the datarecords of this dataset from the database
+  def delete(table=@table,id_column="id")
+    IOLIBLOGGER.debug("Removing #{self.length} records from #{table}")    
+    sth=@dbh.prepare("DELETE FROM #{table} WHERE #{id_column} in (#{self.ids.join(',')})")
+    sth.execute
+  end
+ 
+  # Same thing as delete, but also empty the dataset
+  def delete!(table=@table)
+    delete(table)
+    @records=[]
+  end
 end
