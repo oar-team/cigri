@@ -23,11 +23,13 @@ module Cigri
     
     def do
        tasks=get_tasks_for_campaign(@dbh,@campaign.id,@opts[:max_jobs])
-       SCHEDULERFIFOLOGGER.debug("Adding tasks in cluster #{@cluster_id} queue: #{tasks.join(",")}")
-       # TODO: runner_options and tag management
-       runner_options=""
-       tag=""
-       add_jobs_to_launch(@dbh,tasks,@cluster_id,tag,runner_options)
+       if tasks.length > 0
+         SCHEDULERFIFOLOGGER.debug("Adding tasks in cluster #{@cluster_id} queue: #{tasks.join(",")}")
+         # TODO: runner_options and tag management
+         runner_options=""
+         tag=""
+         add_jobs_to_launch(@dbh,tasks,@cluster_id,tag,runner_options)
+       end
     end
 
   end # class SchedulerFifo
