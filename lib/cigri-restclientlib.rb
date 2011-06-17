@@ -63,6 +63,7 @@ module Cigri
     end
 
     # Get a rest resource
+    # TODO: manage timeout
     def get(uri)
       uri=rel_uri(uri)
       parse(@api[uri].get(:accept => @content_type))
@@ -93,12 +94,14 @@ module Cigri
     end
 
     # Post a new resource
+    # TODO: manage timeout
     def post(uri,resource)
       uri=rel_uri(uri)
       parse(@api[uri].post(convert(resource), :content_type => @content_type))
     end
 
     # Delete a resource
+    # TODO: manage timeout
     def delete(uri)
       uri=rel_uri(uri)
       parse(@api[uri].delete(:content_type => @content_type))

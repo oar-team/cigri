@@ -8,6 +8,7 @@
 require 'cigri-logger'
 require 'cigri-conflib'
 require 'cigri-iolib'
+require 'cigri-clusterlib'
 
 CONF=Cigri.conf unless defined? CONF
 JOBLIBLOGGER = Cigri::Logger.new('JOBLIB', CONF.get('LOG_FILE'))
@@ -48,6 +49,40 @@ module Cigri
     def get_running
       fill(get("jobs","*","state = 'running'"))
     end
+
+    # Get the ids (array) of all campaigns from this jobset
+    def campaigns
+      campaigns={}
+      @records.each do |job|
+        campaigns[job.props[:campaign_id]]=1
+      end
+      return campaigns.keys
+    end
+
+    # Submit a set of jobs, using OAR array jobs if possible
+    # So, group the jobs by campaigns as only jobs from a
+    # same campaign can be launched in the same array
+    def submit(cluster_id)
+      array_jobs=[]
+      self.campaigns.each do |campaign_id|
+        campaign=Campaign.new(:id => campaign_id)
+        jobs=@records.select {|job| job.props[:campaign_id] == campaign_id}
+        params=jobs.collect {|job| job.props[:param]}
+        submission = {
+                       "param_file" => params.join('\n'),
+                       "resources" => campaign.props[:resources],
+                       "command" => campaign.props[:exec_file]
+                       #"properties" => campaign.props[:properties],
+                       #"directory" => campaign.props[:exec_dir]
+                     }
+        # TODO: add walltime, manage grouping,etc...
+        cluster=Cluster.new(:id => cluster_id)
+        array_jobs << cluster.submit_job(submission)
+        # TODO: error management
+        # TODO: update job state into database, submission_time, etc...
+      end
+      return array_jobs
+    end
  
   end # Class Jobset
 
@@ -73,7 +108,7 @@ module Cigri
     # Creates the new jobset
     def initialize(props={})
       if props[:where]
-        props[:where] += " AND task_id=id"
+        props[:where] += " AND task_id=bag_of_tasks.id"
       end
       super("jobs_to_launch,bag_of_tasks",props)
     end
@@ -83,11 +118,11 @@ module Cigri
       @records
     end
 
-    # Get n jobs to launch on cluster cluster_id
+    # Get max n jobs to launch on cluster cluster_id
     def get_next(cluster_id,n)
       fill(get("jobs_to_launch,bag_of_tasks","*","cluster_id=#{cluster_id} 
-                                                    AND task_id=id
-                                                    ORDER by task_id
+                                                    AND task_id=bag_of_tasks.id
+                                                    ORDER BY jobs_to_launch.id
                                                     LIMIT #{n}
                                                  "))
       return self.length
@@ -95,24 +130,27 @@ module Cigri
 
     # Remove the jobs from the queue and the bag of task
     def remove
-      # Remove from the queue
-      self.delete('jobs_to_launch','task_id')
       # Remove from the bag of tasks
       bag=Dataset.new('bag_of_tasks',{:where => "id in (#{self.ids.join(',')})"})
       bag.delete
+      # Remove from the queue
+      self.delete('jobs_to_launch','task_id')
     end
 
-    # Register the jobs into the jobs table
+    # Register the jobs into the jobs table (creates new jobs)
+    # returns a jobset of the newly created jobs
     def register
       values=[]
       @records.each do |record|
         values << {
                     :campaign_id => record.props[:campaign_id],
                     :state => "to_launch",
-                    :param => record.props[:param]
+                    :cluster_id => record.props[:cluster_id],
+                    :param => record.props[:param],
+                    :name => record.props[:param].split[0]
                   }
       end
-      jobs=Jobset.new(:values => values)  
+      Jobset.new(:values => values)
     end
 
   end # Class JobtolaunchSet
@@ -127,7 +165,7 @@ module Cigri
 
     # Creates a new campaign entry or get it from the database
     def initialize(props={})
-      super("campaign",props)
+      super("campaigns",props)
       @clusters={}
     end
 

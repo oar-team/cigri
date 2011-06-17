@@ -345,7 +345,7 @@ end
 ##
 def get_campaign_remaining_tasks_number(dbh,id)
   row=dbh.select_one("SELECT COUNT(*) FROM bag_of_tasks 
-                                  LEFT JOIN jobs_to_launch ON id=task_id
+                                  LEFT JOIN jobs_to_launch ON bag_of_tasks.id=task_id
                                   WHERE task_id is null AND campaign_id=#{id};")
   return row[0]
 end
@@ -369,10 +369,10 @@ def get_tasks_for_campaign(dbh,id,number)
   else
     limit=""
   end
-  dbh.select_all("SELECT id FROM bag_of_tasks 
-                            LEFT JOIN jobs_to_launch ON id=task_id
+  dbh.select_all("SELECT bag_of_tasks.id FROM bag_of_tasks 
+                            LEFT JOIN jobs_to_launch ON bag_of_tasks.id=task_id
                             WHERE task_id is null AND campaign_id=#{id}
-                            ORDER by id
+                            ORDER by bag_of_tasks.id
                             #{limit};").each do |row|
     tasks << row["id"]
   end

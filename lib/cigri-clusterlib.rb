@@ -128,6 +128,7 @@ module Cigri
      def get_resources
        # Get the resources from the api
        resources=@api.get_collection("resources")
+          # TODO: manage event (cluster blacklist) if timeout
        # Filter the resources depending on cluster properties
        properties=parse_properties
        return resources unless properties
@@ -144,18 +145,22 @@ module Cigri
  
      def get_jobs
        @api.get_collection("jobs")
+          # TODO: manage event (cluster blacklist) if timeout
      end 
 
      def submit_job(job)
        @api.post("jobs",job)
+          # TODO: manage event (cluster blacklist) if timeout
      end
 
      def get_job(job_id)
        @api.get("jobs/#{job_id}")
+          # TODO: manage event (cluster blacklist) if timeout
      end
 
      def delete_job(job_id)
        @api.delete("jobs/#{job_id}")
+          # TODO: manage event (cluster blacklist) if timeout
      end
  
    end
