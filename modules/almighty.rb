@@ -60,6 +60,7 @@ begin
       childs << pid
       runner_childs[pid]=cluster.name
     end
+    sleep 0.5
   end
   
   #Main almighty loop
