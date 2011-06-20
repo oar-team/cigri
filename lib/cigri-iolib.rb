@@ -426,6 +426,12 @@ class Datarecord
   # properties (hash) or get the record if :id is given.
   def initialize(table,props={})
     @table=table
+    # Set the name of the field used for index ("id" by default)
+    if props[:index]
+      @index=props[:index]
+    else
+      @index="id"
+    end 
     # No id given, then create a new record
     if not props[:id]
       @props=props
@@ -461,13 +467,13 @@ class Datarecord
   def get_record(table,id,what)
     dbh=db_connect()
     what="*" if what.nil?
-    sth=dbh.prepare("SELECT #{what} FROM #{table} WHERE id=#{id}")
+    sth=dbh.prepare("SELECT #{what} FROM #{table} WHERE #{@index}=#{id}")
     sth.execute
     # The inject part is to convert string keys into symbols to optimize memory
     record=sth.fetch_hash
     dbh.disconnect
     if record.nil?
-      IOLIBLOGGER.warn("Datarecord #{id} not found into #{table}")
+      IOLIBLOGGER.warn("Datarecord #{@index}=#{id} not found into #{table}")
       return nil
     else      
       return record.inject({}){|h,(k,v)| h[k.to_sym] = v; h}
@@ -484,7 +490,7 @@ class Datarecord
   # Delete the record from the database
   def delete
     db_connect() do |dbh|
-      sth=dbh.prepare("DELETE FROM #{@table} where id=#{props[:id]}")
+      sth=dbh.prepare("DELETE FROM #{@table} where #{@index}=#{props[:id]}")
       sth.execute
     end
   end
