@@ -71,7 +71,7 @@ module Cigri
         jobs=@records.select {|job| job.props[:campaign_id] == campaign_id}
         params=jobs.collect {|job| job.props[:param]}
         submission = {
-                       "param_file" => params.join('\n'),
+                       "param_file" => params.join("\n"),
                        "resources" => campaign.clusters[cluster_id]["resources"],
                        "command" => campaign.clusters[cluster_id]["exec_file"]
                        #"properties" => campaign.props[:properties],
