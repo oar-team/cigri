@@ -66,7 +66,15 @@ module Cigri
     # TODO: manage timeout
     def get(uri)
       uri=rel_uri(uri)
-      parse(@api[uri].get(:accept => @content_type))
+      begin
+        parse(@api[uri].get(:accept => @content_type))
+      rescue => e
+        if e.respond_to?('http_code')
+          raise Cigri::Exception, "#{e.http_code} error in get for #{uri} :\n #{e.response.body}"
+        else
+          raise Cigri::Exception, "Parse error: #{e.inspect}"
+        end
+      end
     end
 
     # Get a link by relation or nil if not found
@@ -97,14 +105,30 @@ module Cigri
     # TODO: manage timeout
     def post(uri,resource)
       uri=rel_uri(uri)
-      parse(@api[uri].post(convert(resource), :content_type => @content_type))
+      begin
+        parse(@api[uri].post(convert(resource), :content_type => @content_type))
+      rescue => e
+        if e.respond_to?('http_code')
+          raise Cigri::Exception, "#{e.http_code} error in post #{uri} :\n #{e.response.body}"
+        else
+          raise Cigri::Exception, "Parse error: #{e.inspect}"
+        end
+      end
     end
 
     # Delete a resource
     # TODO: manage timeout
     def delete(uri)
       uri=rel_uri(uri)
-      parse(@api[uri].delete(:content_type => @content_type))
+      begin
+        parse(@api[uri].delete(:content_type => @content_type))
+      rescue => e
+         if e.respond_to?('http_code')
+          raise Cigri::Exception, "#{e.http_code} error in post #{uri} :\n #{e.response.body}"
+        else
+          raise Cigri::Exception, "Parse error: #{e.inspect}"
+        end
+      end
     end
 
   end
