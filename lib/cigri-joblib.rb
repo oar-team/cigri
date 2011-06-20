@@ -64,23 +64,27 @@ module Cigri
     # same campaign can be launched in the same array
     def submit(cluster_id)
       array_jobs=[]
+      cluster=Cluster.new(:id => cluster_id)
       self.campaigns.each do |campaign_id|
         campaign=Campaign.new(:id => campaign_id)
+        campaign.get_clusters
         jobs=@records.select {|job| job.props[:campaign_id] == campaign_id}
         params=jobs.collect {|job| job.props[:param]}
         submission = {
                        "param_file" => params.join('\n'),
-                       "resources" => campaign.props[:resources],
-                       "command" => campaign.props[:exec_file]
+                       "resources" => campaign.clusters[cluster_id]["resources"],
+                       "command" => campaign.clusters[cluster_id]["exec_file"]
                        #"properties" => campaign.props[:properties],
                        #"directory" => campaign.props[:exec_dir]
                      }
         # TODO: add walltime, manage grouping,etc...
-        cluster=Cluster.new(:id => cluster_id)
-        array_jobs << cluster.submit_job(submission)
+        JOBLIBLOGGER.debug("Submitting new array job on #{cluster.description["name"]} with #{params.length} parameter(s).")
+        j=cluster.submit_job(submission)
+        array_jobs << j["id"]
         # TODO: error management
         # TODO: update job state into database, submission_time, etc...
       end
+      JOBLIBLOGGER.debug("Remote ids of jobs just sumbitted on #{cluster.description["name"]}: #{array_jobs.join(',')}")
       return array_jobs
     end
  
