@@ -5,7 +5,9 @@
 
 require 'cigri-logger'
 require 'cigri-conflib'
-require 'rest_client'
+$VERBOSE=false
+  require 'rest_client'
+$VERBOSE=true
 require 'json'
 require 'yaml'
 require 'uri'

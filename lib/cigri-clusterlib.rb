@@ -13,7 +13,6 @@
 require 'cigri-logger'
 require 'cigri-conflib'
 require 'cigri-iolib'
-require 'rest_client'
 require 'cigri-restclientlib'
 
 CLUSTERLIBLOGGER = Cigri::Logger.new('CLUSTERLIB', CONF.get('LOG_FILE'))
