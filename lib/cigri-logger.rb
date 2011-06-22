@@ -42,7 +42,14 @@ module Cigri
 
     def color_msg msg, severity, progname 
       # Background color depending on severity
-      back_color = severity[0...1] == 'E' ? '41' : '40' # Red for errors, black otherwize
+      case severity[0...1]
+        when "E"
+          back_color = 41 # Red for errors
+        when "W"
+          back_color = 45 # Magenta for warnings
+        else
+          back_color = 0 # No background else
+      end
       # Text color depending on the progname
       case 
         when progname == "ALMIGHTY"
