@@ -11,6 +11,7 @@ $VERBOSE=true
 require 'json'
 require 'yaml'
 require 'uri'
+require 'timeout'
 
 CONF=Cigri.conf unless defined? CONF
 RESTCLIENTLIBLOGGER = Cigri::Logger.new('RESTCLIENTLIB', CONF.get('LOG_FILE'))
@@ -31,6 +32,11 @@ module Cigri
       end
       @content_type=content_type
       @base_uri=URI.parse(base_uri)
+      if CONF.exists?('REST_QUERIES_TIMEOUT')
+        @timeout=CONF.get('REST_QUERIES_TIMEOUT').to_i
+      else
+        @timeout=30
+      end
     end
   
     # Converts the given uri, to something relative
@@ -65,18 +71,25 @@ module Cigri
     end
 
     # Get a rest resource
-    # TODO: manage timeout
     def get(uri)
       uri=rel_uri(uri)
-      begin
-        parse(@api[uri].get(:accept => @content_type))
-      rescue => e
-        if e.respond_to?('http_code')
-          raise Cigri::Exception, "#{e.http_code} error in get for #{uri} :\n #{e.response.body}"
-        else
-          raise Cigri::Exception, "Parse error: #{e.inspect}"
-        end
-      end
+      begin # Timeout error handling
+        Timeout::timeout(@timeout) {
+          begin # Rest error handling
+            parse(@api[uri].get(:accept => @content_type))
+          rescue => e # Rest error
+            if e.respond_to?('http_code')
+              raise Cigri::Exception, "#{e.http_code} error in get for #{uri} :\n #{e.response.body}"
+            else
+              raise Cigri::Exception, "Parse error: #{e.inspect}"
+            end
+          end # rescue (Rest error)
+        } 
+      rescue Timeout::Error # Timeouted
+        message="GET #{base_uri}#{uri} : REST query timeouted!"
+        RESTCLIENTLIBLOGGER.warn(message)
+        raise Timeout::Error, message
+      end # rescue (timeout)
     end
 
     # Get a link by relation or nil if not found
@@ -104,33 +117,47 @@ module Cigri
     end
 
     # Post a new resource
-    # TODO: manage timeout
     def post(uri,resource)
       uri=rel_uri(uri)
-      begin
-        parse(@api[uri].post(convert(resource), :content_type => @content_type))
-      rescue => e
-        if e.respond_to?('http_code')
-          raise Cigri::Exception, "#{e.http_code} error in post #{uri} :\n #{e.response.body}"
-        else
-          raise Cigri::Exception, "Parse error: #{e.inspect}"
-        end
-      end
+      begin # Timeout error handling
+        Timeout::timeout(@timeout) {
+          begin # Rest error handling
+            parse(@api[uri].post(convert(resource), :content_type => @content_type))
+          rescue => e
+            if e.respond_to?('http_code')
+              raise Cigri::Exception, "#{e.http_code} error in post #{uri} :\n #{e.response.body}"
+            else
+              raise Cigri::Exception, "Parse error: #{e.inspect}"
+            end
+          end # rescue (rest error)
+        }
+        rescue Timeout::Error # Timeouted
+        message="POST #{base_uri}#{uri} : REST query timeouted!"
+        RESTCLIENTLIBLOGGER.warn(message)
+        raise Timeout::Error, message
+      end # rescue (timeout)
     end
 
     # Delete a resource
-    # TODO: manage timeout
     def delete(uri)
       uri=rel_uri(uri)
-      begin
-        parse(@api[uri].delete(:content_type => @content_type))
-      rescue => e
-         if e.respond_to?('http_code')
-          raise Cigri::Exception, "#{e.http_code} error in post #{uri} :\n #{e.response.body}"
-        else
-          raise Cigri::Exception, "Parse error: #{e.inspect}"
-        end
-      end
+      begin # Timeout error handling
+        Timeout::timeout(@timeout) {
+          begin # Rest error handling
+            parse(@api[uri].delete(:content_type => @content_type))
+          rescue => e
+             if e.respond_to?('http_code')
+              raise Cigri::Exception, "#{e.http_code} error in post #{uri} :\n #{e.response.body}"
+            else
+              raise Cigri::Exception, "Parse error: #{e.inspect}"
+            end
+          end # rescue (rest error)
+        }
+        rescue Timeout::Error # Timeouted
+        message="DELETE #{base_uri}#{uri} : REST query timeouted!"
+        RESTCLIENTLIBLOGGER.warn(message)
+        raise Timeout::Error, message
+      end # rescue (timeout)
     end
 
   end

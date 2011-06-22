@@ -27,7 +27,7 @@ begin
   
 
   # Default configuration
-  if config.exists?('') 
+  if config.exists?('RUNNER_DEFAULT_INITIAL_NUMBER_OF_JOBS') 
     n=config.get('RUNNER_DEFAULT_INITIAL_NUMBER_OF_JOBS')
   else
     n=5
@@ -39,9 +39,11 @@ begin
     logger.debug('New iteration')
 
     ##########################################################################
-    # Jobs checking
+    # Jobs control
     ##########################################################################
     # TODO
+    #
+    
 
     ##########################################################################
     # Jobs submission

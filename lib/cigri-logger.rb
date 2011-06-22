@@ -58,6 +58,8 @@ module Cigri
           fore_color = 34
         when progname.match(/SCHEDULER/)
           fore_color = 36
+        when progname.match(/LIB/)
+          fore_color = 37
         else
           fore_color = 30
       end

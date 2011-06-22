@@ -7,6 +7,7 @@ require 'cigri'
 require 'cigri-clusterlib'
 
 cluster=Cigri::Cluster.new(:name => "fukushima")
+
 job=cluster.submit_job(:command => "sleep 300")
 puts job["id"]
 
