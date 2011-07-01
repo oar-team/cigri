@@ -28,18 +28,26 @@ begin
 
   # Default configuration
   if config.exists?('RUNNER_DEFAULT_INITIAL_NUMBER_OF_JOBS') 
-    n=config.get('RUNNER_DEFAULT_INITIAL_NUMBER_OF_JOBS')
-    N=n
+    n=config.get('RUNNER_DEFAULT_INITIAL_NUMBER_OF_JOBS').to_i
   else
     n=5
   end
+  if config.exists?('RUNNER_MIN_CYCLE_DURATION')
+    MIN_CYCLE_DURATION=config.get('RUNNER_MIN_CYCLE_DURATION').to_i
+  else
+    MIN_CYCLE_DURATION=5
+  end
+  SLEEP_MORE=10 #used as a sleep value when no job is submitted
  
+
   #Main runner loop
   logger.info("Starting runner on #{ARGV[0]}")
+  N=n
   while true do
     logger.debug('New iteration')
 
     time=Time::now.to_i
+    sleep_more=0
 
     ##########################################################################
     # Jobs control
@@ -61,7 +69,7 @@ begin
         when "Terminated"
           job.update({'state' => 'terminated'})
         when "Error"
-          job.update({'state' => 'error'})
+          job.update({'state' => 'event'})
         when "Running"
           job.update({'state' => 'running'})
         when "Finishing"
@@ -91,10 +99,13 @@ begin
               # Remove the jobs from the queue
       jobs.submit(cluster.id)
               # Submit the new jobs
+    else
+      sleep_more=SLEEP_MORE
     end
 
     # Sleep if necessary
     cycle_duration=Time::now.to_i - time
-    sleep (10 - cycle_duration) if cycle_duration < 10
+    sleep MIN_CYCLE_DURATION-cycle_duration if cycle_duration < MIN_CYCLE_DURATION
+    sleep sleep_more
   end
 end
