@@ -84,15 +84,50 @@ module Cigri
           JOBLIBLOGGER.error("Unhandled error when submitting jobs on #{cluster.description["name"]}!")
         else
           array_jobs << j["id"]
+          # Update jobs infos
           submitted_jobs=Jobset.new
           submitted_jobs.fill(jobs,true)
-          submitted_jobs.update({'state' => 'submitted', 'submission_time' => Time::now()})
+          submitted_jobs.update!(
+                                 { 'state' => 'submitted', 
+                                   'submission_time' => Time::now(),
+                                   'cluster_id' => cluster_id,
+                                 } )
+          submitted_jobs.match_remote_ids(cluster_id,j["id"])
         end
       end
-      JOBLIBLOGGER.debug("Remote ids of jobs just sumbitted on #{cluster.description["name"]}: #{array_jobs.join(',')}")
+      JOBLIBLOGGER.debug("Remote ids of array jobs just sumbitted on #{cluster.description["name"]}: #{array_jobs.join(',')}")
       return array_jobs
     end
- 
+
+    # This function updates the "remote_id" field of the jobs. It matches
+    # each job of a oar array_job with the corresponding cigri job.
+    # For this, we ensure that the parameters part of the oar command is the same
+    # of the param value in the cigri database.
+    def match_remote_ids(cluster_id,array_id)
+      cluster=Cluster.new(:id => cluster_id)
+      cluster_jobs=cluster.get_jobs(:array => array_id)
+      # For each job of the array on the cluster
+      cluster_jobs.each do |cluster_job|
+        matched=0
+        # we try to match the parameters of each job of the jobset
+        jobs.each do |cigri_job|
+          if cluster_job["command"].split(nil,2)[1] == cigri_job.props[:param]
+            cigri_job.update({'remote_id' => cluster_job["id"]})
+            matched=1
+            break
+          end  
+        end
+        if matched == 0
+          JOBLIBLOGGER.error("Could not find the CIGRI job corresponding to the OAR job #{cluster_job["id"]} !")
+        end
+      end
+    end
+
+    # Get jobs that have just been submitted on cluster_id
+    def get_submitted(cluster_id)
+      fill(get("jobs","*","state = 'submitted' and cluster_id=#{cluster_id}"))
+    end
+
   end # Class Jobset
 
 

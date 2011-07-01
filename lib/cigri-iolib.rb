@@ -500,6 +500,17 @@ class Datarecord
     @props[:id].to_i
   end
 
+  # Update a datarecord into the database
+  def update(values)
+    db_connect() do |dbh|
+      values.each do |field,value|
+        value="'"+value.to_s+"'" if not value.is_a?(Integer)
+        sth=dbh.prepare("UPDATE #{@table} set #{field}=#{value} WHERE #{@index}=#{id}")
+        sth.execute
+      end
+    end
+  end
+
 end
 
 ##
@@ -590,6 +601,16 @@ class Dataset
       values[field]="'"+values[field].to_s+"'" if not values[field].is_a?(Integer) 
       sth=@dbh.prepare("UPDATE #{table} SET #{field}=#{values[field]} WHERE #{id_column} in (#{self.ids.join(',')})")
       sth.execute
+    end
+  end
+
+  # Same thing as update, but also update the record objects
+  def update!(values,table=@table,id_column="id")
+    update(values,table,id_column)
+    @records.each do |record|
+      values.each do |field,value|
+        record.props[field.to_sym]=value
+      end
     end
   end
 

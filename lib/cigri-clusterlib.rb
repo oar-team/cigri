@@ -142,8 +142,9 @@ module Cigri
        return res
      end 
  
-     def get_jobs
-       @api.get_collection("jobs")
+     def get_jobs(props={})
+       array="?array=#{props[:array]}" if props[:array]
+       @api.get_collection("jobs/details#{array}")
           # TODO: manage event (cluster blacklist) if timeout
      end 
 

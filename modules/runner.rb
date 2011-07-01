@@ -41,15 +41,18 @@ begin
     ##########################################################################
     # Jobs control
     ##########################################################################
-    # TODO
-    #
+    # 
+    # Get the just submitted jobs on our cluster
+    current_jobs=Cigri::Jobset.new
+    current_jobs.get_submitted(cluster.id)
+    # TBC
     
 
     ##########################################################################
     # Jobs submission
     ##########################################################################
     #
-    # Get the jobs to launch
+    # Get the jobs to launch and submit them
     # 
     tolaunch_jobs=Cigri::JobtolaunchSet.new
     if tolaunch_jobs.get_next(cluster.id,n) > 0
