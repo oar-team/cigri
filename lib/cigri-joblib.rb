@@ -95,7 +95,7 @@ module Cigri
           submitted_jobs.match_remote_ids(cluster_id,j["id"])
         end
       end
-      JOBLIBLOGGER.debug("Remote ids of array jobs just sumbitted on #{cluster.description["name"]}: #{array_jobs.join(',')}")
+      JOBLIBLOGGER.debug("Remote ids of array jobs just submitted on #{cluster.description["name"]}: #{array_jobs.join(',')}")
       return array_jobs
     end
 
@@ -125,7 +125,9 @@ module Cigri
 
     # Get jobs that have just been submitted on cluster_id
     def get_submitted(cluster_id)
-      fill(get("jobs","*","state = 'submitted' and cluster_id=#{cluster_id}"))
+      fill(get("jobs","*","
+                    (state = 'submitted' or state = 'remote_waiting') 
+                      and cluster_id=#{cluster_id}"))
     end
 
   end # Class Jobset

@@ -29,6 +29,7 @@ begin
   # Default configuration
   if config.exists?('RUNNER_DEFAULT_INITIAL_NUMBER_OF_JOBS') 
     n=config.get('RUNNER_DEFAULT_INITIAL_NUMBER_OF_JOBS')
+    N=n
   else
     n=5
   end
@@ -38,15 +39,42 @@ begin
   while true do
     logger.debug('New iteration')
 
+    time=Time::now.to_i
+
     ##########################################################################
     # Jobs control
     ##########################################################################
     # 
-    # Get the just submitted jobs on our cluster
+    # Reset the tap
+    # The "n" variable is like a tap. It represents the number of jobs
+    # we can start at a time (as a oar array job)
+    # We close the tap (ie set n to 0) if the cluster is not running
+    # our jobs, and we open it if all the jobs are running or terminated
+    n=N
+    #
+    # Update the jobs state and close the tap if necessary
     current_jobs=Cigri::Jobset.new
     current_jobs.get_submitted(cluster.id)
-    # TBC
-    
+    current_jobs.each do |job|
+      cluster_job=cluster.get_job(job.props[:remote_id])
+      case cluster_job["state"] 
+        when "Terminated"
+          job.update({'state' => 'terminated'})
+        when "Error"
+          job.update({'state' => 'error'})
+        when "Running"
+          job.update({'state' => 'running'})
+        when "Finishing"
+          job.update({'state' => 'running'})
+        when "Waiting"
+          job.update({'state' => 'remote_waiting'})
+          # close the tap
+          n=0
+        else
+          # close the tap
+          n=0
+      end
+    end 
 
     ##########################################################################
     # Jobs submission
@@ -55,7 +83,7 @@ begin
     # Get the jobs to launch and submit them
     # 
     tolaunch_jobs=Cigri::JobtolaunchSet.new
-    if tolaunch_jobs.get_next(cluster.id,n) > 0
+    if tolaunch_jobs.get_next(cluster.id,n) > 0 # if the tap is open
       logger.debug("Got #{tolaunch_jobs.length} jobs to launch")
       jobs=tolaunch_jobs.register
               # Create the new jobs
@@ -64,6 +92,9 @@ begin
       jobs.submit(cluster.id)
               # Submit the new jobs
     end
-    sleep 10
+
+    # Sleep if necessary
+    cycle_duration=Time::now.to_i - time
+    sleep (10 - cycle_duration) if cycle_duration < 10
   end
 end
