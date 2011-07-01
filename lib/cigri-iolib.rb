@@ -529,9 +529,11 @@ class Dataset
   end
 
   # Fill the records array with the given values
+  # values may be a Datarecord array, or an array of field=value
   def fill(values,nodb=true)
     IOLIBLOGGER.debug("Making #{values.length} inserts into #{table}") unless nodb
     values.each do |record_props|
+      record_props=record_props.props if record_props.is_a?(Datarecord)
       if nodb
         record_props[:nodb]=true 
       end
@@ -581,4 +583,14 @@ class Dataset
     delete(table)
     @records=[]
   end
+
+  # Update fields of the dataset into the database
+  def update(values,table=@table,id_column="id")
+    values.each_key do |field|
+      values[field]="'"+values[field].to_s+"'" if not values[field].is_a?(Integer) 
+      sth=@dbh.prepare("UPDATE #{table} SET #{field}=#{values[field]} WHERE #{id_column} in (#{self.ids.join(',')})")
+      sth.execute
+    end
+  end
+
 end

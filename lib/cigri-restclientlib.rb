@@ -131,7 +131,7 @@ module Cigri
             end
           end # rescue (rest error)
         }
-        rescue Timeout::Error # Timeouted
+      rescue Timeout::Error # Timeouted
         message="POST #{base_uri}#{uri} : REST query timeouted!"
         RESTCLIENTLIBLOGGER.warn(message)
         raise Timeout::Error, message
@@ -153,7 +153,7 @@ module Cigri
             end
           end # rescue (rest error)
         }
-        rescue Timeout::Error # Timeouted
+      rescue Timeout::Error # Timeouted
         message="DELETE #{base_uri}#{uri} : REST query timeouted!"
         RESTCLIENTLIBLOGGER.warn(message)
         raise Timeout::Error, message

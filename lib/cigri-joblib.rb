@@ -80,9 +80,14 @@ module Cigri
         # TODO: add walltime, manage grouping,etc...
         JOBLIBLOGGER.debug("Submitting new array job on #{cluster.description["name"]} with #{params.length} parameter(s).")
         j=cluster.submit_job(submission)
-        array_jobs << j["id"]
-        # TODO: error management
-        # TODO: update job state into database, submission_time, etc...
+        if j.nil?
+          JOBLIBLOGGER.error("Unhandled error when submitting jobs on #{cluster.description["name"]}!")
+        else
+          array_jobs << j["id"]
+          submitted_jobs=Jobset.new
+          submitted_jobs.fill(jobs,true)
+          submitted_jobs.update({'state' => 'submitted', 'submission_time' => Time::now()})
+        end
       end
       JOBLIBLOGGER.debug("Remote ids of jobs just sumbitted on #{cluster.description["name"]}: #{array_jobs.join(',')}")
       return array_jobs
