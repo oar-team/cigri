@@ -87,7 +87,7 @@ DROP TYPE IF EXISTS job_state;
 CREATE TYPE job_state as ENUM('to_launch', 'submitted', 'running','remote_waiting','terminated','event');
 CREATE TABLE  jobs (
   id BIGSERIAL NOT NULL,
-  name VARCHAR(255),'
+  name VARCHAR(255),
   campaign_id INTEGER NOT NULL,
   batch_id INTEGER,
   collect_id INTEGER,
