@@ -78,7 +78,7 @@ module Cigri
                        #"directory" => campaign.props[:exec_dir]
                      }
         # TODO: add walltime, manage grouping,etc...
-        JOBLIBLOGGER.debug("Submitting new array job on #{cluster.description["name"]} with #{params.length} parameter(s).")
+        JOBLIBLOGGER.info("Submitting new array job on #{cluster.description["name"]} with #{params.length} parameter(s).")
         j=cluster.submit_job(submission)
         if j.nil?
           JOBLIBLOGGER.error("Unhandled error when submitting jobs on #{cluster.description["name"]}!")
