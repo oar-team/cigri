@@ -82,6 +82,8 @@ Campaigns types
 
 .. include:: doc_jdl.rst
 
+.. include:: doc_api.rst
+
 .. include:: ../../CHANGELOG
 
 .. Local Variables:

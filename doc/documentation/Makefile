@@ -15,7 +15,7 @@ pdf: doc_admin.pdf doc_user.pdf doc_devel.pdf
 
 doc_devel.html: doc_lib.rst doc_modules.rst doc_database.rst ../../CHANGELOG
 
-doc_user.html: doc_jdl.rst ../../CHANGELOG example.json
+doc_user.html: doc_jdl.rst doc_api.rst ../../CHANGELOG example.json
 
 doc_admin.html: 
 
