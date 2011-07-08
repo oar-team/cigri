@@ -5,7 +5,7 @@ require 'dbi'
 require 'pp'
 
 # Configuration for IOLIB
-CONF = Cigri.conf
+CONF ||= Cigri.conf
 # logger to use in IOLIB
 IOLIBLOGGER = Cigri::Logger.new('IOLIB', CONF.get('LOG_FILE'))
 

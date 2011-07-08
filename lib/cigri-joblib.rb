@@ -10,7 +10,7 @@ require 'cigri-conflib'
 require 'cigri-iolib'
 require 'cigri-clusterlib'
 
-CONF=Cigri.conf unless defined? CONF
+CONF ||= Cigri.conf
 JOBLIBLOGGER = Cigri::Logger.new('JOBLIB', CONF.get('LOG_FILE'))
 
 module Cigri

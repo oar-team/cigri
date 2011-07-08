@@ -61,7 +61,7 @@ module Cigri
         when progname.match(/LIB/)
           fore_color = 37
         else
-          fore_color = 30
+          fore_color = 0 # No special color
       end
       "\033[1;#{back_color}m\033[#{fore_color}m#{msg}\033[0m"
     end
