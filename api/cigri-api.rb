@@ -108,13 +108,15 @@ class API < Sinatra::Base
   get '/clusters/:id' do |id|
     headers['Allow'] = 'GET'
     
-    # get all the clusters
-    items  = []
-    cluster = Cigri::ClusterSet.new("id = #{id}").first.description
-    cluster["links"] = [{"rel" => "self", "href" => "/clusters/#{id}"},
-                        {"rel" => "parent", "href" => "/clusters"}]
-    ['api_password', 'api_username'].each { |i| cluster.delete(i)}
-    print(cluster)
+    begin
+      cluster = Cigri::Cluster.new(:id => id).description
+      cluster["links"] = [{"rel" => "self", "href" => "/clusters/#{id}"},
+                          {"rel" => "parent", "href" => "/clusters"}]
+      ['api_password', 'api_username'].each { |i| cluster.delete(i)}
+      print(cluster)
+    rescue Exception => e
+      halt 404, "Cluster with id #{id} does not exist\n"
+    end
   end
   
   # Submit a new campaign
@@ -133,27 +135,27 @@ class API < Sinatra::Base
   end
   
   # Update a campaign
-  put '/camapigns/:id' do |id|
+  put '/campaigns/:id' do |id|
     "Updating campaign #{id}"
   end
   
-  delete '/camapigns/:id' do |id|
+  delete '/campaigns/:id' do |id|
     res = ''
     db_connect() do |dbh|
       res = delete_campaign(dbh, 'root', id)
     end
     if res == nil
-      answer = "Campaign #{id} does not exist"
+      halt 404, "Campaign #{id} does not exist"
     elsif res
       answer = "Campaign #{id} deleted"
     else
+      #TODO erreur de permissions
       answer = "Campaign #{id} does not belong to you"
     end
     answer << "\n"
   end
   
   not_found do 
-    status 404
     format_error( {:code => 404, :title => "Not Found", :message => (response.body || "Not Found")} )
   end
   
@@ -164,5 +166,13 @@ class API < Sinatra::Base
       else
         JSON.generate(output) << "\n"
       end
+    end 
+    
+    def format_error(hash)
+      content_type parser.default_mime_type
+      parser.dump(hash)
+    rescue Exception => e
+      content_type :txt
+      hash.to_a.inspect
     end
 end
