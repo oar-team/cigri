@@ -106,7 +106,15 @@ class API < Sinatra::Base
   
   # Details of a cluster
   get '/clusters/:id' do |id|
-    "Details of cluster #{id}"
+    headers['Allow'] = 'GET'
+    
+    # get all the clusters
+    items  = []
+    cluster = Cigri::ClusterSet.new("id = #{id}").first.description
+    cluster["links"] = [{"rel" => "self", "href" => "/clusters/#{id}"},
+                        {"rel" => "parent", "href" => "/clusters"}]
+    ['api_password', 'api_username'].each { |i| cluster.delete(i)}
+    print(cluster)
   end
   
   # Submit a new campaign
