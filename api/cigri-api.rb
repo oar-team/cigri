@@ -2,6 +2,7 @@ require File.join(File.expand_path(File.dirname(__FILE__)), 'config/environment'
 $LOAD_PATH.unshift(File.join(ENV['CIGRIDIR'], 'lib'))
 
 require 'cigri'
+require 'cigri-clusterlib'
 require 'cigri-joblib'
 require 'jdl-parser'
 require 'json'
@@ -78,11 +79,29 @@ class API < Sinatra::Base
   
   # List all clusters
   get '/clusters' do
-    response[]
-    campaigns = Cigri::Campaigns.new
-    campaigns.get_unfinished
-    #"List of all campaigns"
-    pp campaigns
+    headers['Allow'] = 'GET'
+    # get all the clusters
+    items  = []
+    Cigri::ClusterSet.new.each do |cluster|
+      id = cluster.description['id']
+      items << {
+                  'id' => id,
+                  'name' => cluster.description['name'],
+                  'links' => [
+                    {'rel' => 'self', 'href' => "/clusters/#{id}"},
+                    {'rel' => 'parent', 'href' => '/clusters'}
+                  ]
+               }
+    end
+    output = {
+      "items" => items,
+      "total" => items.length,
+      "links" => [
+          {"rel" => "self", "href" => "/clusters"},
+          {"rel" => "parent", "href" => "/"}
+        ]
+    }
+    print(output)
   end
   
   # Details of a cluster
