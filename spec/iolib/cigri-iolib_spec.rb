@@ -135,6 +135,9 @@ describe 'cigri-iolib' do
     it 'should be able to delete itself from the database' do
       lambda { @job.delete }.should_not raise_error Exception
     end
+    it 'should have nil props for a non existant record' do
+      toto = Datarecord.new('jobs', :id => '-1').props.should == nil
+    end
 
   end #  Datarecord
   

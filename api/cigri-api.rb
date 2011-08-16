@@ -33,23 +33,12 @@ class API < Sinatra::Base
   end
   
   # List all running campaigns (in_treatment or paused)
-  get '/campaigns' do
+  get '/campaigns/?' do
     headers['Allow'] = 'DELETE,GET,POST,PUT'
     #get list of campaign
     items = []
     Cigri::Campaignset.new.get_unfinished.each do |campaign|
-      id = campaign.props[:id]
-      items << {
-                  'id' => id, 
-                  'name' => campaign.props[:name], 
-                  'user' => campaign.props[:grid_user],
-                  'state' =>campaign.props[:state],
-                  'links'=> [
-                    {'rel' => 'self', 'href' => "/campaigns/#{id}"},
-                    {'rel' => 'parent', 'href' => '/campaigns'},
-                    {'rel' => 'collection', 'href' => "/campaigns/#{id}/jobs", 'title' => 'jobs'}
-                  ]
-               }
+      items << format_campaign (campaign)
     end
     output = {
       "items" => items,
@@ -63,22 +52,32 @@ class API < Sinatra::Base
   end
   
   # Details of a campaign
-  get '/campaigns/:id' do |id|
-    "Details of campaign #{id}"
+  get '/campaigns/:id/?' do |id|
+    campaign = Cigri::Campaign.new({:id => id})
+    if campaign.props
+      output = format_campaign(campaign)
+      output["links"] = [{"rel" => "self", "href" => "/campaigns/#{id}"},
+                         {"rel" => "parent", "href" => "/campaigns"},
+                         {"rel" => "jobs", "href" => "/campaigns/#{id}/jobs"}]
+      
+      print(output)
+    else
+      halt 404, "Campaign with id #{id} does not exist"
+    end
   end
   
   # List all jobs of a campaign
-  get '/campaigns/:id/jobs' do |id|
-    "Jobs of campaign #{id}"
+  get '/campaigns/:id/jobs/?' do |id|
+    "Jobs of campaign #{id}\n"
   end
   
   # Details of a job
-  get '/campaigns/:id/jobs/:jobid' do |id, jobid|
+  get '/campaigns/:id/jobs/:jobid/?' do |id, jobid|
     "Job #{jobid} of campaaign #{id}"
   end
   
   # List all clusters
-  get '/clusters' do
+  get '/clusters/?' do
     headers['Allow'] = 'GET'
     # get all the clusters
     items  = []
@@ -105,7 +104,7 @@ class API < Sinatra::Base
   end
   
   # Details of a cluster
-  get '/clusters/:id' do |id|
+  get '/clusters/:id/?' do |id|
     headers['Allow'] = 'GET'
     
     begin
@@ -115,7 +114,7 @@ class API < Sinatra::Base
       ['api_password', 'api_username'].each { |i| cluster.delete(i)}
       print(cluster)
     rescue Exception => e
-      halt 404, "Cluster with id #{id} does not exist\n"
+      halt 404, "Cluster with id #{id} does not exist"
     end
   end
   
@@ -160,6 +159,8 @@ class API < Sinatra::Base
   end
   
   private
+    
+    # Choose the printing method
     def print(output)
       if params.has_key?("pretty")
         JSON.pretty_generate(output) << "\n"
@@ -167,6 +168,26 @@ class API < Sinatra::Base
         JSON.generate(output) << "\n"
       end
     end 
+    
+    # Gets the useful information about a campaign
+    #
+    # == Parameters: 
+    #  - campaign: Cigri::Campaign campaign to format
+    def format_campaign(campaign)
+      id = campaign.props[:id]
+      return {
+               'id' => id, 
+               'name' => campaign.props[:name], 
+               'user' => campaign.props[:grid_user],
+               'state' =>campaign.props[:state],
+               'links'=> [
+                 {'rel' => 'self', 'href' => "/campaigns/#{id}"},
+                 {'rel' => 'parent', 'href' => '/campaigns'},
+                 {'rel' => 'collection', 'href' => "/campaigns/#{id}/jobs", 'title' => 'jobs'}
+               ]
+            }
+    
+    end
     
     def format_error(hash)
       content_type parser.default_mime_type
