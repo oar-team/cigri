@@ -291,7 +291,7 @@ module Cigri
     end
     
     def get_unfinished
-      fill(get("campaigns","*","state != 'terminated'"))
+      fill(get("campaigns","*","state IN ('in_treatment', 'paused')"))
       to_campaigns
     end
  

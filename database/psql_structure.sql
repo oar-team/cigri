@@ -37,7 +37,7 @@ CREATE TABLE users (
 
 DROP TABLE IF EXISTS campaigns;
 DROP TYPE IF EXISTS campaign_state;
-CREATE TYPE campaign_state as ENUM('in_treatment','paused','terminated');
+CREATE TYPE campaign_state as ENUM('cancelled', 'in_treatment','paused','terminated');
 CREATE TABLE campaigns (
   id SERIAL NOT NULL,
   grid_user VARCHAR(255) NOT NULL,
