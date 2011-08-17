@@ -13,10 +13,17 @@ class API < Sinatra::Base
   def initialize(*args)
     super 
     @apiliblogger = Cigri::Logger.new('APILIB', 'STDOUT')#Cigri.conf.get('LOG_FILE'))
+    #@apiliblogger.level = Cigri::Logger::DEBUG
   end
   
   before do
     @apiliblogger.debug("Received request: #{request.inspect}")
+    p request
+    if request.env['REQUEST_METHOD'] == 'POST'
+      if params['action'] == 'delete'
+        request.env['REQUEST_METHOD'] = 'DELETE'
+      end
+    end
   end
   
   # List all links
@@ -162,7 +169,7 @@ class API < Sinatra::Base
     
     # Choose the printing method
     def print(output)
-      if params.has_key?("pretty")
+      if params.has_key?('pretty') && params['pretty'] != 'false'
         JSON.pretty_generate(output) << "\n"
       else
         JSON.generate(output) << "\n"
