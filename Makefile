@@ -15,6 +15,7 @@ WWWUSER=www-data
 WWWGROUP=www-data
 CIGRIUSER=cigri
 CIGRIGROUP=cigri
+USERCMDS=$(patsubst bin/%.rb,%,$(wildcard bin/*.rb))
 
 SPEC_OPTS=--colour --format nested
 
@@ -63,18 +64,14 @@ install-cigri-modules:
 install-cigri-user-cmds:
 	install -d -m 0755 $(DESTDIR)/$(CIGRIDIR)
 	install -d -m 0755 $(DESTDIR)/$(CIGRIDIR)/bin
-	install -m 0755 bin/gridsub.rb $(DESTDIR)/$(CIGRIDIR)/bin/gridsub
-	install -m 0755 tools/sudowrapper.sh $(DESTDIR)/$(BINDIR)/gridsub
-	perl -i -pe "s#CIGRIDIR=.*#CIGRIDIR='$(CIGRIDIR)'\;#;;\
+	@for cmd in $(USERCMDS) ; do \
+		install -m 0755 bin/$$cmd.rb $(DESTDIR)/$(CIGRIDIR)/bin/$$cmd ; \
+		install -m 0755 tools/sudowrapper.sh $(DESTDIR)/$(BINDIR)/$$cmd ; \
+		perl -i -pe "s#CIGRIDIR=.*#CIGRIDIR='$(CIGRIDIR)'\;#;;\
                              s#CIGRIUSER=.*#CIGRIUSER='$(CIGRIUSER)'\;#;;\
-                             s#CMD=.*#CMD='gridsub'\;#;;\
-                                " $(DESTDIR)$(BINDIR)/gridsub
-	install -m 0755 bin/griddel.rb $(DESTDIR)/$(CIGRIDIR)/bin/griddel
-	install -m 0755 tools/sudowrapper.sh $(DESTDIR)/$(BINDIR)/griddel
-	perl -i -pe "s#CIGRIDIR=.*#CIGRIDIR='$(CIGRIDIR)'\;#;;\
-                             s#CIGRIUSER=.*#CIGRIUSER='$(CIGRIUSER)'\;#;;\
-                             s#CMD=.*#CMD='griddel'\;#;;\
-                                " $(DESTDIR)$(BINDIR)/griddel
+                             s#CMD=.*#CMD='$$cmd'\;#;;\
+                               " $(DESTDIR)$(BINDIR)/$$cmd ;\
+	done
 
 clean:
 	rm -rf doc/rdoc doc/yard doc/rcov .yardoc
