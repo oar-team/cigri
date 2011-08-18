@@ -16,18 +16,23 @@ CIGRIHOSTPORT = 9292
 STATES = {'cancelled' => 'C', 'in_treatment' => 'R', 'terminated' => 'T', 'paused' => 'P'}
 STATES.default = '?'
 
+# Options passed to the command
 campaign_id = nil
 username = nil
 optparse = OptionParser.new do |opts|
   opts.banner = 'Usage: gridstat [options] ...'
-  opts.version = "v#{Cigri::VERSION}"
+  
+  opts.on( '-c', '--campaign ID', String, 'Only print informations for campaign ID' ) do |c|
+    campaign_id = c
+  end
   
   opts.on( '-u', '--username USERNAME', String, 'Only print campaigns from USERNAME' ) do |u|
     username = u
   end
-
-  opts.on( '-c', '--campaign ID', String, 'Only print informations for campaign ID' ) do |c|
-    campaign_id = c
+  
+  opts.on( '-v', '--version', 'Display Cigri version' ) do
+    puts "gridstat v#{Cigri::VERSION}"
+    exit
   end
   
   opts.on( '-h', '--help', 'Display this screen' ) do
@@ -53,6 +58,7 @@ else
   campaigns = JSON.parse(request)['items']
 end
 
+# Filter the campaigns on the username
 if username
   campaigns.reject!{|h| h['user'].nil? || h['user'] != username}
 end
