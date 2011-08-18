@@ -7,6 +7,7 @@ require 'cigri-joblib'
 require 'jdl-parser'
 require 'json'
 require 'sinatra'
+require 'time'
 
 class API < Sinatra::Base
   
@@ -181,12 +182,14 @@ class API < Sinatra::Base
     # == Parameters: 
     #  - campaign: Cigri::Campaign campaign to format
     def format_campaign(campaign)
-      id = campaign.props[:id]
+      props = campaign.props
+      id = props[:id]
       return {
                'id' => id, 
-               'name' => campaign.props[:name], 
-               'user' => campaign.props[:grid_user],
-               'state' =>campaign.props[:state],
+               'name' => props[:name], 
+               'user' => props[:grid_user],
+               'state' => props[:state],
+               'submission_time' => Time.parse(props[:submission_time]).to_i,
                'links'=> [
                  {'rel' => 'self', 'href' => "/campaigns/#{id}"},
                  {'rel' => 'parent', 'href' => '/campaigns'},
