@@ -282,17 +282,20 @@ def delete_campaign(dbh, user, id)
   
   dbh['AutoCommit'] = false
   begin
-    #TODO frag jobs !!!!!
-    to_delete = {'campaigns' => 'id', 'bag_of_tasks' => 'campaign_id' ,
-                 'campaign_properties' => 'campaign_id'}
+    #TODO add kill event in event table !!!!!
+    nb = dbh.do("UPDATE jobs SET state = 'event' WHERE campaign_id = #{id} AND state != 'terminated'")
+    IOLIBLOGGER.debug("Adding kill event for #{nb} jobs for campaign #{id}")
+    
     nb = dbh.do("DELETE FROM jobs_to_launch WHERE task_id in (SELECT id from bag_of_tasks where campaign_id = #{id})")
     IOLIBLOGGER.debug("Deleted #{nb} 'jobs_to_launch' for campaign #{id}")
-    to_delete.each do |k, v|
-      nb = dbh.do("DELETE FROM #{k} WHERE #{v} = #{id}")
-      IOLIBLOGGER.debug("Deleted #{nb} rows from table '#{k}' for campaign #{id}")
-    end
+    
+    nb = dbh.do("DELETE FROM bag_of_tasks WHERE campaign_id = #{id}")
+    IOLIBLOGGER.debug("Deleted #{nb} rows from table 'bag_of_tasks' for campaign #{id}")
+    
+    nb = dbh.do("UPDATE campaigns SET state = 'cancelled' where id = #{id}")
+    
     dbh.commit()
-    IOLIBLOGGER.info("Deleted campaign #{id}")
+    IOLIBLOGGER.info("Campaign #{id} cancelled")
   rescue Exception => e
     IOLIBLOGGER.error('Error during campaign deletion, rolling back changes: ' + e.inspect)
     dbh.rollback()
