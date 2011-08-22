@@ -18,6 +18,7 @@ class API < Sinatra::Base
   end
   
   before do
+    content_type :json
     @apiliblogger.debug("Received request: #{request.inspect}")
     if request.env['REQUEST_METHOD'] == 'POST'
       if params['action'] == 'delete'
@@ -136,7 +137,7 @@ class API < Sinatra::Base
     answer = ''
     db_connect() do |dbh|
       begin
-        id = Cigri::JDLParser.save(dbh, request.body.read, request.env['X_HTTP_CIGRI_USER']).to_s
+        id = Cigri::JDLParser.save(dbh, request.body.read, request.env['HTTP_X_CIGRI_USER']).to_s
         answer = {
           "id" => id,
           "links" => [
@@ -163,7 +164,7 @@ class API < Sinatra::Base
     halt 403, "Access denied to delete campaign: not authenticated" unless authorized
     res = ''
     db_connect() do |dbh|
-      res = delete_campaign(dbh, request.env['X_HTTP_CIGRI_USER'], id)
+      res = delete_campaign(dbh, request.env['HTTP_X_CIGRI_USER'], id)
     end
     if res == nil
       not_found "Campaign #{id} does not exist"
@@ -215,11 +216,12 @@ class API < Sinatra::Base
     end
     
     def authorized
-      #TODO authorize
-      request.env['X_HTTP_CIGRI_USER'] = 'API'
-      return true
+      #TODO set the value in apache
+      request.env['HTTP_X_CIGRI_USER'] = 'API'
+      user = request.env['HTTP_X_CIGRI_USER']
+      return user && user != "" && user !~ /^(unknown|null)$/i
     end
-    
+        
     def format_error(hash)
       JSON.generate(hash) << "\n"
       #content_type parser.default_mime_type
