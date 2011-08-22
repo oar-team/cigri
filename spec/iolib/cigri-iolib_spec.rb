@@ -98,13 +98,37 @@ describe 'cigri-iolib' do
       end
     end
     
-    it 'should fail to cancel an non existing campaign' do
+    it 'should fail to cancel a non existing campaign' do
+      db_connect() do |dbh|
+        cancel_campaign(dbh, 'kameleon', -1).should == nil
+      end
+    end
+    
+    it 'should fail to cancel a campaign when the wrong owner asks' do
+      db_connect() do |dbh|
+        id = cigri_submit(dbh, CORRECT_JSON, 'kameleon')
+        cancel_campaign(dbh, 'toto', id).should == false
+        delete_campaign(dbh, 'kameleon', id)
+      end
+    end
+    
+  end # cancel_campaign
+  
+  describe 'delete_campaign' do
+    it 'should delete an existing campaign' do
+      db_connect() do |dbh|
+        id = cigri_submit(dbh, CORRECT_JSON, 'kameleon')
+        delete_campaign(dbh, 'kameleon', id).should == true
+      end
+    end
+    
+    it 'should fail to delete a non existing campaign' do
       db_connect() do |dbh|
         delete_campaign(dbh, 'kameleon', -1).should == nil
       end
     end
     
-    it 'should fail to cancel a campaign when the wrong owner asks' do
+    it 'should fail to delete a campaign when the wrong owner asks' do
       db_connect() do |dbh|
         id = cigri_submit(dbh, CORRECT_JSON, 'kameleon')
         delete_campaign(dbh, 'toto', id).should == false
