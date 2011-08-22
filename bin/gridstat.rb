@@ -68,12 +68,12 @@ end
 url = '/campaigns'
 url << "/#{campaign_id}" if campaign_id
 url << '?pretty' if dump and pretty
+#TODO manage errors (not reachable, campaign not found...)
 request = Net::HTTP.get(CIGRIHOST, url, CIGRIHOSTPORT)
 
 if dump
   puts request
 else
-  #TODO manage errors (not reachable, campaign not found...)
   if campaign_id  
     campaigns = [JSON.parse(request)]
   else

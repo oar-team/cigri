@@ -19,7 +19,6 @@ class API < Sinatra::Base
   
   before do
     @apiliblogger.debug("Received request: #{request.inspect}")
-    p request
     if request.env['REQUEST_METHOD'] == 'POST'
       if params['action'] == 'delete'
         request.env['REQUEST_METHOD'] = 'DELETE'
@@ -29,7 +28,6 @@ class API < Sinatra::Base
   
   # List all links
   get '/' do
-    headers['Allow'] = 'GET'
     output = {
         'links' => [
           {'rel' => 'self', 'href' => '/'},
@@ -37,16 +35,17 @@ class API < Sinatra::Base
           {'rel' => 'clusters', 'href' => '/clusters', 'title' => 'clusters'}
         ]
       }
+    headers['Allow'] = 'GET'
+    status 200
     print(output)
   end
   
   # List all running campaigns (in_treatment or paused)
   get '/campaigns/?' do
-    headers['Allow'] = 'DELETE,GET,POST,PUT'
     #get list of campaign
     items = []
     Cigri::Campaignset.new.get_unfinished.each do |campaign|
-      items << format_campaign (campaign)
+      items << format_campaign(campaign)
     end
     output = {
       "items" => items,
@@ -56,6 +55,8 @@ class API < Sinatra::Base
           {"rel" => "parent", "href" => "/"}
         ]
     }
+    headers['Allow'] = 'GET,POST'
+    status 200
     print(output)
   end
   
@@ -67,11 +68,12 @@ class API < Sinatra::Base
       output["links"] = [{"rel" => "self", "href" => "/campaigns/#{id}"},
                          {"rel" => "parent", "href" => "/campaigns"},
                          {"rel" => "jobs", "href" => "/campaigns/#{id}/jobs"}]
-      
-      print(output)
     else
-      halt 404, "Campaign with id #{id} does not exist"
+      not_found "Campaign with id '#{id}' does not exist"
     end
+    headers['Allow'] = 'DELETE,GET,POST,PUT'
+    status 200
+    print(output)
   end
   
   # List all jobs of a campaign
@@ -86,7 +88,6 @@ class API < Sinatra::Base
   
   # List all clusters
   get '/clusters/?' do
-    headers['Allow'] = 'GET'
     # get all the clusters
     items  = []
     Cigri::ClusterSet.new.each do |cluster|
@@ -108,57 +109,72 @@ class API < Sinatra::Base
           {"rel" => "parent", "href" => "/"}
         ]
     }
+    headers['Allow'] = 'GET'
+    status 200
     print(output)
   end
   
   # Details of a cluster
   get '/clusters/:id/?' do |id|
-    headers['Allow'] = 'GET'
-    
     begin
       cluster = Cigri::Cluster.new(:id => id).description
       cluster["links"] = [{"rel" => "self", "href" => "/clusters/#{id}"},
                           {"rel" => "parent", "href" => "/clusters"}]
       ['api_password', 'api_username'].each { |i| cluster.delete(i)}
-      print(cluster)
     rescue Exception => e
-      halt 404, "Cluster with id #{id} does not exist"
+      not_found "Cluster with id #{id} does not exist"
     end
+    headers['Allow'] = 'GET'
+    status 200
+    print(cluster)
   end
   
   # Submit a new campaign
-  post '/campaigns' do
-    answer = ''
+  post '/campaigns/?' do
+    halt 403, "Access denied to POST campaign: not authenticated" unless authorized
     request.body.rewind
+    answer = ''
     db_connect() do |dbh|
       begin
-        id = Cigri::JDLParser.save(dbh, request.body.read, 'user')
-        answer = id.to_s
+        id = Cigri::JDLParser.save(dbh, request.body.read, request.env['X_HTTP_CIGRI_USER']).to_s
+        answer = {
+          "id" => id,
+          "links" => [
+            {"rel" => "self", "href" => "/campaigns/#{id}"},
+            {"rel" => "parent", "href" => "/campaigns"}
+          ]
+        }
+        status 201
       rescue Exception => e
+        status 400
         answer = e.inspect
       end
     end
-    answer << "\n"
+    headers['Allow'] = 'GET,POST'
+    print(answer)
   end
   
   # Update a campaign
-  put '/campaigns/:id' do |id|
+  put '/campaigns/:id/?' do |id|
     "Updating campaign #{id}"
   end
   
-  delete '/campaigns/:id' do |id|
+  delete '/campaigns/:id/?' do |id|
+    halt 403, "Access denied to delete campaign: not authenticated" unless authorized
     res = ''
     db_connect() do |dbh|
-      res = delete_campaign(dbh, 'root', id)
+      res = delete_campaign(dbh, request.env['X_HTTP_CIGRI_USER'], id)
     end
     if res == nil
-      halt 404, "Campaign #{id} does not exist"
+      not_found "Campaign #{id} does not exist"
     elsif res
+      status 202
       answer = "Campaign #{id} deleted"
     else
-      #TODO erreur de permissions
+      status 403
       answer = "Campaign #{id} does not belong to you"
     end
+    headers['Allow'] = 'DELETE,GET,POST,PUT'
     answer << "\n"
   end
   
@@ -196,14 +212,20 @@ class API < Sinatra::Base
                  {'rel' => 'collection', 'href' => "/campaigns/#{id}/jobs", 'title' => 'jobs'}
                ]
             }
+    end
     
+    def authorized
+      #TODO authorize
+      request.env['X_HTTP_CIGRI_USER'] = 'API'
+      return true
     end
     
     def format_error(hash)
-      content_type parser.default_mime_type
-      parser.dump(hash)
+      JSON.generate(hash) << "\n"
+      #content_type parser.default_mime_type
+      #parser.dump(hash)
     rescue Exception => e
       content_type :txt
-      hash.to_a.inspect
+      hash.to_a.inspect + "\n"
     end
 end
