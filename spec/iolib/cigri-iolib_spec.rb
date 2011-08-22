@@ -107,6 +107,7 @@ describe 'cigri-iolib' do
       db_connect() do |dbh|
         id = cigri_submit(dbh, CORRECT_JSON, 'kameleon')
         delete_campaign(dbh, 'toto', id).should == false
+        delete_campaign(dbh, 'kameleon', id)
       end
     end
     
