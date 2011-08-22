@@ -161,16 +161,16 @@ class API < Sinatra::Base
   end
   
   delete '/campaigns/:id/?' do |id|
-    halt 403, "Access denied to delete campaign: not authenticated" unless authorized
+    halt 403, "Access denied to cancel campaign: not authenticated" unless authorized
     res = ''
     db_connect() do |dbh|
-      res = delete_campaign(dbh, request.env['HTTP_X_CIGRI_USER'], id)
+      res = cancel_campaign(dbh, request.env['HTTP_X_CIGRI_USER'], id)
     end
     if res == nil
       not_found "Campaign #{id} does not exist"
     elsif res
       status 202
-      answer = "Campaign #{id} deleted"
+      answer = "Campaign #{id} cancelled"
     else
       status 403
       answer = "Campaign #{id} does not belong to you"

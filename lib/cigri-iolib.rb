@@ -254,31 +254,24 @@ def select_clusters(dbh,where_clause)
 end
 
 ##
-# Deletes a campaign and all the data linked to it in the database
+# Cancels a campaign and all the data linked to it in the database
 #
 # == Parameters
 # - dbh: database handle
 # - user: user requesting campaign deletion
-# - id: campaign id to delete
+# - id: campaign id to cancel
 #
 # == Returns
-# - true if campaign was deleted successfully
-# - false if the user does not have the rights to delete the campaign
+# - true if campaign was cancelled successfully
+# - false if the user does not have the rights to cancel the campaign
 # - nil if the campaign "id" does not exist
 #
 ##
-def delete_campaign(dbh, user, id)
-  IOLIBLOGGER.debug("Received request to delete campaign '#{id}'")
+def cancel_campaign(dbh, user, id)
+  IOLIBLOGGER.debug("Received request to cancel campaign '#{id}'")
   
-  # Check that the campaign exists and that the user is the right owner
-  row = dbh.select_one("SELECT grid_user FROM campaigns WHERE id = #{id}")
-  if not row
-    IOLIBLOGGER.debug("Asked to delete a campaign that does not exist (#{id})")
-    return nil
-  elsif row[0] != user && user != "root"
-    IOLIBLOGGER.debug("User #{user} asked to delete campaign #{id} belonging to #{row[0]}.")
-    return false
-  end
+  ok = check_rights(dbh, user, id)
+  return ok unless ok
   
   dbh['AutoCommit'] = false
   begin
@@ -302,6 +295,77 @@ def delete_campaign(dbh, user, id)
     raise e
   ensure
     dbh['AutoCommit'] = true
+  end
+  true
+end
+
+##
+# Deletes a campaign and all the data linked to it in the database
+#
+# == Parameters
+# - dbh: database handle
+# - user: user requesting campaign deletion
+# - id: campaign id to delete
+#
+# == Returns
+# - true if campaign was deleted successfully
+# - false if the user does not have the rights to delete the campaign
+# - nil if the campaign "id" does not exist
+#
+##
+def delete_campaign(dbh, user, id)
+  IOLIBLOGGER.debug("Received request to delete campaign '#{id}'")
+  
+  ok = check_rights(dbh, user, id)
+  return ok unless ok
+  
+  dbh['AutoCommit'] = false
+  begin
+    to_delete = {'campaigns' => 'id', 'bag_of_tasks' => 'campaign_id',
+                 'campaign_properties' => 'campaign_id', 'jobs' =>'campaign_id'} 
+    
+    nb = dbh.do("DELETE FROM jobs_to_launch WHERE task_id in (SELECT id from bag_of_tasks where campaign_id = #{id})")
+    IOLIBLOGGER.debug("Deleted #{nb} 'jobs_to_launch' for campaign #{id}")
+    
+    to_delete.each do |k, v|
+      nb = dbh.do("DELETE FROM #{k} WHERE #{v} = #{id}")
+      IOLIBLOGGER.debug("Deleted #{nb} rows from table '#{k}' for campaign·#{id}")
+    end 
+    
+    dbh.commit()
+    IOLIBLOGGER.info("Campaign #{id} deleted")
+  rescue Exception => e
+    IOLIBLOGGER.error('Error during campaign deletion, rolling back changes: ' + e.inspect)
+    dbh.rollback()
+    raise e
+  ensure
+    dbh['AutoCommit'] = true
+  end
+  true
+end
+
+##
+# Check that the campaign exists and that the user is the right owner
+#
+# == Parameters
+# - dbh: database handle
+# - user: user requesting campaign deletion
+# - id: campaign id to check
+#
+# == Returns
+# - true if campaign user is the owner of campaign id
+# - false if the user does not have the rights to act on the campaign
+# - nil if the campaign "id" does not exist
+#
+##
+def check_rights(dbh, user, id)
+  row = dbh.select_one("SELECT grid_user FROM campaigns WHERE id = #{id}")
+  if not row
+    IOLIBLOGGER.warn("Asked to check rights on a campaign that does not exist (#{id})")
+    return nil
+  elsif row[0] != user && user != "root"
+    IOLIBLOGGER.warn("User #{user} asked to check rights for campaign '#{id}' belonging to #{row[0]}.")
+    return false
   end
   true
 end
