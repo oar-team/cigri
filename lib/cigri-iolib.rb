@@ -407,7 +407,7 @@ def check_rights(dbh, user, id)
     IOLIBLOGGER.warn("Asked to check rights on a campaign that does not exist (#{id})")
     return nil
   elsif row[0] != user && user != "root"
-    IOLIBLOGGER.warn("User #{user} asked to check rights for campaign '#{id}' belonging to #{row[0]}.")
+    IOLIBLOGGER.warn("User #{user} asked to modify campaign '#{id}' belonging to #{row[0]}.")
     return false
   end
   true

@@ -39,7 +39,7 @@ class API < Sinatra::Base
           {'rel' => 'clusters', 'href' => '/clusters', 'title' => 'clusters'}
         ]
       }
-    headers['Allow'] = 'GET'
+    response['Allow'] = 'GET'
     status 200
     print(output)
   end
@@ -59,7 +59,7 @@ class API < Sinatra::Base
           {"rel" => "parent", "href" => "/"}
         ]
     }
-    headers['Allow'] = 'GET,POST'
+    response['Allow'] = 'GET,POST'
     status 200
     print(output)
   end
@@ -67,7 +67,7 @@ class API < Sinatra::Base
   # Details of a campaign
   get '/campaigns/:id/?' do |id|
     output = get_formated_campaign(id)
-    headers['Allow'] = 'DELETE,GET,POST,PUT'
+    response['Allow'] = 'DELETE,GET,POST,PUT'
     status 200
     print(output)
   end
@@ -105,7 +105,7 @@ class API < Sinatra::Base
           {"rel" => "parent", "href" => "/"}
         ]
     }
-    headers['Allow'] = 'GET'
+    response['Allow'] = 'GET'
     status 200
     print(output)
   end
@@ -120,14 +120,14 @@ class API < Sinatra::Base
     rescue Exception => e
       not_found "Cluster with id #{id} does not exist"
     end
-    headers['Allow'] = 'GET'
+    response['Allow'] = 'GET'
     status 200
     print(cluster)
   end
   
   # Submit a new campaign
   post '/campaigns/?' do
-    halt 403, "Access denied to POST campaign: not authenticated" unless authorized
+    protected!
     request.body.rewind
     answer = ''
     db_connect() do |dbh|
@@ -146,13 +146,13 @@ class API < Sinatra::Base
         answer = e.inspect
       end
     end
-    headers['Allow'] = 'GET,POST'
+    response['Allow'] = 'GET,POST'
     print(answer)
   end
   
   # Update a campaign
   put '/campaigns/:id/?' do |id|
-    halt 403, "Access denied to update campaign #{id}: not authenticated" unless authorized
+    protected!
     
     to_update = {}
     to_update['name'] = params['name'].to_s if params['name']
@@ -181,15 +181,15 @@ class API < Sinatra::Base
       output = get_formated_campaign(id)
     else
       status 403
-      output = "Campaign #{id} does not belong to you"
+      output = {:status => 403, :title => "Forbidden", :message => "Campaign #{id} does not belong to you"}
     end
     
-    headers['Allow'] = 'DELETE,GET,POST,PUT'
+    response['Allow'] = 'DELETE,GET,POST,PUT'
     print(output)
   end
   
   delete '/campaigns/:id/?' do |id|
-    halt 403, "Access denied to cancel campaign: not authenticated" unless authorized
+    protected!
     res = nil
     db_connect() do |dbh|
       res = cancel_campaign(dbh, request.env['HTTP_X_CIGRI_USER'], id)
@@ -198,31 +198,38 @@ class API < Sinatra::Base
       not_found "Campaign #{id} does not exist"
     elsif res
       status 202
-      answer = "Campaign #{id} cancelled"
+      output = {:status => 202, :title => "Accepted", :message => "Campaign #{id} cancelled"}
     else
       status 403
-      answer = "Campaign #{id} does not belong to you"
+      output = {:status => 403, :title => "Forbidden", :message => "Campaign #{id} does not belong to you"}
     end
-    headers['Allow'] = 'DELETE,GET,POST,PUT'
-    answer << "\n"
+    
+    response['Allow'] = 'DELETE,GET,POST,PUT'
+    print(output)
   end
   
   not_found do 
-    format_error( {:code => 404, :title => "Not Found", :message => (response.body || "Not Found")} )
+    print( {:status => 404, :title => "Not Found", :message => (response.body || "Not Found")} )
   end
-  
+    
   private
     
-    # Choose the printing method
-    def print(output)
+    # Prints a json into text and use a pretty print function if pretty is given to URL
+    #
+    # == Parameters
+    #  - json: json to print. 
+    def print(json)
       if params.has_key?('pretty') && params['pretty'] != 'false'
-        JSON.pretty_generate(output) << "\n"
+        JSON.pretty_generate(json) << "\n"
       else
-        JSON.generate(output) << "\n"
+        JSON.generate(json) << "\n"
       end
     end 
     
-    # gets a campaign from the database and format it
+    # Gets a campaign from the database and format it
+    #
+    # == Parameters: 
+    #  - id: id if the campaign to get
     def get_formated_campaign(id)
       campaign = Cigri::Campaign.new({:id => id})
       not_found "Campaign with id '#{id}' does not exist" unless campaign.props
@@ -241,33 +248,29 @@ class API < Sinatra::Base
     def format_campaign(campaign)
       props = campaign.props
       id = props[:id]
-      return {
-               'id' => id, 
-               'name' => props[:name], 
-               'user' => props[:grid_user],
-               'state' => props[:state],
-               'submission_time' => Time.parse(props[:submission_time]).to_i,
-               'links'=> [
-                 {'rel' => 'self', 'href' => "/campaigns/#{id}"},
-                 {'rel' => 'parent', 'href' => '/campaigns'},
-                 {'rel' => 'collection', 'href' => "/campaigns/#{id}/jobs", 'title' => 'jobs'}
-               ]
-            }
+      {'id' => id, 
+       'name' => props[:name], 
+       'user' => props[:grid_user],
+       'state' => props[:state],
+       'submission_time' => Time.parse(props[:submission_time]).to_i,
+       'links'=> [
+         {'rel' => 'self', 'href' => "/campaigns/#{id}"},
+         {'rel' => 'parent', 'href' => '/campaigns'},
+         {'rel' => 'collection', 'href' => "/campaigns/#{id}/jobs", 'title' => 'jobs'}
+       ]}
     end
     
-    def authorized
+    def protected!
+      unless authorized?
+        response['WWW-Authenticate'] = %(Basic realm="Restricted Area")
+        halt 401, "Access denied to cancel campaign: not authenticated"
+      end
+    end
+    
+    def authorized?
       #TODO set the value in apache
       request.env['HTTP_X_CIGRI_USER'] = 'API'
       user = request.env['HTTP_X_CIGRI_USER']
       return user && user != "" && user !~ /^(unknown|null)$/i
-    end
-        
-    def format_error(hash)
-      JSON.generate(hash) << "\n"
-      #content_type parser.default_mime_type
-      #parser.dump(hash)
-    rescue Exception => e
-      content_type :txt
-      hash.to_a.inspect + "\n"
     end
 end
