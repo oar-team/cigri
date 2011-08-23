@@ -14,7 +14,7 @@ class API < Sinatra::Base
   def initialize(*args)
     super 
     @apiliblogger = Cigri::Logger.new('APILIB', 'STDOUT')#Cigri.conf.get('LOG_FILE'))
-    #@apiliblogger.level = Cigri::Logger::DEBUG
+    @apiliblogger.level = Cigri::Logger::DEBUG
   end
   
   before do
@@ -23,6 +23,9 @@ class API < Sinatra::Base
     if request.env['REQUEST_METHOD'] == 'POST'
       if params['action'] == 'delete'
         request.env['REQUEST_METHOD'] = 'DELETE'
+      elsif
+        params['action'] == 'update'
+        request.env['REQUEST_METHOD'] = 'PUT'
       end
     end
   end
@@ -63,15 +66,7 @@ class API < Sinatra::Base
   
   # Details of a campaign
   get '/campaigns/:id/?' do |id|
-    campaign = Cigri::Campaign.new({:id => id})
-    if campaign.props
-      output = format_campaign(campaign)
-      output["links"] = [{"rel" => "self", "href" => "/campaigns/#{id}"},
-                         {"rel" => "parent", "href" => "/campaigns"},
-                         {"rel" => "jobs", "href" => "/campaigns/#{id}/jobs"}]
-    else
-      not_found "Campaign with id '#{id}' does not exist"
-    end
+    output = get_formated_campaign(id)
     headers['Allow'] = 'DELETE,GET,POST,PUT'
     status 200
     print(output)
@@ -157,12 +152,45 @@ class API < Sinatra::Base
   
   # Update a campaign
   put '/campaigns/:id/?' do |id|
-    "Updating campaign #{id}"
+    halt 403, "Access denied to update campaign #{id}: not authenticated" unless authorized
+    
+    to_update = {}
+    to_update['name'] = params['name'].to_s if params['name']
+    if params['state']
+      ok_states = %w{paused in_treatment}
+      if ok_states.find_index(params['state'])
+        to_update['state'] = params['state']
+      else
+        halt 400, "Error updating campaign #{id}: state chould be in ( " << ok_states.join(', ') << ")\n"
+      end
+    end
+    
+    res = nil
+    db_connect() do |dbh|
+      begin
+        res = update_campaign(dbh, request.env['HTTP_X_CIGRI_USER'], id, to_update)
+      rescue Exception => e
+        halt 400, "Error updating campaign #{id}: #{e}"
+      end
+    end
+    
+    if res == nil
+      not_found "Campaign #{id} does not exist"
+    elsif res
+      status 202
+      output = get_formated_campaign(id)
+    else
+      status 403
+      output = "Campaign #{id} does not belong to you"
+    end
+    
+    headers['Allow'] = 'DELETE,GET,POST,PUT'
+    print(output)
   end
   
   delete '/campaigns/:id/?' do |id|
     halt 403, "Access denied to cancel campaign: not authenticated" unless authorized
-    res = ''
+    res = nil
     db_connect() do |dbh|
       res = cancel_campaign(dbh, request.env['HTTP_X_CIGRI_USER'], id)
     end
@@ -193,6 +221,18 @@ class API < Sinatra::Base
         JSON.generate(output) << "\n"
       end
     end 
+    
+    # gets a campaign from the database and format it
+    def get_formated_campaign(id)
+      campaign = Cigri::Campaign.new({:id => id})
+      not_found "Campaign with id '#{id}' does not exist" unless campaign.props
+
+      output = format_campaign(campaign)
+      output["links"] = [{"rel" => "self", "href" => "/campaigns/#{id}"},
+                         {"rel" => "parent", "href" => "/campaigns"},
+                         {"rel" => "jobs", "href" => "/campaigns/#{id}/jobs"}]
+      output
+    end
     
     # Gets the useful information about a campaign
     #

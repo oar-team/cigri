@@ -345,6 +345,49 @@ def delete_campaign(dbh, user, id)
 end
 
 ##
+# Updates a campaign 
+#
+# == Parameters
+# - dbh: database handle
+# - user: user requesting campaign deletion
+# - id: campaign id to delete
+# - hash: parameters to update
+#
+# == Returns
+# - true if campaign was deleted successfully
+# - false if the user does not have the rights to delete the campaign
+# - nil if the campaign "id" does not exist
+#
+##
+#TODO spec !!!!
+def update_campaign(dbh, user, id, hash)
+  IOLIBLOGGER.debug("Received request to update campaign '#{id}'")
+  
+  ok = check_rights(dbh, user, id)
+  return ok unless ok
+  
+  if hash.size > 0
+    query = 'UPDATE campaigns SET '
+    sep = false
+    hash.each do |k, v|
+      query << ', ' if sep
+      sep = true
+      query << "#{k} = '#{v}' "
+      IOLIBLOGGER.debug("Updating #{k} = '#{v}' for campaign #{id}")
+    end
+    query << "WHERE id = #{id}"
+    begin 
+      dbh.do(query)
+      IOLIBLOGGER.info("Campaign #{id} updated")
+    rescue Exception => e
+      IOLIBLOGGER.error('Error during campaign update, rolling back changes: ' + e.inspect)
+      raise e
+    end
+  end
+  true
+end
+
+##
 # Check that the campaign exists and that the user is the right owner
 #
 # == Parameters
