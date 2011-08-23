@@ -64,11 +64,12 @@ end
 def last_inserted_id(dbh, seqname = '')
   db = CONF.get('DATABASE_TYPE')
   if db.eql? 'Pg'
-    row = dbh.select_one("SELECT currval('#{seqname}')")
+    query = "SELECT currval(?)"
+    row = dbh.select_one(query, seqname)
   elsif db.eql? 'Mysql'
     row = dbh.select_one("SELECT LAST_INSERT_ID()")
   else
-    raise Cigri::Exception, "impossible to retreive last inserted id: database type \"#{db}\" is not supported"
+    raise Cigri::Exception, "Impossible to retreive last inserted id: database type \"#{db}\" is not supported"
   end
   return row[0]
 end
@@ -161,7 +162,8 @@ end
 # - nil if cluster not found
 ##
 def get_cluster_id(dbh, cluster_name)
-  row = dbh.select_one("SELECT id FROM clusters WHERE name = '#{cluster_name}'")
+  query = "SELECT id FROM clusters WHERE name = ?"
+  row = dbh.select_one(query, cluster_name)
   return row[0] if row
   nil
 end
@@ -178,7 +180,10 @@ end
 ##
 def get_clusters_ids(dbh, clusters_names)
   res = {}
-  dbh.select_all("SELECT name, id FROM clusters WHERE name IN ('#{clusters_names.join('\',\'')}')"){|row| res[row['name']] = row['id']}
+  if clusters_names.length > 0
+    query = 'SELECT name, id FROM clusters WHERE name IN (?' << ',?' * (clusters_names.length - 1) << ')'
+    dbh.select_all(query, *clusters_names){|row| res[row['name']] = row['id']}
+  end
   res
 end
 
@@ -222,14 +227,15 @@ end
 # - hash
 ##
 def get_cluster(dbh,id)
-  sth = dbh.execute("SELECT * FROM clusters WHERE id=#{id}")
+  query = "SELECT * FROM clusters WHERE id = ?"
+  sth = dbh.execute(query, id)
   res=sth.fetch_hash
+  sth.finish
   if res.nil?
     IOLIBLOGGER.error("No cluster with id=#{id}!")
     raise Cigri::Exception, "No cluster with id=#{id}!"
-  else
-    res
   end
+  res
 end
 
 ##
@@ -242,15 +248,13 @@ end
 # == Returns
 # - array of cluster ids
 ##
-def select_clusters(dbh,where_clause)
-  res=[]
+def select_clusters(dbh,where_clause=nil)
   if where_clause.nil?
     where_clause=""
   else
     where_clause="WHERE #{where_clause}"
   end 
-  dbh.select_all("SELECT id FROM clusters #{where_clause}"){|row| res.push(row["id"])}
-  res
+  dbh.select_all("SELECT id FROM clusters #{where_clause}").flatten!
 end
 
 ##
@@ -276,16 +280,20 @@ def cancel_campaign(dbh, user, id)
   dbh['AutoCommit'] = false
   begin
     #TODO add kill event in event table !!!!!
-    nb = dbh.do("UPDATE jobs SET state = 'event' WHERE campaign_id = #{id} AND state != 'terminated'")
+    query = "UPDATE jobs SET state = 'event' WHERE campaign_id = ? AND state != 'terminated'"
+    nb = dbh.do(query, id)
     IOLIBLOGGER.debug("Adding kill event for #{nb} jobs for campaign #{id}")
     
-    nb = dbh.do("DELETE FROM jobs_to_launch WHERE task_id in (SELECT id from bag_of_tasks where campaign_id = #{id})")
+    query = "DELETE FROM jobs_to_launch WHERE task_id in (SELECT id from bag_of_tasks where campaign_id = ?)"
+    nb = dbh.do(query, id)
     IOLIBLOGGER.debug("Deleted #{nb} 'jobs_to_launch' for campaign #{id}")
     
-    nb = dbh.do("DELETE FROM bag_of_tasks WHERE campaign_id = #{id}")
+    query = "DELETE FROM bag_of_tasks WHERE campaign_id = ?"
+    nb = dbh.do(query, id)
     IOLIBLOGGER.debug("Deleted #{nb} rows from table 'bag_of_tasks' for campaign #{id}")
     
-    nb = dbh.do("UPDATE campaigns SET state = 'cancelled' where id = #{id}")
+    query = "UPDATE campaigns SET state = 'cancelled' where id = ?"
+    nb = dbh.do(query, id)
     
     dbh.commit()
     IOLIBLOGGER.info("Campaign #{id} cancelled")
@@ -324,11 +332,11 @@ def delete_campaign(dbh, user, id)
     to_delete = {'campaigns' => 'id', 'bag_of_tasks' => 'campaign_id',
                  'campaign_properties' => 'campaign_id', 'jobs' =>'campaign_id'} 
     
-    nb = dbh.do("DELETE FROM jobs_to_launch WHERE task_id in (SELECT id from bag_of_tasks where campaign_id = #{id})")
+    nb = dbh.do("DELETE FROM jobs_to_launch WHERE task_id in (SELECT id from bag_of_tasks where campaign_id = ?)", id)
     IOLIBLOGGER.debug("Deleted #{nb} 'jobs_to_launch' for campaign #{id}")
     
     to_delete.each do |k, v|
-      nb = dbh.do("DELETE FROM #{k} WHERE #{v} = #{id}")
+      nb = dbh.do("DELETE FROM #{k} WHERE #{v} = ?", id)
       IOLIBLOGGER.debug("Deleted #{nb} rows from table '#{k}' for campaign·#{id}")
     end 
     
@@ -375,9 +383,9 @@ def update_campaign(dbh, user, id, hash)
       query << "#{k} = '#{v}' "
       IOLIBLOGGER.debug("Updating #{k} = '#{v}' for campaign #{id}")
     end
-    query << "WHERE id = #{id}"
+    query << "WHERE id = ?"
     begin 
-      dbh.do(query)
+      dbh.do(query, id)
       IOLIBLOGGER.info("Campaign #{id} updated")
     rescue Exception => e
       IOLIBLOGGER.error('Error during campaign update, rolling back changes: ' + e.inspect)
@@ -402,7 +410,7 @@ end
 #
 ##
 def check_rights(dbh, user, id)
-  row = dbh.select_one("SELECT grid_user FROM campaigns WHERE id = #{id}")
+  row = dbh.select_one("SELECT grid_user FROM campaigns WHERE id = ?", id)
   if not row
     IOLIBLOGGER.warn("Asked to check rights on a campaign that does not exist (#{id})")
     return nil
@@ -438,7 +446,7 @@ end
 #
 ##
 def get_campaign_properties(dbh,id)
-  dbh.select_all("SELECT * FROM campaign_properties WHERE campaign_id = #{id}")
+  dbh.select_all("SELECT * FROM campaign_properties WHERE campaign_id = ?", id)
 end
 
 
@@ -454,10 +462,9 @@ end
 #
 ##
 def get_campaign_remaining_tasks_number(dbh,id)
-  row=dbh.select_one("SELECT COUNT(*) FROM bag_of_tasks 
+  dbh.select_one("SELECT COUNT(*) FROM bag_of_tasks 
                                   LEFT JOIN jobs_to_launch ON bag_of_tasks.id=task_id
-                                  WHERE task_id is null AND campaign_id=#{id};")
-  return row[0]
+                                  WHERE task_id is null AND campaign_id=?", id)[0]
 end
 
 ##
@@ -472,21 +479,13 @@ end
 # Array of ids
 #
 ##
-def get_tasks_for_campaign(dbh,id,number)
-  tasks=[]
-  if not number.nil?
-    limit="LIMIT #{number}"
-  else
-    limit=""
-  end
+def get_tasks_for_campaign(dbh,id,number=nil)
+  limit = number ? "LIMIT #{number}" : ""
   dbh.select_all("SELECT bag_of_tasks.id FROM bag_of_tasks 
-                            LEFT JOIN jobs_to_launch ON bag_of_tasks.id=task_id
-                            WHERE task_id is null AND campaign_id=#{id}
-                            ORDER by bag_of_tasks.id
-                            #{limit};").each do |row|
-    tasks << row["id"]
-  end
-  return tasks
+                         LEFT JOIN jobs_to_launch ON bag_of_tasks.id=task_id
+                         WHERE task_id is null AND campaign_id=?
+                         ORDER by bag_of_tasks.id
+                         #{limit}", id).flatten!
 end
 
 ##
