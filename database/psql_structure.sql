@@ -46,6 +46,7 @@ CREATE TABLE campaigns (
   name VARCHAR(255),
   submission_time TIMESTAMP,
   completion_time TIMESTAMP,
+  nb_jobs INT,
   jdl text,
   PRIMARY KEY (id)
 );

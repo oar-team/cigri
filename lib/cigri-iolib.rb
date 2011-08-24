@@ -97,35 +97,33 @@ def cigri_submit(dbh, json, user)
   begin
     #INSERT INTO campaigns
     query = 'INSERT into campaigns 
-             (grid_user, state, type, name, submission_time, jdl)
-             VALUES (?, \'in_treatment\', ?, ?, NOW(),  ?)'
-    dbh.do(query, user, json['jobs_type'], json['name'], json.to_json)
+             (grid_user, state, type, name, submission_time, nb_jobs, jdl)
+             VALUES (?, \'in_treatment\', ?, ?, NOW(), ?, ?)'
+    nb_jobs = json['params'] ? json['params'].length : -1
+    dbh.do(query, user, json['jobs_type'], json['name'], nb_jobs, json.to_json)
     
     campaign_id = last_inserted_id(dbh, 'campaigns_id_seq')
+    clusters = get_clusters_ids(dbh, json['clusters'].keys)
     
     #add campaigns properties
     query = 'INSERT INTO campaign_properties 
              (name, value, cluster_id, campaign_id)
              VALUES (?, ?, ?, ?)'
     at_least_one_cluster = false
-    dbh.prepare("SELECT id FROM clusters where name = ?") do |sth|
-      json['clusters'].each_key do |cluster|
-        sth.execute(cluster)
-        cluster_id = sth.first
-        if cluster_id
-          cluster_id = cluster_id[0]
-          at_least_one_cluster = true
-          %w{checkpointing_type dimensional_grouping epilogue exec_file 
-            output_destination output_file output_gathering_method prologue 
-            properties resources temporal_grouping walltime}.each do |prop|
+    json['clusters'].each_key do |cluster|
+      cluster_id = clusters[cluster]
+      if cluster_id
+        at_least_one_cluster = true
+        %w{checkpointing_type dimensional_grouping epilogue exec_file 
+          output_destination output_file output_gathering_method prologue 
+          properties resources temporal_grouping walltime}.each do |prop|
             dbh.do(query, prop, json['clusters'][cluster][prop], cluster_id, campaign_id) if json['clusters'][cluster][prop]
-          end
-        else
-          IOLIBLOGGER.warn("Cluster '#{cluster}' unknown, campaign_property not added for this cluster")
         end
+      else
+        IOLIBLOGGER.warn("Cluster '#{cluster}' unknown, campaign_property not added for this cluster")
       end
-      raise Cigri::Exception, "No clusters usable for the campaign" unless at_least_one_cluster
     end
+    raise Cigri::Exception, "No clusters usable for the campaign" unless at_least_one_cluster
     
     #create bag_of_tasks
     unless json['jobs_type'].eql?('desktop_computing')
@@ -140,7 +138,6 @@ def cigri_submit(dbh, json, user)
     end
     
     dbh.commit()
-    return campaign_id
   rescue Exception => e
     IOLIBLOGGER.error('Error running campaign submission: ' + e.inspect)
     dbh.rollback()
@@ -148,6 +145,7 @@ def cigri_submit(dbh, json, user)
   ensure
     dbh['AutoCommit'] = true
   end
+  return campaign_id
 end
 
 ##
