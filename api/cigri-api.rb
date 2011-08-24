@@ -253,6 +253,8 @@ class API < Sinatra::Base
        'user' => props[:grid_user],
        'state' => props[:state],
        'submission_time' => Time.parse(props[:submission_time]).to_i,
+       'total_jobs' => props[:nb_jobs],
+       'finished_jobs' => campaign.completed_tasks,
        'links'=> [
          {'rel' => 'self', 'href' => "/campaigns/#{id}"},
          {'rel' => 'parent', 'href' => '/campaigns'},

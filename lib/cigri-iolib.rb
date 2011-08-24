@@ -42,7 +42,7 @@ def db_connect()
                     "#{CONF.get('DATABASE_USER_PASSWORD')}")
   return dbh unless block_given?
   yield dbh
-  dbh.disconnect()
+  dbh.disconnect() if dbh
 end
 
 
@@ -438,9 +438,10 @@ end
 #
 # == Parameters
 # - dbh: dababase handle
+# - id: campaign id
 #
 # == Returns
-# Array of campaigns
+# Array of properties
 #
 ##
 def get_campaign_properties(dbh,id)
@@ -463,6 +464,22 @@ def get_campaign_remaining_tasks_number(dbh,id)
   dbh.select_one("SELECT COUNT(*) FROM bag_of_tasks 
                                   LEFT JOIN jobs_to_launch ON bag_of_tasks.id=task_id
                                   WHERE task_id is null AND campaign_id=?", id)[0]
+end
+
+##
+# Returns the number of completed tasks for a given campaign
+#
+# == Parameters
+# - dbh: dababase handle
+# - id: campaign id
+#
+# == Returns
+# Number of tasks (integer)
+#
+##
+def get_campaign_nb_finished_jobs(dbh,id)
+dbh.select_one("SELECT COUNT(*) FROM jobs
+                                WHERE campaign_id = ? AND state = 'terminated'", id)[0]
 end
 
 ##

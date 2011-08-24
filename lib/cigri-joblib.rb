@@ -225,7 +225,7 @@ module Cigri
     #     {"exec_file"=>"$HOME/cigri-3/tmp/test1.sh"}]}
     #
     def get_clusters
-      dbh=db_connect() do |dbh|
+      db_connect() do |dbh|
         get_campaign_properties(dbh,id).each do |row|
           cluster_id=row["cluster_id"]
           @clusters[cluster_id]={} if @clusters[cluster_id].nil?
@@ -234,12 +234,20 @@ module Cigri
       end
     end
 
-    # Return false if the campaign has no more tasks to run
+    # Return nil if the campaign has no more tasks to run
     # Else, returns the number of tasks remaining
     def have_remaining_tasks?
-      dbh=db_connect() do |dbh|
+      db_connect() do |dbh|
         count=get_campaign_remaining_tasks_number(dbh,id)
         return count if count != 0
+      end
+      nil
+    end
+    
+    # Return the number of completed tasks
+    def completed_tasks
+      db_connect() do |dbh|
+        return get_campaign_nb_finished_jobs(dbh,id)
       end
     end
 
@@ -290,15 +298,12 @@ module Cigri
       to_campaigns
     end
     
+    # Fill the campaign set with unfinished campaigns (paused or running)
     def get_unfinished
       fill(get("campaigns","*","state IN ('in_treatment', 'paused')"))
       to_campaigns
     end
  
   end # Class Campaignset
-
-
-
-
-
+  
 end # module Cigri
