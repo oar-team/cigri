@@ -213,6 +213,7 @@ module Cigri
     def initialize(props={})
       super("campaigns",props)
       @clusters={}
+      props[:finished_jobs] = completed_tasks unless props[:bypass_finished_jobs]
     end
 
     # Fills the @cluster hash with the properties (JDL) of this campaign
@@ -270,8 +271,8 @@ module Cigri
   class Campaignset < Dataset
 
     # Creates the new campaignset
-    def initialize(props={})
-      super("campaigns",props)
+    def initialize(props = {})
+      super("campaigns", props)
       to_campaigns
     end
 
@@ -283,11 +284,15 @@ module Cigri
     # Convert the datarecords objects to campaign objects
     # couldn't find someting similar to "extend Module"...
     def to_campaigns
+      finished_jobs = get_campaigns_nb_finished_jobs(@dbh, ids)
       campaigns=[]
       @records.each do |record|
-        props=record.props
-        props[:nodb]=true
-        campaigns << Campaign.new(props)
+        props = record.props
+        props[:nodb] = true
+        props[:bypass_finished_jobs] = true
+        campaign = Campaign.new(props)
+        campaign.props[:finished_jobs] = finished_jobs[campaign.id]
+        campaigns << campaign
       end
       @records = campaigns
     end

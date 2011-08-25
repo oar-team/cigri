@@ -482,6 +482,18 @@ dbh.select_one("SELECT COUNT(*) FROM jobs
                                 WHERE campaign_id = ? AND state = 'terminated'", id)[0]
 end
 
+def get_campaigns_nb_finished_jobs(dbh, ids)
+  result = Hash.new(0)
+  return result if ids.length < 1
+  dbh.execute("SELECT campaign_id, COUNT(*) 
+              FROM jobs
+              WHERE campaign_id in ('" << ids.join('\',\'') << "') AND state = 'terminated'
+              GROUP BY campaign_id").each do |row|
+    result[row[0]] = row[1]
+  end
+  result
+end
+
 ##
 # Returns "number" tasks of campaign "id"
 #
@@ -627,7 +639,7 @@ class Datarecord
     db_connect() do |dbh|
       values.each do |field,value|
         query = "UPDATE #{@table} SET #{field} = ? WHERE #{@index} = ?"
-        dbh.do (query, value, id)
+        dbh.do(query, value, id)
       end
     end
   end
