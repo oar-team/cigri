@@ -248,12 +248,12 @@ class API < Sinatra::Base
     def format_campaign(campaign)
       props = campaign.props
       id = props[:id]
-      {'id' => id, 
+      {'id' => id.to_i, 
        'name' => props[:name], 
        'user' => props[:grid_user],
        'state' => props[:state],
        'submission_time' => Time.parse(props[:submission_time]).to_i,
-       'total_jobs' => props[:nb_jobs],
+       'total_jobs' => props[:nb_jobs].to_i,
        'finished_jobs' => props[:finished_jobs],
        'links'=> [
          {'rel' => 'self', 'href' => "/campaigns/#{id}"},

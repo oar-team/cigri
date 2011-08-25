@@ -88,12 +88,17 @@ else
   puts "Campaign id Name                User             Submission time     S Progress"
   puts '----------- ------------------- ---------------- ------------------- - --------'
   campaigns.each do |campaign|
-    printf("%-11d %-19s %-16s %-19s %s %s\n", 
+    begin 
+      progress = campaign['finished_jobs'] * 100.0 / campaign['total_jobs']
+    rescue ZeroDivisionError => e
+      progress = nil
+    end
+    printf("%-11d %-19s %-16s %-19s %s %7.2f%\n", 
             campaign['id'], 
             campaign['name'][0..18], 
             campaign['user'][0..15], 
             Time.at(campaign['submission_time']).strftime('%Y-%m-%d %H-%M-%S'), 
             STATES[campaign['state']], 
-            'Progress');
+            progress);
   end
 end
