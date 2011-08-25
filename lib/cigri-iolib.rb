@@ -591,8 +591,7 @@ class Datarecord
   def get_record(table,id,what)
     dbh=db_connect()
     what="*" if what.nil?
-    sth=dbh.prepare("SELECT #{what} FROM #{table} WHERE #{@index}=#{id}")
-    sth.execute
+    sth=dbh.execute("SELECT #{what} FROM #{table} WHERE #{@index}=#{id}")
     # The inject part is to convert string keys into symbols to optimize memory
     record=sth.fetch_hash
     dbh.disconnect
@@ -614,8 +613,7 @@ class Datarecord
   # Delete the record from the database
   def delete
     db_connect() do |dbh|
-      sth=dbh.prepare("DELETE FROM #{@table} where #{@index}=#{props[:id]}")
-      sth.execute
+      dbh.do("DELETE FROM #{@table} where #{@index}=#{props[:id]}")
     end
   end
 
@@ -628,9 +626,8 @@ class Datarecord
   def update(values)
     db_connect() do |dbh|
       values.each do |field,value|
-        value="'"+value.to_s+"'" if not value.is_a?(Integer)
-        sth=dbh.prepare("UPDATE #{@table} set #{field}=#{value} WHERE #{@index}=#{id}")
-        sth.execute
+        query = "UPDATE #{@table} SET #{field} = ? WHERE #{@index} = ?"
+        dbh.do (query, value, id)
       end
     end
   end
@@ -679,8 +676,7 @@ class Dataset
   # Get a dataset from the database
   def get(table,what,where)
     what="*" if what.nil?
-    sth=@dbh.prepare("SELECT #{what} FROM #{table} WHERE #{where}")
-    sth.execute
+    sth=@dbh.execute("SELECT #{what} FROM #{table} WHERE #{where}")
     result=[]
     sth.fetch_hash do |row|
       # The inject part is to convert string keys into symbols to optimize memory
@@ -690,10 +686,8 @@ class Dataset
   end
   
   # Iterator
-  def each
-    @records.each do |record|
-      yield record
-    end
+  def each(&blk)
+    @records.each(&blk)
   end
 
   # Returns an array of all the ids of the datarecords of this dataset
@@ -709,8 +703,7 @@ class Dataset
   # Delete all the datarecords of this dataset from the database
   def delete(table=@table,id_column="id")
     IOLIBLOGGER.debug("Removing #{self.length} records from #{table}")    
-    sth=@dbh.prepare("DELETE FROM #{table} WHERE #{id_column} in (#{self.ids.join(',')})")
-    sth.execute
+    @dbh.do("DELETE FROM #{table} WHERE #{id_column} in (#{self.ids.join(',')})")
   end
  
   # Same thing as delete, but also empty the dataset
@@ -723,8 +716,7 @@ class Dataset
   def update(values,table=@table,id_column="id")
     values.each_key do |field|
       values[field]="'"+values[field].to_s+"'" if not values[field].is_a?(Integer) 
-      sth=@dbh.prepare("UPDATE #{table} SET #{field}=#{values[field]} WHERE #{id_column} in (#{self.ids.join(',')})")
-      sth.execute
+      @dbh.do("UPDATE #{table} SET #{field}=#{values[field]} WHERE #{id_column} in (#{self.ids.join(',')})")
     end
   end
 
