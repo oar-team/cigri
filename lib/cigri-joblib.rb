@@ -213,7 +213,7 @@ module Cigri
     def initialize(props={})
       super("campaigns",props)
       @clusters={}
-      @props[:finished_jobs] = completed_tasks unless props[:bypass_finished_jobs]
+      @props[:finished_jobs] = completed_tasks if @props and !props[:bypass_finished_jobs]
     end
 
     # Fills the @cluster hash with the properties (JDL) of this campaign
