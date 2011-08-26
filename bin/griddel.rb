@@ -48,7 +48,7 @@ ARGV.each do |campaign_id|
   if response.code != "202"
     STDERR.puts("Failed to cancel campaign #{campaign_id}: #{parsed_response['message']}.")
   else
-    puts "Campaign #{campaign_id} cancelled." if verbose
+    puts "#{parsed_response['message']}." if verbose
   end
 end
 

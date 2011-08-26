@@ -190,18 +190,23 @@ class API < Sinatra::Base
   
   delete '/campaigns/:id/?' do |id|
     protected!
+    
     res = nil
     db_connect() do |dbh|
       res = cancel_campaign(dbh, request.env['HTTP_X_CIGRI_USER'], id)
     end
-    if res == nil
-      not_found "Campaign #{id} does not exist"
-    elsif res
+    
+    if res.nil?
+      not_found "Campaign #{id} does not exist" if res.nil?
+    elsif res == false
+      status 403
+      output = {:status => 403, :title => "Forbidden", :message => "Campaign #{id} does not belong to you"}
+    elsif res > 0
       status 202
       output = {:status => 202, :title => "Accepted", :message => "Campaign #{id} cancelled"}
     else
-      status 403
-      output = {:status => 403, :title => "Forbidden", :message => "Campaign #{id} does not belong to you"}
+      status 202
+      output = {:status => 202, :title => "Accepted", :message => "Campaign #{id} was already cancelled"}
     end
     
     response['Allow'] = 'DELETE,GET,POST,PUT'

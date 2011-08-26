@@ -91,7 +91,18 @@ describe 'cigri-iolib' do
     it 'should cancel an existing campaign' do
       db_connect() do |dbh|
         id = cigri_submit(dbh, CORRECT_JSON, 'kameleon')
-        cancel_campaign(dbh, 'kameleon', id).should == true
+        cancel_campaign(dbh, 'kameleon', id).should == 1
+        campaign = Cigri::Campaign.new({:id => id})
+        campaign.props[:state].should == 'cancelled'
+        delete_campaign(dbh, 'kameleon', id)
+      end
+    end
+    
+    it 'should cancel an existing campaign only once' do
+      db_connect() do |dbh|
+        id = cigri_submit(dbh, CORRECT_JSON, 'kameleon')
+        cancel_campaign(dbh, 'kameleon', id).should == 1
+        cancel_campaign(dbh, 'kameleon', id).should == 0
         campaign = Cigri::Campaign.new({:id => id})
         campaign.props[:state].should == 'cancelled'
         delete_campaign(dbh, 'kameleon', id)

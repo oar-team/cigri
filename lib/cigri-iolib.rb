@@ -264,7 +264,8 @@ end
 # - id: campaign id to cancel
 #
 # == Returns
-# - true if campaign was cancelled successfully
+# - 1 if campaign was cancelled successfully
+# - 0 if the campaign was already cancelled
 # - false if the user does not have the rights to cancel the campaign
 # - nil if the campaign "id" does not exist
 #
@@ -275,6 +276,7 @@ def cancel_campaign(dbh, user, id)
   ok = check_rights(dbh, user, id)
   return ok unless ok
   
+  nb = 1
   dbh['AutoCommit'] = false
   begin
     #TODO add kill event in event table !!!!!
@@ -290,7 +292,7 @@ def cancel_campaign(dbh, user, id)
     nb = dbh.do(query, id)
     IOLIBLOGGER.debug("Deleted #{nb} rows from table 'bag_of_tasks' for campaign #{id}")
     
-    query = "UPDATE campaigns SET state = 'cancelled' where id = ?"
+    query = "UPDATE campaigns SET state = 'cancelled' where id = ? and state != 'cancelled'"
     nb = dbh.do(query, id)
     
     dbh.commit()
@@ -302,7 +304,7 @@ def cancel_campaign(dbh, user, id)
   ensure
     dbh['AutoCommit'] = true
   end
-  true
+  nb
 end
 
 ##
