@@ -1,16 +1,13 @@
 #!/usr/bin/ruby -w
 
-$LOAD_PATH.unshift("#{ENV["CIGRIDIR"]}/lib")
+$LOAD_PATH.unshift(File.join(File.dirname(File.expand_path(__FILE__)), '..', 'lib'))
 
-require 'cigri'
+require 'cigri-conflib'
 require 'json'
 require 'net/http'
 require 'optparse'
 require 'time'
-
-#TOTO get those values from config file
-CIGRIHOST = 'localhost'
-CIGRIHOSTPORT = 9292
+require 'version.rb'
 
 # Correspondance between full states and their one letter equivalent
 STATES = {'cancelled' => 'C', 'in_treatment' => 'R', 'terminated' => 'T', 'paused' => 'P'}
@@ -73,44 +70,53 @@ end
 url = '/campaigns'
 url << "/#{campaign_id}" if campaign_id
 url << '?pretty' if dump and pretty
-#TODO manage errors (not reachable, campaign not found...)
-request = Net::HTTP.get(CIGRIHOST, url, CIGRIHOSTPORT)
 
-if dump
-  puts request
-else
-  if campaign_id  
-    campaigns = [JSON.parse(request)]
-  else
-    campaigns = JSON.parse(request)['items']
-  end
-
-  # Filter the campaigns on the username
-  if username
-    campaigns.reject!{|h| h['user'].nil? || h['user'] != username}
-  end
-
-  if header
-    puts "Campaign id Name                User             Submission time     S Progress"
-    puts '----------- ------------------- ---------------- ------------------- - --------'
-  end 
+begin 
+  conf = Cigri::Conf.new('/etc/cigri-api.conf')
+  http = Net::HTTP.new(conf.get('API_HOST'), conf.get('API_PORT'))
+  http.read_timeout = conf.get('API_TIMEOUT') if conf.exists?('API_TIMEOUT')
+  response = http.request(Net::HTTP::Get.new(url))
   
-  begin 
-    campaigns.each do |campaign|
-      begin 
-        progress = campaign['finished_jobs'] * 100.0 / campaign['total_jobs']
-      rescue ZeroDivisionError => e
-        progress = nil
-      end
-      printf("%-11d %-19s %-16s %-19s %s %7.2f%\n", 
-              campaign['id'], 
-              campaign['name'][0..18], 
-              campaign['user'][0..15], 
-              Time.at(campaign['submission_time']).strftime('%Y-%m-%d %H-%M-%S'), 
-              STATES[campaign['state']], 
-              progress);
+  if dump
+    puts response.body
+  else
+    if campaign_id  
+      campaigns = [JSON.parse(response.body)]
+    else
+      campaigns = JSON.parse(response.body)['items']
     end
-  rescue Errno::EPIPE
-    exit
+
+    # Filter the campaigns on the username
+    if username
+      campaigns.reject!{|h| h['user'].nil? || h['user'] != username}
+    end
+
+    if header
+      puts "Campaign id Name                User             Submission time     S Progress"
+      puts '----------- ------------------- ---------------- ------------------- - --------'
+    end 
+    
+    begin 
+      campaigns.each do |campaign|
+        begin 
+          progress = campaign['finished_jobs'] * 100.0 / campaign['total_jobs']
+        rescue ZeroDivisionError => e
+          progress = nil
+        end
+        printf("%-11d %-19s %-16s %-19s %s %7.2f%\n", 
+                campaign['id'], 
+                campaign['name'][0..18], 
+                campaign['user'][0..15], 
+                Time.at(campaign['submission_time']).strftime('%Y-%m-%d %H-%M-%S'), 
+                STATES[campaign['state']], 
+                progress);
+      end
+    rescue Errno::EPIPE
+      exit
+    end
   end
+rescue Errno::ECONNREFUSED => e
+  STDERR.puts("API server not reachable: #{e.inspect}")
+rescue Exception => e
+  STDERR.puts("Something unexpected happened: #{e.inspect}")
 end

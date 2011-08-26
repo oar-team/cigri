@@ -7,7 +7,6 @@ require 'json'
 require 'net/http'
 require 'optparse'
 require 'version.rb'
-require 'pp'
 
 verbose = false
 optparse = OptionParser.new do |opts|
@@ -38,17 +37,23 @@ end
 
 abort("Missing CAMPAIGN_ID\n" + optparse.to_s) unless ARGV.length > 0
 
-conf = Cigri::Conf.new('/etc/cigri-api.conf')
-http = Net::HTTP.new(conf.get('API_HOST'), conf.get('API_PORT'))
-
-ARGV.each do |campaign_id|
-  request = Net::HTTP::Delete.new("/campaigns/#{campaign_id}")
-  response = http.request(request)
-  parsed_response = JSON.parse(response.body)
-  if response.code != "202"
-    STDERR.puts("Failed to cancel campaign #{campaign_id}: #{parsed_response['message']}.")
-  else
-    puts "#{parsed_response['message']}." if verbose
+begin 
+  conf = Cigri::Conf.new('/etc/cigri-api.conf')
+  http = Net::HTTP.new(conf.get('API_HOST'), conf.get('API_PORT'))
+  http.read_timeout = conf.get('API_TIMEOUT') if conf.exists?('API_TIMEOUT')
+  
+  ARGV.each do |campaign_id|
+    response = http.request(Net::HTTP::Delete.new("/campaigns/#{campaign_id}"))
+    parsed_response = JSON.parse(response.body)
+    if response.code != "202"
+      STDERR.puts("Failed to cancel campaign #{campaign_id}: #{parsed_response['message']}.")
+    else
+      puts "#{parsed_response['message']}." if verbose
+    end
   end
+rescue Errno::ECONNREFUSED => e
+  STDERR.puts("API server not reachable: #{e.inspect}")
+rescue Exception => e
+  STDERR.puts("Something unexpected happened: #{e.inspect}")
 end
 

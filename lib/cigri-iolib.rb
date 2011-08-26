@@ -296,13 +296,17 @@ def cancel_campaign(dbh, user, id)
     nb = dbh.do(query, id)
     
     dbh.commit()
-    IOLIBLOGGER.info("Campaign #{id} cancelled")
   rescue Exception => e
     IOLIBLOGGER.error('Error during campaign deletion, rolling back changes: ' + e.inspect)
     dbh.rollback()
     raise e
   ensure
     dbh['AutoCommit'] = true
+  end
+  if nb > 0 
+    IOLIBLOGGER.info("Campaign #{id} cancelled")
+  else
+    IOLIBLOGGER.debug("Campaign #{id} was already cancelled")
   end
   nb
 end
