@@ -20,6 +20,7 @@ STATES.default = '?'
 campaign_id = nil
 username = nil
 full = false
+header = true
 dump = false
 pretty = false
 optparse = OptionParser.new do |opts|
@@ -36,6 +37,10 @@ optparse = OptionParser.new do |opts|
   #TODO manage full description
   opts.on( '-f', '--full', 'Display all info on a campaign' ) do
     full = true
+  end
+  
+  opts.on( '-H', '--headerless', 'Remove the columns title' ) do
+    header = false
   end
   
   opts.on( '-p', '--pretty', 'Pretty print with a dump' ) do
@@ -85,20 +90,27 @@ else
     campaigns.reject!{|h| h['user'].nil? || h['user'] != username}
   end
 
-  puts "Campaign id Name                User             Submission time     S Progress"
-  puts '----------- ------------------- ---------------- ------------------- - --------'
-  campaigns.each do |campaign|
-    begin 
-      progress = campaign['finished_jobs'] * 100.0 / campaign['total_jobs']
-    rescue ZeroDivisionError => e
-      progress = nil
+  if header
+    puts "Campaign id Name                User             Submission time     S Progress"
+    puts '----------- ------------------- ---------------- ------------------- - --------'
+  end 
+  
+  begin 
+    campaigns.each do |campaign|
+      begin 
+        progress = campaign['finished_jobs'] * 100.0 / campaign['total_jobs']
+      rescue ZeroDivisionError => e
+        progress = nil
+      end
+      printf("%-11d %-19s %-16s %-19s %s %7.2f%\n", 
+              campaign['id'], 
+              campaign['name'][0..18], 
+              campaign['user'][0..15], 
+              Time.at(campaign['submission_time']).strftime('%Y-%m-%d %H-%M-%S'), 
+              STATES[campaign['state']], 
+              progress);
     end
-    printf("%-11d %-19s %-16s %-19s %s %7.2f%\n", 
-            campaign['id'], 
-            campaign['name'][0..18], 
-            campaign['user'][0..15], 
-            Time.at(campaign['submission_time']).strftime('%Y-%m-%d %H-%M-%S'), 
-            STATES[campaign['state']], 
-            progress);
+  rescue Errno::EPIPE
+    exit
   end
 end
