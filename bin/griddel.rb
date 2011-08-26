@@ -16,7 +16,7 @@ optparse = OptionParser.new do |opts|
     verbose = true
   end
   
-  opts.on( '-V', '--version', 'Display Cigri version' ) do
+  opts.on( '--version', 'Display Cigri version' ) do
     puts "#{File.basename(__FILE__)} v#{Cigri::VERSION}"
     exit
   end

@@ -143,7 +143,7 @@ class API < Sinatra::Base
         status 201
       rescue Exception => e
         status 400
-        answer = e.inspect
+        answer = e.message
       end
     end
     response['Allow'] = 'GET,POST'

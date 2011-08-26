@@ -37,13 +37,13 @@ module Cigri
       #check if all mandatory parameters are defined
       MANDATORY_GLOBAL.each do |field|
         unless res[field]
-          raise Cigri::Exception, "JDL file does not contain mandatory field #{field}."
+          raise Cigri::Exception, "JDL file does not contain mandatory field '#{field}'"
         end
       end
       MANDATORY_CLUSTER.each do |field|
         res['clusters'].each_value do |cluster|
           unless cluster[field] or res[field]
-            raise Cigri::Exception, "Cluster #{cluster} does not have mandatory field \"#{field}\"" 
+            raise Cigri::Exception, "Cluster #{cluster} does not have mandatory field '#{field}'" 
           end
         end
       end
@@ -87,7 +87,7 @@ module Cigri
         res = self.parse(json)
       rescue JSON::ParserError => e
         logger.error("JDL file not well defined: #{json}")
-        raise Cigri::Exception, 'JDL badly defined, not saving in the database'
+        raise Cigri::Exception, "JDL badly defined: #{e.inspect}"
       end
       
       default_values!(res, config)

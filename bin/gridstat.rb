@@ -21,7 +21,7 @@ header = true
 dump = false
 pretty = false
 optparse = OptionParser.new do |opts|
-  opts.banner = 'Usage: gridstat [options] ...'
+  opts.banner = 'Usage: #{File.basename(__FILE__)} [options] ...'
   
   opts.on( '-c', '--campaign ID', String, 'Only print informations for campaign ID' ) do |c|
     campaign_id = c
@@ -48,8 +48,8 @@ optparse = OptionParser.new do |opts|
     username = u
   end
   
-  opts.on( '-v', '--version', 'Display Cigri version' ) do
-    puts "gridstat v#{Cigri::VERSION}"
+  opts.on( '--version', 'Display Cigri version' ) do
+    puts "#{File.basename(__FILE__)} v#{Cigri::VERSION}"
     exit
   end
   
