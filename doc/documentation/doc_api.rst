@@ -77,11 +77,11 @@ Some options can be passed in the URL:
 
 - **action={delete,update}**: Instead of using a DELETE or a PUT request, you can use a POST request with action. The action can be passed in the URL directly or in the POST values::
 
-  $ curl -X POST http://api-host:port/campaigns/1 -d "action=delete"
+   $ curl -X POST http://api-host:port/campaigns/1 -d "action=delete"
     => $ curl -X DELETE http://api-host:port/campaigns/1
+   $ curl -X POST http://api-host:port/campaigns/1?action=update -d "name=TOTO; state=paused" 
+    => curl -X PUT http://api-host:port/campaigns/569 -d "name=TOTO; state=paused"
 
-  $ curl -X POST http://api-host:port/campaigns/1?action=update -d "name=TOTO; state=paused"
-    => curl -X PUT http://api-host:port/campaigns/569 -d "name=TOTO"
 
 .. Local Variables:
 .. ispell-local-dictionary: "american"
