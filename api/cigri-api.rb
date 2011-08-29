@@ -13,8 +13,7 @@ class API < Sinatra::Base
   
   def initialize(*args)
     super 
-    @apiliblogger = Cigri::Logger.new('APILIB', 'STDOUT')#Cigri.conf.get('LOG_FILE'))
-    @apiliblogger.level = Cigri::Logger::DEBUG
+    @apiliblogger = Cigri::Logger.new('APILIB', Cigri.conf.get('LOG_FILE'))
   end
   
   before do
