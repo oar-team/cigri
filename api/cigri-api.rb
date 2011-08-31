@@ -153,23 +153,12 @@ class API < Sinatra::Base
   put '/campaigns/:id/?' do |id|
     protected!
     
-    to_update = {}
-    to_update['name'] = params['name'].to_s if params['name']
-    if params['state']
-      ok_states = %w{paused in_treatment}
-      if ok_states.find_index(params['state'])
-        to_update['state'] = params['state']
-      else
-        halt 400, "Error updating campaign #{id}: state chould be in ( " << ok_states.join(', ') << ")\n"
-      end
-    end
-    
     res = nil
     db_connect() do |dbh|
       begin
-        res = update_campaign(dbh, request.env['HTTP_X_CIGRI_USER'], id, to_update)
+        res = update_campaign(dbh, request.env['HTTP_X_CIGRI_USER'], id, params_to_update)
       rescue Exception => e
-        halt 400, "Error updating campaign #{id}: #{e}"
+        halt 400, print({:status => 400, :title => "Error", :message => "Error updating campaign #{id}: #{e}"})
       end
     end
     
@@ -266,16 +255,28 @@ class API < Sinatra::Base
        ]}
     end
     
+    def params_to_update
+      res = {}
+      res['name'] = params['name'].to_s if params['name']
+      if params['state']
+        ok_states = %w{paused in_treatment}
+        if ok_states.find_index(params['state'])
+          res['state'] = params['state']
+        else
+          halt 400, print({:status => 400, :title => "Error", :message => "Error updating campaign #{id}: state chould be in (" << ok_states.join(', ') << ")"})
+        end
+      end
+      res
+    end
+    
     def protected!
       unless authorized?
         response['WWW-Authenticate'] = %(Basic realm="Restricted Area")
-        halt 401, "Access denied to cancel campaign: not authenticated"
+        halt 401, print({:status => 401, :title => 'Access Denied', :message => "Access denied to cancel campaign: not authenticated"})
       end
     end
     
     def authorized?
-      #TODO set the value in apache
-      request.env['HTTP_X_CIGRI_USER'] = 'API'
       user = request.env['HTTP_X_CIGRI_USER']
       return user && user != "" && user !~ /^(unknown|null)$/i
     end
