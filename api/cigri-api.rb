@@ -272,7 +272,7 @@ class API < Sinatra::Base
     def protected!
       unless authorized?
         response['WWW-Authenticate'] = %(Basic realm="Restricted Area")
-        halt 401, print({:status => 401, :title => 'Access Denied', :message => "Access denied to cancel campaign: not authenticated"})
+        halt 401, print({:status => 401, :title => 'Access Denied', :message => "Access denied: not authenticated"})
       end
     end
     

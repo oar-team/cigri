@@ -23,9 +23,19 @@ describe 'API' do
     end
   end
   
+  it 'should post a campaign' do
+    post '/campaigns', '{"name":"test_api", "nb_jobs":10,"clusters":{"fukushima":{"exec_file":"e"}}}', 'HTTP_X_CIGRI_USER' => 'Rspec'
+    response = JSON.parse last_response.body
+    last_response.status.should be(201)
+    db_connect do |dbh|
+      delete_campaign(dbh, 'Rspec', response['id'])
+    end
+  end
+  
+  
   describe 'Interactive commands' do
     before(:all) do
-      post '/campaigns', '{"name":"test_api", "nb_jobs":10,"clusters":{"fukushima":{"exec_file":"e"}}}'
+      post '/campaigns', '{"name":"test_api", "nb_jobs":10,"clusters":{"fukushima":{"exec_file":"e"}}}', 'HTTP_X_CIGRI_USER' => 'Rspec'
       response = JSON.parse last_response.body
       @test_id = response['id']
     end
@@ -48,7 +58,7 @@ describe 'API' do
     
     after(:all) do
       db_connect do |dbh|
-        delete_campaign(dbh, 'API', @test_id)
+        delete_campaign(dbh, 'Rspec', @test_id)
       end
     end
   end
