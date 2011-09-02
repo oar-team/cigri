@@ -32,10 +32,10 @@ class API < Sinatra::Base
   # List all links
   get '/' do
     output = {
-        'links' => [
-          {'rel' => 'self', 'href' => '/'},
-          {'rel' => 'campaigns', 'href' => '/campaigns', 'title' => 'campaigns'},
-          {'rel' => 'clusters', 'href' => '/clusters', 'title' => 'clusters'}
+        :links => [
+          {:rel => 'self', :href => '/'},
+          {:rel => 'collection', :href => '/campaigns', 'title' => :campaigns},
+          {:rel => 'collection', :href => '/clusters', 'title' => :clusters}
         ]
       }
     response['Allow'] = 'GET'
@@ -51,11 +51,11 @@ class API < Sinatra::Base
       items << format_campaign(campaign)
     end
     output = {
-      "items" => items,
-      "total" => items.length,
-      "links" => [
-          {"rel" => "self", "href" => "/campaigns"},
-          {"rel" => "parent", "href" => "/"}
+      :items => items,
+      :total => items.length,
+      :links => [
+          {:rel => "self", :href => "/campaigns"},
+          {:rel => "parent", :href => "/"}
         ]
     }
     response['Allow'] = 'GET,POST'
@@ -88,20 +88,20 @@ class API < Sinatra::Base
     Cigri::ClusterSet.new.each do |cluster|
       id = cluster.description['id']
       items << {
-                  'id' => id,
-                  'name' => cluster.description['name'],
-                  'links' => [
-                    {'rel' => 'self', 'href' => "/clusters/#{id}"},
-                    {'rel' => 'parent', 'href' => '/clusters'}
+                  :id => id,
+                  :name => cluster.description['name'],
+                  :links => [
+                    {:rel => 'self', :href => "/clusters/#{id}"},
+                    {:rel => 'parent', :href => '/clusters'}
                   ]
                }
     end
     output = {
-      "items" => items,
-      "total" => items.length,
-      "links" => [
-          {"rel" => "self", "href" => "/clusters"},
-          {"rel" => "parent", "href" => "/"}
+      :items => items,
+      :total => items.length,
+      :links => [
+          {:rel => "self", :href => "/clusters"},
+          {:rel => "parent", :href => "/"}
         ]
     }
     response['Allow'] = 'GET'
@@ -113,8 +113,8 @@ class API < Sinatra::Base
   get '/clusters/:id/?' do |id|
     begin
       cluster = Cigri::Cluster.new(:id => id).description
-      cluster["links"] = [{"rel" => "self", "href" => "/clusters/#{id}"},
-                          {"rel" => "parent", "href" => "/clusters"}]
+      cluster[:links] = [{:rel => "self", :href => "/clusters/#{id}"},
+                          {:rel => "parent", :href => "/clusters"}]
       ['api_password', 'api_username'].each { |i| cluster.delete(i)}
     rescue Exception => e
       not_found "Cluster with id #{id} does not exist"
@@ -133,10 +133,10 @@ class API < Sinatra::Base
       begin
         id = Cigri::JDLParser.save(dbh, request.body.read, request.env['HTTP_X_CIGRI_USER']).to_s
         answer = {
-          "id" => id,
-          "links" => [
-            {"rel" => "self", "href" => "/campaigns/#{id}"},
-            {"rel" => "parent", "href" => "/campaigns"}
+          :id => id,
+          :links => [
+            {:rel => "self", :href => "/campaigns/#{id}"},
+            {:rel => "parent", :href => "/campaigns"}
           ]
         }
         status 201
@@ -227,11 +227,7 @@ class API < Sinatra::Base
       campaign = Cigri::Campaign.new({:id => id})
       not_found "Campaign with id '#{id}' does not exist" unless campaign.props
 
-      output = format_campaign(campaign)
-      output["links"] = [{"rel" => "self", "href" => "/campaigns/#{id}"},
-                         {"rel" => "parent", "href" => "/campaigns"},
-                         {"rel" => "jobs", "href" => "/campaigns/#{id}/jobs"}]
-      output
+      format_campaign(campaign)
     end
     
     # Gets the useful information about a campaign
@@ -241,17 +237,17 @@ class API < Sinatra::Base
     def format_campaign(campaign)
       props = campaign.props
       id = props[:id]
-      {'id' => id.to_i, 
-       'name' => props[:name], 
-       'user' => props[:grid_user],
-       'state' => props[:state],
-       'submission_time' => Time.parse(props[:submission_time]).to_i,
-       'total_jobs' => props[:nb_jobs].to_i,
-       'finished_jobs' => props[:finished_jobs],
-       'links'=> [
-         {'rel' => 'self', 'href' => "/campaigns/#{id}"},
-         {'rel' => 'parent', 'href' => '/campaigns'},
-         {'rel' => 'collection', 'href' => "/campaigns/#{id}/jobs", 'title' => 'jobs'}
+      {:id => id.to_i, 
+       :name => props[:name], 
+       :user => props[:grid_user],
+       :state => props[:state],
+       :submission_time => Time.parse(props[:submission_time]).to_i,
+       :total_jobs => props[:nb_jobs].to_i,
+       :finished_jobs => props[:finished_jobs],
+       :links=> [
+         {:rel => 'self', :href => "/campaigns/#{id}"},
+         {:rel => 'parent', :href => '/campaigns'},
+         {:rel => 'collection', :href => "/campaigns/#{id}/jobs", :title => 'jobs'}
        ]}
     end
     
