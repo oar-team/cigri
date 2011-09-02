@@ -228,11 +228,12 @@ module Cigri
     def get_clusters
       db_connect() do |dbh|
         get_campaign_properties(dbh,id).each do |row|
-          cluster_id=row["cluster_id"]
+          cluster_id=row[3]
           @clusters[cluster_id]={} if @clusters[cluster_id].nil?
-          @clusters[cluster_id][row["name"]]=row["value"]
+          @clusters[cluster_id][row[1]]=row[2]
         end
       end
+      @clusters
     end
 
     # Return nil if the campaign has no more tasks to run
