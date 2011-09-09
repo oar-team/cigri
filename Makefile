@@ -65,17 +65,14 @@ install-cigri-user-cmds:
 	install -d -m 0755 $(DESTDIR)/$(CIGRIDIR)
 	install -d -m 0755 $(DESTDIR)/$(CIGRIDIR)/bin
 	@for cmd in $(USERCMDS) ; do \
-		install -m 0755 bin/$$cmd.rb $(DESTDIR)/$(CIGRIDIR)/bin/$$cmd ; \
-		install -m 0755 tools/sudowrapper.sh $(DESTDIR)/$(BINDIR)/$$cmd ; \
-		perl -i -pe "s#CIGRIDIR=.*#CIGRIDIR='$(CIGRIDIR)'\;#;;\
-                             s#CIGRIUSER=.*#CIGRIUSER='$(CIGRIUSER)'\;#;;\
-                             s#CMD=.*#CMD='$$cmd'\;#;;\
-                               " $(DESTDIR)$(BINDIR)/$$cmd ;\
+		install -m 0755 bin/$$cmd.rb $(DESTDIR)/$(CIGRIDIR)/bin/$$cmd.rb ; \
+		echo -e '#!/bin/bash\n' $(DESTDIR)/$(CIGRIDIR)/bin/$$cmd.rb '$$@' > $(DESTDIR)$(BINDIR)/$$cmd ; \
+		chmod 755 $(DESTDIR)$(BINDIR)/$$cmd ; \
 	done
 
 clean:
 	rm -rf doc/rdoc doc/yard doc/rcov .yardoc
 	@cd lib; for file in *; do rm -f $(DESTDIR)/$(CIGRIDIR)/lib/$$file; done
 	rm -f $(DESTDIR)/etc/sudoers.d/cigri
-	rm -f $(DESTDIR)/$(CIGRIDIR)/bin/gridsub
-	rm -f $(DESTDIR)$(BINDIR)/gridsub
+	rm -rf $(DESTDIR)/$(CIGRIDIR)
+	@for cmd in $(USERCMDS) ; do rm $(DESTDIR)$(BINDIR)/$$cmd ; done
