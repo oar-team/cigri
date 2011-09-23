@@ -71,7 +71,7 @@ def last_inserted_id(dbh, seqname = '')
   else
     raise Cigri::Exception, "Impossible to retreive last inserted id: database type \"#{db}\" is not supported"
   end
-  return row[0]
+  row[0]
 end
 
 
@@ -85,7 +85,8 @@ end
 # - escaped string
 ##
 def quote(value)
-  "E'#{ value.gsub(/\\/){ '\\\\' }.gsub(/'/){ '\\\'' } }'"
+  return "E'#{ value.gsub(/\\/){ '\\\\' }.gsub(/'/){ '\\\'' } }'" if value.kind_of?(String)
+  "'#{value}'"
 end
 
 
@@ -154,7 +155,7 @@ def cigri_submit(dbh, json, user)
           query << "(#{p.split.first}, #{p}, #{campaign_id})"
           count += 1
         end
-        dbh.do(query)
+        dbh.do(query) if count > 0
       end while params.length > 0
     else
       raise Cigri::Exception, 'Desktop_computing campaigns are not yet sopported'
@@ -168,7 +169,7 @@ def cigri_submit(dbh, json, user)
   ensure
     dbh['AutoCommit'] = true
   end
-  return campaign_id
+  campaign_id
 end
 
 ##
@@ -247,7 +248,7 @@ end
 # == Returns
 # - hash
 ##
-def get_cluster(dbh,id)
+def get_cluster(dbh, id)
   query = "SELECT * FROM clusters WHERE id = ?"
   sth = dbh.execute(query, id)
   res = sth.fetch_hash
@@ -269,11 +270,11 @@ end
 # == Returns
 # - array of cluster ids
 ##
-def select_clusters(dbh,where_clause=nil)
+def select_clusters(dbh, where_clause = nil)
   if where_clause.nil?
-    where_clause=""
+    where_clause = ""
   else
-    where_clause="WHERE #{where_clause}"
+    where_clause = "WHERE #{where_clause}"
   end 
   dbh.select_all("SELECT id FROM clusters #{where_clause}").flatten!
 end
@@ -473,7 +474,7 @@ end
 # Array of properties
 #
 ##
-def get_campaign_properties(dbh,id)
+def get_campaign_properties(dbh, id)
   dbh.select_all("SELECT * FROM campaign_properties WHERE campaign_id = ?", id)
 end
 
@@ -489,7 +490,7 @@ end
 # Number of tasks (integer)
 #
 ##
-def get_campaign_remaining_tasks_number(dbh,id)
+def get_campaign_remaining_tasks_number(dbh, id)
   dbh.select_one("SELECT COUNT(*) FROM bag_of_tasks 
                                   LEFT JOIN jobs_to_launch ON bag_of_tasks.id=task_id
                                   WHERE task_id is null AND campaign_id=?", id)[0]
@@ -506,7 +507,7 @@ end
 # Number of tasks (integer)
 #
 ##
-def get_campaign_nb_finished_jobs(dbh,id)
+def get_campaign_nb_finished_jobs(dbh, id)
 dbh.select_one("SELECT COUNT(*) FROM jobs
                                 WHERE campaign_id = ? AND state = 'terminated'", id)[0]
 end
@@ -535,7 +536,7 @@ end
 # Array of ids
 #
 ##
-def get_tasks_for_campaign(dbh,id,number=nil)
+def get_tasks_for_campaign(dbh, id, number = nil)
   limit = number ? "LIMIT #{number}" : ""
   dbh.select_all("SELECT bag_of_tasks.id FROM bag_of_tasks 
                          LEFT JOIN jobs_to_launch ON bag_of_tasks.id=task_id
@@ -550,14 +551,14 @@ end
 # == Parameters
 #
 ##
-def add_jobs_to_launch(dbh,tasks,cluster_id,tag,runner_options)
+def add_jobs_to_launch(dbh, tasks, cluster_id, tag, runner_options)
   dbh['AutoCommit'] = false
   begin
     query = 'INSERT into jobs_to_launch
              (task_id,cluster_id,tag,runner_options)
              VALUES (?,?,?,?)'
     tasks.each do |task_id|
-      dbh.do(query,task_id,cluster_id,tag,runner_options)
+      dbh.do(query, task_id, cluster_id, tag, runner_options)
     end
     dbh.commit()
   rescue Exception => e
