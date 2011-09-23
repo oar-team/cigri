@@ -227,7 +227,7 @@ end
 def get_cluster(dbh,id)
   query = "SELECT * FROM clusters WHERE id = ?"
   sth = dbh.execute(query, id)
-  res=sth.fetch_hash
+  res = sth.fetch_hash
   sth.finish
   if res.nil?
     IOLIBLOGGER.error("No cluster with id=#{id}!")

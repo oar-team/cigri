@@ -33,27 +33,27 @@ module Cigri
     # - :id : id of the cluster
     # - :name : name of the cluster
     ##
-    def initialize(opts={})
+    def initialize(opts = {})
 
       # Get the cluster from database
       db_connect() do |dbh|
-        if not id=opts[:id]
-          if not name=opts[:name]
-            raise Cigri::Exception.new("At least :id or :name should be passed to RestCluster constructor!",CLUSTERLIBLOGGER)
+        if not id = opts[:id]
+          if not name = opts[:name]
+            raise Cigri::Exception.new("At least :id or :name should be passed to RestCluster constructor!", CLUSTERLIBLOGGER)
           else
-            id=get_cluster_id(dbh,name)
-            raise Cigri::Exception.new("No cluster found by that name: #{name}",CLUSTERLIBLOGGER) if id.nil?
+            id = get_cluster_id(dbh,name)
+            raise Cigri::Exception.new("No cluster found by that name: #{name}", CLUSTERLIBLOGGER) if id.nil?
           end
         end
-        @description=get_cluster(dbh,id)
-        @id=id
+        @description = get_cluster(dbh, id)
+        @id = id
       end
 
       # Create a rest_client api instance
       @api = RestSession.new(@description["api_url"], 
-                         @description["api_username"],
-                         @description["api_password"],
-                         "application/json")
+                             @description["api_username"],
+                             @description["api_password"],
+                             "application/json")
     end
   
     ##
@@ -64,16 +64,15 @@ module Cigri
     ##
     def parse_properties
       if @description["properties"]
-        res={}
-        properties=@description["properties"].split(/\s*and\s*/i)
+        res = {}
+        properties = @description["properties"].split(/\s*and\s*/i)
         properties.each do |property|
           ( key, value ) = property.split(/\s*=\s*/)
-          res[key]=value.delete("'\"")
+          res[key] = value.delete("'\"")
         end
         return res
-      else
-        return nil
-      end 
+      end
+      nil
     end
 
     # name of a cluster
@@ -126,22 +125,22 @@ module Cigri
 
      def get_resources
        # Get the resources from the api
-       resources=@api.get_collection("resources")
-          # TODO: manage event (cluster blacklist) if timeout
+       resources = @api.get_collection("resources/full")
+       # TODO: manage event (cluster blacklist) if timeout
        # Filter the resources depending on cluster properties
-       properties=parse_properties
+       properties = parse_properties
        return resources unless properties
-       res=[]
+       res = []
        resources.each do |resource|
-         not_found=0
+         not_found = 0
          properties.each_pair do |key,value|
-           not_found=1 if resource[key] != value
+           not_found = 1 if resource[key] != value
          end
-         res << resource unless not_found==1
+         res << resource unless not_found == 1
        end
-       return res
-     end 
- 
+       res
+     end
+     
      def get_jobs(props={})
        array="?array=#{props[:array]}" if props[:array]
        @api.get_collection("jobs/details#{array}")
@@ -206,10 +205,10 @@ module Cigri
    # See RestCluster.new() for usage
    ##
    def Cluster::new(opts)
-     tmp_cluster=RestCluster.new(opts)
-     type=tmp_cluster.description["batch"]
+     tmp_cluster = RestCluster.new(opts)
+     type = tmp_cluster.description["batch"]
      if not available_types.include?(type)
-       raise Cigri::Exception.new("#{type} is not listed into the available_types!",CLUSTERLIBLOGGER)
+       raise Cigri::Exception.new("#{type} is not listed into the available_types!", CLUSTERLIBLOGGER)
      end
      classe = 
        case type
