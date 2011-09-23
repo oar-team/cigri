@@ -74,6 +74,21 @@ def last_inserted_id(dbh, seqname = '')
   return row[0]
 end
 
+
+##
+# Quote escapes potentially dangerous caracters in SQL
+#
+# == Parameters
+# - string: string to escape
+#
+# == Output
+# - escaped string
+##
+def quote(value)
+  "E'#{ value.gsub(/\\/){ '\\\\' }.gsub(/'/){ '\\\'' } }'"
+end
+
+
 ##
 # This method saves a new campaign into the cigri database.
 # It considers that the JDL has been checked before submitting and is 
@@ -124,7 +139,7 @@ def cigri_submit(dbh, json, user)
       end
     end
     raise Cigri::Exception, "No clusters usable for the campaign" unless at_least_one_cluster
-    
+
     #create bag_of_tasks
     unless json['jobs_type'].eql?('desktop_computing')
       query = 'INSERT INTO bag_of_tasks 
@@ -137,7 +152,7 @@ def cigri_submit(dbh, json, user)
         else
           query << ', '
         end
-        p = "E'#{ param.gsub(/\\/){ '\\\\' }.gsub(/'/){ '\\\'' } }'"
+        p = quote(param) 
         query << "(#{p.split.first}, #{p}, #{campaign_id})"
       end
       dbh.do(query)
@@ -392,8 +407,8 @@ def update_campaign(dbh, user, id, hash)
     hash.each do |k, v|
       query << ', ' if sep
       sep = true
-      query << "#{k} = '#{v}' "
-      IOLIBLOGGER.debug("Updating #{k} = '#{v}' for campaign #{id}")
+      query << "#{k} = #{quote(v)} "
+      IOLIBLOGGER.debug("Updating #{k} = #{quote(v)} for campaign #{id}")
     end
     query << "WHERE id = ?"
     begin 
@@ -600,14 +615,14 @@ class Datarecord
   # Creates a new record and return its id
   def new_record(table,props={})
     db_connect() do |dbh|
-      query = "INSERT into #{table}\n"
-      what=[]
-      values=[]
-      props.each do |key,value|
+      query = "INSERT into #{table} "
+      what = []
+      values = []
+      props.each do |key, value|
         what << key
-        values << "'#{value}'"
+        values << quote(value)
       end    
-      query += "(" + what.join(',') + ") VALUES (" + values.join(',') +")"
+      query << "(" + what.join(',') + ") VALUES (" + values.join(',') +")"
       dbh.do(query)
       return last_inserted_id(dbh, "#{table}_id_seq")
     end
@@ -739,10 +754,9 @@ class Dataset
   end
 
   # Update fields of the dataset into the database
-  def update(values,table=@table,id_column="id")
+  def update(values, table = @table, id_column = "id")
     values.each_key do |field|
-      values[field]="'"+values[field].to_s+"'" if not values[field].is_a?(Integer) 
-      @dbh.do("UPDATE #{table} SET #{field}=#{values[field]} WHERE #{id_column} in (#{self.ids.join(',')})")
+      @dbh.do("UPDATE #{table} SET #{field} = ? WHERE #{id_column} in (#{self.ids.join(',')})", values[field])
     end
   end
 
