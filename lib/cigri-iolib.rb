@@ -129,17 +129,10 @@ def cigri_submit(dbh, json, user)
     unless json['jobs_type'].eql?('desktop_computing')
       query = 'INSERT INTO bag_of_tasks 
                 (name, param, campaign_id)
-                VALUES '
-      first = true
+                VALUES (?, ?, ?)'
       json['params'].each do |param|
-        if first
-          first = false
-        else
-          query << ','
-        end
-        query << "('#{param.split.first}', '#{param}', '#{campaign_id}')"
+        dbh.do(query, param.split.first, param, campaign_id) 
       end
-      dbh.do(query)
     else
       raise Cigri::Exception, 'Desktop_computing campaigns are not yet sopported'
     end
