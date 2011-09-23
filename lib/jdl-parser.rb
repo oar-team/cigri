@@ -135,7 +135,7 @@ module Cigri
       return if (jdl['jobs_type'] and jdl['jobs_type'].downcase.eql?('desktop_computing'))
 
       if jdl['nb_jobs']
-        params = (0...jdl['nb_jobs']).to_a.collect{|a| to_s}
+        params = (0...jdl['nb_jobs']).to_a.collect{|a| a.to_s}
         jdl.delete('nb_jobs')
       elsif jdl['param_file']
         #catch all environment variables and replace them
