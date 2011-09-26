@@ -71,6 +71,8 @@ url = '/campaigns'
 url << "/#{campaign_id}" if campaign_id
 url << '?pretty' if dump and pretty
 
+#TODO -H et -d incompatibles
+
 begin 
   conf = Cigri::Conf.new('/etc/cigri-api.conf')
   http = Net::HTTP.new(conf.get('API_HOST'), conf.get('API_PORT'))
@@ -96,6 +98,7 @@ begin
       puts '----------- ------------------- ---------------- ------------------- - --------'
     end 
     
+    #TODO sort by campaign ID
     begin 
       campaigns.each do |campaign|
         begin 
