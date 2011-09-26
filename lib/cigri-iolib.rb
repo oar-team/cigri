@@ -150,9 +150,11 @@ def cigri_submit(dbh, json, user)
         query = 'INSERT INTO bag_of_tasks 
                  (name, param, campaign_id)
                  VALUES '
-        while count < 10000 && p = quote(params.shift) 
+        while count < 10000 && param = params.shift
+          p_name = quote(param.split.first)
+          p = quote(param)
           query << ', ' if count > 0
-          query << "(#{p.split.first}, #{p}, #{campaign_id})"
+          query << "(#{p_name}, #{p}, #{campaign_id})"
           count += 1
         end
         dbh.do(query) if count > 0
