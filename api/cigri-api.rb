@@ -62,7 +62,7 @@ class API < Sinatra::Base
     status 200
     print(output)
   end
-  
+
   # Details of a campaign
   get '/campaigns/:id/?' do |id|
     output = get_formated_campaign(id)
@@ -70,9 +70,15 @@ class API < Sinatra::Base
     status 200
     print(output)
   end
+
+  # Get the jdl as saved in the database
+  get '/campaigns/:id/jdl/?' do
+    response['Allow'] = 'GET'
+  end
   
   # List all jobs of a campaign
   get '/campaigns/:id/jobs/?' do |id|
+    response['Allow'] = 'GET,POST'
     "Jobs of campaign #{id}\n"
   end
   
@@ -145,6 +151,17 @@ class API < Sinatra::Base
         answer = e.message
       end
     end
+    response['Allow'] = 'GET,POST'
+    print(answer)
+  end
+
+  post '/campaigns/:id/jobs/?' do |id|
+    protected!
+    request.body.rewind
+    answer = ''
+
+    status 201
+
     response['Allow'] = 'GET,POST'
     print(answer)
   end

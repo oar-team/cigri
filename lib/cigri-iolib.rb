@@ -141,24 +141,9 @@ def cigri_submit(dbh, json, user)
     end
     raise Cigri::Exception, "No clusters usable for the campaign" unless at_least_one_cluster
 
-    #create bag_of_tasks
+    # Create bag_of_tasks
     unless json['jobs_type'].eql?('desktop_computing')
-      params = json['params']
-
-      begin 
-        count = 0
-        query = 'INSERT INTO bag_of_tasks 
-                 (name, param, campaign_id)
-                 VALUES '
-        while count < 10000 && param = params.shift
-          p_name = quote(param.split.first)
-          p = quote(param)
-          query << ', ' if count > 0
-          query << "(#{p_name}, #{p}, #{campaign_id})"
-          count += 1
-        end
-        dbh.do(query) if count > 0
-      end while params.length > 0
+      cigri_submit_jobs(dbh, json['params'], campaign_id)
     else
       raise Cigri::Exception, 'Desktop_computing campaigns are not yet sopported'
     end
@@ -172,6 +157,49 @@ def cigri_submit(dbh, json, user)
     dbh['AutoCommit'] = true
   end
   campaign_id
+end
+
+##
+# This method adds more tasks to an already existing campaign.
+# It considers that authentication has been done, so that the user adding the 
+# campaigns is authorized to do so.
+#
+# == Parameters
+# - dbh: database handle
+# - params: an array or parameters: ["param 1 a b c", "param2 a b c"]
+# - campaign_id: campaign in which to add the params 
+#
+##
+def cigri_submit_jobs(dbh, params, campaign_id)
+  IOLIBLOGGER.debug("Adding new tasks to campaign #{campaign_id}")
+  state = dbh.select_one("SELECT state FROM campaigns WHERE id = ?", campaign_id)
+  raise Cigri::Exception, "Campaign #{campaign_id} does not exist" unless state
+  raise Cigri::Exception, "Unable to add jobs to campaign #{campaign_id} because it was cancelled" if state[0] == "cancelled"
+
+  old_autocommit = dbh['AutoCommit']
+  dbh['AutoCommit'] = false
+  begin
+  
+    dbh.do("UPDATE campaigns SET state = 'in_treatment' WHERE id = ?", campaign_id) if state[0] == "terminated"
+
+    base_query = 'INSERT INTO bag_of_tasks 
+                  (name, param, campaign_id)
+                  VALUES '
+    #TODO configure size of loop (10000 should be in conf file)
+    while params.length > 0 do
+      slice = params.slice!(0...10000)
+      slice.map!{ |param| "(#{quote(param.split.first)}, #{quote(param)}, #{campaign_id})"}
+      pp base_query + slice.join(', ')
+      dbh.do(base_query + slice.join(', '))
+    end
+    dbh.commit() if old_autocommit == true
+  rescue Exception => e
+    IOLIBLOGGER.error("Error adding new jobs to campaign #{campaign_id}: " + e.inspect)
+    dbh.rollback()
+    raise e
+  ensure
+    dbh['AutoCommit'] = old_autocommit
+  end
 end
 
 ##

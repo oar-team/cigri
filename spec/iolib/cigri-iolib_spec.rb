@@ -1,13 +1,15 @@
 require 'cigri-iolib'
-require 'dbi'
 require 'json'
 require 'spec_helper'
 
-CORRECT_JSON = JSON.parse('{"name":"Some campaign","jobs_type":"normal","clusters":{"tchernobyl":{"exec_directory":"$HOME","temporal_grouping":"true","checkpointing_type":"None","exec_file":"$HOME/script.sh","walltime":"01:00:00","output_gathering_method":"scp","resources":"nodes=1","type":"best-effort","dimensional_grouping":"false","output_destination":"my.dataserver.fr","properties":""},"fukushima":{"exec_directory":"$HOME","temporal_grouping":"true","checkpointing_type":"None","exec_file":"$HOME/path/script","walltime":"01:00:00","output_gathering_method":"scp","resources":"nodes=1","type":"best-effort","dimensional_grouping":"false","output_destination":"my.dataserver.fr","properties":""},"my.other_cluster.fr":{"exec_directory":"$HOME","temporal_grouping":"true","checkpointing_type":"None","exec_file":"$HOME/script.sh","walltime":"01:00:00","output_gathering_method":"scp","resources":"nodes=1","type":"best-effort","dimensional_grouping":"false","output_destination":"my.dataserver.fr","properties":""}},"params":["0","1"]}')
+CORRECT_JSON_STRING = '{"name":"Some campaign","jobs_type":"normal","clusters":{"tchernobyl":{"exec_directory":"$HOME","temporal_grouping":"true","checkpointing_type":"None","exec_file":"$HOME/script.sh","walltime":"01:00:00","output_gathering_method":"scp","resources":"nodes=1","type":"best-effort","dimensional_grouping":"false","output_destination":"my.dataserver.fr","properties":""},"fukushima":{"exec_directory":"$HOME","temporal_grouping":"true","checkpointing_type":"None","exec_file":"$HOME/path/script","walltime":"01:00:00","output_gathering_method":"scp","resources":"nodes=1","type":"best-effort","dimensional_grouping":"false","output_destination":"my.dataserver.fr","properties":""},"my.other_cluster.fr":{"exec_directory":"$HOME","temporal_grouping":"true","checkpointing_type":"None","exec_file":"$HOME/script.sh","walltime":"01:00:00","output_gathering_method":"scp","resources":"nodes=1","type":"best-effort","dimensional_grouping":"false","output_destination":"my.dataserver.fr","properties":""}},"params":["0","1"]}'
 
 describe 'cigri-iolib' do
   before(:all) do
     @old_db = Cigri.conf.get('DATABASE_TYPE')
+  end
+  before(:each) do
+    @correct_json = JSON.parse(CORRECT_JSON_STRING)
   end
   after(:each) do
     Cigri.conf.conf['DATABASE_TYPE'] = @old_db
@@ -74,8 +76,10 @@ describe 'cigri-iolib' do
   describe 'cigri_submit' do
     it 'should submit a campaign' do
       db_connect() do |dbh|
-        id = cigri_submit(dbh, CORRECT_JSON, 'kameleon')
+        nb_params = @correct_json['params'].length
+        id = cigri_submit(dbh, @correct_json, 'kameleon')
         id.should be_a(Integer)
+        dbh.select_one("SELECT count(*) FROM bag_of_tasks WHERE campaign_id = ?", id)[0].should == nb_params
         delete_campaign(dbh, 'kameleon', id)
       end
     end
@@ -86,11 +90,40 @@ describe 'cigri-iolib' do
       end
     end
   end # cigri_submit
+
+  describe "cigri_submit_jobs" do
+    it 'should fail if campaign does not exist' do
+      db_connect() do |dbh|
+        lambda{cigri_submit_jobs(dbh, ["param1 a", "param2 b"], 123456789)}.should raise_error Cigri::Exception
+      end
+    end
+
+    it 'should fail if campaign is cancelled' do
+      db_connect() do |dbh|
+        id = cigri_submit(dbh, @correct_json, 'kameleon')
+        dbh.do("UPDATE campaigns SET state = 'cancelled' WHERE id = ?", id)
+        lambda{cigri_submit_jobs(dbh, ["param1 a", "param2 b"], id)}.should raise_error Cigri::Exception
+        delete_campaign(dbh, 'kameleon', id)
+      end
+    end
+
+    it 'should change a campaign from terminated to in_treatment' do
+      db_connect() do |dbh|
+        nb_params = @correct_json['params'].length
+        id = cigri_submit(dbh, @correct_json, 'kameleon')
+        dbh.do("UPDATE campaigns SET state = 'terminated' WHERE id = ?", id)
+        lambda{cigri_submit_jobs(dbh, ["param1 a", "param2 b"], id)}.should_not raise_error
+        dbh.select_one("SELECT state FROM campaigns WHERE id = ?", id)[0].should == "in_treatment"
+        dbh.select_one("SELECT count(*) FROM bag_of_tasks WHERE campaign_id = ?", id)[0].should == nb_params + 2
+        delete_campaign(dbh, 'kameleon', id)
+      end
+    end
+  end # cigri_submit_jobs
   
   describe 'cancel_campaign' do
     it 'should cancel an existing campaign' do
       db_connect() do |dbh|
-        id = cigri_submit(dbh, CORRECT_JSON, 'kameleon')
+        id = cigri_submit(dbh, @correct_json, 'kameleon')
         cancel_campaign(dbh, 'kameleon', id).should == 1
         campaign = Cigri::Campaign.new({:id => id})
         campaign.props[:state].should == 'cancelled'
@@ -100,7 +133,7 @@ describe 'cigri-iolib' do
     
     it 'should cancel an existing campaign only once' do
       db_connect() do |dbh|
-        id = cigri_submit(dbh, CORRECT_JSON, 'kameleon')
+        id = cigri_submit(dbh, @correct_json, 'kameleon')
         cancel_campaign(dbh, 'kameleon', id).should == 1
         cancel_campaign(dbh, 'kameleon', id).should == 0
         campaign = Cigri::Campaign.new({:id => id})
@@ -117,7 +150,7 @@ describe 'cigri-iolib' do
     
     it 'should fail to cancel a campaign when the wrong owner asks' do
       db_connect() do |dbh|
-        id = cigri_submit(dbh, CORRECT_JSON, 'kameleon')
+        id = cigri_submit(dbh, @correct_json, 'kameleon')
         cancel_campaign(dbh, 'toto', id).should == false
         delete_campaign(dbh, 'kameleon', id)
       end
@@ -128,7 +161,7 @@ describe 'cigri-iolib' do
   describe 'delete_campaign' do
     it 'should delete an existing campaign' do
       db_connect() do |dbh|
-        id = cigri_submit(dbh, CORRECT_JSON, 'kameleon')
+        id = cigri_submit(dbh, @correct_json, 'kameleon')
         delete_campaign(dbh, 'kameleon', id).should == true
       end
     end
@@ -141,7 +174,7 @@ describe 'cigri-iolib' do
     
     it 'should fail to delete a campaign when the wrong owner asks' do
       db_connect() do |dbh|
-        id = cigri_submit(dbh, CORRECT_JSON, 'kameleon')
+        id = cigri_submit(dbh, @correct_json, 'kameleon')
         delete_campaign(dbh, 'toto', id).should == false
         delete_campaign(dbh, 'kameleon', id)
       end
