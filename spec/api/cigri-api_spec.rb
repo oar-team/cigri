@@ -48,6 +48,13 @@ describe 'API' do
       links.should_not be nil
     end
     
+    it 'should add more jobs in an existing campaign' do
+      post "/campaigns/#{@test_id}/jobs", '["a", "b", "c", "d"]', 'HTTP_X_CIGRI_USER' => 'Rspec'
+      response = JSON.parse last_response.body
+      response['total_jobs'].should be == 14
+      pp response
+    end
+
     xit 'should get info relative to the jobs posted campaign' do
       get "/campaigns/#{@test_id}/jobs"
       last_response.should be_ok

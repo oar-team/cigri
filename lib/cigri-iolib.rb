@@ -111,12 +111,14 @@ def cigri_submit(dbh, json, user)
   IOLIBLOGGER.debug('Saving campaign into database')
   dbh['AutoCommit'] = false
   begin
+    params = json['params']
+    json['params'] = []
+
     #INSERT INTO campaigns
     query = 'INSERT into campaigns 
              (grid_user, state, type, name, submission_time, nb_jobs, jdl)
              VALUES (?, \'in_treatment\', ?, ?, NOW(), ?, ?)'
-    nb_jobs = json['params'] ? json['params'].length : -1
-    dbh.do(query, user, json['jobs_type'], json['name'], nb_jobs, json.to_json)
+    dbh.do(query, user, json['jobs_type'], json['name'], 0, json.to_json)
     
     campaign_id = last_inserted_id(dbh, 'campaigns_id_seq')
     clusters = get_clusters_ids(dbh, json['clusters'].keys)
@@ -143,7 +145,7 @@ def cigri_submit(dbh, json, user)
 
     # Create bag_of_tasks
     unless json['jobs_type'].eql?('desktop_computing')
-      cigri_submit_jobs(dbh, json['params'], campaign_id)
+      cigri_submit_jobs(dbh, params, campaign_id, user)
     else
       raise Cigri::Exception, 'Desktop_computing campaigns are not yet sopported'
     end
@@ -170,17 +172,21 @@ end
 # - campaign_id: campaign in which to add the params 
 #
 ##
-def cigri_submit_jobs(dbh, params, campaign_id)
+def cigri_submit_jobs(dbh, params, campaign_id, user)
   IOLIBLOGGER.debug("Adding new tasks to campaign #{campaign_id}")
-  state = dbh.select_one("SELECT state FROM campaigns WHERE id = ?", campaign_id)
-  raise Cigri::Exception, "Campaign #{campaign_id} does not exist" unless state
-  raise Cigri::Exception, "Unable to add jobs to campaign #{campaign_id} because it was cancelled" if state[0] == "cancelled"
+  campaign = dbh.select_one("SELECT state, grid_user, jdl FROM campaigns WHERE id = ?", campaign_id)
+  raise Cigri::Exception, "Campaign #{campaign_id} does not exist" unless campaign
+  raise Cigri::Exception, "Unable to add jobs to campaign #{campaign_id} because it was cancelled" if campaign[0] == "cancelled"
+  raise Cigri::Exception, "User #{user} tried to modify campaign #{campaign_id} belonging to #{campaign[1]}" if user != campaign[1]
+  jdl = JSON.parse(campaign[2])
+  jdl['params'].concat(params)
 
   old_autocommit = dbh['AutoCommit']
   dbh['AutoCommit'] = false
   begin
-  
-    dbh.do("UPDATE campaigns SET state = 'in_treatment' WHERE id = ?", campaign_id) if state[0] == "terminated"
+
+    dbh.do("UPDATE campaigns SET state = 'in_treatment' WHERE id = ?", campaign_id) if campaign[0] == "terminated"
+    dbh.do("UPDATE campaigns SET jdl = ?, nb_jobs = ? WHERE id = ?", jdl.to_json, jdl['params'].length, campaign_id)
 
     base_query = 'INSERT INTO bag_of_tasks 
                   (name, param, campaign_id)
@@ -189,10 +195,9 @@ def cigri_submit_jobs(dbh, params, campaign_id)
     while params.length > 0 do
       slice = params.slice!(0...10000)
       slice.map!{ |param| "(#{quote(param.split.first)}, #{quote(param)}, #{campaign_id})"}
-      pp base_query + slice.join(', ')
       dbh.do(base_query + slice.join(', '))
     end
-    dbh.commit() if old_autocommit == true
+    dbh.commit() unless old_autocommit == false
   rescue Exception => e
     IOLIBLOGGER.error("Error adding new jobs to campaign #{campaign_id}: " + e.inspect)
     dbh.rollback()

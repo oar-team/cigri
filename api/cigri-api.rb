@@ -31,6 +31,7 @@ class API < Sinatra::Base
   
   # List all links
   get '/' do
+    response['Allow'] = 'GET'
     output = {
         :links => [
           {:rel => 'self', :href => '/'},
@@ -38,14 +39,14 @@ class API < Sinatra::Base
           {:rel => 'collection', :href => '/clusters', 'title' => :clusters}
         ]
       }
-    response['Allow'] = 'GET'
     status 200
     print(output)
   end
   
   # List all running campaigns (in_treatment or paused)
   get '/campaigns/?' do
-    #get list of campaign
+    response['Allow'] = 'GET,POST'
+    
     items = []
     Cigri::Campaignset.new.get_unfinished.each do |campaign|
       items << format_campaign(campaign)
@@ -54,19 +55,19 @@ class API < Sinatra::Base
       :items => items,
       :total => items.length,
       :links => [
-          {:rel => "self", :href => "/campaigns"},
-          {:rel => "parent", :href => "/"}
+          {:rel => :self, :href => "/campaigns"},
+          {:rel => :parent, :href => "/"}
         ]
     }
-    response['Allow'] = 'GET,POST'
+    
     status 200
     print(output)
   end
 
   # Details of a campaign
   get '/campaigns/:id/?' do |id|
-    output = get_formated_campaign(id)
     response['Allow'] = 'DELETE,GET,POST,PUT'
+    output = get_formated_campaign(id)
     status 200
     print(output)
   end
@@ -89,17 +90,16 @@ class API < Sinatra::Base
   
   # List all clusters
   get '/clusters/?' do
-    # get all the clusters
+    response['Allow'] = 'GET'
     items  = []
     Cigri::ClusterSet.new.each do |cluster|
       id = cluster.description['id']
-      items << {
-                  :id => id,
-                  :name => cluster.description['name'],
-                  :links => [
-                    {:rel => 'self', :href => "/clusters/#{id}"},
-                    {:rel => 'parent', :href => '/clusters'}
-                  ]
+      items << {:id => id,
+                :name => cluster.description['name'],
+                :links => [
+                  {:rel => :self, :href => "/clusters/#{id}"},
+                  {:rel => :parent, :href => '/clusters'}
+                ]
                }
     end
     output = {
@@ -110,13 +110,14 @@ class API < Sinatra::Base
           {:rel => "parent", :href => "/"}
         ]
     }
-    response['Allow'] = 'GET'
+    
     status 200
     print(output)
   end
   
   # Details of a cluster
   get '/clusters/:id/?' do |id|
+    response['Allow'] = 'GET'
     begin
       cluster = Cigri::Cluster.new(:id => id).description
       cluster[:links] = [{:rel => "self", :href => "/clusters/#{id}"},
@@ -125,7 +126,7 @@ class API < Sinatra::Base
     rescue Exception => e
       not_found "Cluster with id #{id} does not exist"
     end
-    response['Allow'] = 'GET'
+    
     status 200
     print(cluster)
   end
@@ -133,43 +134,45 @@ class API < Sinatra::Base
   # Submit a new campaign
   post '/campaigns/?' do
     protected!
+    response['Allow'] = 'GET,POST'
     request.body.rewind
     answer = ''
-    db_connect() do |dbh|
-      begin
+    begin
+      db_connect() do |dbh|
         id = Cigri::JDLParser.save(dbh, request.body.read, request.env['HTTP_X_CIGRI_USER']).to_s
-        answer = {
-          :id => id,
-          :links => [
-            {:rel => "self", :href => "/campaigns/#{id}"},
-            {:rel => "parent", :href => "/campaigns"}
-          ]
-        }
-        status 201
-      rescue Exception => e
-        status 400
-        answer = e.message
+        answer = get_formated_campaign(id)
       end
+    rescue Exception => e
+      halt 400, print({:status => 400, :title => "Error", :message => "Error submitting campaign: #{e}"})
     end
-    response['Allow'] = 'GET,POST'
+
+    status 201
     print(answer)
   end
 
+  #adding jobs to an existing campaign
   post '/campaigns/:id/jobs/?' do |id|
     protected!
+    response['Allow'] = 'GET,POST'
     request.body.rewind
-    answer = ''
+    
+    begin
+      db_connect() do |dbh|
+        cigri_submit_jobs(dbh, JSON.parse(request.body.read), id, request.env['HTTP_X_CIGRI_USER'])
+      end
+    rescue Exception => e
+      halt 400, print({:status => 400, :title => "Error", :message => "Error updating campaign #{id}: #{e}"})
+    end
 
     status 201
-
-    response['Allow'] = 'GET,POST'
-    print(answer)
+    print(get_formated_campaign(id))
   end
   
   # Update a campaign
   put '/campaigns/:id/?' do |id|
     protected!
-    
+    response['Allow'] = 'DELETE,GET,POST,PUT'
+
     res = nil
     db_connect() do |dbh|
       begin
@@ -189,7 +192,6 @@ class API < Sinatra::Base
       output = {:status => 403, :title => "Forbidden", :message => "Campaign #{id} does not belong to you"}
     end
     
-    response['Allow'] = 'DELETE,GET,POST,PUT'
     print(output)
   end
   
@@ -262,9 +264,10 @@ class API < Sinatra::Base
        :total_jobs => props[:nb_jobs].to_i,
        :finished_jobs => props[:finished_jobs],
        :links=> [
-         {:rel => 'self', :href => "/campaigns/#{id}"},
-         {:rel => 'parent', :href => '/campaigns'},
-         {:rel => 'collection', :href => "/campaigns/#{id}/jobs", :title => 'jobs'}
+         {:rel => :self, :href => "/campaigns/#{id}"},
+         {:rel => :parent, :href => '/campaigns'},
+         {:rel => :collection, :href => "/campaigns/#{id}/jobs", :title => 'jobs'},
+         {:rel => :item, :href => "/campaigns/#{id}/jdl", :title => 'jdl'}
        ]}
     end
     

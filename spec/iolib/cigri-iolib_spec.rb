@@ -79,14 +79,14 @@ describe 'cigri-iolib' do
         nb_params = @correct_json['params'].length
         id = cigri_submit(dbh, @correct_json, 'kameleon')
         id.should be_a(Integer)
-        dbh.select_one("SELECT count(*) FROM bag_of_tasks WHERE campaign_id = ?", id)[0].should == nb_params
+        nb_jobs = dbh.select_one("SELECT count(*) FROM bag_of_tasks WHERE campaign_id = ?", id)[0].should be == nb_params
         delete_campaign(dbh, 'kameleon', id)
       end
     end
     
     it 'should fail to submit if json not correct' do
       db_connect() do |dbh|
-        lambda{cigri_submit(dbh, '', 'kameleon')}.should raise_error DBI::ProgrammingError
+        lambda{cigri_submit(dbh, '', 'kameleon')}.should raise_error
       end
     end
   end # cigri_submit
@@ -94,7 +94,7 @@ describe 'cigri-iolib' do
   describe "cigri_submit_jobs" do
     it 'should fail if campaign does not exist' do
       db_connect() do |dbh|
-        lambda{cigri_submit_jobs(dbh, ["param1 a", "param2 b"], 123456789)}.should raise_error Cigri::Exception
+        lambda{cigri_submit_jobs(dbh, ["param1 a", "param2 b"], 123456789, 'user')}.should raise_error Cigri::Exception
       end
     end
 
@@ -102,7 +102,16 @@ describe 'cigri-iolib' do
       db_connect() do |dbh|
         id = cigri_submit(dbh, @correct_json, 'kameleon')
         dbh.do("UPDATE campaigns SET state = 'cancelled' WHERE id = ?", id)
-        lambda{cigri_submit_jobs(dbh, ["param1 a", "param2 b"], id)}.should raise_error Cigri::Exception
+        lambda{cigri_submit_jobs(dbh, ["param1 a", "param2 b"], id, 'user')}.should raise_error Cigri::Exception
+        delete_campaign(dbh, 'kameleon', id)
+      end
+    end
+
+    it 'should fail if campaign does not belong to the user' do
+      db_connect() do |dbh|
+        id = cigri_submit(dbh, @correct_json, 'kameleon')
+        dbh.do("UPDATE campaigns SET state = 'cancelled' WHERE id = ?", id)
+        lambda{cigri_submit_jobs(dbh, ["param1 a", "param2 b"], id, 'user')}.should raise_error Cigri::Exception
         delete_campaign(dbh, 'kameleon', id)
       end
     end
@@ -112,9 +121,9 @@ describe 'cigri-iolib' do
         nb_params = @correct_json['params'].length
         id = cigri_submit(dbh, @correct_json, 'kameleon')
         dbh.do("UPDATE campaigns SET state = 'terminated' WHERE id = ?", id)
-        lambda{cigri_submit_jobs(dbh, ["param1 a", "param2 b"], id)}.should_not raise_error
-        dbh.select_one("SELECT state FROM campaigns WHERE id = ?", id)[0].should == "in_treatment"
-        dbh.select_one("SELECT count(*) FROM bag_of_tasks WHERE campaign_id = ?", id)[0].should == nb_params + 2
+        lambda{cigri_submit_jobs(dbh, ["param1 a", "param2 b"], id, 'kameleon')}.should_not raise_error
+        dbh.select_one("SELECT state FROM campaigns WHERE id = ?", id)[0].should be == "in_treatment"
+        dbh.select_one("SELECT count(*) FROM bag_of_tasks WHERE campaign_id = ?", id)[0].should be == nb_params + 2
         delete_campaign(dbh, 'kameleon', id)
       end
     end
@@ -124,9 +133,9 @@ describe 'cigri-iolib' do
     it 'should cancel an existing campaign' do
       db_connect() do |dbh|
         id = cigri_submit(dbh, @correct_json, 'kameleon')
-        cancel_campaign(dbh, 'kameleon', id).should == 1
+        cancel_campaign(dbh, 'kameleon', id).should be == 1
         campaign = Cigri::Campaign.new({:id => id})
-        campaign.props[:state].should == 'cancelled'
+        campaign.props[:state].should be == 'cancelled'
         delete_campaign(dbh, 'kameleon', id)
       end
     end
@@ -134,10 +143,10 @@ describe 'cigri-iolib' do
     it 'should cancel an existing campaign only once' do
       db_connect() do |dbh|
         id = cigri_submit(dbh, @correct_json, 'kameleon')
-        cancel_campaign(dbh, 'kameleon', id).should == 1
-        cancel_campaign(dbh, 'kameleon', id).should == 0
+        cancel_campaign(dbh, 'kameleon', id).should be == 1
+        cancel_campaign(dbh, 'kameleon', id).should be == 0
         campaign = Cigri::Campaign.new({:id => id})
-        campaign.props[:state].should == 'cancelled'
+        campaign.props[:state].should be == 'cancelled'
         delete_campaign(dbh, 'kameleon', id)
       end
     end
@@ -151,7 +160,7 @@ describe 'cigri-iolib' do
     it 'should fail to cancel a campaign when the wrong owner asks' do
       db_connect() do |dbh|
         id = cigri_submit(dbh, @correct_json, 'kameleon')
-        cancel_campaign(dbh, 'toto', id).should == false
+        cancel_campaign(dbh, 'toto', id).should be == false
         delete_campaign(dbh, 'kameleon', id)
       end
     end
@@ -175,7 +184,7 @@ describe 'cigri-iolib' do
     it 'should fail to delete a campaign when the wrong owner asks' do
       db_connect() do |dbh|
         id = cigri_submit(dbh, @correct_json, 'kameleon')
-        delete_campaign(dbh, 'toto', id).should == false
+        delete_campaign(dbh, 'toto', id).should be == false
         delete_campaign(dbh, 'kameleon', id)
       end
     end
