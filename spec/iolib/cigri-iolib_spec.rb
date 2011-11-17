@@ -153,14 +153,14 @@ describe 'cigri-iolib' do
     
     it 'should fail to cancel a non existing campaign' do
       db_connect() do |dbh|
-        cancel_campaign(dbh, 'kameleon', -1).should == nil
+        lambda{cancel_campaign(dbh, 'kameleon', -1)}.should raise_error Cigri::NotFound
       end
     end
     
     it 'should fail to cancel a campaign when the wrong owner asks' do
       db_connect() do |dbh|
         id = cigri_submit(dbh, @correct_json, 'kameleon')
-        cancel_campaign(dbh, 'toto', id).should be == false
+        lambda{cancel_campaign(dbh, 'toto', id)}.should raise_error Cigri::Unauthorized
         delete_campaign(dbh, 'kameleon', id)
       end
     end
@@ -177,14 +177,14 @@ describe 'cigri-iolib' do
     
     it 'should fail to delete a non existing campaign' do
       db_connect() do |dbh|
-        delete_campaign(dbh, 'kameleon', -1).should == nil
+        lambda{delete_campaign(dbh, 'kameleon', -1)}.should raise_error Cigri::NotFound
       end
     end
     
     it 'should fail to delete a campaign when the wrong owner asks' do
       db_connect() do |dbh|
         id = cigri_submit(dbh, @correct_json, 'kameleon')
-        delete_campaign(dbh, 'toto', id).should be == false
+        lambda{delete_campaign(dbh, 'toto', id)}.should raise_error Cigri::Unauthorized
         delete_campaign(dbh, 'kameleon', id)
       end
     end

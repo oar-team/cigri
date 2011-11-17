@@ -174,10 +174,13 @@ end
 ##
 def cigri_submit_jobs(dbh, params, campaign_id, user)
   IOLIBLOGGER.debug("Adding new tasks to campaign #{campaign_id}")
+
+  check_rights!(dbh, user, campaign_id)
+
   campaign = dbh.select_one("SELECT state, grid_user, jdl FROM campaigns WHERE id = ?", campaign_id)
-  raise Cigri::Error, "Campaign #{campaign_id} does not exist" unless campaign
+  #raise Cigri::Error, "Campaign #{campaign_id} does not exist" unless campaign
   raise Cigri::Error, "Unable to add jobs to campaign #{campaign_id} because it was cancelled" if campaign[0] == "cancelled"
-  raise Cigri::Error, "User #{user} tried to modify campaign #{campaign_id} belonging to #{campaign[1]}" if user != campaign[1]
+  #raise Cigri::Error, "User #{user} tried to modify campaign #{campaign_id} belonging to #{campaign[1]}" if user != campaign[1]
   jdl = JSON.parse(campaign[2])
   jdl['params'].concat(params)
 
@@ -252,24 +255,19 @@ end
 # - dbh: database handle
 # - all the fields of the clusters database
 #
-# == Returns
-# - false if failed
+# == Exceptions
+# - Exception if insertion failed
 ##
 def new_cluster(dbh, name, api_url, api_username, api_password, ssh_host, batch, resource_unit, power, properties)
   IOLIBLOGGER.debug("Creating the new cluster #{name}")
-  dbh['AutoCommit'] = false
   begin
     query = 'INSERT into clusters
              (name,api_url,api_username,api_password,ssh_host,batch,resource_unit,power,properties)
              VALUES (?,?,?,?,?,?,?,?,?)'
     dbh.do(query,name,api_url,api_username,api_password,ssh_host,batch,resource_unit,power,properties)
-    dbh.commit()
   rescue Exception => e
     IOLIBLOGGER.error("Error inserting cluster #{name}: " + e.inspect)
-    dbh.rollback()
     raise e
-  ensure
-    dbh['AutoCommit'] = true
   end
 end
 
@@ -290,7 +288,7 @@ def get_cluster(dbh, id)
   sth.finish
   if res.nil?
     IOLIBLOGGER.error("No cluster with id=#{id}!")
-    raise Cigri::Error, "No cluster with id=#{id}!"
+    raise Cigri::NotFound, "No cluster with id=#{id}!"
   end
   res
 end
@@ -325,15 +323,16 @@ end
 # == Returns
 # - 1 if campaign was cancelled successfully
 # - 0 if the campaign was already cancelled
-# - false if the user does not have the rights to cancel the campaign
-# - nil if the campaign "id" does not exist
+#
+# == Exceptions
+# - Cigri::Unauthorized if the user does not have the rights to cancel the campaign
+# - Cigri::NotFound if the campaign "id" does not exist
 #
 ##
 def cancel_campaign(dbh, user, id)
   IOLIBLOGGER.debug("Received request to cancel campaign '#{id}'")
   
-  ok = check_rights(dbh, user, id)
-  return ok unless ok
+  check_rights!(dbh, user, id)
   
   nb = 1
   dbh['AutoCommit'] = false
@@ -378,17 +377,15 @@ end
 # - user: user requesting campaign deletion
 # - id: campaign id to delete
 #
-# == Returns
-# - true if campaign was deleted successfully
-# - false if the user does not have the rights to delete the campaign
-# - nil if the campaign "id" does not exist
+# == Exceptions
+# - Cigri::Unauthorized if the user does not have the rights to delete the campaign
+# - Cigri::NotFound if the campaign "id" does not exist
 #
 ##
 def delete_campaign(dbh, user, id)
   IOLIBLOGGER.debug("Received request to delete campaign '#{id}'")
   
-  ok = check_rights(dbh, user, id)
-  return ok unless ok
+  check_rights!(dbh, user, id)
   
   dbh['AutoCommit'] = false
   begin
@@ -412,7 +409,6 @@ def delete_campaign(dbh, user, id)
   ensure
     dbh['AutoCommit'] = true
   end
-  true
 end
 
 ##
@@ -424,18 +420,16 @@ end
 # - id: campaign id to delete
 # - hash: parameters to update
 #
-# == Returns
-# - true if campaign was deleted successfully
-# - false if the user does not have the rights to delete the campaign
-# - nil if the campaign "id" does not exist
+# == Exceptions
+# - Cigri::Unauthorized if the user does not have the rights to delete the campaign
+# - Cigri::NotFound if the campaign "id" does not exist
 #
 ##
 #TODO spec !!!!
 def update_campaign(dbh, user, id, hash)
   IOLIBLOGGER.debug("Received request to update campaign '#{id}'")
   
-  ok = check_rights(dbh, user, id)
-  return ok unless ok
+  check_rights!(dbh, user, id)
   
   if hash.size > 0
     query = 'UPDATE campaigns SET '
@@ -451,11 +445,10 @@ def update_campaign(dbh, user, id, hash)
       dbh.do(query, id)
       IOLIBLOGGER.info("Campaign #{id} updated")
     rescue Exception => e
-      IOLIBLOGGER.error('Error during campaign update, rolling back changes: ' + e.inspect)
+      IOLIBLOGGER.error('Error during campaign update: ' + e.inspect)
       raise e
     end
   end
-  true
 end
 
 ##
@@ -466,22 +459,20 @@ end
 # - user: user requesting campaign deletion
 # - id: campaign id to check
 #
-# == Returns
-# - true if campaign user is the owner of campaign id
-# - false if the user does not have the rights to act on the campaign
-# - nil if the campaign "id" does not exist
+# == Exceptions
+# - Cigri::Unauthaurized if the user does not have the rights to act on the campaign
+# - Cigri::NotFound if the campaign "id" does not exist
 #
 ##
-def check_rights(dbh, user, id)
+def check_rights!(dbh, user, id)
   row = dbh.select_one("SELECT grid_user FROM campaigns WHERE id = ?", id)
   if not row
     IOLIBLOGGER.warn("Asked to check rights on a campaign that does not exist (#{id})")
-    return nil
+    raise Cigri::NotFound, "Campaign #{id} not found"
   elsif row[0] != user && user != "root"
     IOLIBLOGGER.warn("User #{user} asked to modify campaign '#{id}' belonging to #{row[0]}.")
-    return false
+    raise Cigri::Unauthorized, "User '#{user}' is not the owner of campaign '#{id}'"
   end
-  true
 end
 
 ##

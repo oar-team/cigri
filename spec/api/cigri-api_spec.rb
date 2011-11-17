@@ -54,6 +54,16 @@ describe 'API' do
       response['total_jobs'].should be == 14
     end
 
+    it 'should not add more jobs in a non existing campaign' do
+      post "/campaigns/1234567890/jobs", '["a", "b", "c", "d"]', 'HTTP_X_CIGRI_USER' => 'Rspec'
+      last_response.status.should be(404)
+    end
+
+    it 'should not add more jobs in the campaign of someone else' do
+      post "/campaigns/#{@test_id}/jobs", '["a", "b", "c", "d"]', 'HTTP_X_CIGRI_USER' => 'toto'
+      last_response.status.should be(403)
+    end
+    
     xit 'should get info relative to the jobs posted campaign' do
       get "/campaigns/#{@test_id}/jobs"
       last_response.should be_ok

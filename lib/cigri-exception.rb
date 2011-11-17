@@ -12,6 +12,7 @@ module Cigri
     end
   end
 
-  class Unauthorized < Error; end
   class NotFound < Error; end
+  class ParseError < Error; end
+  class Unauthorized < Error; end
 end

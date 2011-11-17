@@ -169,6 +169,10 @@ class API < Sinatra::Base
       db_connect() do |dbh|
         cigri_submit_jobs(dbh, JSON.parse(request.body.read), id, request.env['HTTP_X_CIGRI_USER'])
       end
+    rescue Cigri::NotFound 
+      not_found "Campaign #{id} does not exist"
+    rescue Cigri::Unauthorized => e
+      halt 403, print({:status => 403, :title => "Forbidden", :message => e.message})
     rescue Exception => e
       halt 400, print({:status => 400, :title => "Error", :message => "Error updating campaign #{id}: #{e}"})
     end
