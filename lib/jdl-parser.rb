@@ -25,7 +25,7 @@ module Cigri
     # Objects corresponding to the json string
     #
     # == Exceptions:
-    # Cigri::Exception if the JDL is not well formed
+    # Cigri::Error if the JDL is not well formed
     ##
     def self.parse(str) 
       json = JSON.parse(str)
@@ -37,26 +37,26 @@ module Cigri
       #check if all mandatory parameters are defined
       MANDATORY_GLOBAL.each do |field|
         unless res[field]
-          raise Cigri::Exception, "JDL file does not contain mandatory field '#{field}'"
+          raise Cigri::Error, "JDL file does not contain mandatory field '#{field}'"
         end
       end
       MANDATORY_CLUSTER.each do |field|
         res['clusters'].each_value do |cluster|
           unless cluster[field] or res[field]
-            raise Cigri::Exception, "Cluster #{cluster} does not have mandatory field '#{field}'" 
+            raise Cigri::Error, "Cluster #{cluster} does not have mandatory field '#{field}'" 
           end
         end
       end
       
       #Verify there is at least one cluster
       if res['clusters'].length == 0
-        raise Cigri::Exception, 'You must define at least one cluster in the "clusters" field'
+        raise Cigri::Error, 'You must define at least one cluster in the "clusters" field'
       end
       
       #verify there are parameters for the campaign
       unless res['param_file'] or res['nb_jobs'] or res['params'] or
              (res['jobs_type'] and res['jobs_type'].downcase.eql?('desktop_computing'))
-        raise Cigri::Exception, 'No parameters for your campaign are defined.' +
+        raise Cigri::Error, 'No parameters for your campaign are defined.' +
         'You must define param_file or nb_jobs or ' +
         'have "jobs_type": "desktop_computing"'
       end
@@ -76,7 +76,7 @@ module Cigri
     # Campaign id if correctly created, nil if not
     #
     # == Exceptions:
-    # Cigri::Exception if the JDL is not well formed
+    # Cigri::Error if the JDL is not well formed
     # Exception if there was an error when saving in the database
     ##
     def self.save(dbh, json, user)
@@ -87,7 +87,7 @@ module Cigri
         res = self.parse(json)
       rescue JSON::ParserError => e
         logger.error("JDL file not well defined: #{json}")
-        raise Cigri::Exception, "JDL badly defined: #{e.inspect}"
+        raise Cigri::Error, "JDL badly defined: #{e.inspect}"
       end
       
       default_values!(res, config)
@@ -114,7 +114,7 @@ module Cigri
     # - jdl represented as a json bject (hash + array)
     ##
     def self.expand_jdl!(jdl)
-      raise Cigri::Exception, 'JDL does not contain the "clusters" field' unless jdl['clusters']
+      raise Cigri::Error, 'JDL does not contain the "clusters" field' unless jdl['clusters']
       jdl.each do |key, val|
         unless ALL_GLOBAL.include?(key)
           jdl['clusters'].each_value do |cluster|
@@ -143,7 +143,7 @@ module Cigri
           jdl['param_file'][match] = ENV[match.delete('$')]
         end
         jdl['param_file'] = File.expand_path(jdl['param_file'])
-        raise Cigri::Exception, "Parameter file '#{jdl['param_file']}' is not readable" unless File.readable?(jdl['param_file'])
+        raise Cigri::Error, "Parameter file '#{jdl['param_file']}' is not readable" unless File.readable?(jdl['param_file'])
         params = File.readlines(jdl['param_file']).map!{|a| a.strip}
         jdl.delete('param_file')
       end
@@ -169,7 +169,7 @@ module Cigri
     DEFAULT_VALUES_GLOBAL_CONF = {}
     
     def self.default_values!(jdl, config)
-      raise Cigri::Exception, 'JDL does not contain the "clusters" field' unless jdl['clusters']
+      raise Cigri::Error, 'JDL does not contain the "clusters" field' unless jdl['clusters']
       
       #set default values for global attributes
       DEFAULT_VALUES_GLOBAL.each do |key, val|

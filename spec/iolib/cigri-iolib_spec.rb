@@ -94,7 +94,7 @@ describe 'cigri-iolib' do
   describe "cigri_submit_jobs" do
     it 'should fail if campaign does not exist' do
       db_connect() do |dbh|
-        lambda{cigri_submit_jobs(dbh, ["param1 a", "param2 b"], 123456789, 'user')}.should raise_error Cigri::Exception
+        lambda{cigri_submit_jobs(dbh, ["param1 a", "param2 b"], 123456789, 'user')}.should raise_error Cigri::Error
       end
     end
 
@@ -102,7 +102,7 @@ describe 'cigri-iolib' do
       db_connect() do |dbh|
         id = cigri_submit(dbh, @correct_json, 'kameleon')
         dbh.do("UPDATE campaigns SET state = 'cancelled' WHERE id = ?", id)
-        lambda{cigri_submit_jobs(dbh, ["param1 a", "param2 b"], id, 'user')}.should raise_error Cigri::Exception
+        lambda{cigri_submit_jobs(dbh, ["param1 a", "param2 b"], id, 'user')}.should raise_error Cigri::Error
         delete_campaign(dbh, 'kameleon', id)
       end
     end
@@ -111,7 +111,7 @@ describe 'cigri-iolib' do
       db_connect() do |dbh|
         id = cigri_submit(dbh, @correct_json, 'kameleon')
         dbh.do("UPDATE campaigns SET state = 'cancelled' WHERE id = ?", id)
-        lambda{cigri_submit_jobs(dbh, ["param1 a", "param2 b"], id, 'user')}.should raise_error Cigri::Exception
+        lambda{cigri_submit_jobs(dbh, ["param1 a", "param2 b"], id, 'user')}.should raise_error Cigri::Error
         delete_campaign(dbh, 'kameleon', id)
       end
     end

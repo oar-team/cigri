@@ -39,10 +39,10 @@ module Cigri
       db_connect() do |dbh|
         if not id = opts[:id]
           if not name = opts[:name]
-            raise Cigri::Exception.new("At least :id or :name should be passed to RestCluster constructor!", CLUSTERLIBLOGGER)
+            raise Cigri::Error.new("At least :id or :name should be passed to RestCluster constructor!", CLUSTERLIBLOGGER)
           else
             id = get_cluster_id(dbh,name)
-            raise Cigri::Exception.new("No cluster found by that name: #{name}", CLUSTERLIBLOGGER) if id.nil?
+            raise Cigri::Error.new("No cluster found by that name: #{name}", CLUSTERLIBLOGGER) if id.nil?
           end
         end
         @description = get_cluster(dbh, id)
@@ -208,7 +208,7 @@ module Cigri
      tmp_cluster = RestCluster.new(opts)
      type = tmp_cluster.description["batch"]
      if not available_types.include?(type)
-       raise Cigri::Exception.new("#{type} is not listed into the available_types!", CLUSTERLIBLOGGER)
+       raise Cigri::Error.new("#{type} is not listed into the available_types!", CLUSTERLIBLOGGER)
      end
      classe = 
        case type

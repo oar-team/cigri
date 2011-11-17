@@ -11,7 +11,7 @@ begin
   logger = Cigri::Logger.new("RUNNER #{ARGV[0]}", config.get('LOG_FILE'))
 
   if ARGV[0].nil?
-    raise Cigri::Exception, "runner should be passed the name of a cluster as an argument"
+    raise Cigri::Error, "runner should be passed the name of a cluster as an argument"
   else
     cluster=Cigri::Cluster.new(:name => ARGV[0])
   end

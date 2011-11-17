@@ -1,9 +1,9 @@
 module Cigri
   ##
-  # Cigri Exceptions are just normal exceptions that are logger if 
-  # LOGGER exists
+  # Cigri Exceptions are just normal exceptions that are logged if 
+  # a logger is given as argument
   ##
-  class Exception < StandardError
+  class Error < StandardError
     def initialize(msg, logger = nil)
       if logger and logger.class == Cigri::Logger
         logger.error('Exception raised: ' + msg)
@@ -11,4 +11,7 @@ module Cigri
       super(msg)
     end
   end
+
+  class Unauthorized < Error; end
+  class NotFound < Error; end
 end

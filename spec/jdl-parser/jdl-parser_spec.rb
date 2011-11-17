@@ -17,16 +17,16 @@ describe 'jdl-parser' do
   
   describe 'missing fields' do
     it 'should fail if name missing' do
-      lambda{Cigri::JDLParser.parse('{"nb_jobs":0,"clusters":{"c":{"exec_file":"e"}}}')}.should raise_error Cigri::Exception
+      lambda{Cigri::JDLParser.parse('{"nb_jobs":0,"clusters":{"c":{"exec_file":"e"}}}')}.should raise_error Cigri::Error
     end
     it 'should fail if clusters missing' do
-      lambda{Cigri::JDLParser.parse('{"name":"n", "nb_jobs":0}')}.should raise_error Cigri::Exception
+      lambda{Cigri::JDLParser.parse('{"name":"n", "nb_jobs":0}')}.should raise_error Cigri::Error
     end
     it 'should fail if exec_file missing' do
-      lambda{Cigri::JDLParser.parse('{"name":"n", "nb_jobs":0, "clusters":{"c":{}}}')}.should raise_error Cigri::Exception
+      lambda{Cigri::JDLParser.parse('{"name":"n", "nb_jobs":0, "clusters":{"c":{}}}')}.should raise_error Cigri::Error
     end
     it 'should fail if no cluster defined' do
-      lambda{Cigri::JDLParser.parse('{"name":"n", "nb_jobs":0, "clusters":{}}')}.should raise_error Cigri::Exception
+      lambda{Cigri::JDLParser.parse('{"name":"n", "nb_jobs":0, "clusters":{}}')}.should raise_error Cigri::Error
     end
   end # missing parameters
   
@@ -44,7 +44,7 @@ describe 'jdl-parser' do
       lambda{Cigri::JDLParser.parse('{"name":"n","jobs_type":"desktop_computing","clusters":{"c":{"exec_file":"e"}}}')}.should_not raise_error
     end
     it 'should fail if no param_file or nb_jobs or jobs_type=desktop_computing given' do
-      lambda{Cigri::JDLParser.parse('{"name":"n","clusters":{"c":{"exec_file":"e"}}}')}.should raise_error Cigri::Exception
+      lambda{Cigri::JDLParser.parse('{"name":"n","clusters":{"c":{"exec_file":"e"}}}')}.should raise_error Cigri::Error
     end
   end # parameters file
   
@@ -123,7 +123,7 @@ describe 'jdl-parser' do
     
     it 'should not be able to save an incorrect json' do
       db_connect() do |dbh|
-        lambda{@cid = Cigri::JDLParser.save(dbh, '{"name":"n", "clusters":{"tchernobyl":{"exec_file":"e"}}}', 'testuser')}.should raise_error Cigri::Exception
+        lambda{@cid = Cigri::JDLParser.save(dbh, '{"name":"n", "clusters":{"tchernobyl":{"exec_file":"e"}}}', 'testuser')}.should raise_error Cigri::Error
       end
     end
 

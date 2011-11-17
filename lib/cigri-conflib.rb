@@ -51,7 +51,7 @@ module Cigri
       begin
         self.scan
       rescue
-        raise Cigri::Exception, "unable to open config file #{config_file}!"
+        raise Cigri::Error, "Unable to open config file #{config_file}!"
       end
     end
   
@@ -77,7 +77,7 @@ module Cigri
       if @conf.has_key?(key)
         return @conf[key]
       else
-        raise Cigri::Exception, "Conf: no key #{key}"
+        raise Cigri::Error, "Conf: no key #{key}"
       end
     end
   end 

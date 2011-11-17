@@ -5,7 +5,7 @@ describe 'cigri-conflib' do
 
   describe 'initialize failures' do
     it 'should fail when a non-existant file is given' do
-      lambda{Cigri::Conf.new("/tmp/qsdfghjklm.conf")}.should raise_error Cigri::Exception
+      lambda{Cigri::Conf.new("/tmp/qsdfghjklm.conf")}.should raise_error Cigri::Error
     end
   end # initialize failures
   
@@ -33,7 +33,7 @@ describe 'cigri-conflib' do
     end
     
     it 'should raise an excetion when getting an unexisting key' do
-      lambda{@config.get('fbuisghsdui')}.should raise_error Cigri::Exception
+      lambda{@config.get('fbuisghsdui')}.should raise_error Cigri::Error
     end
   end # end methods
   

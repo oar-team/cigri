@@ -42,7 +42,7 @@ module Cigri
     # Converts the given uri, to something relative
     # to the base of the API
     def rel_uri(uri)
-      raise Cigri::Exception, "uri shouldn't be nil" if uri.nil?
+      raise Cigri::Error, "uri shouldn't be nil" if uri.nil?
       abs_uri=@base_uri.merge(uri).to_s
       target_uri=URI.parse(abs_uri).to_s
       @base_uri.route_to(target_uri).to_s
@@ -55,7 +55,7 @@ module Cigri
       elsif (resource.headers[:content_type] =~ /text.*yaml.*/)
         return YAML.parse(resource)
       else
-        raise Cigri::Exception, "Unsupported content_type: #{resource.headers[:content_type]}"
+        raise Cigri::Error, "Unsupported content_type: #{resource.headers[:content_type]}"
       end
     end
 
@@ -66,7 +66,7 @@ module Cigri
       elsif (@content_type =~ /text.*yaml.*/)
         return resource.to_yaml
       else
-        raise Cigri::Exception, "Unsupported content_type: #{@content_type}"
+        raise Cigri::Error, "Unsupported content_type: #{@content_type}"
       end
     end
 
@@ -79,9 +79,9 @@ module Cigri
             parse(@api[uri].get(:accept => @content_type))
           rescue => e # Rest error
             if e.respond_to?('http_code')
-              raise Cigri::Exception, "#{e.http_code} error in get for #{uri} :\n #{e.response.body}"
+              raise Cigri::Error, "#{e.http_code} error in get for #{uri} :\n #{e.response.body}"
             else
-              raise Cigri::Exception, "Parse error: #{e.inspect}"
+              raise Cigri::Error, "Parse error: #{e.inspect}"
             end
           end # rescue (Rest error)
         } 
@@ -125,9 +125,9 @@ module Cigri
             parse(@api[uri].post(convert(resource), :content_type => @content_type))
           rescue => e
             if e.respond_to?('http_code')
-              raise Cigri::Exception, "#{e.http_code} error in post #{uri} :\n #{e.response.body}"
+              raise Cigri::Error, "#{e.http_code} error in post #{uri} :\n #{e.response.body}"
             else
-              raise Cigri::Exception, "Parse error: #{e.inspect}"
+              raise Cigri::Error, "Parse error: #{e.inspect}"
             end
           end # rescue (rest error)
         }
@@ -147,9 +147,9 @@ module Cigri
             parse(@api[uri].delete(:content_type => @content_type))
           rescue => e
              if e.respond_to?('http_code')
-              raise Cigri::Exception, "#{e.http_code} error in post #{uri} :\n #{e.response.body}"
+              raise Cigri::Error, "#{e.http_code} error in post #{uri} :\n #{e.response.body}"
             else
-              raise Cigri::Exception, "Parse error: #{e.inspect}"
+              raise Cigri::Error, "Parse error: #{e.inspect}"
             end
           end # rescue (rest error)
         }

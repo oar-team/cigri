@@ -32,7 +32,7 @@ IOLIBLOGGER = Cigri::Logger.new('IOLIB', CONF.get('LOG_FILE'))
 # database handle
 #
 # == Exceptions:
-# - Cigri::Exceptions if config badly defined
+# - Cigri::Errors if config badly defined
 # - DBI exceptions
 ##
 def db_connect()
@@ -59,7 +59,7 @@ end
 # - seqname: sequence name to retreive the last-id
 #
 # == Exceptions
-# - Cigri::Exception if database type defined in cigri.conf not supported 
+# - Cigri::Error if database type defined in cigri.conf not supported 
 ##
 def last_inserted_id(dbh, seqname = '')
   db = CONF.get('DATABASE_TYPE')
@@ -69,7 +69,7 @@ def last_inserted_id(dbh, seqname = '')
   elsif db.eql? 'Mysql'
     row = dbh.select_one("SELECT LAST_INSERT_ID()")
   else
-    raise Cigri::Exception, "Impossible to retreive last inserted id: database type \"#{db}\" is not supported"
+    raise Cigri::Error, "Impossible to retreive last inserted id: database type \"#{db}\" is not supported"
   end
   row[0]
 end
@@ -101,7 +101,7 @@ end
 # - user: username in the database
 # 
 # == Exceptions
-# - Cigri::Exception: if no cluster used in the campaign are defined
+# - Cigri::Error: if no cluster used in the campaign are defined
 # - Exception: Error with the database
 #
 # == Output
@@ -141,13 +141,13 @@ def cigri_submit(dbh, json, user)
         IOLIBLOGGER.warn("Cluster '#{cluster}' unknown, campaign_property not added for this cluster")
       end
     end
-    raise Cigri::Exception, "No clusters usable for the campaign" unless at_least_one_cluster
+    raise Cigri::Error, "No clusters usable for the campaign" unless at_least_one_cluster
 
     # Create bag_of_tasks
     unless json['jobs_type'].eql?('desktop_computing')
       cigri_submit_jobs(dbh, params, campaign_id, user)
     else
-      raise Cigri::Exception, 'Desktop_computing campaigns are not yet sopported'
+      raise Cigri::Error, 'Desktop_computing campaigns are not yet sopported'
     end
     
     dbh.commit()
@@ -175,9 +175,9 @@ end
 def cigri_submit_jobs(dbh, params, campaign_id, user)
   IOLIBLOGGER.debug("Adding new tasks to campaign #{campaign_id}")
   campaign = dbh.select_one("SELECT state, grid_user, jdl FROM campaigns WHERE id = ?", campaign_id)
-  raise Cigri::Exception, "Campaign #{campaign_id} does not exist" unless campaign
-  raise Cigri::Exception, "Unable to add jobs to campaign #{campaign_id} because it was cancelled" if campaign[0] == "cancelled"
-  raise Cigri::Exception, "User #{user} tried to modify campaign #{campaign_id} belonging to #{campaign[1]}" if user != campaign[1]
+  raise Cigri::Error, "Campaign #{campaign_id} does not exist" unless campaign
+  raise Cigri::Error, "Unable to add jobs to campaign #{campaign_id} because it was cancelled" if campaign[0] == "cancelled"
+  raise Cigri::Error, "User #{user} tried to modify campaign #{campaign_id} belonging to #{campaign[1]}" if user != campaign[1]
   jdl = JSON.parse(campaign[2])
   jdl['params'].concat(params)
 
@@ -290,7 +290,7 @@ def get_cluster(dbh, id)
   sth.finish
   if res.nil?
     IOLIBLOGGER.error("No cluster with id=#{id}!")
-    raise Cigri::Exception, "No cluster with id=#{id}!"
+    raise Cigri::Error, "No cluster with id=#{id}!"
   end
   res
 end
