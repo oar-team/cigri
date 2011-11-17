@@ -68,13 +68,20 @@ class API < Sinatra::Base
   get '/campaigns/:id/?' do |id|
     response['Allow'] = 'DELETE,GET,POST,PUT'
     output = get_formated_campaign(id)
+    
     status 200
     print(output)
   end
 
   # Get the jdl as saved in the database
-  get '/campaigns/:id/jdl/?' do
+  get '/campaigns/:id/jdl/?' do |id|
     response['Allow'] = 'GET'
+
+    campaign = Cigri::Campaign.new({:id => id})
+    not_found "Campaign with id '#{id}' does not exist" unless campaign.props
+
+    status 200
+    print(JSON.parse(campaign.props[:jdl]))
   end
   
   # List all jobs of a campaign
