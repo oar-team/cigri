@@ -68,7 +68,7 @@ class API < Sinatra::Base
   get '/campaigns/:id/?' do |id|
     response['Allow'] = 'DELETE,GET,POST,PUT'
     output = get_formated_campaign(id)
-    
+
     status 200
     print(output)
   end
@@ -92,6 +92,7 @@ class API < Sinatra::Base
   
   # Details of a job
   get '/campaigns/:id/jobs/:jobid/?' do |id, jobid|
+    response['Allow'] = 'GET'
     "Job #{jobid} of campaaign #{id}"
   end
   
@@ -113,8 +114,8 @@ class API < Sinatra::Base
       :items => items,
       :total => items.length,
       :links => [
-          {:rel => "self", :href => "/clusters"},
-          {:rel => "parent", :href => "/"}
+          {:rel => :self, :href => "/clusters"},
+          {:rel => :parent, :href => "/"}
         ]
     }
     
@@ -142,6 +143,7 @@ class API < Sinatra::Base
   post '/campaigns/?' do
     protected!
     response['Allow'] = 'GET,POST'
+
     request.body.rewind
     answer = ''
     begin
@@ -195,8 +197,7 @@ class API < Sinatra::Base
       status 202
       output = get_formated_campaign(id)
     else
-      status 403
-      output = {:status => 403, :title => "Forbidden", :message => "Campaign #{id} does not belong to you"}
+      halt 403, print({:status => 403, :title => "Forbidden", :message => "Campaign #{id} does not belong to you"})
     end
     
     print(output)
@@ -204,27 +205,24 @@ class API < Sinatra::Base
   
   delete '/campaigns/:id/?' do |id|
     protected!
-    
+    response['Allow'] = 'DELETE,GET,POST,PUT'
+
     res = nil
     db_connect() do |dbh|
       res = cancel_campaign(dbh, request.env['HTTP_X_CIGRI_USER'], id)
     end
     
-    if res.nil?
-      not_found "Campaign #{id} does not exist" if res.nil?
-    elsif res == false
-      status 403
-      output = {:status => 403, :title => "Forbidden", :message => "Campaign #{id} does not belong to you"}
-    elsif res > 0
-      status 202
-      output = {:status => 202, :title => "Accepted", :message => "Campaign #{id} cancelled"}
+    not_found "Campaign #{id} does not exist" if res.nil?
+    halt 403, print({:status => 403, :title => "Forbidden", :message => "Campaign #{id} does not belong to you"}) if res == false
+    
+    if res > 0
+      message = "Campaign #{id} cancelled"
     else
-      status 202
-      output = {:status => 202, :title => "Accepted", :message => "Campaign #{id} was already cancelled"}
+      message = "Campaign #{id} was already cancelled"
     end
     
-    response['Allow'] = 'DELETE,GET,POST,PUT'
-    print(output)
+    status 202
+    print({:status => 202, :title => "Accepted", :message => message})
   end
   
   not_found do 

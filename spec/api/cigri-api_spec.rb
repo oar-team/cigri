@@ -52,7 +52,6 @@ describe 'API' do
       post "/campaigns/#{@test_id}/jobs", '["a", "b", "c", "d"]', 'HTTP_X_CIGRI_USER' => 'Rspec'
       response = JSON.parse last_response.body
       response['total_jobs'].should be == 14
-      pp response
     end
 
     xit 'should get info relative to the jobs posted campaign' do
