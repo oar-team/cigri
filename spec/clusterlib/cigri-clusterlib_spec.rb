@@ -74,11 +74,7 @@ describe 'cigri-clusterlib (Cluster)' do
       @cluster.get_job(@job["id"])["id"].should == @job["id"]
     end
     it "should have the job listed in the jobs collection" do
-      found=0
-      @cluster.get_jobs.each do |job|
-        found=1 if job["id"]=@job["id"]
-      end
-      found.should == 1
+      @cluster.get_jobs.index{|job| job["id"]=@job["id"] }.should_not be nil
     end
     it "should be able to ask for the job to be deleted" do
       @cluster.delete_job(@job["id"]).should be_true
