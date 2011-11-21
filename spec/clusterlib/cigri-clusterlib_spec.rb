@@ -65,7 +65,7 @@ describe 'cigri-clusterlib (Cluster)' do
   describe "Job submission" do
     before(:all) do
       @cluster=Cigri::Cluster.new(:name => "tchernobyl")
-      @job=@cluster.submit_job(:command => "sleep 300")
+      @job=@cluster.submit_job(:command => "sleep 300", :stdout => "/dev/null", :stderr => "/dev/null")
     end
     it "should return an id" do
       @job["id"].should be_an(Integer)
