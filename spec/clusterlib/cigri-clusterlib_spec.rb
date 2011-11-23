@@ -1,7 +1,7 @@
+require 'spec_helper'
 require 'cigri-restclientlib'
 require 'cigri-clusterlib'
 require 'dbi'
-require 'spec_helper'
 require 'json'
 require 'yaml'
 

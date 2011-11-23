@@ -9,7 +9,6 @@ CONF = Cigri.conf unless defined? CONF
 # logger to use in IOLIB
 IOLIBLOGGER = Cigri::Logger.new('IOLIB', CONF.get('LOG_FILE'))
 
-
 #######################################################################
 ######################### iolib functions #############################
 #######################################################################

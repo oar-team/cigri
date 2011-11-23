@@ -1,5 +1,5 @@
-require 'cigri-conflib'
 require 'spec_helper'
+require 'cigri-conflib'
 
 describe 'cigri-conflib' do
 

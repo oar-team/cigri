@@ -1,7 +1,6 @@
+require 'spec_helper'
 require 'cigri-joblib'
 require 'dbi'
-require 'spec_helper'
-
 
 describe 'cigri-joblib' do
 

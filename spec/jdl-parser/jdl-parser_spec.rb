@@ -1,6 +1,6 @@
+require 'spec_helper'
 require 'cigri'
 require 'jdl-parser'
-require 'spec_helper'
 
 describe 'jdl-parser' do
   describe 'successes with minimal campaigns' do
