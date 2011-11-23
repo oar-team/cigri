@@ -40,12 +40,7 @@ rspec: tests
 tests: spec/Error/*_spec.rb
 	@rspec $? ${SPEC_OPTS}
 
-install: install-cigri-libs install-cigri-modules install-cigri-user-cmds install-sudoers
-
-install-sudoers:
-	install -d -m 0755 $(DESTDIR)/etc/sudoers.d
-	install -m 0440 etc/sudoers.d/cigri $(DESTDIR)/etc/sudoers.d/cigri
-	perl -i -pe "s#/usr/local/share/cigri#$(CIGRIDIR)#g" $(DESTDIR)/etc/sudoers.d/cigri
+install: install-cigri-libs install-cigri-modules install-cigri-user-cmds 
 
 install-cigri-libs:
 	install -d -m 0755 $(DESTDIR)/$(CIGRIDIR)
@@ -66,8 +61,5 @@ install-cigri-user-cmds:
 	done
 
 clean:
-	rm -rf doc/rdoc doc/yard .yardoc
-	@cd lib; for file in *; do rm -f $(DESTDIR)/$(CIGRIDIR)/lib/$$file; done
-	rm -f $(DESTDIR)/etc/sudoers.d/cigri
-	rm -rf $(DESTDIR)/$(CIGRIDIR)
+	rm -rf doc/rdoc doc/yard .yardoc $(DESTDIR)/$(CIGRIDIR)
 	@for cmd in $(USERCMDS) ; do rm $(DESTDIR)$(BINDIR)/$$cmd ; done
