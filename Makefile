@@ -25,7 +25,7 @@ all: usage
 
 usage:
 	@echo "WORK IN PROGRESS..."
-	@echo "Usage: make < rdoc | yard | tests | cov >"
+	@echo "Usage: make < install | rdoc | yard | tests | cov >"
 
 rdoc:
 	rdoc -o doc/rdoc
@@ -37,13 +37,8 @@ spec: tests
 
 rspec: tests
 
-tests: spec/*/*_spec.rb
+tests: spec/Error/*_spec.rb
 	@rspec $? ${SPEC_OPTS}
-
-cov: rcov
-
-rcov: spec/*/*_spec.rb lib/* spec/spec_helper.rb api/*
-	rcov -Ilib:spec spec/**/*.rb --exclude gems -o doc/rcov -T --sort coverage
 
 install: install-cigri-libs install-cigri-modules install-cigri-user-cmds install-sudoers
 
@@ -71,7 +66,7 @@ install-cigri-user-cmds:
 	done
 
 clean:
-	rm -rf doc/rdoc doc/yard doc/rcov .yardoc
+	rm -rf doc/rdoc doc/yard .yardoc
 	@cd lib; for file in *; do rm -f $(DESTDIR)/$(CIGRIDIR)/lib/$$file; done
 	rm -f $(DESTDIR)/etc/sudoers.d/cigri
 	rm -rf $(DESTDIR)/$(CIGRIDIR)
