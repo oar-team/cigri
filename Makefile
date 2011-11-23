@@ -38,12 +38,12 @@ spec: tests
 rspec: tests
 
 tests: spec/*/*_spec.rb
-	rspec $? ${SPEC_OPTS}
+	@rspec $? ${SPEC_OPTS}
 
 cov: rcov
 
-rcov: spec/*/*_spec.rb lib/* spec/spec_helper.rb
-	rcov -I lib:spec spec/**/*.rb --exclude gems -o doc/rcov -T
+rcov: spec/*/*_spec.rb lib/* spec/spec_helper.rb api/*
+	rcov -Ilib:spec spec/**/*.rb --exclude gems -o doc/rcov -T --sort coverage
 
 install: install-cigri-libs install-cigri-modules install-cigri-user-cmds install-sudoers
 

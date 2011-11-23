@@ -1,3 +1,4 @@
+require 'rubygems'
 require 'rspec'
 require 'cigri-conflib'
 
