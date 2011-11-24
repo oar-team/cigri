@@ -78,7 +78,7 @@ class API < Sinatra::Base
     response['Allow'] = 'GET'
 
     campaign = Cigri::Campaign.new({:id => id})
-    not_found "Campaign with id '#{id}' does not exist" unless campaign.props
+    not_found unless campaign.props
 
     status 200
     print(JSON.parse(campaign.props[:jdl]))
@@ -132,7 +132,7 @@ class API < Sinatra::Base
                           {:rel => "parent", :href => "/clusters"}]
       ['api_password', 'api_username'].each { |i| cluster.delete(i)}
     rescue Exception => e
-      not_found "Cluster with id #{id} does not exist"
+      not_found
     end
     
     status 200
@@ -142,7 +142,6 @@ class API < Sinatra::Base
   # Submit a new campaign
   post '/campaigns/?' do
     protected!
-    response['Allow'] = 'GET,POST'
 
     request.body.rewind
     answer = ''
@@ -156,13 +155,13 @@ class API < Sinatra::Base
     end
 
     status 201
+    response['Location'] = url("/campaigns/#{answer[:id]}")
     print(answer)
   end
 
   #adding jobs to an existing campaign
   post '/campaigns/:id/jobs/?' do |id|
     protected!
-    response['Allow'] = 'GET,POST'
     request.body.rewind
     
     begin
@@ -170,7 +169,7 @@ class API < Sinatra::Base
         cigri_submit_jobs(dbh, JSON.parse(request.body.read), id, request.env['HTTP_X_CIGRI_USER'])
       end
     rescue Cigri::NotFound 
-      not_found "Campaign #{id} does not exist"
+      not_found
     rescue Cigri::Unauthorized => e
       halt 403, print({:status => 403, :title => "Forbidden", :message => e.message})
     rescue Exception => e
@@ -178,46 +177,40 @@ class API < Sinatra::Base
     end
 
     status 201
+    response['Location'] = url("/campaigns/#{id}")
     print(get_formated_campaign(id))
   end
   
   # Update a campaign
   put '/campaigns/:id/?' do |id|
     protected!
-    response['Allow'] = 'DELETE,GET,POST,PUT'
 
-    res = nil
     db_connect() do |dbh|
       begin
-        res = update_campaign(dbh, request.env['HTTP_X_CIGRI_USER'], id, params_to_update)
+        update_campaign(dbh, request.env['HTTP_X_CIGRI_USER'], id, params_to_update)
+      rescue Cigri::NotFound => e
+        not_found
+      rescue Cigri::Unauthorized => e
+        halt 403, print({:status => 403, :title => "Forbidden", :message => "Campaign #{id} does not belong to you: #{e.message}"})
       rescue Exception => e
         halt 400, print({:status => 400, :title => "Error", :message => "Error updating campaign #{id}: #{e}"})
       end
     end
     
-    if res == nil
-      not_found "Campaign #{id} does not exist"
-    elsif res
-      status 202
-      output = get_formated_campaign(id)
-    else
-      halt 403, print({:status => 403, :title => "Forbidden", :message => "Campaign #{id} does not belong to you"})
-    end
-    
-    print(output)
+    status 200
+    print(get_formated_campaign(id))
   end
   
   delete '/campaigns/:id/?' do |id|
     protected!
-    response['Allow'] = 'DELETE,GET,POST,PUT'
 
     res = nil
     db_connect() do |dbh|
       res = cancel_campaign(dbh, request.env['HTTP_X_CIGRI_USER'], id)
     end
     
-    not_found "Campaign #{id} does not exist" if res.nil?
-    halt 403, print({:status => 403, :title => "Forbidden", :message => "Campaign #{id} does not belong to you"}) if res == false
+    not_found if res.nil?
+    halt 403, print({:status => 403, :title => :Forbidden, :message => "Campaign #{id} does not belong to you"}) if res == false
     
     if res > 0
       message = "Campaign #{id} cancelled"
@@ -226,11 +219,11 @@ class API < Sinatra::Base
     end
     
     status 202
-    print({:status => 202, :title => "Accepted", :message => message})
+    print({:status => 202, :title => :Accepted, :message => message})
   end
   
   not_found do 
-    print( {:status => 404, :title => "Not Found", :message => (response.body || "Not Found")} )
+    print( {:status => 404, :title => 'Not Found', :message => "#{request.url} not found on this server"} )
   end
     
   private
@@ -253,7 +246,7 @@ class API < Sinatra::Base
     #  - id: id if the campaign to get
     def get_formated_campaign(id)
       campaign = Cigri::Campaign.new({:id => id})
-      not_found "Campaign with id '#{id}' does not exist" unless campaign.props
+      not_found unless campaign.props
 
       format_campaign(campaign)
     end
@@ -296,8 +289,7 @@ class API < Sinatra::Base
     
     def protected!
       unless authorized?
-        response['WWW-Authenticate'] = %(Basic realm="Restricted Area")
-        halt 401, print({:status => 401, :title => 'Access Denied', :message => "Access denied: not authenticated"})
+        halt 403, print({:status => 403, :title => 'Forbidden', :message => "Access denied: not authenticated"})
       end
     end
     
