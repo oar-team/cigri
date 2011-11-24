@@ -6,7 +6,6 @@ describe 'Error' do
   msg = 'Some error message for testing purposes'
   [Cigri::Error, Cigri::NotFound, Cigri::Unauthorized, Cigri::ParseError].each do |errorclass|
     it "should create an error of type #{errorclass.to_s}" do
-      Cigri::Exception.new("test")
       begin
         raise errorclass.new(msg)
       rescue Exception => e

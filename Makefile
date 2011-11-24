@@ -37,7 +37,7 @@ spec: tests
 
 rspec: tests
 
-tests: spec/Error/*_spec.rb
+tests: spec/**/*_spec.rb
 	@rspec $? ${SPEC_OPTS}
 
 install: install-cigri-libs install-cigri-modules install-cigri-user-cmds 
