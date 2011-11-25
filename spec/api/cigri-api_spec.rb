@@ -208,14 +208,15 @@ describe 'API' do
 
     end
 
-    xit 'should fail to cancel a non existing campaign' do
-    
+    it 'should fail to cancel a non existing campaign' do
+      delete "/campaigns/-1", '', 'HTTP_X_CIGRI_USER' => 'Rspec'
+      last_response.status.should be 404
     end
 
-    xit 'should fail to cancel someone else campaign' do
-    
+    it 'should fail to cancel someone else campaign' do
+      delete "/campaigns/#{@test_id}", '', 'HTTP_X_CIGRI_USER' => 'toto'
+      last_response.status.should be 403
     end
-
   end
 end
 
