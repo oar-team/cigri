@@ -503,6 +503,18 @@ def get_campaign_properties(dbh, id)
   dbh.select_all("SELECT * FROM campaign_properties WHERE campaign_id = ?", id)
 end
 
+def get_campaign_tasks(dbh, id)
+  res = []
+  query = "SELECT id, name, param
+           FROM bag_of_tasks
+           WHERE campaign_id = ?"
+  sth = dbh.execute(query, id)
+  sth.fetch_hash do |row|
+    res << row
+  end
+  sth.finish
+  res
+end
 
 ##
 # Returns the number of remaining tasks for a given campaign

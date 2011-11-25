@@ -85,11 +85,13 @@ describe 'API' do
       check_links(response)
     end
     
-    xit 'should get info relative to the jobs posted campaign' do
+    it 'should get info relative to the jobs posted campaign' do
       get "/campaigns/#{@test_id}/jobs"
       last_response.should be_ok
       response = JSON.parse(last_response.body)
-      %w{links state name}.each do |key|
+      response.class.should == Array
+      response.length.should be 10
+      %w{url state name id}.each do |key|
         response[0].has_key?(key).should be true
       end
       check_headers(get=true, post=true)

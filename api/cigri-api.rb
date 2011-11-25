@@ -90,7 +90,18 @@ class API < Sinatra::Base
 
     campaign = Cigri::Campaign.new({:id => id})
     not_found unless campaign.props
-    puts campaign.tasks
+
+    output = []
+    campaign.tasks.each do |task|
+      output << {
+        :id => task['id'],
+        :name => task['name'],
+        :state => :waiting,
+        :url => url("/campaigns/#{id}/jobs/#{task['id']}")
+      }
+    end
+
+    print(output)
   end
   
   # Details of a job

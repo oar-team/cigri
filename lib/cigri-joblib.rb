@@ -241,6 +241,12 @@ module Cigri
       end
     end
 
+    def tasks
+      db_connect() do |dbh|
+        return get_campaign_tasks(dbh, id)
+      end
+    end
+
     # Return the number of completed tasks
     def nb_completed_tasks
       db_connect() do |dbh|
