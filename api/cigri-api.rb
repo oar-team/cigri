@@ -199,18 +199,18 @@ class API < Sinatra::Base
   put '/campaigns/:id/?' do |id|
     protected!
 
-    db_connect() do |dbh|
-      begin
-        update_campaign(dbh, request.env['HTTP_X_CIGRI_USER'], id, params_to_update)
-      rescue Cigri::NotFound => e
-        not_found
-      rescue Cigri::Unauthorized => e
-        halt 403, print({:status => 403, :title => "Forbidden", :message => "Campaign #{id} does not belong to you: #{e.message}"})
-      rescue Exception => e
-        halt 400, print({:status => 400, :title => "Error", :message => "Error updating campaign #{id}: #{e}"})
-      end
+    begin
+      db_connect() do |dbh|
+        update_campaign(dbh, request.env['HTTP_X_CIGRI_USER'], id, params_to_update) 
+      end   
+    rescue Cigri::NotFound => e
+      not_found
+    rescue Cigri::Unauthorized => e
+      halt 403, print({:status => 403, :title => "Forbidden", :message => "Campaign #{id} does not belong to you: #{e.message}"})
+    rescue Exception => e
+      halt 400, print({:status => 400, :title => "Error", :message => "Error updating campaign #{id}: #{e}"})
     end
-    
+  
     status 200
     print(get_formated_campaign(id))
   end
@@ -226,7 +226,7 @@ class API < Sinatra::Base
       rescue Cigri::Unauthorized => e
         halt 403, print({:status => 403, :title => "Forbidden", :message => "Campaign #{id} does not belong to you: #{e.message}"})
       rescue Exception => e
-        halt 400, print({:status => 400, :title => "Error", :message => "Error updating campaign #{id}: #{e}"})
+        halt 400, print({:status => 400, :title => "Error", :message => "Error cancelling campaign #{id}: #{e}"})
       end
     end
     
