@@ -518,7 +518,8 @@ end
 def get_campaign_remaining_tasks_number(dbh, id)
   dbh.select_one("SELECT COUNT(*) FROM bag_of_tasks 
                                   LEFT JOIN jobs_to_launch ON bag_of_tasks.id=task_id
-                                  WHERE task_id is null AND campaign_id=?", id)[0]
+                                  WHERE task_id is null 
+                                    AND campaign_id=?", id)[0]
 end
 
 ##
@@ -534,23 +535,38 @@ end
 ##
 def get_campaign_nb_finished_jobs(dbh, id)
 dbh.select_one("SELECT COUNT(*) FROM jobs
-                                WHERE campaign_id = ? AND state = 'terminated'", id)[0]
+                                WHERE campaign_id = ? 
+                                  AND state = 'terminated'", id)[0]
 end
 
+##
+# Returns a hash with a campaign id as key and it's number of finished jobs as value
+#
+# == Parameters
+# - dbh: dababase handle
+# - id: campaign id
+#
+# == Returns
+# Hash : {1=>14, 2=> 0}: campaign 1 has 14 jobs completed, campaign 2 has none
+#
+##
 def get_campaigns_nb_finished_jobs(dbh, ids)
   result = Hash.new(0)
   return result if ids.length < 1
+
   dbh.execute("SELECT campaign_id, COUNT(*) 
               FROM jobs
-              WHERE campaign_id in ('" << ids.join('\',\'') << "') AND state = 'terminated'
+              WHERE campaign_id in ('" << ids.join('\',\'') << "') 
+                AND state = 'terminated'
               GROUP BY campaign_id").each do |row|
     result[row[0]] = row[1]
   end
+
   result
 end
 
 ##
-# Returns "number" tasks of campaign "id"
+# Returns ids of all the tasks of campaign "id"
 #
 # == Parameters
 # - dbh: dababase handle
@@ -561,7 +577,7 @@ end
 # Array of ids
 #
 ##
-def get_tasks_for_campaign(dbh, id, number = nil)
+def get_tasks_ids_for_campaign(dbh, id, number = nil)
   limit = number ? "LIMIT #{number}" : ""
   dbh.select_all("SELECT bag_of_tasks.id FROM bag_of_tasks 
                          LEFT JOIN jobs_to_launch ON bag_of_tasks.id=task_id

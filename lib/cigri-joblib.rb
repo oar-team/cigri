@@ -153,10 +153,8 @@ module Cigri
 
     # Creates the new jobset
     def initialize(props={})
-      if props[:where]
-        props[:where] += " AND task_id=bag_of_tasks.id"
-      end
-      super("jobs_to_launch,bag_of_tasks",props)
+      props[:where] += " AND task_id = bag_of_tasks.id" if props[:where]
+      super("jobs_to_launch, bag_of_tasks", props)
     end
 
     # Alias to the dataset records
@@ -212,8 +210,8 @@ module Cigri
     # Creates a new campaign entry or get it from the database
     def initialize(props={})
       super("campaigns",props)
-      @clusters={}
-      @props[:finished_jobs] = completed_tasks if @props and !props[:bypass_finished_jobs]
+      @clusters = {}
+      @props[:finished_jobs] = nb_completed_tasks if @props and !props[:bypass_finished_jobs]
     end
 
     # Fills the @cluster hash with the properties (JDL) of this campaign
@@ -227,40 +225,36 @@ module Cigri
     #
     def get_clusters
       db_connect() do |dbh|
-        get_campaign_properties(dbh,id).each do |row|
-          cluster_id=row[3]
-          @clusters[cluster_id]={} if @clusters[cluster_id].nil?
-          @clusters[cluster_id][row[1]]=row[2]
+        get_campaign_properties(dbh, id).each do |row|
+          cluster_id = row[3]
+          @clusters[cluster_id] = {} if @clusters[cluster_id].nil?
+          @clusters[cluster_id][row[1]] = row[2]
         end
       end
       @clusters
     end
 
-    # Return nil if the campaign has no more tasks to run
-    # Else, returns the number of tasks remaining
+    # Checks if a campaign has remaining tasks to execute
     def have_remaining_tasks?
       db_connect() do |dbh|
-        count=get_campaign_remaining_tasks_number(dbh,id)
-        return count if count != 0
-      end
-      nil
-    end
-    
-    # Return the number of completed tasks
-    def completed_tasks
-      db_connect() do |dbh|
-        return get_campaign_nb_finished_jobs(dbh,id)
+        return get_campaign_remaining_tasks_number(dbh, id) > 0
       end
     end
 
-    # Return false if campaign has no active clusters
+    # Return the number of completed tasks
+    def nb_completed_tasks
+      db_connect() do |dbh|
+        return get_campaign_nb_finished_jobs(dbh, id)
+      end
+    end
+
+    # Return true if campaign has at least an active cluster
     def have_active_clusters?
-      have=0
       @clusters.each do |cluster|
         #TODO: should check for blacklisted clusters (colombo)
-        have += 1
+        return true
       end
-      return have if have != 0
+      false
     end
 
   end # class Campaign

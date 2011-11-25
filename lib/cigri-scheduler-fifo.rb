@@ -22,7 +22,7 @@ module Cigri
     end
     
     def do
-       tasks=get_tasks_for_campaign(@dbh,@campaign.id,@opts[:max_jobs])
+       tasks=get_tasks_ids_for_campaign(@dbh,@campaign.id,@opts[:max_jobs])
        if tasks.length > 0
          SCHEDULERFIFOLOGGER.debug("Adding tasks in cluster #{@cluster_id} queue: #{tasks.join(",")}")
          # TODO: runner_options and tag management

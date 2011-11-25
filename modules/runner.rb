@@ -93,14 +93,14 @@ begin
     tolaunch_jobs=Cigri::JobtolaunchSet.new
     if tolaunch_jobs.get_next(cluster.id,n) > 0 # if the tap is open
       logger.info("Got #{tolaunch_jobs.length} jobs to launch")
-      jobs=tolaunch_jobs.register
-              # Create the new jobs
+      # Create the new jobs
+      jobs = tolaunch_jobs.register
+      # Remove the jobs from the queue
       tolaunch_jobs.remove
-              # Remove the jobs from the queue
-      jobs.submit(cluster.id)
-              # Submit the new jobs
+      # Submit the new jobs
+      jobs.submit(cluster.id)        
     else
-      sleep_more=SLEEP_MORE
+      sleep_more = SLEEP_MORE
     end
 
     # Sleep if necessary

@@ -87,7 +87,10 @@ class API < Sinatra::Base
   # List all jobs of a campaign
   get '/campaigns/:id/jobs/?' do |id|
     response['Allow'] = 'GET,POST'
-    "Jobs of campaign #{id}\n"
+
+    campaign = Cigri::Campaign.new({:id => id})
+    not_found unless campaign.props
+    puts campaign.tasks
   end
   
   # Details of a job
