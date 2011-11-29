@@ -66,7 +66,7 @@ def submit_campaign(jdl, campaign_id=nil)
   url = '/campaigns'
   url += "/#{campaign_id}/jobs" if campaign_id
 
-  http.post(url, jdl, 'Content-Type' => 'application/json', 'X_CIGRI_USER' => ENV['USER'])
+  http.post(url, jdl, 'Content-Type' => 'application/json')
 end
 
 def print_response(response, details)
