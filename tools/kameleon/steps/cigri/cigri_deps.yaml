@@ -4,7 +4,7 @@ cigri_deps:
  - sinatra:
    - exec_chroot: bash -c "gem install sinatra"
  - restfully:
-   - exec_chroot: bash -c "gem install restfully --source http://gemcutter.org"
+   - exec_chroot: bash -c "gem install restfully --source http://gemcutter.org -- --without-readline"
  - shotgun:
    - exec_chroot: bash -c "gem install shotgun"
  - gem_path:
