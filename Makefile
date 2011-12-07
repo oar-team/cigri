@@ -79,6 +79,9 @@ install-cigri-api:
 	perl -pi -e "s#%%CIGRIDIR%%#$(CIGRIDIR)#g;;\
              s#%%CIGRIUSER%%#$(CIGRIUSER)#g" $(DESTDIR)$(CIGRIDIR)/api/launch_api.sh.in
 	mv $(DESTDIR)$(CIGRIDIR)/api/launch_api.sh.in $(DESTDIR)$(CIGRIDIR)/api/launch_api.sh
+	# The following activates the magic of Passenger's user switching support
+	# so that the API runs under the cigri user:
+	chown $(CIGRIUSER) $(DESTDIR)$(CIGRIDIR)/api/config.ru
 
 install-cigri-config:
 	install -d -m 0755 $(DESTDIR)$(CIGRICONFDIR)
