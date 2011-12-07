@@ -55,5 +55,6 @@ rescue Errno::ECONNREFUSED => e
   STDERR.puts("API server not reachable: #{e.inspect}")
 rescue Exception => e
   STDERR.puts("Something unexpected happened: #{e.inspect}")
+  STDERR.puts e.backtrace
 end
 
