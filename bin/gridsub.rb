@@ -61,7 +61,7 @@ end
 def submit_campaign(jdl, campaign_id=nil)
   conf = Cigri::Conf.new('/etc/cigri-api.conf')
   http = Net::HTTP.new(conf.get('API_HOST'), conf.get('API_PORT'))
-  http.read_timeout = conf.get('API_TIMEOUT') if conf.exists?('API_TIMEOUT')
+  http.read_timeout = conf.get('API_TIMEOUT').to_i if conf.exists?('API_TIMEOUT')
   
   url = '/campaigns'
   url += "/#{campaign_id}/jobs" if campaign_id

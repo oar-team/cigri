@@ -76,7 +76,7 @@ url << '?pretty' if dump and pretty
 begin 
   conf = Cigri::Conf.new('/etc/cigri-api.conf')
   http = Net::HTTP.new(conf.get('API_HOST'), conf.get('API_PORT'))
-  http.read_timeout = conf.get('API_TIMEOUT') if conf.exists?('API_TIMEOUT')
+  http.read_timeout = conf.get('API_TIMEOUT').to_i if conf.exists?('API_TIMEOUT')
   response = http.request(Net::HTTP::Get.new(url))
   
   if dump

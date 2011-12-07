@@ -40,7 +40,7 @@ abort("Missing CAMPAIGN_ID\n" + optparse.to_s) unless ARGV.length > 0
 begin 
   conf = Cigri::Conf.new('/etc/cigri-api.conf')
   http = Net::HTTP.new(conf.get('API_HOST'), conf.get('API_PORT'))
-  http.read_timeout = conf.get('API_TIMEOUT') if conf.exists?('API_TIMEOUT')
+  http.read_timeout = conf.get('API_TIMEOUT').to_i if conf.exists?('API_TIMEOUT')
   
   ARGV.each do |campaign_id|
     response = http.request(Net::HTTP::Delete.new("/campaigns/#{campaign_id}"))
