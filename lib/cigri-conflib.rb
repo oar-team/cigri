@@ -30,7 +30,7 @@ module Cigri
     CONFIG_FILE = './etc/cigri.conf'
   else
     # or at a last resort, get the cigri.conf config file from the /etc/ directory
-    CONFIG_FILE = "/etc/cigri.conf"
+    CONFIG_FILE = "/etc/cigri/cigri.conf"
   end
   
   #Only read the configuration file once.

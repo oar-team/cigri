@@ -21,7 +21,7 @@ Cigri v3 quick installation guide
 
     make install
 
-*Customize the /etc/cigri.conf file*
+*Customize the /etc/cigri/cigri.conf file*
 
     Especially, choose a password for the database cigri user as DATABASE_USER_PASSWORD.
 

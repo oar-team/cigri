@@ -9,7 +9,7 @@ SBINDIR=$(PREFIX)/sbin
 CIGRIDIR=$(PREFIX)/share/cigri
 DOCDIR=$(PREFIX)/share/doc/cigri
 VARDIR=/var/lib/cigri
-CIGRICONFDIR=/etc
+CIGRICONFDIR=/etc/cigri
 WWWDIR=/var/www
 WWWUSER=www-data
 WWWGROUP=www-data
@@ -81,12 +81,16 @@ install-cigri-api:
 	mv $(DESTDIR)$(CIGRIDIR)/api/launch_api.sh.in $(DESTDIR)$(CIGRIDIR)/api/launch_api.sh
 
 install-cigri-config:
-	if [ -f /etc/cigri.conf ]; then echo "/etc/cigri.conf found, not erasing."; \
-		else install -m 0600 etc/cigri.conf /etc/cigri.conf; fi
-	chown $(CIGRIUSER) /etc/cigri.conf
-	if [ -f /etc/cigri-api.conf ]; then echo "/etc/cigri-api.conf found, not erasing."; \
-		else install -m 0644 etc/cigri-api.conf /etc/cigri-api.conf; fi
-	chown $(CIGRIUSER) /etc/cigri-api.conf
+	install -d -m 0755 $(DESTDIR)$(CIGRICONFDIR)
+	if [ -f $(DESTDIR)$(CIGRICONFDIR)/cigri.conf ]; then echo "$(DESTDIR)$(CIGRICONFDIR)/cigri.conf found, not erasing."; \
+		else install -m 0600 etc/cigri.conf $(DESTDIR)$(CIGRICONFDIR)/cigri.conf; fi
+	chown $(CIGRIUSER) $(DESTDIR)$(CIGRICONFDIR)/cigri.conf
+	if [ -f $(DESTDIR)$(CIGRICONFDIR)/api-clients.conf ]; then echo "$(DESTDIR)$(CIGRICONFDIR)/api-clients.conf found, not erasing."; \
+		else install -m 0644 etc/api-clients.conf $(DESTDIR)$(CIGRICONFDIR)/api-clients.conf; fi
+	chown $(CIGRIUSER) $(DESTDIR)$(CIGRICONFDIR)/api-clients.conf
+	if [ -f $(DESTDIR)$(CIGRICONFDIR)/api-apache.conf ]; then echo "$(DESTDIR)$(CIGRICONFDIR)/api-apache.conf found, not erasing."; \
+		else install -m 0644 etc/api-apache.conf $(DESTDIR)$(CIGRICONFDIR)/api-apache.conf; fi
+	chown $(WWWUSER) $(DESTDIR)$(CIGRICONFDIR)/api-apache.conf
 
 clean:
 	rm -rf doc/rdoc doc/yard .yardoc $(DESTDIR)$(CIGRIDIR)

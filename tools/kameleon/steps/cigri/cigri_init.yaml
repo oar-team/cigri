@@ -6,9 +6,8 @@ cigri_init:
    - exec_chroot: bash -c "cd /home/kameleon/`basename $$cigri_svn`/database && ./init_db.rb -d cigri3 -u cigri3 -p cigri3 -t psql -s ./psql_structure.sql"
  - create_user: 
    - exec_chroot: bash -c "useradd -m -d /var/lib/cigri -c \"Cigri server\" cigri"
- - config_file:
-   - exec_chroot: bash -c "cp /home/kameleon/`basename $$cigri_svn`/etc/cigri.conf /etc"
-   - exec_chroot: bash -c "chown cigri /etc/cigri.conf && chmod 600 /etc/cigri.conf"
+ - install_cigri:
+   - exec_chroot: bash -c "cd /home/kameleon/`basename $$cigri_svn` && make install"
  - init_clusters:
    - exec_chroot: bash -c "cd /home/kameleon/`basename $$cigri_svn` && ./sbin/new_cluster.rb tchernobyl http://tchernobyl/oarapi-priv/ kameleon kameleon tchernobyl oar2_5 core 100 \"cluster='tchernobyl'\""
    - exec_chroot: bash -c "cd /home/kameleon/`basename $$cigri_svn` && ./sbin/new_cluster.rb threemile http://threemile/oarapi-priv/ kameleon kameleon threemile oar2_5 core 10 \"cluster='threemile'\""

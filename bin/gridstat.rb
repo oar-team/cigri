@@ -74,7 +74,7 @@ url << '?pretty' if dump and pretty
 #TODO -H et -d incompatibles
 
 begin 
-  conf = Cigri::Conf.new('/etc/cigri-api.conf')
+  conf = Cigri::Conf.new('/etc/cigri/api-clients.conf')
   http = Net::HTTP.new(conf.get('API_HOST'), conf.get('API_PORT'))
   http.read_timeout = conf.get('API_TIMEOUT').to_i if conf.exists?('API_TIMEOUT')
   response = http.request(Net::HTTP::Get.new(url))
