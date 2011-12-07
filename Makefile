@@ -40,26 +40,55 @@ rspec: tests
 tests: spec/**/*_spec.rb
 	@rspec $? ${SPEC_OPTS}
 
-install: install-cigri-libs install-cigri-modules install-cigri-user-cmds 
+install: install-cigri-libs install-cigri-modules install-cigri-user-cmds install-cigri-launcher install-cigri-api install-cigri-config
 
 install-cigri-libs:
-	install -d -m 0755 $(DESTDIR)/$(CIGRIDIR)
-	install -d -m 0755 $(DESTDIR)/$(CIGRIDIR)/lib
-	@for file in lib/*; do install -m 0644 $$file $(DESTDIR)/$(CIGRIDIR)/lib/; done
+	install -d -m 0755 $(DESTDIR)$(CIGRIDIR)
+	install -d -m 0755 $(DESTDIR)$(CIGRIDIR)/lib
+	@for file in lib/*; do install -m 0644 $$file $(DESTDIR)$(CIGRIDIR)/lib/; done
 
 install-cigri-modules:
-	install -d -m 0755 $(DESTDIR)/$(CIGRIDIR)
-	@for file in modules/*; do install -m 0755 $$file $(DESTDIR)/$(CIGRIDIR)/; done
+	install -d -m 0755 $(DESTDIR)$(CIGRIDIR)
+	install -d -m 0755 $(DESTDIR)$(CIGRIDIR)/modules
+	@for file in modules/*; do install -m 0755 $$file $(DESTDIR)$(CIGRIDIR)/modules; done
 
 install-cigri-user-cmds:
-	install -d -m 0755 $(DESTDIR)/$(CIGRIDIR)
-	install -d -m 0755 $(DESTDIR)/$(CIGRIDIR)/bin
+	install -d -m 0755 $(DESTDIR)$(CIGRIDIR)
+	install -d -m 0755 $(DESTDIR)$(CIGRIDIR)/bin
 	@for cmd in $(USERCMDS) ; do \
-		install -m 0755 bin/$$cmd.rb $(DESTDIR)/$(CIGRIDIR)/bin/$$cmd.rb ; \
-		echo -e '#!/bin/bash\n' $(DESTDIR)/$(CIGRIDIR)/bin/$$cmd.rb '$$@' > $(DESTDIR)$(BINDIR)/$$cmd ; \
+		install -m 0755 bin/$$cmd.rb $(DESTDIR)$(CIGRIDIR)/bin/$$cmd.rb ; \
+		echo -e '#!/bin/bash\n'$(CIGRIDIR)/bin/$$cmd.rb '$$@' > $(DESTDIR)$(BINDIR)/$$cmd ; \
 		chmod 755 $(DESTDIR)$(BINDIR)/$$cmd ; \
 	done
 
+install-cigri-launcher:
+	install -d -m 0755 $(DESTDIR)$(CIGRIDIR)
+	install -d -m 0755 $(DESTDIR)$(CIGRIDIR)/sbin
+	install -m 0755 sbin/cigri_start.in $(DESTDIR)$(SBINDIR)/cigri_start
+	perl -pi -e "s#%%CIGRIDIR%%#$(CIGRIDIR)#g;;\
+	     s#%%CIGRIUSER%%#$(CIGRIUSER)#g" $(DESTDIR)$(SBINDIR)/cigri_start
+	
+install-cigri-api:
+	install -d -m 0755 $(DESTDIR)$(CIGRIDIR)
+	install -d -m 0755 $(DESTDIR)$(CIGRIDIR)/api
+	install -d -m 0755 $(DESTDIR)$(CIGRIDIR)/api/config
+	@for file in api/*; do install -m 0755 $$file $(DESTDIR)$(CIGRIDIR)/api; done
+	install -m 0755 api/config/environment.rb.in $(DESTDIR)$(CIGRIDIR)/api/config/environment.rb
+	perl -pi -e "s#%%CIGRIDIR%%#$(CIGRIDIR)#g;;\
+             s#%%CIGRIUSER%%#$(CIGRIUSER)#g" $(DESTDIR)$(CIGRIDIR)/api/config/environment.rb
+	perl -pi -e "s#%%CIGRIDIR%%#$(CIGRIDIR)#g;;\
+             s#%%CIGRIUSER%%#$(CIGRIUSER)#g" $(DESTDIR)$(CIGRIDIR)/api/launch_api.sh.in
+	mv $(DESTDIR)$(CIGRIDIR)/api/launch_api.sh.in $(DESTDIR)$(CIGRIDIR)/api/launch_api.sh
+
+install-cigri-config:
+	if [ -f /etc/cigri.conf ]; then echo "/etc/cigri.conf found, not erasing."; \
+		else install -m 0600 etc/cigri.conf /etc/cigri.conf; fi
+	chown $(CIGRIUSER) /etc/cigri.conf
+	if [ -f /etc/cigri-api.conf ]; then echo "/etc/cigri-api.conf found, not erasing."; \
+		else install -m 0644 etc/cigri-api.conf /etc/cigri-api.conf; fi
+	chown $(CIGRIUSER) /etc/cigri-api.conf
+
 clean:
-	rm -rf doc/rdoc doc/yard .yardoc $(DESTDIR)/$(CIGRIDIR)
+	rm -rf doc/rdoc doc/yard .yardoc $(DESTDIR)$(CIGRIDIR)
 	@for cmd in $(USERCMDS) ; do rm $(DESTDIR)$(BINDIR)/$$cmd ; done
+	rm -f $(DESTDIR)$(SBINDIR)/cigri_start

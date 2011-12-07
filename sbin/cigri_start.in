@@ -1,0 +1,14 @@
+#!/bin/bash
+set -e
+
+if [ "$USER" != "root" ]
+then
+  echo "This script must be started by the root user"
+  exit 1
+fi
+
+echo "Starting CiGri API..."
+cd %%CIGRIDIR%%/api && ./launch_api.sh &
+sleep 3
+echo "Starting CiGri server..."
+su - %%CIGRIUSER%% -c "cd %%CIGRIDIR%% && ./modules/almighty.rb"
