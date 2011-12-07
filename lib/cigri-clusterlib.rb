@@ -230,8 +230,11 @@ module Cigri
     # A cluster set is an array of cluster selected from the DB
     def initialize(where_clause=nil)
       db_connect() do |dbh|
-        select_clusters(dbh,where_clause).each do |id|
-          push Cluster.new(:id => id)
+        clusters=select_clusters(dbh,where_clause)
+        if not clusters.nil?
+          select_clusters(dbh,where_clause).each do |id|
+            push Cluster.new(:id => id)
+          end
         end
       end
     end

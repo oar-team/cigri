@@ -51,6 +51,10 @@ begin
 
   #Start the runners
   clusters=Cigri::ClusterSet.new
+  if clusters.length <= 0
+    logger.error('No cluster into database! Please add some clusters! Exiting.')
+    exit(2)
+  end
   clusters.each do |cluster|
     logger.debug("Starting runner for #{cluster.name}")
     pid=fork
