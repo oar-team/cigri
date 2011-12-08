@@ -16,7 +16,7 @@ class API < Sinatra::Base
     set :apiliblogger, logger
     use RackDebugger, logger # better print of the requests in the logfile
     enable :method_override # used to redirect post methods to a put
-    #set :username_variable, Cigri.conf.get('API_HEADER_USERNAME') || "HTTP_X_CIGRI_USER"
+    set :username_variable, Cigri.conf.get('API_HEADER_USERNAME') || "HTTP_X_CIGRI_USER"
   end
   
   before do
@@ -155,7 +155,7 @@ class API < Sinatra::Base
     answer = ''
     begin
       db_connect() do |dbh|
-        id = Cigri::JDLParser.save(dbh, request.body.read, request.env['HTTP_X_CIGRI_USER']).to_s
+        id = Cigri::JDLParser.save(dbh, request.body.read, request.env[settings.username_variable]).to_s
         answer = get_formated_campaign(id)
       end
     rescue Exception => e
@@ -174,7 +174,7 @@ class API < Sinatra::Base
     
     begin
       db_connect() do |dbh|
-        cigri_submit_jobs(dbh, JSON.parse(request.body.read), id, request.env['HTTP_X_CIGRI_USER'])
+        cigri_submit_jobs(dbh, JSON.parse(request.body.read), id, request.env[settings.username_variable])
       end
     rescue Cigri::NotFound 
       not_found
@@ -195,7 +195,7 @@ class API < Sinatra::Base
 
     begin
       db_connect() do |dbh|
-        update_campaign(dbh, request.env['HTTP_X_CIGRI_USER'], id, params_to_update) 
+        update_campaign(dbh, request.env[settings.username_variable], id, params_to_update) 
       end   
     rescue Cigri::NotFound => e
       not_found
@@ -214,7 +214,7 @@ class API < Sinatra::Base
 
     db_connect() do |dbh|
       begin
-        cancel_campaign(dbh, request.env['HTTP_X_CIGRI_USER'], id)
+        cancel_campaign(dbh, request.env[settings.username_variable], id)
       rescue Cigri::NotFound => e
         not_found
       rescue Cigri::Unauthorized => e
@@ -300,7 +300,7 @@ class API < Sinatra::Base
     end
     
     def authorized?
-      user = request.env['HTTP_X_CIGRI_USER']
+      user = request.env[settings.username_variable]
       return user && user != "" && user !~ /^(unknown|null)$/i
     end
 end

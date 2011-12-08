@@ -74,11 +74,7 @@ module Cigri
  
     # Return the value of the given configuration variable
     def get(key)
-      if @conf.has_key?(key)
-        return @conf[key]
-      else
-        raise Cigri::Error, "Conf: no key #{key}"
-      end
+      @conf[key]
     end
   end 
 end

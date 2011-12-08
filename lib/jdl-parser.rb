@@ -176,6 +176,7 @@ module Cigri
         jdl[key] = val unless jdl[key]
       end
       DEFAULT_VALUES_GLOBAL_CONF.each do |key, val|
+        raise Cigri::NotFound, "Mandatory option '#{val}'' not found in configuration file" unless config.exists?(val)
         jdl[key] = config.get(val) unless jdl[key]
       end
       
@@ -185,6 +186,7 @@ module Cigri
           cluster[key] = val unless jdl[key] or cluster[key]
         end
         DEFAULT_VALUES_CONF.each do |key, val|
+          raise Cigri::NotFound, "Mandatory option '#{val}' not found in configuration file" unless config.exists?(val)
           cluster[key] = config.get(val) unless jdl[key] or cluster[key]
         end
       end

@@ -15,8 +15,8 @@ module Cigri
     ##
     def initialize(progname, logdev = 'STDOUT')
       config = Cigri.conf
-      level = config.get('LOG_LEVEL') if config.exists?('LOG_LEVEL')
-      @logdev_name=logdev
+      level = config.get('LOG_LEVEL') || 'INFO'
+      @logdev_name = logdev
       logdev = STDOUT if logdev.eql? 'STDOUT'
       logdev = STDERR if logdev.eql? 'STDERR'
       super(logdev)

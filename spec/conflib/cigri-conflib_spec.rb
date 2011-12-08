@@ -33,7 +33,7 @@ describe 'cigri-conflib' do
     end
     
     it 'should raise an excetion when getting an unexisting key' do
-      lambda{@config.get('fbuisghsdui')}.should raise_error Cigri::Error
+      @config.get('fbuisghsdui').should be nil
     end
   end # end methods
   
