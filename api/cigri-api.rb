@@ -1,31 +1,26 @@
-$LOAD_PATH.unshift(File.join(File.expand_path(File.dirname(__FILE__)), '..', 'lib'))
+require 'json'
+require 'sinatra/base'
+require 'time'
 
+$LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
+ENV['CIGRICONFDIR'] = File.expand_path('../../etc', __FILE__)
 require 'cigri'
 require 'cigri-clusterlib'
 require 'cigri-joblib'
 require 'jdl-parser'
-require 'json'
-require 'sinatra'
-require 'time'
+require 'rack_debugger'
 
 class API < Sinatra::Base
-  
-  def initialize(*args)
-    super 
-    @apiliblogger = Cigri::Logger.new('APILIB', Cigri.conf.get('LOG_FILE'))
+  configure do
+    logger = Cigri::Logger.new('API', Cigri.conf.get('LOG_FILE'))
+    set :apiliblogger, logger
+    use RackDebugger, logger # better print of the requests in the logfile
+    enable :method_override # used to redirect post methods to a put
+    #set :username_variable, Cigri.conf.get('API_HEADER_USERNAME') || "HTTP_X_CIGRI_USER"
   end
   
   before do
     content_type :json
-    @apiliblogger.debug("Received request: #{request.inspect}")
-    if request.env['REQUEST_METHOD'] == 'POST'
-      if params['action'] == 'delete'
-        request.env['REQUEST_METHOD'] = 'DELETE'
-      elsif
-        params['action'] == 'update'
-        request.env['REQUEST_METHOD'] = 'PUT'
-      end
-    end
   end
   
   # List all links
@@ -234,7 +229,7 @@ class API < Sinatra::Base
   end
   
   not_found do 
-    print( {:status => 404, :title => 'Not Found', :message => "#{request.url} not found on this server"} )
+    print( {:status => 404, :title => 'Not Found', :message => "#{request.request_method} #{request.url} not found on this server"} )
   end
     
   private
