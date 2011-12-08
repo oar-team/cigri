@@ -71,11 +71,7 @@ install-cigri-launcher:
 install-cigri-api:
 	install -d -m 0755 $(DESTDIR)$(CIGRIDIR)
 	install -d -m 0755 $(DESTDIR)$(CIGRIDIR)/api
-	install -d -m 0755 $(DESTDIR)$(CIGRIDIR)/api/config
 	@for file in api/*; do install -m 0755 $$file $(DESTDIR)$(CIGRIDIR)/api; done
-	install -m 0755 api/config/environment.rb.in $(DESTDIR)$(CIGRIDIR)/api/config/environment.rb
-	perl -pi -e "s#%%CIGRIDIR%%#$(CIGRIDIR)#g;;\
-             s#%%CIGRIUSER%%#$(CIGRIUSER)#g" $(DESTDIR)$(CIGRIDIR)/api/config/environment.rb
 	perl -pi -e "s#%%CIGRIDIR%%#$(CIGRIDIR)#g;;\
              s#%%CIGRIUSER%%#$(CIGRIUSER)#g" $(DESTDIR)$(CIGRIDIR)/api/launch_api.sh.in
 	mv $(DESTDIR)$(CIGRIDIR)/api/launch_api.sh.in $(DESTDIR)$(CIGRIDIR)/api/launch_api.sh

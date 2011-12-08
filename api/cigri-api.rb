@@ -1,5 +1,4 @@
-require File.join(File.expand_path(File.dirname(__FILE__)), 'config/environment')
-$LOAD_PATH.unshift(File.join(ENV['CIGRIDIR'], 'lib'))
+$LOAD_PATH.unshift(File.join(File.expand_path(File.dirname(__FILE__)), '..', 'lib'))
 
 require 'cigri'
 require 'cigri-clusterlib'
