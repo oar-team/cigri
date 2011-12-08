@@ -206,7 +206,7 @@ describe 'cigri-iolib' do
       end
     end
     it 'should create a new record into the job table and return an id' do
-      @job.id.should > 1
+      @job.id.should >= 1
     end
     it 'should get back this record from the database when the id is given' do
       job=Datarecord.new('jobs',:id => @job.id)

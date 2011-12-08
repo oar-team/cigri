@@ -332,7 +332,8 @@ def cancel_campaign(dbh, user, id)
   IOLIBLOGGER.debug("Received request to cancel campaign '#{id}'")
   
   check_rights!(dbh, user, id)
-  
+
+  nb = 0
   dbh['AutoCommit'] = false
   begin
     #TODO add kill event in event table !!!!!
@@ -349,7 +350,7 @@ def cancel_campaign(dbh, user, id)
     IOLIBLOGGER.debug("Deleted #{nb} rows from table 'bag_of_tasks' for campaign #{id}")
     
     query = "UPDATE campaigns SET state = 'cancelled' where id = ? and state != 'cancelled'"
-    dbh.do(query, id)
+    nb = dbh.do(query, id)
     
     dbh.commit()
   rescue Exception => e
@@ -360,6 +361,7 @@ def cancel_campaign(dbh, user, id)
     dbh['AutoCommit'] = true
   end
   IOLIBLOGGER.info("Campaign #{id} cancelled")
+  nb
 end
 
 ##
