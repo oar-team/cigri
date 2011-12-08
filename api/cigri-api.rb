@@ -12,10 +12,8 @@ require 'rack_debugger'
 
 class API < Sinatra::Base
   configure do
-    logger = Cigri::Logger.new('API', Cigri.conf.get('LOG_FILE'))
-    set :apiliblogger, logger
-    use RackDebugger, logger # better print of the requests in the logfile
-    enable :method_override # used to redirect post methods to a put
+    use RackDebugger, Cigri::Logger.new('API', Cigri.conf.get('LOG_FILE')) # better print of the requests in the logfile
+    enable :method_override # used to make magic with hidden fields such as _put or _delete
     set :username_variable, Cigri.conf.get('API_HEADER_USERNAME') || "HTTP_X_CIGRI_USER"
   end
   
@@ -231,7 +229,7 @@ class API < Sinatra::Base
   not_found do 
     print( {:status => 404, :title => 'Not Found', :message => "#{request.request_method} #{request.url} not found on this server"} )
   end
-    
+
   private
     
     # Prints a json into text and use a pretty print function if pretty is given to URL
