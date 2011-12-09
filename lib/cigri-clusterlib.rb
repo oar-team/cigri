@@ -196,7 +196,9 @@ module Cigri
    #
    ##
    def self.available_types
-     ["oar2_5","g5k"]
+     db_connect() do |dbh|
+       return get_available_api_types(dbh)
+     end
    end
    
    ##

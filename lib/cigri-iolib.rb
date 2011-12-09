@@ -73,6 +73,30 @@ def last_inserted_id(dbh, seqname = '')
   row[0]
 end
 
+##
+# Method defined to get available types for clusters APIs
+#
+# == Parameters
+# - dbh: databale handle
+#
+# == Returns
+# - Array of available types: ["oar2_5", "g5k"]
+#
+# == Exceptions
+# - Cigri::Error if database type defined in cigri.conf not supported 
+##
+def get_available_api_types(dbh)
+  db = CONF.get('DATABASE_TYPE')
+  if db.eql? 'Pg'
+    return dbh.select_all("select enumlabel from pg_enum where enumtypid = 'api'::regtype").flatten!
+  elsif db.eql? 'Mysql'
+    raise Cigri::Error, "get_available_types not yet implemented with MySQL"
+  else
+    raise Cigri::Error, "Impossible to retreive available types: database type \"#{db}\" is not supported"
+  end
+  
+end
+
 
 ##
 # Quote escapes potentially dangerous caracters in SQL
