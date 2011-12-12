@@ -15,6 +15,7 @@ WWWUSER=www-data
 WWWGROUP=www-data
 CIGRIUSER=cigri
 CIGRIGROUP=cigri
+APIBASE=/cigri-api
 USERCMDS=$(patsubst bin/%.rb,%,$(wildcard bin/*.rb))
 
 SPEC_OPTS=--colour --format nested
@@ -87,10 +88,14 @@ install-cigri-config:
 		else install -m 0600 etc/cigri.conf $(DESTDIR)$(CIGRICONFDIR)/cigri.conf; fi
 	chown $(CIGRIUSER) $(DESTDIR)$(CIGRICONFDIR)/cigri.conf
 	if [ -f $(DESTDIR)$(CIGRICONFDIR)/api-clients.conf ]; then echo "$(DESTDIR)$(CIGRICONFDIR)/api-clients.conf found, not erasing."; \
-		else install -m 0644 etc/api-clients.conf $(DESTDIR)$(CIGRICONFDIR)/api-clients.conf; fi
+	else install -m 0644 etc/api-clients.conf.in $(DESTDIR)$(CIGRICONFDIR)/api-clients.conf; \
+		perl -pi -e "s#%%CIGRIDIR%%#$(CIGRIDIR)#g;;\
+		s#%%APIBASE%%#$(APIBASE)#g" $(DESTDIR)$(CIGRICONFDIR)/api-clients.conf; fi
 	chown $(CIGRIUSER) $(DESTDIR)$(CIGRICONFDIR)/api-clients.conf
 	if [ -f $(DESTDIR)$(CIGRICONFDIR)/api-apache.conf ]; then echo "$(DESTDIR)$(CIGRICONFDIR)/api-apache.conf found, not erasing."; \
-		else install -m 0644 etc/api-apache.conf $(DESTDIR)$(CIGRICONFDIR)/api-apache.conf; fi
+		else install -m 0644 etc/api-apache.conf.in $(DESTDIR)$(CIGRICONFDIR)/api-apache.conf; \
+		perl -pi -e "s#%%CIGRIDIR%%#$(CIGRIDIR)#g;;\
+		s#%%APIBASE%%#$(APIBASE)#g" $(DESTDIR)$(CIGRICONFDIR)/api-apache.conf; fi
 	chown $(WWWUSER) $(DESTDIR)$(CIGRICONFDIR)/api-apache.conf
 
 clean:

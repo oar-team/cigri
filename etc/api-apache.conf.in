@@ -1,5 +1,5 @@
 # Authenticaton
-<Location /cigri-api>
+<Location %%APIBASE%%>
   # Deny access by default, except from localhost
   Order deny,allow
   #Deny from all
@@ -19,6 +19,6 @@
 </Location>
 
 # Using Passenger to serve the cigri API
-PassengerAppRoot /usr/local/share/cigri/api
-RackBaseURI /cigri-api
+PassengerAppRoot %%CIGRIDIR%%/api
+RackBaseURI %%APIBASE%%
 
