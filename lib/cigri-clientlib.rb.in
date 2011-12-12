@@ -1,0 +1,22 @@
+#!/usr/bin/ruby -w
+#
+# This library contains the methods for the cigri-api clients (gridsub, gridstat,...)
+#
+
+require 'cigri-logger'
+require 'cigri-conflib'
+require 'net/http'
+
+CONF = Cigri::Conf.new('%%CIGRICONFDIR%%/api-clients.conf')
+CIGRICLIENTLOGGER = Cigri::Logger.new('CLIENT', CONF.get('LOG_FILE'))
+
+module Cigri
+
+  class Client
+ 
+    def initialize()
+    end
+
+  end # class Client    
+
+end # module Cigri

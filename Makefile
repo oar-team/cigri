@@ -46,6 +46,8 @@ install-cigri-libs:
 	install -d -m 0755 $(DESTDIR)$(CIGRIDIR)
 	install -d -m 0755 $(DESTDIR)$(CIGRIDIR)/lib
 	@for file in lib/*; do install -m 0644 $$file $(DESTDIR)$(CIGRIDIR)/lib/; done
+	mv $(DESTDIR)$(CIGRIDIR)/lib/cigri-clientlib.rb.in $(DESTDIR)$(CIGRIDIR)/lib/cigri-clientlib.rb
+	perl -pi -e "s#%%CIGRICONFDIR%%#$(CIGRICONFDIR)#g" $(DESTDIR)$(CIGRIDIR)/lib/cigri-clientlib.rb
 
 install-cigri-modules:
 	install -d -m 0755 $(DESTDIR)$(CIGRIDIR)
