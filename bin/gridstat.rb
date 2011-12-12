@@ -4,7 +4,6 @@ $LOAD_PATH.unshift(File.join(File.dirname(File.expand_path(__FILE__)), '..', 'li
 
 require 'cigri-clientlib'
 require 'json'
-require 'net/http'
 require 'optparse'
 require 'time'
 require 'version.rb'
@@ -77,7 +76,6 @@ begin
   client = Cigri::Client.new()
   http=client.http
   response = client.get(url)
-  #response = http.request(Net::HTTP::Get.new(url))
   
   if dump
     puts response.body
