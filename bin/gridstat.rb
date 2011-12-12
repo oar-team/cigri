@@ -2,7 +2,7 @@
 
 $LOAD_PATH.unshift(File.join(File.dirname(File.expand_path(__FILE__)), '..', 'lib'))
 
-require 'cigri-conflib'
+require 'cigri-clientlib'
 require 'json'
 require 'net/http'
 require 'optparse'
@@ -74,10 +74,10 @@ url << '?pretty' if dump and pretty
 #TODO -H et -d incompatibles
 
 begin 
-  conf = Cigri::Conf.new('/etc/cigri/api-clients.conf')
-  http = Net::HTTP.new(conf.get('API_HOST'), conf.get('API_PORT'))
-  http.read_timeout = conf.get('API_TIMEOUT').to_i if conf.exists?('API_TIMEOUT')
-  response = http.request(Net::HTTP::Get.new(url))
+  client = Cigri::Client.new()
+  http=client.http
+  response = client.get(url)
+  #response = http.request(Net::HTTP::Get.new(url))
   
   if dump
     puts response.body

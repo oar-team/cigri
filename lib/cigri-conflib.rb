@@ -15,8 +15,10 @@ require 'cigri-exception'
 
 module Cigri
 
-  if ENV['CIGRICONFDIR'] && File.readable?("#{ENV['CIGRICONFDIR']}/cigri.conf")
-  then
+  if ENV['CIGRICONFFILE'] && File.readable?("#{ENV['CIGRICONFFILE']}")
+    # Get the config file from the $CIGRICONFFILE variable
+    CONFIG_FILE = "#{ENV['CIGRICONFFILE']}"
+  elsif ENV['CIGRICONFDIR'] && File.readable?("#{ENV['CIGRICONFDIR']}/cigri.conf")
     # Get the cigri.conf config file from the $CIGRICONFDIR directory
     CONFIG_FILE = "#{ENV['CIGRICONFDIR']}/cigri.conf"
   elsif ENV['CIGRIDIR'] && File.readable?("#{ENV['CIGRIDIR']}/cigri.conf")

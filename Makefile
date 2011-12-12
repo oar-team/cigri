@@ -59,7 +59,7 @@ install-cigri-user-cmds:
 	install -d -m 0755 $(DESTDIR)$(CIGRIDIR)/bin
 	@for cmd in $(USERCMDS) ; do \
 		install -m 0755 bin/$$cmd.rb $(DESTDIR)$(CIGRIDIR)/bin/$$cmd.rb ; \
-		echo -e '#!/bin/bash\n'$(CIGRIDIR)/bin/$$cmd.rb '$$@' > $(DESTDIR)$(BINDIR)/$$cmd ; \
+		echo -e '#!/bin/bash\nCIGRICONFFILE=$(CIGRICONFDIR)/api-clients.conf '$(CIGRIDIR)/bin/$$cmd.rb '$$@' > $(DESTDIR)$(BINDIR)/$$cmd ; \
 		chmod 755 $(DESTDIR)$(BINDIR)/$$cmd ; \
 	done
 

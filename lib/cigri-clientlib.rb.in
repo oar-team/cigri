@@ -6,15 +6,41 @@
 require 'cigri-logger'
 require 'cigri-conflib'
 require 'net/http'
+require 'uri'
 
-CONF = Cigri::Conf.new('%%CIGRICONFDIR%%/api-clients.conf')
+ENV['CIGRICONFFILE']="%%CIGRICONFDIR%%/api-clients.conf"
+CONF = Cigri::Conf.new()
 CIGRICLIENTLOGGER = Cigri::Logger.new('CLIENT', CONF.get('LOG_FILE'))
 
 module Cigri
 
   class Client
+    attr_accessor :http
+    attr_reader :base
  
     def initialize()
+      @http = Net::HTTP.new(CONF.get('API_HOST'), CONF.get('API_PORT'))
+      @http.read_timeout = CONF.get('API_TIMEOUT').to_i if CONF.exists?('API_TIMEOUT')
+      if CONF.exists?('API_BASE')
+        @base = CONF.get('API_BASE')
+      else
+        @base = ''
+      end
+    end
+
+    def get(url)
+      url=@base+url 
+      @http.request(Net::HTTP::Get.new(url))
+    end
+
+    def post(url,data,header)
+      url=@base+url 
+      @http.post(url,data,header)
+    end
+
+    def delete(url)
+      url=@base+url 
+      @http.request(Net::HTTP::Delete.new(url))
     end
 
   end # class Client    

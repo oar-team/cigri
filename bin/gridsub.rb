@@ -2,9 +2,8 @@
 
 $LOAD_PATH.unshift(File.join(File.dirname(File.expand_path(__FILE__)), '..', 'lib'))
 
-require 'cigri-conflib'
+require 'cigri-clientlib'
 require 'json'
-require 'net/http'
 require 'optparse'
 require 'version.rb'
 
@@ -59,14 +58,12 @@ rescue OptionParser::ParseError => e
 end
 
 def submit_campaign(jdl, campaign_id=nil)
-  conf = Cigri::Conf.new('/etc/cigri/api-clients.conf')
-  http = Net::HTTP.new(conf.get('API_HOST'), conf.get('API_PORT'))
-  http.read_timeout = conf.get('API_TIMEOUT').to_i if conf.exists?('API_TIMEOUT')
+  client=Cigri::Client.new
   
   url = '/campaigns'
   url += "/#{campaign_id}/jobs" if campaign_id
 
-  http.post(url, jdl, 'Content-Type' => 'application/json')
+  client.post(url, jdl, 'Content-Type' => 'application/json')
 end
 
 def print_response(response, details)

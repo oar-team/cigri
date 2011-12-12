@@ -2,9 +2,8 @@
 
 $LOAD_PATH.unshift(File.join(File.dirname(File.expand_path(__FILE__)), '..', 'lib'))
 
-require 'cigri-conflib'
+require 'cigri-clientlib'
 require 'json'
-require 'net/http'
 require 'optparse'
 require 'version.rb'
 
@@ -38,12 +37,10 @@ end
 abort("Missing CAMPAIGN_ID\n" + optparse.to_s) unless ARGV.length > 0
 
 begin 
-  conf = Cigri::Conf.new('/etc/cigri/api-clients.conf')
-  http = Net::HTTP.new(conf.get('API_HOST'), conf.get('API_PORT'))
-  http.read_timeout = conf.get('API_TIMEOUT').to_i if conf.exists?('API_TIMEOUT')
-  
+  client=Cigri::Client.new 
+ 
   ARGV.each do |campaign_id|
-    response = http.request(Net::HTTP::Delete.new("/campaigns/#{campaign_id}"))
+    response = client.delete("/campaigns/#{campaign_id}")
     parsed_response = JSON.parse(response.body)
     if response.code != "202"
       STDERR.puts("Failed to cancel campaign #{campaign_id}: #{parsed_response['message']}.")
