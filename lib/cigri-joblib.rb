@@ -172,35 +172,9 @@ module Cigri
       return self.length
     end
 
-    # Remove the jobs from the queue and the bag of task
-    def remove
-      # Remove from the bag of tasks
-      bag=Dataset.new('bag_of_tasks',{:where => "id in (#{self.ids.join(',')})"})
-      bag.delete
-      # Remove from the queue
-      self.delete('jobs_to_launch','task_id')
-    end
-
-    # Register the jobs into the jobs table (creates new jobs)
-    # returns a jobset of the newly created jobs
-    def register
-      values=[]
-      @records.each do |record|
-        values << {
-                    :campaign_id => record.props[:campaign_id],
-                    :state => "to_launch",
-                    :cluster_id => record.props[:cluster_id],
-                    :param => record.props[:param],
-                    :name => record.props[:param].split[0]
-                  }
-      end
-      Jobset.new(:values => values)
-    end
-    
     # Take the jobs from the bag of tasks and return newly created jobs.
-    # Same as remove+register, but this is done in an atomical way to 
-    # prevent from losing jobs in case of a crash. This is why we directly 
-    # call the iolib without using datarecords.
+    # This is done in an atomical way to prevent from losing jobs in case of a 
+    # crash. This is why we directly call an iolib function ithout using datarecords.
     def take
       jobids=take_tasks(@dbh,self.ids)
       Jobset.new(:where => "id in (#{jobids.join(',')})")
