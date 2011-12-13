@@ -16,6 +16,8 @@ begin
     cluster=Cigri::Cluster.new(:name => ARGV[0])
   end
 
+  $0="cigri: runner #{ARGV[0]}"
+
   # Signal traping
   %w{INT TERM}.each do |signal|
     Signal.trap(signal){ 

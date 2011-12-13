@@ -6,6 +6,8 @@ require 'cigri'
 require 'cigri-joblib'
 require 'cigri-scheduler-fifo'
 
+$0='cigri: metascheduler'
+
 begin
   config = Cigri.conf
   logger = Cigri::Logger.new('META-SCHEDULER', config.get('LOG_FILE'))

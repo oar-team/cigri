@@ -5,6 +5,8 @@ $LOAD_PATH.unshift("./lib")
 require 'cigri'
 require 'cigri-clusterlib'
 
+$0='cigri: almighty'
+
 begin
   config = Cigri.conf
   logger = Cigri::Logger.new('ALMIGHTY', config.get('LOG_FILE'))
