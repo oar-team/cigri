@@ -643,6 +643,46 @@ def add_jobs_to_launch(dbh, tasks, cluster_id, tag, runner_options)
   end
 end
 
+##
+# Take tasks from the bag of tasks and create new jobs into the jobs table
+# 
+# == Parameters
+# - dbh: db handler
+# - tasks: array of task id
+#
+# == Returns
+# Array of job ids
+##
+def take_tasks(dbh, tasks)
+  dbh['AutoCommit'] = false
+  begin
+    jobids=[]
+    # Get the jobs from the cluster queue
+    jobs=dbh.select_all("SELECT bag_of_tasks.id as id,name,param,campaign_id,cluster_id 
+                         FROM bag_of_tasks,jobs_to_launch
+                         WHERE task_id=bag_of_tasks.id 
+                           AND bag_of_tasks.id IN (#{tasks.join(',')})")
+    jobs.each do |job|
+      # delete from the bag of task
+      dbh.do("DELETE FROM bag_of_tasks where id = #{job['id']}")     
+      # delete from the cluster queue
+      dbh.do("DELETE FROM jobs_to_launch where task_id = #{job['id']}")     
+      # insert the new job into the jobs table
+      dbh.do("INSERT INTO jobs (campaign_id,state,cluster_id,name,param)
+              VALUES (?,?,?,?,?)",
+              job['campaign_id'],"to_launch",job['cluster_id'],job['name'],job['param'])
+      jobids << last_inserted_id(dbh, "jobs_id_seq")
+    end
+    return jobids
+  rescue Exception => e
+    IOLIBLOGGER.error("Error taking tasks from the bag: " + e.inspect)
+    dbh.rollback()
+    raise e
+  ensure
+    dbh['AutoCommit'] = true
+  end
+end
+
 
 #######################################################################
 ######################### iolib classes ###############################

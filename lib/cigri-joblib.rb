@@ -196,6 +196,15 @@ module Cigri
       end
       Jobset.new(:values => values)
     end
+    
+    # Take the jobs from the bag of tasks and return newly created jobs.
+    # Same as remove+register, but this is done in an atomical way to 
+    # prevent from losing jobs in case of a crash. This is why we directly 
+    # call the iolib without using datarecords.
+    def take
+      jobids=take_tasks(@dbh,self.ids)
+      Jobset.new(:where => "id in (#{jobids.join(',')})")
+    end
 
   end # Class JobtolaunchSet
 
