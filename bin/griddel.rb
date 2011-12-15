@@ -37,7 +37,7 @@ end
 abort("Missing CAMPAIGN_ID\n" + optparse.to_s) unless ARGV.length > 0
 
 begin 
-  client=Cigri::Client.new 
+  client = Cigri::Client.new 
  
   ARGV.each do |campaign_id|
     response = client.delete("/campaigns/#{campaign_id}")

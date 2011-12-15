@@ -1,6 +1,8 @@
 require 'spec_helper'
-require 'cigri-iolib'
 require 'json'
+
+require 'cigri-iolib'
+require 'cigri-joblib'
 
 CORRECT_JSON_STRING = '{"name":"Some campaign","jobs_type":"normal","clusters":{"tchernobyl":{"exec_directory":"$HOME","temporal_grouping":"true","checkpointing_type":"None","exec_file":"$HOME/script.sh","walltime":"01:00:00","output_gathering_method":"scp","resources":"nodes=1","type":"best-effort","dimensional_grouping":"false","output_destination":"my.dataserver.fr","properties":""},"fukushima":{"exec_directory":"$HOME","temporal_grouping":"true","checkpointing_type":"None","exec_file":"$HOME/path/script","walltime":"01:00:00","output_gathering_method":"scp","resources":"nodes=1","type":"best-effort","dimensional_grouping":"false","output_destination":"my.dataserver.fr","properties":""},"my.other_cluster.fr":{"exec_directory":"$HOME","temporal_grouping":"true","checkpointing_type":"None","exec_file":"$HOME/script.sh","walltime":"01:00:00","output_gathering_method":"scp","resources":"nodes=1","type":"best-effort","dimensional_grouping":"false","output_destination":"my.dataserver.fr","properties":""}},"params":["0","1"]}'
 
@@ -79,7 +81,12 @@ describe 'cigri-iolib' do
         nb_params = @correct_json['params'].length
         id = cigri_submit(dbh, @correct_json, 'kameleon')
         id.should be_a(Integer)
-        nb_jobs = dbh.select_one("SELECT count(*) FROM bag_of_tasks WHERE campaign_id = ?", id)[0].should be == nb_params
+        query = "SELECT count(*) 
+                 FROM parameters AS p, bag_of_tasks as b 
+                 WHERE p.id = b.param_id AND 
+                       p.campaign_id = b.campaign_id AND
+                       p.campaign_id = ?"
+        nb_jobs = dbh.select_one(query, id)[0].should be == nb_params
         delete_campaign(dbh, 'kameleon', id)
       end
     end
@@ -190,6 +197,11 @@ describe 'cigri-iolib' do
     end
     
   end # delete_campaign
+
+  describe 'take_tasks' do
+    xit 'should test take_tasks' do
+    end
+  end # take tasks
   
   describe 'get_running_campaigns' do
     it 'should return an array' do
@@ -202,14 +214,14 @@ describe 'cigri-iolib' do
   describe 'Datarecord' do
     before(:all) do
       db_connect() do |dbh|
-        @job=Datarecord.new('jobs',:campaign_id => "100" , :state => "terminated")
+        @job = Datarecord.new('jobs', :campaign_id => "100" , :state => "terminated")
       end
     end
     it 'should create a new record into the job table and return an id' do
       @job.id.should >= 1
     end
     it 'should get back this record from the database when the id is given' do
-      job=Datarecord.new('jobs',:id => @job.id)
+      job = Datarecord.new('jobs', :id => @job.id)
       job.props[:campaign_id].to_i.should == 100
     end
     it 'should be able to delete itself from the database' do

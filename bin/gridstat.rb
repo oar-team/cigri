@@ -74,7 +74,6 @@ url << '?pretty' if dump and pretty
 
 begin 
   client = Cigri::Client.new()
-  http=client.http
   response = client.get(url)
   
   if dump

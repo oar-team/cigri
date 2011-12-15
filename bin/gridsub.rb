@@ -58,7 +58,7 @@ rescue OptionParser::ParseError => e
 end
 
 def submit_campaign(jdl, campaign_id=nil)
-  client=Cigri::Client.new
+  client = Cigri::Client.new
   
   url = '/campaigns'
   url += "/#{campaign_id}/jobs" if campaign_id

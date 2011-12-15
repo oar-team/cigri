@@ -200,11 +200,10 @@ def cigri_submit_jobs(dbh, params, campaign_id, user)
 
   check_rights!(dbh, user, campaign_id)
 
-  campaign = dbh.select_one("SELECT state, grid_user, jdl FROM campaigns WHERE id = ?", campaign_id)
-  #raise Cigri::Error, "Campaign #{campaign_id} does not exist" unless campaign
+  campaign = dbh.select_one("SELECT state, jdl FROM campaigns WHERE id = ?", campaign_id)
   raise Cigri::Error, "Unable to add jobs to campaign #{campaign_id} because it was cancelled" if campaign[0] == "cancelled"
-  #raise Cigri::Error, "User #{user} tried to modify campaign #{campaign_id} belonging to #{campaign[1]}" if user != campaign[1]
-  jdl = JSON.parse(campaign[2])
+
+  jdl = JSON.parse(campaign[1])
   jdl['params'].concat(params)
 
   old_autocommit = dbh['AutoCommit']
@@ -214,14 +213,20 @@ def cigri_submit_jobs(dbh, params, campaign_id, user)
     dbh.do("UPDATE campaigns SET state = 'in_treatment' WHERE id = ?", campaign_id) if campaign[0] == "terminated"
     dbh.do("UPDATE campaigns SET jdl = ?, nb_jobs = ? WHERE id = ?", jdl.to_json, jdl['params'].length, campaign_id)
 
-    base_query = 'INSERT INTO bag_of_tasks 
+    base_query = 'INSERT INTO parameters
                   (name, param, campaign_id)
                   VALUES '
     #TODO configure size of loop (10000 should be in conf file)
     while params.length > 0 do
       slice = params.slice!(0...10000)
       slice.map!{ |param| "(#{quote(param.split.first)}, #{quote(param)}, #{campaign_id})"}
-      dbh.do(base_query + slice.join(', '))
+
+      sth = dbh.execute(base_query + slice.join(', ') + " RETURNING id")
+      inserted_ids = sth.fetch_all
+      sth.finish
+
+      inserted_ids.map!{ |param| "(#{param}, #{campaign_id})"}
+      dbh.do('INSERT INTO bag_of_tasks (param_id, campaign_id) VALUES ' + inserted_ids.join(','))
     end
     dbh.commit() unless old_autocommit == false
   rescue Exception => e
@@ -360,19 +365,22 @@ def cancel_campaign(dbh, user, id)
   nb = 0
   dbh['AutoCommit'] = false
   begin
-    #TODO add kill event in event table !!!!!
-    query = "UPDATE jobs SET state = 'event' WHERE campaign_id = ? AND state != 'terminated'"
-    nb = dbh.do(query, id)
-    IOLIBLOGGER.debug("Adding kill event for #{nb} jobs for campaign #{id}")
-    
     query = "DELETE FROM jobs_to_launch WHERE task_id in (SELECT id from bag_of_tasks where campaign_id = ?)"
     nb = dbh.do(query, id)
     IOLIBLOGGER.debug("Deleted #{nb} 'jobs_to_launch' for campaign #{id}")
     
-    query = "DELETE FROM bag_of_tasks WHERE campaign_id = ?"
+    to_delete = {'bag_of_tasks' => 'campaign_id', 'jobs' =>'campaign_id',
+                 'parameters' => 'campaign_id'} 
+    to_delete.each do |k, v|
+      nb = dbh.do("DELETE FROM #{k} WHERE #{v} = ?", id)
+      IOLIBLOGGER.debug("Deleted #{nb} rows from table '#{k}' for campaign·#{id}")
+    end 
+       
+    #TODO add kill event in event table !!!!!
+    query = "UPDATE jobs SET state = 'event' WHERE campaign_id = ? AND state != 'terminated'"
     nb = dbh.do(query, id)
-    IOLIBLOGGER.debug("Deleted #{nb} rows from table 'bag_of_tasks' for campaign #{id}")
-    
+    IOLIBLOGGER.debug("Adding kill event for #{nb} jobs for campaign #{id}")
+     
     query = "UPDATE campaigns SET state = 'cancelled' where id = ? and state != 'cancelled'"
     nb = dbh.do(query, id)
     
@@ -408,11 +416,12 @@ def delete_campaign(dbh, user, id)
   
   dbh['AutoCommit'] = false
   begin
-    to_delete = {'campaigns' => 'id', 'bag_of_tasks' => 'campaign_id',
-                 'campaign_properties' => 'campaign_id', 'jobs' =>'campaign_id'} 
-    
     nb = dbh.do("DELETE FROM jobs_to_launch WHERE task_id in (SELECT id from bag_of_tasks where campaign_id = ?)", id)
     IOLIBLOGGER.debug("Deleted #{nb} 'jobs_to_launch' for campaign #{id}")
+
+    to_delete = {'campaigns' => 'id', 'bag_of_tasks' => 'campaign_id',
+                 'campaign_properties' => 'campaign_id', 'jobs' =>'campaign_id',
+                 'parameters' => 'campaign_id'} 
     
     to_delete.each do |k, v|
       nb = dbh.do("DELETE FROM #{k} WHERE #{v} = ?", id)
@@ -525,9 +534,10 @@ end
 
 def get_campaign_tasks(dbh, id)
   res = []
-  query = "SELECT id, name, param
-           FROM bag_of_tasks
-           WHERE campaign_id = ?"
+  query = "SELECT b.id, name, param
+           FROM bag_of_tasks AS b, parameters AS p
+           WHERE p.id = b.param_id AND
+           p.campaign_id = ?"
   sth = dbh.execute(query, id)
   sth.fetch_hash do |row|
     res << row
@@ -549,7 +559,7 @@ end
 ##
 def get_campaign_remaining_tasks_number(dbh, id)
   dbh.select_one("SELECT COUNT(*) FROM bag_of_tasks 
-                                  LEFT JOIN jobs_to_launch ON bag_of_tasks.id=task_id
+                                  LEFT JOIN jobs_to_launch ON bag_of_tasks.id = task_id
                                   WHERE task_id is null 
                                     AND campaign_id=?", id)[0]
 end
@@ -612,7 +622,7 @@ end
 def get_tasks_ids_for_campaign(dbh, id, number = nil)
   limit = number ? "LIMIT #{number}" : ""
   dbh.select_all("SELECT bag_of_tasks.id FROM bag_of_tasks 
-                         LEFT JOIN jobs_to_launch ON bag_of_tasks.id=task_id
+                         LEFT JOIN jobs_to_launch ON bag_of_tasks.id = task_id
                          WHERE task_id is null AND campaign_id=?
                          ORDER by bag_of_tasks.id
                          #{limit}", id).flatten!
@@ -656,21 +666,22 @@ end
 def take_tasks(dbh, tasks)
   dbh['AutoCommit'] = false
   begin
-    jobids=[]
+    jobids = []
     # Get the jobs from the cluster queue
-    jobs=dbh.select_all("SELECT bag_of_tasks.id as id,name,param,campaign_id,cluster_id 
-                         FROM bag_of_tasks,jobs_to_launch
-                         WHERE task_id=bag_of_tasks.id 
-                           AND bag_of_tasks.id IN (#{tasks.join(',')})")
+    jobs = dbh.select_all("SELECT b.id as id, name, param, b.campaign_id as campaign_id, cluster_id 
+                           FROM bag_of_tasks AS b, jobs_to_launch AS j, parameters AS p
+                           WHERE j.task_id = b.id AND
+                                 p.id = b.param_id AND
+                                 b.id IN (#{tasks.join(',')})")
     jobs.each do |job|
       # delete from the bag of task
       dbh.do("DELETE FROM bag_of_tasks where id = #{job['id']}")     
       # delete from the cluster queue
       dbh.do("DELETE FROM jobs_to_launch where task_id = #{job['id']}")     
       # insert the new job into the jobs table
-      dbh.do("INSERT INTO jobs (campaign_id,state,cluster_id,name,param)
-              VALUES (?,?,?,?,?)",
-              job['campaign_id'],"to_launch",job['cluster_id'],job['name'],job['param'])
+      dbh.do("INSERT INTO jobs (campaign_id, state, cluster_id, name, param)
+              VALUES (?, ?, ?, ?, ?)",
+              job['campaign_id'], "to_launch", job['cluster_id'], job['name'], job['param'])
       jobids << last_inserted_id(dbh, "jobs_id_seq")
     end
     return jobids

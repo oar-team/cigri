@@ -55,20 +55,30 @@ CREATE INDEX campaigns_idx_id ON campaigns (id);
 DROP TABLE IF EXISTS campaign_properties;
 CREATE TABLE campaign_properties (
   id SERIAL NOT NULL,
-  name VARCHAR(255) NOT NULL,
-  value VARCHAR(255) NOT NULL,
   cluster_id INTEGER, -- if NULL, then it's a global --
   campaign_id INTEGER NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  value VARCHAR(255) NOT NULL,
   PRIMARY KEY (id)
 );
 CREATE INDEX campaign_properties_idx ON campaign_properties (name,campaign_id);
 
+DROP TABLE IF EXISTS parameters;
+CREATE TABLE parameters (
+  id BIGSERIAL NOT NULL,
+  campaign_id INTEGER NOT NULL,
+  name VARCHAR(255),
+  param TEXT,
+  PRIMARY KEY (id)
+);
+CREATE INDEX parameters_idx_id ON parameters (id);
+CREATE INDEX parameters_idx_campaign_id ON parameters (campaign_id);
+
 DROP TABLE IF EXISTS bag_of_tasks;
 CREATE TABLE bag_of_tasks (
   id BIGSERIAL NOT NULL,
-  name VARCHAR(255),
-  param TEXT,
   campaign_id INTEGER NOT NULL,
+  param_id INTEGER NOT NULL,
   PRIMARY KEY (id)
 );
 CREATE INDEX bag_of_tasks_idx_id ON bag_of_tasks (id);
@@ -89,14 +99,13 @@ DROP TYPE IF EXISTS job_state;
 CREATE TYPE job_state as ENUM('to_launch', 'submitted', 'running','remote_waiting','terminated','event');
 CREATE TABLE  jobs (
   id BIGSERIAL NOT NULL,
-  name VARCHAR(255),
   campaign_id INTEGER NOT NULL,
+  param_id INTEGER,
   batch_id INTEGER,
-  collect_id INTEGER,
-  return_code INTEGER,
-  state job_state NOT NULL,
   cluster_id INTEGER,
-  param TEXT,
+  collect_id INTEGER,
+  state job_state NOT NULL,
+  return_code INTEGER,
   submission_time TIMESTAMP,
   start_time TIMESTAMP,
   stop_time TIMESTAMP,
