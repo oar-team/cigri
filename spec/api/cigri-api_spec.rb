@@ -85,7 +85,7 @@ describe 'API' do
       check_links(response)
     end
     
-    it 'should get info relative to the jobs posted campaign' do
+    xit 'should get info relative to the jobs posted campaign' do
       get "/campaigns/#{@test_id}/jobs"
       last_response.should be_ok
       response = JSON.parse(last_response.body)
@@ -96,6 +96,8 @@ describe 'API' do
       end
       check_headers(get=true, post=true)
     end
+
+    xit 'should get info relative to the jobs of a campaign with custom limit and offset'
 
     xit 'should get info on a specific job of a campaign' do
       get "/campaigns/#{@test_id}/jobs/#{@first_job_id}"
@@ -168,6 +170,12 @@ describe 'API' do
       get "/campaigns/-1"
       last_response.status.should be 404
     end
+
+    it 'should fail to get the info relative to a campaign using a string as ID' do
+      get "/campaigns/toto"
+      last_response.status.should be 404
+    end
+
 
     it 'should fail to submit a campaign for an unauthorized user' do
       post '/campaigns', '{"name":"test_api", "nb_jobs":10,"clusters":{"fukushima":{"exec_file":"e"}}}', 'HTTP_X_CIGRI_USER' => 'unknown'

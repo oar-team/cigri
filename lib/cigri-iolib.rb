@@ -532,18 +532,44 @@ def get_campaign_properties(dbh, id)
   dbh.select_all("SELECT * FROM campaign_properties WHERE campaign_id = ?", id)
 end
 
-def get_campaign_tasks(dbh, id)
-  res = []
-  query = "SELECT b.id, name, param
-           FROM bag_of_tasks AS b, parameters AS p
-           WHERE p.id = b.param_id AND
-           p.campaign_id = ?"
-  sth = dbh.execute(query, id)
-  sth.fetch_hash do |row|
-    res << row
-  end
-  sth.finish
-  res
+##
+# Returns the minimum ID of a param for a given campaign
+#
+# == Parameters
+# - dbh: dababase handle
+# - id: campaign id
+#
+# == Returns
+# smallest ID for parameters for campaign id
+#
+##
+def get_min_param_id(dbh, id)
+  dbh.select_one("SELECT MIN(id) FROM parameters where campaign_id = ?", id)[0]
+end
+
+##
+# Returns the tasks of a campaign
+#
+# == Parameters
+# - dbh: dababase handle
+# - id: campaign id
+# - limit=1000
+# - offset=0
+#
+# == Returns
+# Array of properties
+# property[0] = id
+#
+##
+def get_campaign_tasks(dbh, id, limit, offset)
+  query = "SELECT id, name, param
+           FROM parameters
+           WHERE campaign_id = ? 
+           ORDER BY id
+           LIMIT ? 
+           OFFSET ?"
+
+  dbh.select_all(query, id, limit, offset)
 end
 
 ##
@@ -754,12 +780,12 @@ class Datarecord
   end
 
   # Get a new record and return its properties
-  def get_record(table,id,what)
-    dbh=db_connect()
-    what="*" if what.nil?
-    sth=dbh.execute("SELECT #{what} FROM #{table} WHERE #{@index}=#{id}")
+  def get_record(table, id, what)
+    dbh = db_connect()
+    what = "*" if what.nil?
+    sth = dbh.execute("SELECT #{what} FROM #{table} WHERE #{@index} = #{id.to_i}")
     # The inject part is to convert string keys into symbols to optimize memory
-    record=sth.fetch_hash
+    record = sth.fetch_hash
     dbh.disconnect
     if record.nil?
       IOLIBLOGGER.warn("Datarecord #{@index}=#{id} not found into #{table}")

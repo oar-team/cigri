@@ -83,15 +83,25 @@ class API < Sinatra::Base
     campaign = Cigri::Campaign.new({:id => id})
     not_found unless campaign.props
 
-    output = []
-    campaign.tasks.each do |task|
-      output << {
-        :id => task['id'],
-        :name => task['name'],
+    limit = params['limit'] || 100
+    offset = params['offset'] || 0
+    min_id = campaign.min_task_id
+
+    items = []
+    campaign.tasks(limit, offset).each do |task|
+      items << {
+        :id => task[0] - min_id,
+        :name => task[1],
+        :parameters => task[2],
         :state => :waiting,
         :url => url("/campaigns/#{id}/jobs/#{task['id']}")
       }
     end
+
+    output = {:items => items,
+              :total => campaign.props[:nb_jobs].to_i,
+              :offset => offset
+    }
 
     print(output)
   end
@@ -99,7 +109,8 @@ class API < Sinatra::Base
   # Details of a job
   get '/campaigns/:id/jobs/:jobid/?' do |id, jobid|
     response['Allow'] = 'GET'
-    "Job #{jobid} of campaaign #{id}"
+
+    "Job #{jobid} of campaign #{id}"
   end
   
   # List all clusters

@@ -224,9 +224,15 @@ module Cigri
       end
     end
 
-    def tasks
+    def min_task_id
       db_connect() do |dbh|
-        return get_campaign_tasks(dbh, id)
+        return get_min_param_id(dbh, id)
+      end
+    end
+
+    def tasks(limit, offset)
+      db_connect() do |dbh|
+        return get_campaign_tasks(dbh, id, limit, offset)
       end
     end
 

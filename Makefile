@@ -99,6 +99,6 @@ install-cigri-config:
 	chown $(WWWUSER) $(DESTDIR)$(CIGRICONFDIR)/api-apache.conf
 
 clean:
-	rm -rf doc/rdoc doc/yard .yardoc $(DESTDIR)$(CIGRIDIR)
+	rm -rf doc/rdoc doc/yard .yardoc $(DESTDIR)$(CIGRIDIR) $(DESTDIR)$(CIGRICONFDIR)
 	@for cmd in $(USERCMDS) ; do rm $(DESTDIR)$(BINDIR)/$$cmd ; done
 	rm -f $(DESTDIR)$(SBINDIR)/cigri_start
