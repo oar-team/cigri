@@ -92,7 +92,7 @@ class API < Sinatra::Base
   get '/campaigns/:id/jobs/:jobid/?' do |id, jobid|
     response['Allow'] = 'GET'
 
-    output = get_formated_jobs(id, 1, jobid)
+    output = get_formated_jobs(id, 1, jobid)[:items][0]
 
     status 200
     print(output)
@@ -309,7 +309,7 @@ class API < Sinatra::Base
        :submission_time => Time.parse(props[:submission_time]).to_i,
        :total_jobs => props[:nb_jobs].to_i,
        :finished_jobs => props[:finished_jobs],
-       :links=> [
+       :links => [
          {:rel => :self, :href => "/campaigns/#{id}"},
          {:rel => :parent, :href => '/campaigns'},
          {:rel => :collection, :href => "/campaigns/#{id}/jobs", :title => 'jobs'},

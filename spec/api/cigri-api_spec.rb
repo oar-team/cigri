@@ -13,16 +13,13 @@ describe 'API' do
     @app ||= API
   end
   
-  before(:all) do
+  before(:each) do
     post '/campaigns', '{"name":"test_api", "nb_jobs":10,"clusters":{"fukushima":{"exec_file":"e"}}}', 'HTTP_X_CIGRI_USER' => 'Rspec'
     response = JSON.parse last_response.body
     @test_id = response['id']
-    get "/campaigns/#{@test_id}/jobs"
-    #response = JSON.parse last_response.body
-    #@first_job_id = response[0]['id']
   end
 
-  after(:all) do
+  after(:each) do
     db_connect do |dbh|
       delete_campaign(dbh, 'Rspec', @test_id)
     end
@@ -35,7 +32,6 @@ describe 'API' do
     last_response.header['Allow'].include?('DELETE').should be delete
   end
 
-  #WARNING: 
   def check_links(response)
     response['links'].should_not be nil
     response['links'].each do |link|
@@ -44,104 +40,177 @@ describe 'API' do
     end
   end
 
-  describe 'Success tests' do
-    ['/', '/clusters'].each do |url|
-      it "should success to get the url '#{url}'" do
-        get '/'
+  def check_job(job)
+    %w{url state name id parameters}.each do |key|       
+      job.has_key?(key).should be true
+    end
+  end
+
+  def check_jobs(jobs, offset=0, limit=10)
+    jobs.class.should == Hash
+    %w{total items offset}.each do |key|
+      jobs.has_key?(key).should be true
+    end
+    jobs['total'].should be 10
+    jobs['items'].length.should be limit
+    jobs['items'].each do |job|
+      check_job(job)
+      (offset...(offset+limit)).include?(job['id']).should be true
+    end
+  end
+
+  describe 'GET' do
+
+    describe 'Success' do
+
+      ['/', '/clusters'].each do |url|
+        it "should get the url '#{url}'" do
+          get '/'
+          last_response.should be_ok
+          response = JSON.parse last_response.body
+          check_headers(get=true)
+          check_links(response)
+        end
+      end
+
+      it "should get the url '/campaigns'" do
+        get '/campaigns'
         last_response.should be_ok
         response = JSON.parse last_response.body
-        check_headers(get=true)
+        check_links(response)
+        check_headers(get=true, post=true)
+      end
+
+      it 'should get info relative to an existing campaign' do
+        get "/campaigns/#{@test_id}"
+        last_response.should be_ok
+        response = JSON.parse last_response.body
+        %w{links total_jobs finished_jobs state user name submission_time id}.each do |key|
+          response.has_key?(key).should be true
+        end
+        check_headers(get=true, post=true, put=true, delete=true)
         check_links(response)
       end
-    end
 
-    it "should success to get the url '/campaigns'" do
-      get '/campaigns'
-      last_response.should be_ok
-      response = JSON.parse last_response.body
-      check_links(response)
-      check_headers(get=true, post=true)
-    end
-    
-    it 'should post a campaign' do
+      it 'should get info relative to the jobs posted campaign' do
+        get "/campaigns/#{@test_id}/jobs"
+        last_response.should be_ok
+        check_jobs(JSON.parse(last_response.body))
+        check_headers(get=true, post=true)
+      end
+
+      it 'should get info relative to the jobs of a campaign with custom limit and offset' do
+        get "/campaigns/#{@test_id}/jobs?limit=2&offset=2"
+        last_response.should be_ok
+
+        check_jobs(JSON.parse(last_response.body), 2, 2)
+        check_headers(get=true, post=true)
+      end
+
+      it 'should get info on a specific job of a campaign' do
+        get "/campaigns/#{@test_id}/jobs/2"
+        last_response.should be_ok
+        check_job(JSON.parse(last_response.body))
+        check_headers(get=true)
+      end
+
+      it 'should get the jdl of a campaign' do
+        get "/campaigns/#{@test_id}/jdl"
+        last_response.should be_ok
+        response = JSON.parse(last_response.body)
+        check_headers(get=true)
+        %w{name clusters jobs_type params}.each do |field|
+          response.has_key?(field).should be true
+        end
+      end
+      
+    end # Success
+
+    describe 'Failure' do
+
+      it 'should fail to get a non existing URL' do
+        get '/toto'
+        last_response.status.should be 404
+      end
+
+      it 'should fail to get the info relative to a non existing campaign' do
+        get "/campaigns/-1"
+        last_response.status.should be 404
+      end
+
+      it 'should fail to get the info relative to a campaign using a string as ID' do
+        get "/campaigns/toto"
+        last_response.status.should be 404
+      end
+
+      it 'should not get non existing jobs from an existing campaign' do
+        get "/campaigns/#{@test_id}/jobs/123456789"
+        last_response.status.should be 404
+      end
+
+      it 'should not get the jdl of a non existing campaign' do
+        get "/campaigns/-1/jdl"
+        last_response.status.should be 404
+      end
+
+    end # Failure
+
+  end # GET
+
+  describe 'POST' do
+
+    describe 'Success' do
+
+      it 'should post a campaign' do
       post '/campaigns', '{"name":"test_api", "nb_jobs":10,"clusters":{"fukushima":{"exec_file":"e"}}}', 'HTTP_X_CIGRI_USER' => 'Rspec'
-      response = JSON.parse last_response.body
-      last_response.status.should be 201 
-      last_response['Location'].should == "http://example.org/campaigns/#{response['id']}"
-      check_links(response)
-      db_connect do |dbh|
-        delete_campaign(dbh, 'Rspec', response['id'])
-      end
-    end
-    
-    it 'should get info relative to an existing campaign' do
-      get "/campaigns/#{@test_id}"
-      last_response.should be_ok
-      response = JSON.parse last_response.body
-      %w{links total_jobs finished_jobs state user name submission_time id}.each do |key|
-        response.has_key?(key).should be true
-      end
-      check_headers(get=true, post=true, put=true, delete=true)
-      check_links(response)
-    end
-    
-    xit 'should get info relative to the jobs posted campaign' do
-      get "/campaigns/#{@test_id}/jobs"
-      last_response.should be_ok
-      response = JSON.parse(last_response.body)
-      response.class.should == Array
-      response.length.should be 10
-      %w{url state name id}.each do |key|
-        response[0].has_key?(key).should be true
-      end
-      check_headers(get=true, post=true)
-    end
-
-    xit 'should get info relative to the jobs of a campaign with custom limit and offset'
-
-    xit 'should get info on a specific job of a campaign' do
-      get "/campaigns/#{@test_id}/jobs/#{@first_job_id}"
-      last_response.should be_ok
-      response = JSON.parse(last_response.body)
-      %w{links state name param}.each do |key|
-        response.has_key?(key).should be true
-      end
-      check_headers(get=true)
-    end
-
-    it 'should get the jdl of a campaign' do
-      get "/campaigns/#{@test_id}/jdl"
-      last_response.should be_ok
-      response = JSON.parse(last_response.body)
-      check_headers(get=true)
-      %w{name clusters jobs_type params}.each do |field|
-        response.has_key?(field).should be true
-      end
-    end
-    
-    describe 'Campaigns modifications' do
-      before(:each) do
-        post '/campaigns', '{"name":"test_api", "nb_jobs":10,"clusters":{"fukushima":{"exec_file":"e"}}}', 'HTTP_X_CIGRI_USER' => 'Rspec'
-        @tmp_id = JSON.parse(last_response.body)['id']
-      end
-
-      after(:each) do
+        response = JSON.parse last_response.body
+        last_response.status.should be 201 
+        last_response['Location'].should == "http://example.org/campaigns/#{response['id']}"
+        check_links(response)
         db_connect do |dbh|
-          delete_campaign(dbh, 'Rspec', @tmp_id)
+          delete_campaign(dbh, 'Rspec', response['id'])
         end
       end
 
       it 'should add more jobs in an existing campaign' do
-        post "/campaigns/#{@tmp_id}/jobs", '["a", "b", "c", "d"]', 'HTTP_X_CIGRI_USER' => 'Rspec'
+        post "/campaigns/#{@test_id}/jobs", '["a", "b", "c", "d"]', 'HTTP_X_CIGRI_USER' => 'Rspec'
         last_response.status.should be 201
-        last_response['Location'].should == "http://example.org/campaigns/#{@tmp_id}"
+        last_response['Location'].should == "http://example.org/campaigns/#{@test_id}"
         response = JSON.parse last_response.body
         response['total_jobs'].should be 14
         check_links(response)
       end
 
+    end # Success
+
+    describe 'Failure' do
+
+      it 'should fail to submit a campaign for an unauthorized user' do
+        post '/campaigns', '{"name":"test_api", "nb_jobs":10,"clusters":{"fukushima":{"exec_file":"e"}}}', 'HTTP_X_CIGRI_USER' => 'unknown'
+        last_response.status.should be 403
+      end
+
+      it 'should not add more jobs in a non existing campaign' do
+        post "/campaigns/-1/jobs", '["a", "b", "c", "d"]', 'HTTP_X_CIGRI_USER' => 'Rspec'
+        last_response.status.should be 404
+      end
+
+      it 'should not add more jobs in the campaign of someone else' do
+        post "/campaigns/#{@test_id}/jobs", '["a", "b", "c", "d"]', 'HTTP_X_CIGRI_USER' => 'toto'
+        last_response.status.should be 403
+      end
+
+    
+    end # Failure
+
+  end # POST
+
+  describe 'PUT' do
+
+    describe 'Success' do
+
       it 'should update a campaign' do
-        put "/campaigns/#{@tmp_id}", {:name => :toto, :state => :paused} , 'HTTP_X_CIGRI_USER' => 'Rspec'
+        put "/campaigns/#{@test_id}", {:name => :toto, :state => :paused} , 'HTTP_X_CIGRI_USER' => 'Rspec'
         last_response.should be_ok
         response = JSON.parse last_response.body
         response['name'].should == "toto"
@@ -149,82 +218,54 @@ describe 'API' do
         check_links(response)
       end
 
+    end # Success
+
+    describe 'Failure' do
+
+      it 'should fail to update a non existing campaign' do
+        put "/campaigns/-1", {:name => :toto, :state => :paused} , 'HTTP_X_CIGRI_USER' => 'Rspec'
+        last_response.status.should be 404
+      end
+
+      it 'should fail to update someone else campaign' do
+        put "/campaigns/#{@test_id}", {:name => :toto, :state => :paused} , 'HTTP_X_CIGRI_USER' => 'toto'
+        last_response.status.should be 403
+      end
+
+      xit 'should not update any parameters'
+
+    end # Failure
+
+  end # PUT
+
+  describe 'DELETE' do
+
+    describe 'Success' do
+    
       it 'should cancel a campaign' do
-        delete "/campaigns/#{@tmp_id}", '', 'HTTP_X_CIGRI_USER' => 'Rspec'
+        delete "/campaigns/#{@test_id}", '', 'HTTP_X_CIGRI_USER' => 'Rspec'
         last_response.status.should be 202
-        get "/campaigns/#{@tmp_id}"
+        get "/campaigns/#{@test_id}"
         response = JSON.parse last_response.body
         response['state'].should == "cancelled"
       end
-    end
-  end
+    end # Success
+    
+    describe 'Failure' do
 
-  describe 'Failure tests' do
+      it 'should fail to cancel a non existing campaign' do
+        delete "/campaigns/-1", '', 'HTTP_X_CIGRI_USER' => 'Rspec'
+        last_response.status.should be 404
+      end
 
-    it 'should fail to get a non existing URL' do
-      get '/toto'
-      last_response.status.should be 404
-    end
+      it 'should fail to cancel someone else campaign' do
+        delete "/campaigns/#{@test_id}", '', 'HTTP_X_CIGRI_USER' => 'toto'
+        last_response.status.should be 403
+      end
 
-    it 'should fail to get the info relative to a non existing campaign' do
-      get "/campaigns/-1"
-      last_response.status.should be 404
-    end
+    end # Failure
 
-    it 'should fail to get the info relative to a campaign using a string as ID' do
-      get "/campaigns/toto"
-      last_response.status.should be 404
-    end
+  end # DELETE
 
-
-    it 'should fail to submit a campaign for an unauthorized user' do
-      post '/campaigns', '{"name":"test_api", "nb_jobs":10,"clusters":{"fukushima":{"exec_file":"e"}}}', 'HTTP_X_CIGRI_USER' => 'unknown'
-      last_response.status.should be 403
-    end
-
-    it 'should not add more jobs in a non existing campaign' do
-      post "/campaigns/-1/jobs", '["a", "b", "c", "d"]', 'HTTP_X_CIGRI_USER' => 'Rspec'
-      last_response.status.should be 404
-    end
-
-    it 'should not add more jobs in the campaign of someone else' do
-      post "/campaigns/#{@test_id}/jobs", '["a", "b", "c", "d"]', 'HTTP_X_CIGRI_USER' => 'toto'
-      last_response.status.should be 403
-    end
-
-    xit 'should not get non existing jobs from an existing campaign' do
-      get "/campaigns/#{@test_id}/jobs/-1"
-      last_response.status.should be 404
-    end
-
-    it 'should not get the jdl of a non existing campaign' do
-      get "/campaigns/-1/jdl"
-      last_response.status.should be 404
-    end
-
-    it 'should fail to update a non existing campaign' do
-      put "/campaigns/-1", {:name => :toto, :state => :paused} , 'HTTP_X_CIGRI_USER' => 'Rspec'
-      last_response.status.should be 404
-    end
-
-    it 'should fail to update someone else campaign' do
-      put "/campaigns/#{@test_id}", {:name => :toto, :state => :paused} , 'HTTP_X_CIGRI_USER' => 'toto'
-      last_response.status.should be 403
-    end
-
-    xit 'should not update any parameters' do
-
-    end
-
-    it 'should fail to cancel a non existing campaign' do
-      delete "/campaigns/-1", '', 'HTTP_X_CIGRI_USER' => 'Rspec'
-      last_response.status.should be 404
-    end
-
-    it 'should fail to cancel someone else campaign' do
-      delete "/campaigns/#{@test_id}", '', 'HTTP_X_CIGRI_USER' => 'toto'
-      last_response.status.should be 403
-    end
-  end
 end
 
