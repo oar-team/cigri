@@ -553,8 +553,8 @@ end
 # == Parameters
 # - dbh: dababase handle
 # - id: campaign id
-# - limit=1000
-# - offset=0
+# - limit
+# - offset
 #
 # == Returns
 # Array of properties

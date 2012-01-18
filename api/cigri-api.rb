@@ -69,8 +69,7 @@ class API < Sinatra::Base
   get '/campaigns/:id/jdl/?' do |id|
     response['Allow'] = 'GET'
 
-    campaign = Cigri::Campaign.new({:id => id})
-    not_found unless campaign.props
+    campaign = get_campaign(id)
 
     status 200
     print(JSON.parse(campaign.props[:jdl]))
@@ -79,30 +78,13 @@ class API < Sinatra::Base
   # List all jobs of a campaign
   get '/campaigns/:id/jobs/?' do |id|
     response['Allow'] = 'GET,POST'
-
-    campaign = Cigri::Campaign.new({:id => id})
-    not_found unless campaign.props
-
+    
     limit = params['limit'] || 100
     offset = params['offset'] || 0
-    min_id = campaign.min_task_id
 
-    items = []
-    campaign.tasks(limit, offset).each do |task|
-      items << {
-        :id => task[0] - min_id,
-        :name => task[1],
-        :parameters => task[2],
-        :state => :waiting,
-        :url => url("/campaigns/#{id}/jobs/#{task['id']}")
-      }
-    end
+    output = get_formated_jobs(id, limit, offset)
 
-    output = {:items => items,
-              :total => campaign.props[:nb_jobs].to_i,
-              :offset => offset
-    }
-
+    status 200
     print(output)
   end
   
@@ -110,7 +92,10 @@ class API < Sinatra::Base
   get '/campaigns/:id/jobs/:jobid/?' do |id, jobid|
     response['Allow'] = 'GET'
 
-    "Job #{jobid} of campaign #{id}"
+    output = get_formated_jobs(id, 1, jobid)
+
+    status 200
+    print(output)
   end
   
   # List all clusters
@@ -254,16 +239,60 @@ class API < Sinatra::Base
         JSON.generate(json) << "\n"
       end
     end 
+
+    # Gets jobs from a campaign
+    #
+    # == Parameters: 
+    #  - id: id of the campaign
+    #  - limit: number of jobs to get
+    #  - offset: start from job "offset"
+    def get_formated_jobs(id, limit, offset)      
+      campaign = get_campaign(id)
+      tasks = nil
+      begin
+        tasks = campaign.tasks(limit, offset)
+      rescue DBI::ProgrammingError => e
+        halt 400, print({:status => 400, :title => "Error", :message => "#{e}"})
+      end
+      not_found if tasks.size == 0
+
+      min_id = campaign.min_task_id
+
+      items = []
+      tasks.each do |task|
+        task_id = task[0] - min_id
+        items << {
+          :id => task_id,
+          :name => task[1],
+          :parameters => task[2],
+          :state => :waiting,
+          :url => url("/campaigns/#{id}/jobs/#{task_id}")
+        }
+      end
+
+      {:items => items,
+       :total => campaign.props[:nb_jobs].to_i,
+       :offset => offset
+      }
+    end
+
+    # Gets a campaign from the database
+    #
+    # == Parameters: 
+    #  - id: id of the campaign to get
+    def get_campaign(id)
+      campaign = Cigri::Campaign.new({:id => id})
+      not_found unless campaign.props
+
+      campaign
+    end
     
     # Gets a campaign from the database and format it
     #
     # == Parameters: 
     #  - id: id if the campaign to get
     def get_formated_campaign(id)
-      campaign = Cigri::Campaign.new({:id => id})
-      not_found unless campaign.props
-
-      format_campaign(campaign)
+      format_campaign(get_campaign(id))
     end
     
     # Gets the useful information about a campaign
