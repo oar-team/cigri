@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+$KCODE = 'UTF8'
+
 require 'json'
 require 'sinatra/base'
 require 'time'
