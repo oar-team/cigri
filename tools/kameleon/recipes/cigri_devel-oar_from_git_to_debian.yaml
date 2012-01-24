@@ -14,15 +14,16 @@ global:
  distrib: debian
  debian_version_name: squeeze
  distrib_repository: http://ftp.fr.debian.org/debian/
+ output_environment_file_system_type: ext4
  #
  # Architecture
- arch: i386
- kernel_arch: "686"
+ arch: amd64
+ kernel_arch: "amd64"
  #
  # Extra packages to install on the minimal base system
  #extra_packages: "vim less bzip2 openssh-server rsync gnupg locales debian-keyring console-tools mingetty"
  # If you're building a OAR appliance, use this package list:
- extra_packages: "vim less bzip2 openssh-server rsync gnupg locales debian-keyring ruby libyaml-perl libjson-perl mysql-server mysql-client sudo libdbi-perl libdbd-mysql-perl perl-suid taktuk pidentd console-tools mingetty curl librestclient-ruby librspec-ruby libjson-ruby subversion postgresql rubygems libdbd-pg-ruby libapache2-mod-passenger" 
+ extra_packages: "vim less bzip2 openssh-server rsync gnupg locales debian-keyring ruby libyaml-perl libjson-perl mysql-server mysql-client sudo libdbi-perl libdbd-mysql-perl perl-suid taktuk oidentd console-tools mingetty curl git-core make python-docutils ocaml-findlib libmysql-ocaml libmysql-ocaml-dev apache2-mpm-prefork libjson-perl libwww-perl ntp libdbd-mysql-ruby libgd-ruby1.8 perl libdbi-perl libdbd-mysql-perl libtie-ixhash-perl libappconfig-perl libsort-naturally-perl libsort-versions-perl openjdk-6-jre libcgi-fast-perl librestclient-ruby librspec-ruby libjson-ruby subversion postgresql rubygems libdbd-pg-ruby libapache2-mod-passenger"
  #
  # Network configuration
  network_hostname: cigri
@@ -42,7 +43,10 @@ global:
  checkpoint_file: /var/tmp/cigri_devel_checkpoint.tgz
  # 
  # OAR specific
- oar_repository: "deb http://oar.imag.fr/mirror/oar/2.5/debian squeeze-snapshots main"
+ oar_git_repository: git://scm.gforge.inria.fr/oar/oar.git
+ oar_git_treeish: "2.5"
+ oar_source_install_directory: /home/kameleon/oar_install
+
  cigri_svn: "svn://scm.gforge.inria.fr/svn/cigri/branches/cigri-3"
  
 steps:
@@ -51,7 +55,7 @@ steps:
    - rsync
    - building_appliance
    - building_kvm_images
- - oar/oar_precheck
+ - oar-2.5/oar_precheck
  - cigri/cigri_precheck
 # - checkpoint_resume
  - bootstrap
@@ -59,16 +63,20 @@ steps:
 # - network_config_static
  - root_passwd
  - mount_proc
+ - mount_dev
  - software_install:
    - extra_packages
  - kernel_install
  - checkpoint
- - oar/oar_debian_install
- - oar/oar_system_config
- - oar/oar_config
- - oar/oar_config_3clusters
- - oar/oar_devel
- - oar/oar_clean
+ - oar-2.5/oar_install_from_git:
+    - debian_fix_mime_support
+    - get_git_snapshot
+    - install_oar
+    - debian_install_initd
+ - oar-2.5/oar_system_config
+ - oar-2.5/oar_config_debian
+ - oar-2.5/oar_config
+ - oar-2.5/oar_clean
  - cigri/cigri_deps
  - cigri/cigri_checkout
  - cigri/cigri_init
@@ -93,5 +101,5 @@ steps:
 #   - save_as_qcow2
 #   - save_as_vdi
 #   - save_as_iso
-# - clean
+ - clean
 

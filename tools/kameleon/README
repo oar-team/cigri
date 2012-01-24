@@ -1,11 +1,21 @@
 Kameleon recipe and steps for making a cigri-devel appliance
 ============================================================
 
-Warning: kameleon version >= 1.2.3 required
+1 - You'll need the latest kameleon default steps, so, you might need to install kameleon from the git source (or at least, copy the steps directory into your kameleon data directory):
+   git clone git://scm.gforge.inria.fr/kameleon/kameleon.git
+   cd kameleon
+   sudo make
+   sudo make install
 
-Run `kameleon debian_cigri_devel` from this directory or for better customization:
+2 - You'll need the latest oar-2.5 steps, so do:
+   git clone --depth 0 -b 2.5 git://scm.gforge.inria.fr/oar/oar.git
+   cp misc/kameleon/steps/* /var/lib/kameleon/steps
 
-- cp recipes/debian_cigri_devel.yaml /var/lib/kameleon/recipes/my_debian_cigri_devel.yaml
-- vi /var/lib/kameleon/recipes/my_debian_cigri_devel.yaml
-- kameleon my_debian_cigri_devel
+3 - Run kameleon from the current directory 
+   kameleon cigri_devel-oar_from_git_to_debian.yaml
+   
+3' - Or for better customization:
+    cp recipes/cigri_devel-oar_from_git_to_debian.yaml /var/lib/kameleon/recipes/my_cigri_devel-oar_from_git_to_debian.yaml
+    vi /var/lib/kameleon/recipes/my_cigri_devel-oar_from_git_to_debian.yaml
+    kameleon my_cigri_devel-oar_from_git_to_debian.yaml
 
