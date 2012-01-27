@@ -81,6 +81,8 @@ install-cigri-api:
 	# The following activates the magic of Passenger's user switching support
 	# so that the API runs under the cigri user:
 	chown $(CIGRIUSER) $(DESTDIR)$(CIGRIDIR)/api/config.ru
+	# Dont'know why, but this directory must exist or passenger fails
+	mkdir -p $(WWWDIR)/cigri-api
 
 install-cigri-config:
 	install -d -m 0755 $(DESTDIR)$(CIGRICONFDIR)
