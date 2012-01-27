@@ -9,10 +9,10 @@ Kameleon recipe and steps for making a cigri-devel appliance
 
 2 - You'll need the latest oar-2.5 steps, so do:
    git clone --depth 0 -b 2.5 git://scm.gforge.inria.fr/oar/oar.git
-   cp misc/kameleon/steps/* /var/lib/kameleon/steps
+   sudo cp -a misc/kameleon/steps/* /var/lib/kameleon/steps
 
 3 - Run kameleon from the current directory 
-   kameleon cigri_devel-oar_from_git_to_debian.yaml
+   sudo kameleon cigri_devel-oar_from_git_to_debian.yaml
    
 3' - Or for better customization:
     cp recipes/cigri_devel-oar_from_git_to_debian.yaml /var/lib/kameleon/recipes/my_cigri_devel-oar_from_git_to_debian.yaml
