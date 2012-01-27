@@ -76,6 +76,7 @@ steps:
  - oar-2.5/oar_system_config
  - oar-2.5/oar_config_debian
  - oar-2.5/oar_config
+ - oar/oar_config_3clusters
  - oar-2.5/oar_clean
  - cigri/cigri_deps
  - cigri/cigri_checkout
