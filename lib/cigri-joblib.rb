@@ -130,7 +130,7 @@ module Cigri
       rescue
         # TODO: We should create an event here
         # Could not get the submitted jobs id
-        cigri_job.update({'state' => 'event'})
+        JOBLIBLOGGER.error("Could not get the ids of the array job #{array_id}, losing jobs!") 
       end
       # For each job of the array on the cluster
       cluster_jobs.each do |cluster_job|
