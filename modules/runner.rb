@@ -66,7 +66,7 @@ begin
     current_jobs=Cigri::Jobset.new
     current_jobs.get_submitted(cluster.id)
     current_jobs.each do |job|
-      cluster_job=cluster.get_job(job.props[:remote_id])
+      cluster_job=cluster.get_job(job.props[:remote_id].to_i)
       case cluster_job["state"] 
         when "Terminated"
           job.update({'state' => 'terminated'})

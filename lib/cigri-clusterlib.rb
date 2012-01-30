@@ -153,7 +153,12 @@ module Cigri
      end
 
      def get_job(job_id)
-       @api.get("jobs/#{job_id}")
+       if (job_id.is_a?(Integer))
+         @api.get("jobs/#{job_id}")
+       else
+         CLUSTERLIBLOGGER.error("No valid id passed to get_job on #{name}!")
+         nil
+       end
           # TODO: manage event (cluster blacklist) if timeout
      end
 

@@ -821,6 +821,7 @@ class Datarecord
 
   # Update a datarecord into the database
   def update(values,table=@table)
+    table=table.split(/,/)[0]
     db_connect() do |dbh|
       values.each do |field,value|
         query = "UPDATE #{table} SET #{field} = ? WHERE #{@index} = ?"
@@ -911,6 +912,7 @@ class Dataset
 
   # Update fields of the dataset into the database
   def update(values, table = @table, id_column = "id")
+    table=table.split(/,/)[0]
     values.each_key do |field|
       @dbh.do("UPDATE #{table} SET #{field} = ? WHERE #{id_column} in (#{self.ids.join(',')})", values[field])
     end
