@@ -33,11 +33,25 @@ module Cigri
   #  jobs=Cigri::Jobset.new(:where => "name like 'obiwan%'")
   #  jobs=Cigri::Jobset.new
   #  jobs.get_running
+  # The jobset class is composed of a join between 2 classes: jobs and parameters
   class Jobset < Dataset
 
     # Creates the new jobset
     def initialize(props={})
-      super("jobs",props)
+      @fields="jobs.id as id, parameters.param as param,
+               parameters.campaign_id as campaign_id, param_id, batch_id, cluster_id, collect_id,
+               state, return_code, submission_time, start_time, stop_time,
+               node_name, resources_used, remote_id"
+      join="jobs.param_id=parameters.id"
+      if (props[:where].nil?)
+        props[:where]=join
+      else
+        props[:where]+=" and #{join}"
+      end
+      if (props[:what].nil?)
+        props[:what]=@fields
+      end
+      super("jobs,parameters",props)
     end
 
     # Alias to the dataset records
@@ -47,7 +61,15 @@ module Cigri
 
     # Fill the jobset with the currently running jobs
     def get_running
-      fill(get("jobs","*","state = 'running'"))
+      fill(get("jobs,parameters",@fields,"state = 'running' and jobs.param_id=parameters.id"))
+    end
+
+    # Get jobs that have just been submitted on cluster_id
+    def get_submitted(cluster_id)
+      fill(get("jobs,parameters",@fields,"
+                    (state = 'submitted' or state = 'remote_waiting') 
+                      and jobs.param_id=parameters.id
+                      and cluster_id=#{cluster_id}"))
     end
 
     # Get the ids (array) of all campaigns from this jobset
@@ -91,7 +113,7 @@ module Cigri
                                  { 'state' => 'submitted', 
                                    'submission_time' => Time::now(),
                                    'cluster_id' => cluster_id,
-                                 } )
+                                 },'jobs' )
           submitted_jobs.match_remote_ids(cluster_id,j["id"])
         end
       end
@@ -112,7 +134,7 @@ module Cigri
         # we try to match the parameters of each job of the jobset
         jobs.each do |cigri_job|
           if cluster_job["command"].split(nil,2)[1] == cigri_job.props[:param]
-            cigri_job.update({'remote_id' => cluster_job["id"]})
+            cigri_job.update({'remote_id' => cluster_job["id"]},"jobs")
             matched=1
             break
           end  
@@ -121,13 +143,6 @@ module Cigri
           JOBLIBLOGGER.error("Could not find the CIGRI job corresponding to the OAR job #{cluster_job["id"]} !")
         end
       end
-    end
-
-    # Get jobs that have just been submitted on cluster_id
-    def get_submitted(cluster_id)
-      fill(get("jobs","*","
-                    (state = 'submitted' or state = 'remote_waiting') 
-                      and cluster_id=#{cluster_id}"))
     end
 
   end # Class Jobset
@@ -177,7 +192,7 @@ module Cigri
     # crash. This is why we directly call an iolib function ithout using datarecords.
     def take
       jobids=take_tasks(@dbh,self.ids)
-      Jobset.new(:where => "id in (#{jobids.join(',')})")
+      Jobset.new(:where => "jobs.id in (#{jobids.join(',')})")
     end
 
   end # Class JobtolaunchSet
@@ -209,12 +224,11 @@ module Cigri
     def get_clusters
       db_connect() do |dbh|
         get_campaign_properties(dbh, id).each do |row|
-          cluster_id = row[3]
+          cluster_id = row["cluster_id"].to_i
           @clusters[cluster_id] = {} if @clusters[cluster_id].nil?
-          @clusters[cluster_id][row[1]] = row[2]
+          @clusters[cluster_id][row["name"]] = row["value"]
         end
       end
-      @clusters
     end
 
     # Checks if a campaign has remaining tasks to execute

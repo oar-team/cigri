@@ -529,7 +529,13 @@ end
 #
 ##
 def get_campaign_properties(dbh, id)
-  dbh.select_all("SELECT * FROM campaign_properties WHERE campaign_id = ?", id)
+  result=[]
+  sth = dbh.execute("SELECT name,value,cluster_id,campaign_id FROM campaign_properties WHERE campaign_id = ?", id)
+  sth.fetch_hash do |row|
+    result << row
+  end
+  sth.finish
+  return result
 end
 
 ##
@@ -694,10 +700,9 @@ def take_tasks(dbh, tasks)
   begin
     jobids = []
     # Get the jobs from the cluster queue
-    jobs = dbh.select_all("SELECT b.id as id, name, param, b.campaign_id as campaign_id, cluster_id 
-                           FROM bag_of_tasks AS b, jobs_to_launch AS j, parameters AS p
+    jobs = dbh.select_all("SELECT b.id as id, b.param_id as param_id, b.campaign_id as campaign_id, cluster_id 
+                           FROM bag_of_tasks AS b, jobs_to_launch AS j
                            WHERE j.task_id = b.id AND
-                                 p.id = b.param_id AND
                                  b.id IN (#{tasks.join(',')})")
     jobs.each do |job|
       # delete from the bag of task
@@ -705,9 +710,9 @@ def take_tasks(dbh, tasks)
       # delete from the cluster queue
       dbh.do("DELETE FROM jobs_to_launch where task_id = #{job['id']}")     
       # insert the new job into the jobs table
-      dbh.do("INSERT INTO jobs (campaign_id, state, cluster_id, name, param)
-              VALUES (?, ?, ?, ?, ?)",
-              job['campaign_id'], "to_launch", job['cluster_id'], job['name'], job['param'])
+      dbh.do("INSERT INTO jobs (campaign_id, state, cluster_id, param_id)
+              VALUES (?, ?, ?, ?)",
+              job['campaign_id'], "to_launch", job['cluster_id'], job['param_id'])
       jobids << last_inserted_id(dbh, "jobs_id_seq")
     end
     return jobids
@@ -815,10 +820,10 @@ class Datarecord
   end
 
   # Update a datarecord into the database
-  def update(values)
+  def update(values,table=@table)
     db_connect() do |dbh|
       values.each do |field,value|
-        query = "UPDATE #{@table} SET #{field} = ? WHERE #{@index} = ?"
+        query = "UPDATE #{table} SET #{field} = ? WHERE #{@index} = ?"
         dbh.do(query, value, id)
       end
     end
@@ -854,7 +859,7 @@ class Dataset
 
   # Fill the records array with the given values
   # values may be a Datarecord array, or an array of field=value
-  def fill(values,nodb=true)
+  def fill(values,nodb=true,table=@table)
     IOLIBLOGGER.debug("Making #{values.length} inserts into #{table}") unless nodb
     values.each do |record_props|
       record_props=record_props.props if record_props.is_a?(Datarecord)
