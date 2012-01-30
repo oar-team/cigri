@@ -32,16 +32,17 @@ describe 'API' do
     last_response.header['Allow'].include?('DELETE').should be delete
   end
 
-  def check_links(response)
+  def check_links(response, prefix='/')
     response['links'].should_not be nil
     response['links'].each do |link|
       link.include?('rel').should be true
       link.include?('href').should be true
+      link['href'].start_with?(prefix).should be true
     end
   end
 
   def check_job(job)
-    %w{url state name id parameters}.each do |key|       
+    %w{href state name id parameters}.each do |key|       
       job.has_key?(key).should be true
     end
   end
@@ -123,6 +124,15 @@ describe 'API' do
           response.has_key?(field).should be true
         end
       end
+
+      it 'should get the urls with a prefix' do
+        get "/", 'HTTP_X_CIGRI_API_PATH_PREFIX' => 'prefix'
+        last_response.should be_ok
+        check_links(JSON.parse(last_response.body), '/prefix')
+        get "/campaigns/#{@test_id}", 'HTTP_X_CIGRI_API_PATH_PREFIX' => 'prefix'
+        last_response.should be_ok
+        check_links(JSON.parse(last_response.body), '/prefix')
+      end
       
     end # Success
 
@@ -165,7 +175,7 @@ describe 'API' do
       post '/campaigns', '{"name":"test_api", "nb_jobs":10,"clusters":{"fukushima":{"exec_file":"e"}}}', 'HTTP_X_CIGRI_USER' => 'Rspec'
         response = JSON.parse last_response.body
         last_response.status.should be 201 
-        last_response['Location'].should == "http://example.org/campaigns/#{response['id']}"
+        last_response['Location'].should == "/campaigns/#{response['id']}"
         check_links(response)
         db_connect do |dbh|
           delete_campaign(dbh, 'Rspec', response['id'])
@@ -175,7 +185,7 @@ describe 'API' do
       it 'should add more jobs in an existing campaign' do
         post "/campaigns/#{@test_id}/jobs", '["a", "b", "c", "d"]', 'HTTP_X_CIGRI_USER' => 'Rspec'
         last_response.status.should be 201
-        last_response['Location'].should == "http://example.org/campaigns/#{@test_id}"
+        last_response['Location'].should == "/campaigns/#{@test_id}"
         response = JSON.parse last_response.body
         response['total_jobs'].should be 14
         check_links(response)

@@ -29,9 +29,9 @@ class API < Sinatra::Base
     response['Allow'] = 'GET'
     output = {
         :links => [
-          {:rel => 'self', :href => '/'},
-          {:rel => 'collection', :href => '/campaigns', 'title' => :campaigns},
-          {:rel => 'collection', :href => '/clusters', 'title' => :clusters}
+          {:rel => :self, :href => to_url('')},
+          {:rel => :collection, :href => to_url('campaigns'), 'title' => :campaigns},
+          {:rel => :collection, :href => to_url('clusters'), 'title' => :clusters}
         ]
       }
     status 200
@@ -50,8 +50,8 @@ class API < Sinatra::Base
       :items => items,
       :total => items.length,
       :links => [
-          {:rel => :self, :href => "/campaigns"},
-          {:rel => :parent, :href => "/"}
+          {:rel => :self, :href => to_url('campaigns')},
+          {:rel => :parent, :href => to_url('')}
         ]
     }
     
@@ -110,8 +110,8 @@ class API < Sinatra::Base
       items << {:id => id,
                 :name => cluster.description['name'],
                 :links => [
-                  {:rel => :self, :href => "/clusters/#{id}"},
-                  {:rel => :parent, :href => '/clusters'}
+                  {:rel => :self, :href => to_url("clusters/#{id}")},
+                  {:rel => :parent, :href => to_url('clusters')}
                 ]
                }
     end
@@ -119,8 +119,8 @@ class API < Sinatra::Base
       :items => items,
       :total => items.length,
       :links => [
-          {:rel => :self, :href => "/clusters"},
-          {:rel => :parent, :href => "/"}
+          {:rel => :self, :href => to_url("clusters")},
+          {:rel => :parent, :href => to_url('')}
         ]
     }
     
@@ -133,8 +133,8 @@ class API < Sinatra::Base
     response['Allow'] = 'GET'
     begin
       cluster = Cigri::Cluster.new(:id => id).description
-      cluster[:links] = [{:rel => "self", :href => "/clusters/#{id}"},
-                          {:rel => "parent", :href => "/clusters"}]
+      cluster[:links] = [{:rel => :self, :href => to_url("clusters/#{id}")},
+                          {:rel => :parent, :href => to_url("clusters")}]
       ['api_password', 'api_username'].each { |i| cluster.delete(i)}
     rescue Exception => e
       not_found
@@ -160,7 +160,7 @@ class API < Sinatra::Base
     end
 
     status 201
-    response['Location'] = url("/campaigns/#{answer[:id]}")
+    response['Location'] = to_url("campaigns/#{answer[:id]}")
     print(answer)
   end
 
@@ -182,7 +182,7 @@ class API < Sinatra::Base
     end
 
     status 201
-    response['Location'] = url("/campaigns/#{id}")
+    response['Location'] = to_url("campaigns/#{id}")
     print(get_formated_campaign(id))
   end
   
@@ -269,7 +269,7 @@ class API < Sinatra::Base
           :name => task[1],
           :parameters => task[2],
           :state => :waiting,
-          :url => url("/campaigns/#{id}/jobs/#{task_id}")
+          :href => to_url("campaigns/#{id}/jobs/#{task_id}")
         }
       end
 
@@ -313,10 +313,10 @@ class API < Sinatra::Base
        :total_jobs => props[:nb_jobs].to_i,
        :finished_jobs => props[:finished_jobs],
        :links => [
-         {:rel => :self, :href => "/campaigns/#{id}"},
-         {:rel => :parent, :href => '/campaigns'},
-         {:rel => :collection, :href => "/campaigns/#{id}/jobs", :title => 'jobs'},
-         {:rel => :item, :href => "/campaigns/#{id}/jdl", :title => 'jdl'}
+         {:rel => :self, :href => to_url("campaigns/#{id}")},
+         {:rel => :parent, :href => to_url('campaigns')},
+         {:rel => :collection, :href => to_url("campaigns/#{id}/jobs"), :title => 'jobs'},
+         {:rel => :item, :href => to_url("campaigns/#{id}/jdl"), :title => 'jdl'}
        ]}
     end
     
@@ -332,6 +332,12 @@ class API < Sinatra::Base
         end
       end
       res
+    end
+
+    def to_url(url)
+      uri = [request['HTTP_X_CIGRI_API_PATH_PREFIX'], url].join('/')
+      uri = '/' + uri unless uri.start_with?('/')
+      uri
     end
     
     def protected!
