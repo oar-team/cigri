@@ -9,7 +9,8 @@ describe 'cigri-joblib' do
       @job = Cigri::Job.new(:id => 9999999999999, 
                             :campaign_id => 9999999 , 
                             :state => "terminated", 
-                            :nodb => true)
+                            :nodb => true,
+                            :param_id => 0)
     end
     it 'should return the provided job id' do
       @job.id.should == 9999999999999
@@ -22,7 +23,7 @@ describe 'cigri-joblib' do
   describe 'Job from database' do
     before(:all) do
       db_connect() do |dbh|
-        @job = Cigri::Job.new(:campaign_id => 100 , :state => "terminated")
+        @job = Cigri::Job.new(:campaign_id => 100 , :state => "terminated", :param_id => 0)
       end
     end
     it 'should create a new job and return an id' do
@@ -43,11 +44,13 @@ describe 'cigri-joblib' do
 
   describe 'Jobset' do
     before(:all) do
-      j1 = Cigri::Job.new(:campaign_id => 9999998, :state => "to_launch", :node_name => "obiwan1")
-      j2 = Cigri::Job.new(:campaign_id => 9999998, :state => "to_launch", :node_name => "obiwan2")
+      param = Datarecord.new('parameters', :campaign_id => 9999998)
+      j1 = Cigri::Job.new(:campaign_id => 9999998, :state => "to_launch", :node_name => "obiwan1", :param_id => param.props[:id])
+      j2 = Cigri::Job.new(:campaign_id => 9999998, :state => "to_launch", :node_name => "obiwan2", :param_id => param.props[:id])
       @jobs=Cigri::Jobset.new(:where => "node_name like 'obiwan%'")
       j1.delete
       j2.delete
+      param.delete
     end
     it 'should have a length of 2' do
       @jobs.length.should == 2

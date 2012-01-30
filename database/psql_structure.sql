@@ -100,7 +100,7 @@ CREATE TYPE job_state as ENUM('to_launch', 'submitted', 'running','remote_waitin
 CREATE TABLE  jobs (
   id BIGSERIAL NOT NULL,
   campaign_id INTEGER NOT NULL,
-  param_id INTEGER,
+  param_id INTEGER NOT NULL,
   batch_id INTEGER,
   cluster_id INTEGER,
   collect_id INTEGER,
