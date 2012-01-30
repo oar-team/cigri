@@ -43,13 +43,11 @@ module Cigri
                state, return_code, submission_time, start_time, stop_time,
                node_name, resources_used, remote_id"
       join="jobs.param_id=parameters.id"
-      if (props[:where].nil?)
-        props[:where]=join
-      else
+      if (not props[:where].nil?)
         props[:where]+=" and #{join}"
-      end
-      if (props[:what].nil?)
-        props[:what]=@fields
+        if (props[:what].nil?)
+          props[:what]=@fields
+        end
       end
       super("jobs,parameters",props)
     end
@@ -127,7 +125,13 @@ module Cigri
     # of the param value in the cigri database.
     def match_remote_ids(cluster_id,array_id)
       cluster=Cluster.new(:id => cluster_id)
-      cluster_jobs=cluster.get_jobs(:array => array_id)
+      begin
+        cluster_jobs=cluster.get_jobs(:array => array_id)
+      rescue
+        # TODO: We should create an event here
+        # Could not get the submitted jobs id
+        cigri_job.update({'state' => 'event'})
+      end
       # For each job of the array on the cluster
       cluster_jobs.each do |cluster_job|
         matched=0

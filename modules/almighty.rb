@@ -7,6 +7,16 @@ require 'cigri-clusterlib'
 
 $0='cigri: almighty'
 
+# Simple function to force a SIGCHLD if a child process
+# is dead.
+def check_processes(pids)
+  pids.each do |pid|
+#    Process.kill("CLD", Process.pid) if not Process::kill 0, pid
+## DISABLED: This is inefficient as Process::kill 0, pid is true, even for a "defunc" process
+## We have to find something to check defunc processes...
+  end 
+end
+
 begin
   config = Cigri.conf
   logger = Cigri::Logger.new('ALMIGHTY', config.get('LOG_FILE'))
@@ -72,6 +82,7 @@ begin
   #Main almighty loop
   while true do
     logger.debug('New iteration')
+    check_processes(childs)
     system("#{File.dirname(__FILE__)}/meta-scheduler.rb")
     sleep 10
   end

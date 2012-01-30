@@ -66,23 +66,34 @@ begin
     current_jobs=Cigri::Jobset.new
     current_jobs.get_submitted(cluster.id)
     current_jobs.each do |job|
-      cluster_job=cluster.get_job(job.props[:remote_id].to_i)
-      case cluster_job["state"] 
-        when "Terminated"
-          job.update({'state' => 'terminated'})
-        when "Error"
-          job.update({'state' => 'event'})
-        when "Running"
-          job.update({'state' => 'running'})
-        when "Finishing"
-          job.update({'state' => 'running'})
-        when "Waiting"
-          job.update({'state' => 'remote_waiting'})
-          # close the tap
-          n=0
-        else
-          # close the tap
-          n=0
+      if job.props[:remote_id].nil? || job.props[:remote_id] == ""
+        #TODO: Create an event here: the job is lost, it has no remote_id
+        job.update({'state' => 'event'})
+        logger.error("Job #{job.id} is lost, it has no remote_id!") 
+      else
+        begin
+          cluster_job=cluster.get_job(job.props[:remote_id].to_i)
+          case cluster_job["state"] 
+            when "Terminated"
+              job.update({'state' => 'terminated'})
+            when "Error"
+              job.update({'state' => 'event'})
+            when "Running"
+              job.update({'state' => 'running'})
+            when "Finishing"
+              job.update({'state' => 'running'})
+            when "Waiting"
+              job.update({'state' => 'remote_waiting'})
+              # close the tap
+              n=0
+            else
+              # close the tap
+              n=0
+          end
+        rescue
+          #TODO: event: could not get the remote job
+          logger.error("Could not get remote job #{job.id}!") 
+        end
       end
     end 
 
