@@ -373,7 +373,7 @@ def cancel_campaign(dbh, user, id)
                  'parameters' => 'campaign_id'} 
     to_delete.each do |k, v|
       nb = dbh.do("DELETE FROM #{k} WHERE #{v} = ?", id)
-      IOLIBLOGGER.debug("Deleted #{nb} rows from table '#{k}' for campaign·#{id}")
+      IOLIBLOGGER.debug("Deleted #{nb} rows from table '#{k}' for campaign #{id}")
     end 
        
     #TODO add kill event in event table !!!!!
@@ -425,7 +425,7 @@ def delete_campaign(dbh, user, id)
     
     to_delete.each do |k, v|
       nb = dbh.do("DELETE FROM #{k} WHERE #{v} = ?", id)
-      IOLIBLOGGER.debug("Deleted #{nb} rows from table '#{k}' for campaign·#{id}")
+      IOLIBLOGGER.debug("Deleted #{nb} rows from table '#{k}' for campaign #{id}")
     end 
     
     dbh.commit()
