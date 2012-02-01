@@ -87,7 +87,7 @@ module Cigri
         } 
       rescue Timeout::Error # Timeouted
         message="GET #{base_uri}#{uri} : REST query timeouted!"
-        RESTCLIENTLIBLOGGER.warn(message)
+        RESTCLIENTLIBLOGGER.error(message)
         raise Timeout::Error, message
       end # rescue (timeout)
     end
@@ -133,7 +133,7 @@ module Cigri
         }
       rescue Timeout::Error # Timeouted
         message="POST #{base_uri}#{uri} : REST query timeouted!"
-        RESTCLIENTLIBLOGGER.warn(message)
+        RESTCLIENTLIBLOGGER.error(message)
         raise Timeout::Error, message
       end # rescue (timeout)
     end
@@ -146,7 +146,7 @@ module Cigri
           begin # Rest error handling
             parse(@api[uri].delete(:content_type => @content_type))
           rescue => e
-             if e.respond_to?('http_code')
+            if e.respond_to?('http_code')
               raise Cigri::Error, "#{e.http_code} error in post #{uri} :\n #{e.response.body}"
             else
               raise Cigri::Error, "Parse error: #{e.inspect}"
@@ -155,7 +155,7 @@ module Cigri
         }
       rescue Timeout::Error # Timeouted
         message="DELETE #{base_uri}#{uri} : REST query timeouted!"
-        RESTCLIENTLIBLOGGER.warn(message)
+        RESTCLIENTLIBLOGGER.error(message)
         raise Timeout::Error, message
       end # rescue (timeout)
     end
