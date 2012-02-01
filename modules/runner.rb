@@ -109,7 +109,12 @@ begin
       # Take the jobs from the b-o-t
       jobs = tolaunch_jobs.take
       # Submit the new jobs
-      jobs.submit(cluster.id)        
+      begin
+        jobs.submit(cluster.id)        
+      rescue
+        # TODO: Event!
+        logger.warn("Could not submit jobs on #{cluster.name}")
+      end
     else
       sleep_more = SLEEP_MORE
     end
