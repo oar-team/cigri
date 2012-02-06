@@ -177,7 +177,7 @@ module Cigri
 
       def initialize(opts = {}) 
         super(opts)
-        @api = RestSession.new("https://api.grid5000.fr/sid/sites/rennes", 
+        @api = RestSession.new("https://api.grid5000.fr/sid/sites/nancy", 
                                "gcharrier",
                                File.read("/home/kameleon/.pwd_g5k").strip,
                                "application/json")
@@ -187,24 +187,22 @@ module Cigri
         @api.get("jobs/#{job_id}")
       end
 
-
       # Get the running jobs
       def get_jobs
         @api.get("jobs")
       end
 
+      def submit_job(job)
+        @api.post("jobs", job)
+      end
+
       def delete_job(job_id)
         @api.delete("jobs/#{job_id}")
-           # TODO: manage event (cluster blacklist) if timeout
       end
 
       def get_resources
         raise "not yet implemented"      
       end 
-
-      def submit_job(job)
-        raise "not yet implemented"      
-      end
     end # G5kCluster
 
 

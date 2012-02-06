@@ -144,10 +144,10 @@ module Cigri
       begin # Timeout error handling
         Timeout::timeout(@timeout) {
           begin # Rest error handling
-            parse(@api[uri].delete(:content_type => @content_type))
+            parse(@api[uri].delete(:accept => @content_type))
           rescue => e
             if e.respond_to?('http_code')
-              raise Cigri::Error, "#{e.http_code} error in post #{uri} :\n #{e.response.body}"
+              raise Cigri::Error, "#{e.http_code} error in delete #{uri} :\n #{e.response.body}"
             else
               raise Cigri::Error, "Parse error: #{e.inspect}"
             end
