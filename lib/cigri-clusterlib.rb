@@ -100,7 +100,7 @@ module Cigri
       raise "Method must be overridden"
     end
 
-  end
+  end # RestCluster
 
 
   ##
@@ -115,119 +115,140 @@ module Cigri
   ##
   class Cluster 
 
-
-
-   ##
-   # Oar REST API methods definitions.
-   # Check the RestCluster class for definitions
-   ##
-   class OarCluster < RestCluster
-
-     def get_resources
-       # Get the resources from the api
-       resources = @api.get_collection("resources/full")
-       # TODO: manage event (cluster blacklist) if timeout
-       # Filter the resources depending on cluster properties
-       properties = parse_properties
-       return resources unless properties
-       res = []
-       resources.each do |resource|
-         not_found = 0
-         properties.each_pair do |key,value|
-           not_found = 1 if resource[key] != value
-         end
-         res << resource unless not_found == 1
-       end
-       res
-     end
-     
-     def get_jobs(props={})
-       array="?array=#{props[:array]}" if props[:array]
-       @api.get_collection("jobs/details#{array}")
-          # TODO: manage event (cluster blacklist) if timeout
-     end 
-
-     def submit_job(job)
-       @api.post("jobs",job)
-          # TODO: manage event (cluster blacklist) if timeout
-     end
-
-     def get_job(job_id)
-       if (job_id.is_a?(Integer))
-         @api.get("jobs/#{job_id}")
-       else
-         CLUSTERLIBLOGGER.error("No valid id passed to get_job on #{name}!")
-         nil
-       end
-          # TODO: manage event (cluster blacklist) if timeout
-     end
-
-     def delete_job(job_id)
-       @api.delete("jobs/#{job_id}")
-          # TODO: manage event (cluster blacklist) if timeout
-     end
+    ##
+    # Oar REST API methods definitions.
+    # Check the RestCluster class for definitions
+    ##
+    class OarCluster < RestCluster
  
-   end
-
-
+      def get_resources
+        # Get the resources from the api
+        resources = @api.get_collection("resources/full")
+        # TODO: manage event (cluster blacklist) if timeout
+        # Filter the resources depending on cluster properties
+        properties = parse_properties
+        return resources unless properties
+        res = []
+        resources.each do |resource|
+          not_found = 0
+          properties.each_pair do |key,value|
+            not_found = 1 if resource[key] != value
+          end
+          res << resource unless not_found == 1
+        end
+        res
+      end
+      
+      def get_jobs(props={})
+        array="?array=#{props[:array]}" if props[:array]
+        @api.get_collection("jobs/details#{array}")
+           # TODO: manage event (cluster blacklist) if timeout
+      end 
  
-   ##
-   # g5k REST API methods definitions
-   # Check the RestCluster class for definitions
-   ##
-   class G5kCluster < RestCluster
+      def submit_job(job)
+        @api.post("jobs",job)
+           # TODO: manage event (cluster blacklist) if timeout
+      end
+ 
+      def get_job(job_id)
+        if (job_id.is_a?(Integer))
+          @api.get("jobs/#{job_id}")
+        else
+          CLUSTERLIBLOGGER.error("No valid id passed to get_job on #{name}!")
+          nil
+        end
+           # TODO: manage event (cluster blacklist) if timeout
+      end
+ 
+      def delete_job(job_id)
+        @api.delete("jobs/#{job_id}")
+           # TODO: manage event (cluster blacklist) if timeout
+      end
+  
+    end # OARCluster
+ 
+ 
+  
+    ##
+    # g5k REST API methods definitions
+    # Check the RestCluster class for definitions
+    ##
+    class G5kCluster < RestCluster
 
-     def get_resources
-       raise "not yet implemented"      
-     end 
+      def initialize(opts = {}) 
+        super(opts)
+        @api = RestSession.new("https://api.grid5000.fr/sid/sites/rennes", 
+                               "gcharrier",
+                               File.read("/home/kameleon/.pwd_g5k").strip,
+                               "application/json")
+      end
 
-     def submit_job(job)
-       raise "not yet implemented"      
-     end
-   end
+      def get_job(job_id)
+        @api.get("jobs/#{job_id}")
+      end
+
+
+      # Get the running jobs
+      def get_jobs
+        @api.get("jobs")
+      end
+
+      def delete_job(job_id)
+        @api.delete("jobs/#{job_id}")
+           # TODO: manage event (cluster blacklist) if timeout
+      end
+
+      def get_resources
+        raise "not yet implemented"      
+      end 
+
+      def submit_job(job)
+        raise "not yet implemented"      
+      end
+    end # G5kCluster
 
 
 
-   ##
-   # Lists the available batch types
-   #
-   # Those types are the only allowed into the batch field of the clusters table.
-   # Each of these types correspond to a Class that defines the methods to access
-   # to the cluster using the corresponding REST API.
-   # Currently, here are the supported types and corresponding classes:
-   # - oar2_5 : OarCluster
-   # - g5k : G5kCluster
-   # All the classes have to implement the methods listed into the RestCluster class.
-   #
-   ##
-   def self.available_types
-     db_connect() do |dbh|
-       return get_available_api_types(dbh)
-     end
-   end
-   
-   ##
-   # Switch to create objects of the correct type
-   #
-   # See RestCluster.new() for usage
-   ##
-   def Cluster::new(opts)
-     tmp_cluster = RestCluster.new(opts)
-     type = tmp_cluster.description["batch"]
-     if not available_types.include?(type)
-       raise Cigri::Error.new("#{type} is not listed into the available_types!", CLUSTERLIBLOGGER)
-     end
-     classe = 
-       case type
-         when /oar2_5/
-           OarCluster
-         when /g5k/
-           G5kCluster
-       end
-     classe::new(opts)
-   end
+    ##
+    # Lists the available batch types
+    #
+    # Those types are the only allowed into the batch field of the clusters table.
+    # Each of these types correspond to a Class that defines the methods to access
+    # to the cluster using the corresponding REST API.
+    # Currently, here are the supported types and corresponding classes:
+    # - oar2_5 : OarCluster
+    # - g5k : G5kCluster
+    # All the classes have to implement the methods listed into the RestCluster class.
+    #
+    ##
+    def self.available_types
+      db_connect() do |dbh|
+        return get_available_api_types(dbh)
+      end
+    end
+    
+    ##
+    # Switch to create objects of the correct type
+    #
+    # See RestCluster.new() for usage
+    ##
+    def Cluster::new(opts)
+      tmp_cluster = RestCluster.new(opts)
+      type = tmp_cluster.description["batch"]
+      if not available_types.include?(type)
+        raise Cigri::Error.new("#{type} is not listed into the available_types!", CLUSTERLIBLOGGER)
+      end
+      classe = 
+        case type
+          when /oar2_5/
+            OarCluster
+          when /g5k/
+            G5kCluster
+        end
+      classe::new(opts)
+    end
 
-  end
+  end # Cluster
 
   ##
   # Class for operations on a set of clusters
@@ -250,6 +271,6 @@ module Cigri
       # TODO
     end
 
-  end
+  end # ClusterSet
 
 end
