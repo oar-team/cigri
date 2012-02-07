@@ -11,7 +11,6 @@ $VERBOSE=true
 require 'json'
 require 'yaml'
 require 'uri'
-require 'timeout'
 
 CONF=Cigri.conf unless defined? CONF
 RESTCLIENTLIBLOGGER = Cigri::Logger.new('RESTCLIENTLIB', CONF.get('LOG_FILE'))
@@ -25,18 +24,18 @@ module Cigri
 
     # Connect to a restfull API
     def initialize(base_uri,user,password,content_type)
+      if CONF.exists?('REST_QUERIES_TIMEOUT')
+        timeout = CONF.get('REST_QUERIES_TIMEOUT').to_i
+      else
+        timeout = 30
+      end
       if (user.nil? || user == "")
-        @api = RestClient::Resource.new(base_uri)
+        @api = RestClient::Resource.new(base_uri, :timeout => timeout)
       else 
-        @api = RestClient::Resource.new(base_uri, :user => user, :password => password)
+        @api = RestClient::Resource.new(base_uri, :user => user, :password => password, :timeout => timeout)
       end
       @content_type=content_type
       @base_uri=URI.parse(base_uri)
-      if CONF.exists?('REST_QUERIES_TIMEOUT')
-        @timeout=CONF.get('REST_QUERIES_TIMEOUT').to_i
-      else
-        @timeout=30
-      end
     end
   
     # Converts the given uri, to something relative
@@ -70,26 +69,17 @@ module Cigri
       end
     end
 
-    # Get a rest resource
     def get(uri)
-      uri=rel_uri(uri)
-      begin # Timeout error handling
-        Timeout::timeout(@timeout) {
-          begin # Rest error handling
-            parse(@api[uri].get(:accept => @content_type))
-          rescue => e # Rest error
-            if e.respond_to?('http_code')
-              raise Cigri::Error, "#{e.http_code} error in get for #{uri} :\n #{e.response.body}"
-            else
-              raise Cigri::Error, "Parse error: #{e.inspect}"
-            end
-          end # rescue (Rest error)
-        } 
-      rescue Timeout::Error # Timeouted
-        message="GET #{base_uri}#{uri} : REST query timeouted!"
+      uri = rel_uri(uri)
+      begin
+        parse(@api[uri].get(:accept => @content_type))      
+      rescue RestClient::RequestTimeout
+        message = "GET #{base_uri}#{uri}: REST query timeouted!"
         RESTCLIENTLIBLOGGER.error(message)
-        raise Timeout::Error, message
-      end # rescue (timeout)
+        raise RestClient::RequestTimeout, message
+      rescue RestClient::Exception => e
+        raise Cigri::Error, "#{e.http_code} error in GET for #{uri}:\n #{e.response.body}"
+      end
     end
 
     # Get a link by relation or nil if not found
@@ -116,48 +106,31 @@ module Cigri
       collection
     end
 
-    # Post a new resource
-    def post(uri,resource)
-      uri=rel_uri(uri)
-      begin # Timeout error handling
-        Timeout::timeout(@timeout) {
-          begin # Rest error handling
-            parse(@api[uri].post(convert(resource), :content_type => @content_type))
-          rescue => e
-            if e.respond_to?('http_code')
-              raise Cigri::Error, "#{e.http_code} error in post #{uri} :\n #{e.response.body}"
-            else
-              raise Cigri::Error, "Parse error: #{e.inspect}"
-            end
-          end # rescue (rest error)
-        }
-      rescue Timeout::Error # Timeouted
-        message="POST #{base_uri}#{uri} : REST query timeouted!"
+    def post(uri, resource)
+      uri = rel_uri(uri)
+      begin
+        parse(@api[uri].post(convert(resource), :content_type => @content_type))
+      rescue RestClient::RequestTimeout
+        message = "POST #{base_uri}#{uri}: REST query timeouted!"
         RESTCLIENTLIBLOGGER.error(message)
-        raise Timeout::Error, message
-      end # rescue (timeout)
+        raise RestClient::RequestTimeout, message
+      rescue RestClient::Exception => e
+        raise Cigri::Error, "#{e.http_code} error in POST for #{uri}:\n #{e.response.body}"
+      end
     end
 
     # Delete a resource
     def delete(uri)
-      uri=rel_uri(uri)
-      begin # Timeout error handling
-        Timeout::timeout(@timeout) {
-          begin # Rest error handling
-            parse(@api[uri].delete(:accept => @content_type))
-          rescue => e
-            if e.respond_to?('http_code')
-              raise Cigri::Error, "#{e.http_code} error in delete #{uri} :\n #{e.response.body}"
-            else
-              raise Cigri::Error, "Parse error: #{e.inspect}"
-            end
-          end # rescue (rest error)
-        }
-      rescue Timeout::Error # Timeouted
-        message="DELETE #{base_uri}#{uri} : REST query timeouted!"
+      uri = rel_uri(uri)
+      begin # Rest error handling
+        parse(@api[uri].delete(:accept => @content_type))
+      rescue RestClient::RequestTimeout
+        message = "DELETE #{base_uri}#{uri}: REST query timeouted!"
         RESTCLIENTLIBLOGGER.error(message)
-        raise Timeout::Error, message
-      end # rescue (timeout)
+        raise RestClient::RequestTimeout, message
+      rescue RestClient::Exception => e
+        raise Cigri::Error, "#{e.http_code} error in DELETE for #{uri}:\n #{e.response.body}"
+      end
     end
 
   end
