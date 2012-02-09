@@ -69,10 +69,11 @@ module Cigri
       end
     end
 
-    def get(uri)
+    def get(uri,header={})
       uri = rel_uri(uri)
+      header[:accept] = @content_type
       begin
-        parse(@api[uri].get(:accept => @content_type))      
+        parse(@api[uri].get(header))      
       rescue RestClient::RequestTimeout
         message = "GET #{base_uri}#{uri}: REST query timeouted!"
         RESTCLIENTLIBLOGGER.error(message)
@@ -106,10 +107,11 @@ module Cigri
       collection
     end
 
-    def post(uri, resource)
+    def post(uri, resource, header={})
       uri = rel_uri(uri)
+      header[:content_type]=@content_type
       begin
-        parse(@api[uri].post(convert(resource), :content_type => @content_type))
+        parse(@api[uri].post(convert(resource), header))
       rescue RestClient::RequestTimeout
         message = "POST #{base_uri}#{uri}: REST query timeouted!"
         RESTCLIENTLIBLOGGER.error(message)
@@ -120,10 +122,11 @@ module Cigri
     end
 
     # Delete a resource
-    def delete(uri)
+    def delete(uri,header={})
       uri = rel_uri(uri)
+      header[:accept]=@content_type
       begin # Rest error handling
-        parse(@api[uri].delete(:accept => @content_type))
+        parse(@api[uri].delete(header))
       rescue RestClient::RequestTimeout
         message = "DELETE #{base_uri}#{uri}: REST query timeouted!"
         RESTCLIENTLIBLOGGER.error(message)

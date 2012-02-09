@@ -16,6 +16,7 @@ CREATE TABLE clusters (
   api_url VARCHAR(255) NOT NULL,
   api_username VARCHAR(255) NOT NULL,
   api_password VARCHAR(255) NOT NULL,
+  api_auth_header VARCHAR(255) NOT NULL DEFAULT 'X_REMOTE_IDENT',
   ssh_host VARCHAR(255),
   batch api NOT NULL,
   resource_unit VARCHAR(255) DEFAULT 'resource_id',

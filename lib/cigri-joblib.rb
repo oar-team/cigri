@@ -99,7 +99,7 @@ module Cigri
                      }
         # TODO: add walltime, manage grouping,etc...
         JOBLIBLOGGER.info("Submitting new array job on #{cluster.description["name"]} with #{params.length} parameter(s).")
-        j=cluster.submit_job(submission)
+        j=cluster.submit_job(submission,campaign.props[:grid_user])
         if j.nil?
           JOBLIBLOGGER.error("Unhandled error when submitting jobs on #{cluster.description["name"]}!")
         else

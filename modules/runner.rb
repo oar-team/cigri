@@ -111,9 +111,9 @@ begin
       # Submit the new jobs
       begin
         jobs.submit(cluster.id)        
-      rescue
+      rescue => e
         # TODO: Event!
-        logger.warn("Could not submit jobs on #{cluster.name}")
+        logger.warn("Could not submit jobs on #{cluster.name}: #{e.inspect}")
       end
     else
       sleep_more = SLEEP_MORE

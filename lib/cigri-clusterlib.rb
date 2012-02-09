@@ -90,8 +90,8 @@ module Cigri
       raise "Method must be overridden"
     end
     
-    # Submit the given job
-    def submit_job(job)
+    # Submit the given job for the given user
+    def submit_job(job,user)
       raise "Method must be overridden"
     end
 
@@ -145,8 +145,8 @@ module Cigri
            # TODO: manage event (cluster blacklist) if timeout
       end 
  
-      def submit_job(job)
-        @api.post("jobs",job)
+      def submit_job(job,user="")
+        @api.post("jobs",job,{@description["api_auth_header"] => user})
            # TODO: manage event (cluster blacklist) if timeout
       end
  
