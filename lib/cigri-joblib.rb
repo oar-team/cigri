@@ -58,8 +58,12 @@ module Cigri
     end
 
     # Fill the jobset with the currently running jobs
-    def get_running
-      fill(get("jobs,parameters",@fields,"state = 'running' and jobs.param_id=parameters.id"))
+    def get_running(cluster_id=nil)
+      cluster_query=""
+      if not cluster_id.nil?
+        cluster_query="and cluster_id=#{cluster_id}"
+      end
+      fill(get("jobs,parameters",@fields,"state = 'running' and jobs.param_id=parameters.id #{cluster_query}"))
     end
 
     # Get jobs that have just been submitted on cluster_id

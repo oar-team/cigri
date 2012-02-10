@@ -65,6 +65,7 @@ begin
     # Update the jobs state and close the tap if necessary
     current_jobs=Cigri::Jobset.new
     current_jobs.get_submitted(cluster.id)
+    current_jobs.get_running(cluster.id)
     current_jobs.each do |job|
       if job.props[:remote_id].nil? || job.props[:remote_id] == ""
         #TODO: Create an event here: the job is lost, it has no remote_id
@@ -90,9 +91,9 @@ begin
               # close the tap
               n=0
           end
-        rescue
+        rescue => e
           #TODO: event: could not get the remote job
-          logger.error("Could not get remote job #{job.id}!") 
+          logger.error("Could not get remote job #{job.id}! #{e.inspect}") 
         end
       end
     end 
