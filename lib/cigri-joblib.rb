@@ -33,23 +33,24 @@ module Cigri
   #  jobs=Cigri::Jobset.new(:where => "name like 'obiwan%'")
   #  jobs=Cigri::Jobset.new
   #  jobs.get_running
-  # The jobset class is composed of a join between 2 classes: jobs and parameters
+  # The jobset class is composed of a join between 3 classes: jobs, parameters and campaigns
   class Jobset < Dataset
 
     # Creates the new jobset
     def initialize(props={})
-      @fields="jobs.id as id, parameters.param as param,
-               parameters.campaign_id as campaign_id, param_id, batch_id, cluster_id, collect_id,
-               state, return_code, submission_time, start_time, stop_time,
-               node_name, resources_used, remote_id"
-      join="jobs.param_id=parameters.id"
+      @fields="jobs.id as id, parameters.param as param, campaigns.grid_user as grid_user,
+               parameters.campaign_id as campaign_id, param_id, batch_id, cluster_id, 
+               collect_id, jobs.state as state, return_code, 
+               jobs.submission_time as submission_time, start_time, 
+               stop_time, node_name, resources_used, remote_id"
+      @join="jobs.param_id=parameters.id and jobs.campaign_id=campaigns.id"
       if (not props[:where].nil?)
-        props[:where]+=" and #{join}"
+        props[:where]+=" and #{@join}"
         if (props[:what].nil?)
           props[:what]=@fields
         end
       end
-      super("jobs,parameters",props)
+      super("jobs,parameters,campaigns",props)
     end
 
     # Alias to the dataset records
@@ -63,14 +64,14 @@ module Cigri
       if not cluster_id.nil?
         cluster_query="and cluster_id=#{cluster_id}"
       end
-      fill(get("jobs,parameters",@fields,"state = 'running' and jobs.param_id=parameters.id #{cluster_query}"))
+      fill(get("jobs,parameters,campaigns",@fields,"jobs.state = 'running' and #{@join} #{cluster_query}"))
     end
 
     # Get jobs that have just been submitted on cluster_id
     def get_submitted(cluster_id)
-      fill(get("jobs,parameters",@fields,"
-                    (state = 'submitted' or state = 'remote_waiting') 
-                      and jobs.param_id=parameters.id
+      fill(get("jobs,parameters,campaigns",@fields,"
+                    (jobs.state = 'submitted' or jobs.state = 'remote_waiting') 
+                      and #{@join}
                       and cluster_id=#{cluster_id}"))
     end
 

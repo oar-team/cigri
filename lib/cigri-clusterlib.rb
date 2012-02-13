@@ -154,9 +154,9 @@ module Cigri
            # TODO: manage event (cluster blacklist) if timeout
       end
  
-      def get_job(job_id)
+      def get_job(job_id,user="")
         if (job_id.is_a?(Integer))
-          @api.get("jobs/#{job_id}")
+          @api.get("jobs/#{job_id}",{@description["api_auth_header"] => user})
         else
           CLUSTERLIBLOGGER.error("No valid id passed to get_job on #{name}!")
           nil
@@ -164,8 +164,8 @@ module Cigri
            # TODO: manage event (cluster blacklist) if timeout
       end
  
-      def delete_job(job_id)
-        @api.delete("jobs/#{job_id}")
+      def delete_job(job_id,user="")
+        @api.delete("jobs/#{job_id}",{@description["api_auth_header"] => user})
            # TODO: manage event (cluster blacklist) if timeout
       end
   

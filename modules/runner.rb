@@ -73,7 +73,7 @@ begin
         logger.error("Job #{job.id} is lost, it has no remote_id!") 
       else
         begin
-          cluster_job=cluster.get_job(job.props[:remote_id].to_i)
+          cluster_job=cluster.get_job(job.props[:remote_id].to_i,job.props[:grid_user])
           case cluster_job["state"] 
             when "Terminated"
               job.update({'state' => 'terminated'})

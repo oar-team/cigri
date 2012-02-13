@@ -9,8 +9,23 @@ cigri_init:
  - install_cigri:
    - exec_chroot: bash -c "cd /home/kameleon/`basename $$cigri_svn` && make install"
  - init_clusters:
-   - exec_chroot: bash -c "cd /home/kameleon/`basename $$cigri_svn` && ./sbin/new_cluster.rb tchernobyl http://tchernobyl/oarapi-priv/ kameleon kameleon tchernobyl oar2_5 core 100 \"cluster='tchernobyl'\""
-   - exec_chroot: bash -c "cd /home/kameleon/`basename $$cigri_svn` && ./sbin/new_cluster.rb threemile http://threemile/oarapi-priv/ kameleon kameleon threemile oar2_5 core 10 \"cluster='threemile'\""
-   - exec_chroot: bash -c "cd /home/kameleon/`basename $$cigri_svn` && ./sbin/new_cluster.rb fukushima http://fukushima/oarapi-priv/ kameleon kameleon fukushima oar2_5 core 50 \"cluster='fukushima'\""
+   - exec_chroot: bash -c "cd /home/kameleon/`basename $$cigri_svn` && ./sbin/new_cluster.rb tchernobyl https://tchernobyl/oarapi-secured/ kameleon kameleon tchernobyl oar2_5 core 100 \"cluster='tchernobyl'\""
+   - exec_chroot: bash -c "cd /home/kameleon/`basename $$cigri_svn` && ./sbin/new_cluster.rb threemile https://threemile/oarapi-secured/ kameleon kameleon threemile oar2_5 core 10 \"cluster='threemile'\""
+   - exec_chroot: bash -c "cd /home/kameleon/`basename $$cigri_svn` && ./sbin/new_cluster.rb fukushima https://fukushima/oarapi-secured/ kameleon kameleon fukushima oar2_5 core 50 \"cluster='fukushima'\""
  - activate_api:
    - exec_chroot: ln -s /etc/cigri/api-apache.conf /etc/apache2/conf.d/cigri-api.conf
+ - oar_https_api:
+   - exec_chroot: bash -c "a2ensite default-ssl"
+   - write_file:
+     - /etc/apache2/conf.d/oar-restful-api-secured.conf
+     - |
+       ScriptAlias /oarapi-secured /usr/local/lib/cgi-bin/oarapi/oarapi.cgi
+       <Location /oarapi-secured>
+         Options ExecCGI -MultiViews FollowSymLinks
+         ## Uncomment once you have created the client certificate:
+         # SSLVerifyClient require
+         # SSLVerifyDepth  1
+         ## WARNING! If leaved uncommented, anyone can submit jobs
+         ## under any username!
+       </Location>
+
