@@ -29,11 +29,21 @@ module Cigri
       else
         timeout = 30
       end
+      options={}
+      options[:timeout]=timeout
       if (user.nil? || user == "")
-        @api = RestClient::Resource.new(base_uri, :timeout => timeout)
-      else 
-        @api = RestClient::Resource.new(base_uri, :user => user, :password => password, :timeout => timeout)
+        options[:user]=user
+        options[:password]=password
       end
+      if CONF.exists?('REST_CLIENT_CERTIFICATE_FILE')
+        options[:ssl_client_cert]=OpenSSL::X509::Certificate.new(
+                                    File.read(CONF.get('REST_CLIENT_CERTIFICATE_FILE')))
+      end
+      if CONF.exists?('REST_CLIENT_KEY_FILE')
+        options[:ssl_client_key]=OpenSSL::PKey::RSA.new(File.read(
+                                    CONF.get('REST_CLIENT_KEY_FILE')))
+      end
+      @api = RestClient::Resource.new(base_uri, options)
       @content_type=content_type
       @base_uri=URI.parse(base_uri)
     end

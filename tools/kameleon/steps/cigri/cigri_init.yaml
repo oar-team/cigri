@@ -14,18 +14,43 @@ cigri_init:
    - exec_chroot: bash -c "cd /home/kameleon/`basename $$cigri_svn` && ./sbin/new_cluster.rb fukushima https://fukushima/oarapi-secured/ kameleon kameleon fukushima oar2_5 core 50 \"cluster='fukushima'\""
  - activate_api:
    - exec_chroot: ln -s /etc/cigri/api-apache.conf /etc/apache2/conf.d/cigri-api.conf
+ - cigri_certificate:
+   - exec_chroot: mkdir /etc/cigri/ssl
+   - write_file:
+     - /etc/cigri/ssl/cigri.cnf
+     - |
+       [ req ]
+       default_bits           = 1024
+       default_keyfile        = cigri.pem
+       distinguished_name     = req_distinguished_name
+       attributes             = req_attributes
+       prompt                 = no
+       
+       [ req_distinguished_name ]
+       C                      = FR
+       ST                     = Default CIGRI Province
+       L                      = Default CIGRI Locality
+       O                      = Default CIGRI O
+       OU                     = Default CIGRI OU
+       CN                     = Default CIGRI CN
+       emailAddress           = gridmaster@ujf-grenoble.fr
+       
+       [ req_attributes ]
+       challengePassword              = cigri
+   - exec_chroot: openssl genrsa -out /etc/cigri/ssl/cigri.key 1024
+   - exec_chroot: openssl req -config /etc/cigri/ssl/cigri.cnf -new -key /etc/cigri/ssl/cigri.key -out /etc/cigri/ssl/cigri.csr
+   - exec_chroot: openssl x509 -req -days 3650 -in /etc/cigri/ssl/cigri.csr -CA /etc/ssl/certs/ssl-cert-snakeoil.pem -CAkey /etc/ssl/private/ssl-cert-snakeoil.key -CAcreateserial -out /etc/cigri/ssl/cigri.crt
  - oar_https_api:
    - exec_chroot: bash -c "a2ensite default-ssl"
+   - exec_chroot: rm -f /etc/apache2/conf.d/oar-restful-api.conf
    - write_file:
      - /etc/apache2/conf.d/oar-restful-api-secured.conf
      - |
        ScriptAlias /oarapi-secured /usr/local/lib/cgi-bin/oarapi/oarapi.cgi
        <Location /oarapi-secured>
          Options ExecCGI -MultiViews FollowSymLinks
-         ## Uncomment once you have created the client certificate:
-         # SSLVerifyClient require
-         # SSLVerifyDepth  1
-         ## WARNING! If leaved uncommented, anyone can submit jobs
-         ## under any username!
+          SSLVerifyClient require
+          SSLVerifyDepth  1
+          SSLCACertificateFile /etc/ssl/certs/ssl-cert-snakeoil.pem
        </Location>
 
