@@ -16,6 +16,8 @@ cigri_init:
    - exec_chroot: ln -s /etc/cigri/api-apache.conf /etc/apache2/conf.d/cigri-api.conf
  - cigri_certificate:
    - exec_chroot: mkdir /etc/cigri/ssl
+   - exec_chroot: chown cigri /etc/cigri/ssl
+   - exec_chroot: chmod 700 cigri /etc/cigri/ssl
    - write_file:
      - /etc/cigri/ssl/cigri.cnf
      - |
@@ -42,6 +44,7 @@ cigri_init:
    - exec_chroot: openssl x509 -req -days 3650 -in /etc/cigri/ssl/cigri.csr -CA /etc/ssl/certs/ssl-cert-snakeoil.pem -CAkey /etc/ssl/private/ssl-cert-snakeoil.key -CAcreateserial -out /etc/cigri/ssl/cigri.crt
  - oar_https_api:
    - exec_chroot: bash -c "a2ensite default-ssl"
+   - exec_chroot: bash -c "a2enmod ssl"
    - exec_chroot: rm -f /etc/apache2/conf.d/oar-restful-api.conf
    - write_file:
      - /etc/apache2/conf.d/oar-restful-api-secured.conf
