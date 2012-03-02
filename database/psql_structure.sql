@@ -10,13 +10,16 @@ INSERT INTO schema VALUES ('3.0.0-alpha0','Cesium137');
 DROP TABLE IF EXISTS clusters;
 DROP TYPE IF EXISTS api;
 CREATE TYPE api as ENUM('oar2_5','g5k');
+CREATE TYPE auth_type as ENUM('none','password', 'cert');
 CREATE TABLE clusters (
   id SERIAL NOT NULL,
   name VARCHAR(255) NOT NULL,
   api_url VARCHAR(255) NOT NULL,
-  api_username VARCHAR(255) NOT NULL,
-  api_password VARCHAR(255) NOT NULL,
-  api_auth_header VARCHAR(255) NOT NULL DEFAULT 'X_REMOTE_IDENT',
+  api_port INT NOT NULL DEFAULT 80,
+  api_auth_type auth_type NOT NULL DEFAULT 'password',
+  api_username VARCHAR(255),
+  api_password VARCHAR(255),
+  api_auth_header VARCHAR(255),
   ssh_host VARCHAR(255),
   batch api NOT NULL,
   resource_unit VARCHAR(255) DEFAULT 'resource_id',
