@@ -17,7 +17,7 @@ cigri_init:
  - cigri_certificate:
    - exec_chroot: mkdir /etc/cigri/ssl
    - exec_chroot: chown cigri /etc/cigri/ssl
-   - exec_chroot: chmod 700 cigri /etc/cigri/ssl
+   - exec_chroot: chmod 700 /etc/cigri/ssl
    - write_file:
      - /etc/cigri/ssl/cigri.cnf
      - |
