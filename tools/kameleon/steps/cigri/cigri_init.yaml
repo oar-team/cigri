@@ -55,5 +55,14 @@ cigri_init:
           SSLVerifyClient require
           SSLVerifyDepth  1
           SSLCACertificateFile /etc/ssl/certs/ssl-cert-snakeoil.pem
+          ## Add some checks on the X_REMOTE_IDENT header
+          ## This example only allows users kameleon and oar to be authenticated to the API
+          # RewriteEngine On
+          # RewriteCond %{HTTP:X_REMOTE_IDENT}  (.*)
+          # RewriteRule .* - [E=MY_REMOTE_IDENT:%1]
+          # RewriteCond %{HTTP:X_REMOTE_IDENT}  !=kameleon
+          # RewriteCond %{HTTP:X_REMOTE_IDENT}  !=oar
+          # RewriteRule .* - [E=MY_REMOTE_IDENT:]
+          # RequestHeader set X_REMOTE_IDENT %{MY_REMOTE_IDENT}e
        </Location>
 
