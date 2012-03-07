@@ -35,6 +35,7 @@ IOLIBLOGGER = Cigri::Logger.new('IOLIB', CONF.get('LOG_FILE'))
 # - DBI exceptions
 ##
 def db_connect()
+  #TODO: catch error
   str = "DBI:#{CONF.get('DATABASE_TYPE')}:#{CONF.get('DATABASE_NAME')}:#{CONF.get('DATABASE_HOST')}"
   dbh = DBI.connect(str, 
                     "#{CONF.get('DATABASE_USER_NAME')}", 
@@ -65,8 +66,6 @@ def last_inserted_id(dbh, seqname = '')
   if db.eql? 'Pg'
     query = "SELECT currval(?)"
     row = dbh.select_one(query, seqname)
-  elsif db.eql? 'Mysql'
-    row = dbh.select_one("SELECT LAST_INSERT_ID()")
   else
     raise Cigri::Error, "Impossible to retreive last inserted id: database type \"#{db}\" is not supported"
   end
@@ -89,8 +88,6 @@ def get_available_api_types(dbh)
   db = CONF.get('DATABASE_TYPE')
   if db.eql? 'Pg'
     return dbh.select_all("select enumlabel from pg_enum where enumtypid = 'api'::regtype").flatten!
-  elsif db.eql? 'Mysql'
-    raise Cigri::Error, "get_available_types not yet implemented with MySQL"
   else
     raise Cigri::Error, "Impossible to retreive available types: database type \"#{db}\" is not supported"
   end

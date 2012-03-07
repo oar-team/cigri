@@ -6,10 +6,12 @@ Cigri v3 quick installation guide
     - ruby >= 1.8
     - rubygems
     - postgresql server
+    - libdbd-pg-ruby
+    - librestclient-ruby
+    - libjson-ruby
 
 *Install the following gems*:
 
-    - gem install rspec
     - gem install sinatra
 
 *Create a cigri user*:
