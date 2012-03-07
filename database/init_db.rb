@@ -22,7 +22,7 @@ optparse = OptionParser.new do |opts|
     options[:sql] = sql
   end
   
-  opts.on( '-t', '--type TYPE (mysql | psql)', ['mysql', 'psql'], 'Type of the database (mysql | psql)' ) do |type|
+  opts.on( '-t', '--type TYPE (psql)', ['psql'], 'Type of the database (psql)' ) do |type|
     options[:type] = type
   end
   
@@ -100,25 +100,8 @@ if options[:type].eql?('psql')
     system(cmd)
     abort "[ERROR] Unable to execute: #{cmd}" unless $?.success?
   end
-elsif options[:type].eql?('mysql')
-  puts 'Enter mysql login info:'
-  login = gets.chomp
-  puts "Enter mysql #{login} user password:"
-  system('stty -echo')
-  pwd = gets.chomp
-  system('stty echo')
-  puts ''
-  BASE_CMD = "#{options[:dryrun]}mysql -u #{login} -p#{pwd} -e "
-  
-  puts 'Executing commands:'
-  system("#{BASE_CMD} \"CREATE DATABASE #{options[:database]}\"")
-  system("#{BASE_CMD} \"CREATE USER \'#{options[:user]}\'@\'localhost\' IDENTIFIED BY \'#{options[:password]}\';\"")
-  system("#{BASE_CMD} \"GRANT ALL ON #{options[:database]}.* TO #{options[:user]}@localhost ;\"")
-  cmd = "#{options[:dryrun]}mysql -u #{options[:user]} -p#{options[:password]} #{options[:database]} < #{options[:sql]}"
-  system(cmd)
-  abort "[ERROR] Unable to execute: #{cmd}" unless $?.success?
 else
-  abort "[ERROR] database type should be one of {mysql, psql})"
+  abort "[ERROR] database type should be one of {psql})"
 end
 
 puts "\nTERMINTATED SUCCESSFULLY"
