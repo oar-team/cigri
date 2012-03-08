@@ -35,14 +35,18 @@ IOLIBLOGGER = Cigri::Logger.new('IOLIB', CONF.get('LOG_FILE'))
 # - DBI exceptions
 ##
 def db_connect()
-  #TODO: catch error
-  str = "DBI:#{CONF.get('DATABASE_TYPE')}:#{CONF.get('DATABASE_NAME')}:#{CONF.get('DATABASE_HOST')}"
-  dbh = DBI.connect(str, 
-                    "#{CONF.get('DATABASE_USER_NAME')}", 
-                    "#{CONF.get('DATABASE_USER_PASSWORD')}")
-  return dbh unless block_given?
-  yield dbh
-  dbh.disconnect() if dbh
+  begin
+    str = "DBI:#{CONF.get('DATABASE_TYPE')}:#{CONF.get('DATABASE_NAME')}:#{CONF.get('DATABASE_HOST')}"
+    dbh = DBI.connect(str, 
+                      "#{CONF.get('DATABASE_USER_NAME')}", 
+                      "#{CONF.get('DATABASE_USER_PASSWORD')}")
+    return dbh unless block_given?
+    yield dbh
+    dbh.disconnect() if dbh
+  rescue Exception => e
+    IOLIBLOGGER.error("Failed to connect to database with string: #{str}\nError: #{e}")
+    raise e
+  end
 end
 
 

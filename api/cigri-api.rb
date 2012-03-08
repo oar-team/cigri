@@ -104,7 +104,7 @@ class API < Sinatra::Base
   # List all clusters
   get '/clusters/?' do
     response['Allow'] = 'GET'
-    items  = []
+    items = []
     Cigri::ClusterSet.new.each do |cluster|
       id = cluster.description['id']
       items << {:id => id,

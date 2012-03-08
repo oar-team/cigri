@@ -23,26 +23,36 @@ module Cigri
     attr_reader :content_type, :base_uri
 
     # Connect to a restfull API
-    def initialize(base_uri,user,password,content_type)
-      if CONF.exists?('REST_QUERIES_TIMEOUT')
-        timeout = CONF.get('REST_QUERIES_TIMEOUT').to_i
-      else
-        timeout = 30
-      end
+    def initialize(description,content_type)
       options={}
-      options[:timeout]=timeout
-      if (user.nil? || user == "")
-        options[:user]=user
-        options[:password]=password
+      auth_type = description["api_auth_type"]
+      base_uri = description["api_url"]
+
+      if CONF.exists?('REST_QUERIES_TIMEOUT')
+        options[:timeout] = CONF.get('REST_QUERIES_TIMEOUT').to_i
+      else
+        options[:timeout] = 30
       end
-      if CONF.exists?('REST_CLIENT_CERTIFICATE_FILE')
-        options[:ssl_client_cert]=OpenSSL::X509::Certificate.new(
-                                    File.read(CONF.get('REST_CLIENT_CERTIFICATE_FILE')))
+
+      if auth_type == "cert"
+        if CONF.exists?('REST_CLIENT_CERTIFICATE_FILE')
+          options[:ssl_client_cert]=OpenSSL::X509::Certificate.new(
+                                      File.read(CONF.get('REST_CLIENT_CERTIFICATE_FILE')))
+        end
+        if CONF.exists?('REST_CLIENT_KEY_FILE')
+          options[:ssl_client_key]=OpenSSL::PKey::RSA.new(File.read(
+                                      CONF.get('REST_CLIENT_KEY_FILE')))
+        end
+      elsif auth_type == "password"
+        # if (user.nil? || user == "")
+        #   options[:user]=user
+        #   options[:password]=password
+        # end
+      elsif auth_type == "none"
+      else
+        raise Cigri::Error, "Authentification type '#{auth_type}' not supported"
       end
-      if CONF.exists?('REST_CLIENT_KEY_FILE')
-        options[:ssl_client_key]=OpenSSL::PKey::RSA.new(File.read(
-                                    CONF.get('REST_CLIENT_KEY_FILE')))
-      end
+      
       @api = RestClient::Resource.new(base_uri, options)
       @content_type=content_type
       @base_uri=URI.parse(base_uri)

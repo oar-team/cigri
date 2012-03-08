@@ -54,9 +54,7 @@ module Cigri
       end
 
       # Create a rest_client api instance
-      @api = RestSession.new(@description["api_url"], 
-                             @description["api_username"],
-                             @description["api_password"],
+      @api = RestSession.new(@description,
                              "application/json")
     end
   
@@ -179,14 +177,6 @@ module Cigri
     ##
     class G5kCluster < RestCluster
 
-      def initialize(opts = {}) 
-        super(opts)
-        @api = RestSession.new("https://api.grid5000.fr/sid/sites/nancy", 
-                               "gcharrier",
-                               File.read("/home/kameleon/.pwd_g5k").strip,
-                               "application/json")
-      end
-
       def get_job(job_id)
         @api.get("jobs/#{job_id}")
       end
@@ -260,9 +250,9 @@ module Cigri
     # A cluster set is an array of cluster selected from the DB
     def initialize(where_clause=nil)
       db_connect() do |dbh|
-        clusters=select_clusters(dbh,where_clause)
-        if not clusters.nil?
-          select_clusters(dbh,where_clause).each do |id|
+        clusters = select_clusters(dbh, where_clause)
+        if clusters
+          select_clusters(dbh, where_clause).each do |id|
             push Cluster.new(:id => id)
           end
         end
