@@ -48,7 +48,7 @@ install-cigri: install-cigri-server install-cigri-user
 
 install-cigri-server: install-cigri-libs install-cigri-modules install-cigri-launcher install-cigri-api install-cigri-server-config
 
-install-cigri-user: install-cigri-libs install-cigri-user-cmds install-cigri-user-config
+install-cigri-user: install-cigri-libs install-cigri-user-cmds install-cigri-user-config install-cigri-server-config
 
 install-cigri-libs:
 	install -d -m 0755 $(DESTDIR)$(CIGRIDIR)
