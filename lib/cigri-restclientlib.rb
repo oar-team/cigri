@@ -35,13 +35,17 @@ module Cigri
       end
 
       if auth_type == "cert"
-        if CONF.exists?('REST_CLIENT_CERTIFICATE_FILE')
-          options[:ssl_client_cert]=OpenSSL::X509::Certificate.new(
-                                      File.read(CONF.get('REST_CLIENT_CERTIFICATE_FILE')))
+        if CONF.exists?('REST_CLIENT_CERTIFICATE_FILE') &&
+           CONF.exists?('REST_CLIENT_KEY_FILE')
+          options[:ssl_client_cert] = OpenSSL::X509::Certificate.new(
+                                        File.read(CONF.get('REST_CLIENT_CERTIFICATE_FILE')))
+          options[:ssl_client_key] = OpenSSL::PKey::RSA.new(
+                                        File.read(CONF.get('REST_CLIENT_KEY_FILE')))
+        else
+          raise Cigri::Error, "Authentification type 'cert' for cluster #{description['name']} requires at least a certificate and a key in the configuration file."
         end
-        if CONF.exists?('REST_CLIENT_KEY_FILE')
-          options[:ssl_client_key]=OpenSSL::PKey::RSA.new(File.read(
-                                      CONF.get('REST_CLIENT_KEY_FILE')))
+        if CONF.exists?('REST_CLIENT_CA_FILE')
+          options[:ssl_ca_file] = CONF.get('REST_CLIENT_CA_FILE')
         end
       elsif auth_type == "password"
         # if (user.nil? || user == "")
