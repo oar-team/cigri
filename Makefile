@@ -41,7 +41,14 @@ rspec: tests
 tests: spec/**/*_spec.rb
 	@rspec $? ${SPEC_OPTS}
 
-install: install-cigri-libs install-cigri-modules install-cigri-user-cmds install-cigri-launcher install-cigri-api install-cigri-config
+install: 
+	@echo "Please, use install-cigri, install-cigri-server or install-cigri-user."
+
+install-cigri: install-cigri-server install-cigri-user
+
+install-cigri-server: install-cigri-libs install-cigri-modules install-cigri-launcher install-cigri-api install-cigri-server-config
+
+install-cigri-user: install-cigri-libs install-cigri-user-cmds install-cigri-user-config
 
 install-cigri-libs:
 	install -d -m 0755 $(DESTDIR)$(CIGRIDIR)
@@ -64,9 +71,15 @@ install-cigri-user-cmds:
 		chmod 755 $(DESTDIR)$(BINDIR)/$$cmd ; \
 	done
 
+install-cigri-user-config:
+	if [ -f $(DESTDIR)$(CIGRICONFDIR)/api-clients.conf ]; then echo "$(DESTDIR)$(CIGRICONFDIR)/api-clients.conf found, not erasing."; \
+	else install -m 0644 etc/api-clients.conf.in $(DESTDIR)$(CIGRICONFDIR)/api-clients.conf; \
+		perl -pi -e "s#%%CIGRIDIR%%#$(CIGRIDIR)#g;;\
+		s#%%APIBASE%%#$(APIBASE)#g" $(DESTDIR)$(CIGRICONFDIR)/api-clients.conf; fi
+	chown $(CIGRIUSER) $(DESTDIR)$(CIGRICONFDIR)/api-clients.conf
+
 install-cigri-launcher:
 	install -d -m 0755 $(DESTDIR)$(CIGRIDIR)
-	install -d -m 0755 $(DESTDIR)$(CIGRIDIR)/sbin
 	install -m 0755 sbin/cigri_start.in $(DESTDIR)$(SBINDIR)/cigri_start
 	perl -pi -e "s#%%CIGRIDIR%%#$(CIGRIDIR)#g;;\
 	     s#%%CIGRIUSER%%#$(CIGRIUSER)#g" $(DESTDIR)$(SBINDIR)/cigri_start
@@ -75,25 +88,17 @@ install-cigri-api:
 	install -d -m 0755 $(DESTDIR)$(CIGRIDIR)
 	install -d -m 0755 $(DESTDIR)$(CIGRIDIR)/api
 	@for file in api/*; do install -m 0755 $$file $(DESTDIR)$(CIGRIDIR)/api; done
-	perl -pi -e "s#%%CIGRIDIR%%#$(CIGRIDIR)#g;;\
-             s#%%CIGRIUSER%%#$(CIGRIUSER)#g" $(DESTDIR)$(CIGRIDIR)/api/launch_api.sh.in
-	mv $(DESTDIR)$(CIGRIDIR)/api/launch_api.sh.in $(DESTDIR)$(CIGRIDIR)/api/launch_api.sh
 	# The following activates the magic of Passenger's user switching support
 	# so that the API runs under the cigri user:
 	chown $(CIGRIUSER) $(DESTDIR)$(CIGRIDIR)/api/config.ru
 	# Dont'know why, but this directory must exist or passenger fails
 	mkdir -p $(WWWDIR)/cigri-api
 
-install-cigri-config:
+install-cigri-server-config:
 	install -d -m 0755 $(DESTDIR)$(CIGRICONFDIR)
 	if [ -f $(DESTDIR)$(CIGRICONFDIR)/cigri.conf ]; then echo "$(DESTDIR)$(CIGRICONFDIR)/cigri.conf found, not erasing."; \
 		else install -m 0600 etc/cigri.conf $(DESTDIR)$(CIGRICONFDIR)/cigri.conf; fi
 	chown $(CIGRIUSER) $(DESTDIR)$(CIGRICONFDIR)/cigri.conf
-	if [ -f $(DESTDIR)$(CIGRICONFDIR)/api-clients.conf ]; then echo "$(DESTDIR)$(CIGRICONFDIR)/api-clients.conf found, not erasing."; \
-	else install -m 0644 etc/api-clients.conf.in $(DESTDIR)$(CIGRICONFDIR)/api-clients.conf; \
-		perl -pi -e "s#%%CIGRIDIR%%#$(CIGRIDIR)#g;;\
-		s#%%APIBASE%%#$(APIBASE)#g" $(DESTDIR)$(CIGRICONFDIR)/api-clients.conf; fi
-	chown $(CIGRIUSER) $(DESTDIR)$(CIGRICONFDIR)/api-clients.conf
 	if [ -f $(DESTDIR)$(CIGRICONFDIR)/api-apache.conf ]; then echo "$(DESTDIR)$(CIGRICONFDIR)/api-apache.conf found, not erasing."; \
 		else install -m 0644 etc/api-apache.conf.in $(DESTDIR)$(CIGRICONFDIR)/api-apache.conf; \
 		perl -pi -e "s#%%CIGRIDIR%%#$(CIGRIDIR)#g;;\
