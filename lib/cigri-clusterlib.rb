@@ -147,14 +147,14 @@ module Cigri
            # TODO: manage event (cluster blacklist) if timeout
       end 
  
-      def submit_job(job,user="")
-        @api.post("jobs",job,{@description["api_auth_header"] => user})
+      def submit_job(job, user="")
+        @api.post("jobs",job, {@description["api_auth_header"] => user})
            # TODO: manage event (cluster blacklist) if timeout
       end
  
-      def get_job(job_id,user="")
+      def get_job(job_id)
         if (job_id.is_a?(Integer))
-          @api.get("jobs/#{job_id}",{@description["api_auth_header"] => user})
+          @api.get("jobs/#{job_id}")
         else
           CLUSTERLIBLOGGER.error("No valid id passed to get_job on #{name}!")
           nil
@@ -162,8 +162,8 @@ module Cigri
            # TODO: manage event (cluster blacklist) if timeout
       end
  
-      def delete_job(job_id,user="")
-        @api.delete("jobs/#{job_id}",{@description["api_auth_header"] => user})
+      def delete_job(job_id, user="")
+        @api.delete("jobs/#{job_id}", {@description["api_auth_header"] => user})
            # TODO: manage event (cluster blacklist) if timeout
       end
   
@@ -186,12 +186,12 @@ module Cigri
         @api.get("jobs")
       end
 
-      def submit_job(job)
-        @api.post("jobs", job)
+      def submit_job(job, user)
+        @api.post("jobs", job, {@description["api_auth_header"] => user})
       end
 
-      def delete_job(job_id)
-        @api.delete("jobs/#{job_id}")
+      def delete_job(job_id, user)
+        @api.delete("jobs/#{job_id}", {@description["api_auth_header"] => user})
       end
 
       def get_resources
