@@ -15,7 +15,6 @@ CREATE TABLE clusters (
   id SERIAL NOT NULL,
   name VARCHAR(255) NOT NULL,
   api_url VARCHAR(255) NOT NULL,
-  api_port INT NOT NULL DEFAULT 80,
   api_auth_type auth_type NOT NULL DEFAULT 'password',
   api_username VARCHAR(255),
   api_password VARCHAR(255),
