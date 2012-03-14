@@ -335,7 +335,7 @@ class API < Sinatra::Base
     end
 
     def to_url(url)
-      uri = [request['HTTP_X_CIGRI_API_PATH_PREFIX'], url].join('/')
+      uri = [request.env['HTTP_X_CIGRI_API_PATH_PREFIX'], url].join('/')
       uri = '/' + uri unless uri.start_with?('/')
       uri
     end
