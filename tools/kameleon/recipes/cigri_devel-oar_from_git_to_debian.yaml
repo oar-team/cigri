@@ -45,9 +45,10 @@ global:
  # OAR specific
  oar_git_repository: git://scm.gforge.inria.fr/oar/oar.git
  oar_git_treeish: "2.5"
- oar_source_install_directory: /home/kameleon/oar_install
+ oar_git_directory: /home/kameleon/oar_install
+ oar_prefix_install: /usr/local
 
- cigri_svn: "svn://scm.gforge.inria.fr/svn/cigri/branches/cigri-3"
+ cigri_svn: "https://scm.gforge.inria.fr/svn/cigri/branches/cigri-3"
  
 steps:
  - debian_check_deps
@@ -68,14 +69,19 @@ steps:
    - extra_packages
  - kernel_install
  - checkpoint
- - oar-2.5/oar_install_from_git:
-    - debian_fix_mime_support
-    - get_git_snapshot
-    - install_oar
-    - debian_install_initd
- - oar-2.5/oar_system_config
- - oar-2.5/oar_config_debian
- - oar-2.5/oar_config
+ - oar-2.5/target/debian/oar_debian_preinstall
+ - oar-2.5/source/oar_git_install:
+   - fetch_repository
+   - node
+   - server
+   - frontend
+ - oar-2.5/target/debian/oar_debian_config_server
+ - oar-2.5/target/debian/oar_debian_config_frontend
+ - oar-2.5/oar_config_node
+ - oar-2.5/oar_config_server
+ - oar-2.5/oar_config_frontend
+ - oar-2.5/oar_config_system
+ - oar-2.5/oar_config_devel
  - oar/oar_config_3clusters
  - oar-2.5/oar_clean
  - cigri/cigri_deps
