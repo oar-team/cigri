@@ -68,15 +68,16 @@ steps:
  - software_install:
    - extra_packages
  - kernel_install
- - checkpoint
  - oar-2.5/target/debian/oar_debian_preinstall
  - oar-2.5/source/oar_git_install:
    - fetch_repository
    - node
    - server
    - frontend
+ - checkpoint
  - oar-2.5/target/debian/oar_debian_config_server
  - oar-2.5/target/debian/oar_debian_config_frontend
+ - oar-2.5/target/debian/oar_debian_config_node
  - oar-2.5/oar_config_node
  - oar-2.5/oar_config_server
  - oar-2.5/oar_config_frontend
