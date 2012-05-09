@@ -10,9 +10,14 @@ Cigri v3 quick installation guide
     - librestclient-ruby
     - libjson-ruby
 
-*Install the following gems*:
+*Required gems*:
 
     - gem install sinatra
+
+*Gems used for testing purposes*:
+
+    - gem install rspec
+    - gem install rack-test
 
 *Create a cigri user*:
 
@@ -20,7 +25,7 @@ Cigri v3 quick installation guide
 
 *Install the cigri scripts, as the root user, from the cigri sources directory*:
 
-    make install
+    make install-cigri
 
 *Customize the /etc/cigri/cigri.conf file*
 
