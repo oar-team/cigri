@@ -14,6 +14,7 @@ HTTPrequest URL                                     Purpose
 GET         /                                       List the available links
 GET         /campaigns                              List of all running campaigns
 GET         /campaigns/<campaign_id>                Get details on a specific campaign
+GET         /campaigns/<campaign_id>/jdl            Get the JDL of the campaign
 GET         /campaigns/<campaign_id>/jobs           List all jobs of a specific campaign
 GET         /campaigns/<campaign_id>/jobs/<job_id>  Get details of a specific job of a specific campaign
 GET         /clusters                               List all clusters available in Cigri
