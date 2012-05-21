@@ -1,11 +1,49 @@
-#!/bin/bash
-set -e
+#! /bin/sh -e
 
-if [ "$USER" != "root" ]
-then
-  echo "This script must be started by the root user"
-  exit 1
-fi
+DAEMON="%%CIGRIDIR%%/modules/almighty.rb" #ligne de commande du programme
+DEAMON_OPT=""  #argument à utiliser par le programme
+DAEMONUSER="cigri" #utilisateur du programme
+DEAMON_NAME="almighty.rb" #Nom du programme (doit être identique à l'exécutable)
 
-echo "Starting CiGri server..."
-su - %%CIGRIUSER%% -c "cd %%CIGRIDIR%% && ./modules/almighty.rb"
+test -x $DAEMON || exit 5
+
+. /lib/lsb/init-functions
+
+d_start () {
+  log_daemon_msg "Starting system $DEAMON_NAME Daemon"
+  start-stop-daemon --background --name $DEAMON_NAME --start --quiet --user $DAEMONUSER --exec $DAEMON -- $DEAMON_OPT
+  log_end_msg $?
+}
+
+d_stop () {
+  log_daemon_msg "Stopping system $DEAMON_NAME Daemon"
+  start-stop-daemon --name $DEAMON_NAME --stop --retry 5 --quiet --name $DEAMON_NAME
+  log_end_msg $?
+}
+
+case "$1" in
+  start|stop)
+    d_${1}
+    ;;
+
+  restart|reload|force-reload)
+    d_stop
+    d_start
+    ;;
+
+  force-stop)
+    d_stop
+    killall -q $DEAMON_NAME || true
+    sleep 2
+    killall -q -9 $DEAMON_NAME || true
+    ;;
+
+  status)
+    status_of_proc "$DEAMON_NAME" "$DAEMON" "system-wide $DEAMON_NAME" && exit 0 || exit $?
+    ;;
+  *)
+    echo "Usage: /etc/init.d/$0 {start|stop|force-stop|restart|reload|force-reload|status}"
+    exit 1
+    ;;
+esac
+exit 0

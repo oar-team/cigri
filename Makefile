@@ -80,9 +80,9 @@ install-cigri-user-config:
 
 install-cigri-launcher:
 	install -d -m 0755 $(DESTDIR)$(CIGRIDIR)
-	install -m 0755 sbin/cigri_start.in $(DESTDIR)$(SBINDIR)/cigri_start
+	install -m 0755 sbin/cigri_start.in $(DESTDIR)/etc/init.d/cigri_start
 	perl -pi -e "s#%%CIGRIDIR%%#$(CIGRIDIR)#g;;\
-	     s#%%CIGRIUSER%%#$(CIGRIUSER)#g" $(DESTDIR)$(SBINDIR)/cigri_start
+	     s#%%CIGRIUSER%%#$(CIGRIUSER)#g" $(DESTDIR)/etc/init.d/cigri_start
 	
 install-cigri-api:
 	install -d -m 0755 $(DESTDIR)$(CIGRIDIR)
@@ -108,4 +108,4 @@ install-cigri-server-config:
 clean:
 	rm -rf doc/rdoc doc/yard .yardoc $(DESTDIR)$(CIGRIDIR) $(DESTDIR)$(CIGRICONFDIR)
 	@for cmd in $(USERCMDS) ; do rm $(DESTDIR)$(BINDIR)/$$cmd ; done
-	rm -f $(DESTDIR)$(SBINDIR)/cigri_start
+	rm -f $(DESTDIR)/etc/init.d/cigri_start
