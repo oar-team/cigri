@@ -77,9 +77,8 @@ module Cigri
         return JSON.parse(resource)
       elsif (resource.headers[:content_type] =~ /text.*yaml.*/)
         return YAML.parse(resource)
-      else
-        raise Cigri::Error, "Unsupported content_type: #{resource.headers[:content_type]}"
       end
+      resource
     end
 
     # Convert a rest resource to the current content_type
@@ -148,7 +147,6 @@ module Cigri
     # Delete a resource
     def delete(uri,header={})
       uri = rel_uri(uri)
-      header[:accept]=@content_type
       begin # Rest error handling
         parse(@api[uri].delete(header))
       rescue RestClient::RequestTimeout
