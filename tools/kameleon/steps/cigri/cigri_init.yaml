@@ -65,4 +65,74 @@ cigri_init:
           # RewriteRule .* - [E=MY_REMOTE_IDENT:]
           # RequestHeader set X_REMOTE_IDENT %{MY_REMOTE_IDENT}e
        </Location>
-
+ - oar_api:
+  - write_file:
+    - /etc/oar/apache2/oar-restful-api.conf
+    - |
+      ScriptAlias /oarapi /usr/local/lib/cgi-bin/oarapi/oarapi.cgi
+      ScriptAlias /oarapi-debug /usr/local/lib/cgi-bin/oarapi/oarapi-debug.cgi
+       
+      <Location /oarapi>
+           <IfModule ident_module>
+             IdentityCheck On
+      
+             <IfModule headers_module>
+               # Set the X-REMOTE_IDENT http header value to REMOTE_IDENT env value
+               RequestHeader set X_REMOTE_IDENT %{REMOTE_IDENT}e
+               # or For https:
+               #RequestHeader set X_REMOTE_IDENT %{REMOTE_IDENT}s
+               # Or if it doesn't work, enable mod_rewrite and try this:
+               <IfModule rewrite_module>
+                  RewriteEngine On
+                  RewriteCond %{REMOTE_IDENT} (.*)
+                  RewriteRule .* - [E=MY_REMOTE_IDENT:%1]
+                  RequestHeader add X-REMOTE_IDENT %{MY_REMOTE_IDENT}e
+               </IfModule>
+             </IfModule>
+       
+           </IfModule>
+      </Location> 
+       
+      <Location /oarapi-debug>
+           <IfModule ident_module>
+             IdentityCheck On
+       
+             <IfModule headers_module>
+               # Set the X-REMOTE_IDENT http header value to REMOTE_IDENT env value
+               RequestHeader set X_REMOTE_IDENT %{REMOTE_IDENT}e
+               # or For https:
+               #RequestHeader set X_REMOTE_IDENT %{REMOTE_IDENT}s
+               # Or if it doesn't work, enable mod_rewrite and try this:
+               <IfModule rewrite_module>
+                  RewriteEngine On
+                  RewriteCond %{REMOTE_IDENT} (.*)
+                  RewriteRule .* - [E=MY_REMOTE_IDENT:%1]
+                  RequestHeader add X-REMOTE_IDENT %{MY_REMOTE_IDENT}e
+               </IfModule>
+             </IfModule>
+        
+           </IfModule>
+      </Location> 
+      
+      # FastCGI server
+      <IfModule mod_fastcgi.c>
+      FastCgiServer /usr/local/lib/cgi-bin/oarapi/oarapi.cgi
+      </IfModule>
+       
+      # Configuration for access to the API    
+      <Directory /usr/local/lib/cgi-bin/oarapi>
+            Options ExecCGI -MultiViews FollowSymLinks
+       
+           # FastCGI handler
+           <IfModule mod_fastcgi.c>
+           AddHandler fcgid-script .cgi
+           </IfModule>
+        
+           # Deny access by default, except from localhost
+            Order deny,allow
+            #Deny from all
+            #Allow from             trusted.host.mydomain
+            Allow from             localhost
+            Allow from             localhost.localdomain
+      </Directory>
+  
