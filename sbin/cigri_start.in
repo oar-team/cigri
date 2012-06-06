@@ -11,7 +11,7 @@ test -x $DAEMON || exit 5
 
 d_start () {
   log_daemon_msg "Starting system $DEAMON_NAME Daemon"
-  start-stop-daemon --background --name $DEAMON_NAME --start --quiet --user $DAEMONUSER --exec $DAEMON -- $DEAMON_OPT
+  start-stop-daemon --background --name $DEAMON_NAME --start --quiet --user $DAEMONUSER --chuid $DAEMONUSER --exec $DAEMON -- $DEAMON_OPT
   log_end_msg $?
 }
 
