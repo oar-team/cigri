@@ -17,7 +17,6 @@ cigri_init:
  - oar_https_api:
    - exec_chroot: bash -c "a2ensite default-ssl"
    - exec_chroot: bash -c "a2enmod ssl"
-   - exec_chroot: rm -f /etc/apache2/conf.d/oar-restful-api.conf
    - write_file:
      - /etc/apache2/conf.d/oar-restful-api-secured.conf
      - |
