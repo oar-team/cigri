@@ -72,6 +72,7 @@ install-cigri-user-cmds:
 	done
 
 install-cigri-user-config:
+	install -d -m 0755 $(DESTDIR)$(CIGRICONFDIR)
 	if [ -f $(DESTDIR)$(CIGRICONFDIR)/api-clients.conf ]; then echo "$(DESTDIR)$(CIGRICONFDIR)/api-clients.conf found, not erasing."; \
 	else install -m 0644 etc/api-clients.conf.in $(DESTDIR)$(CIGRICONFDIR)/api-clients.conf; \
 		perl -pi -e "s#%%CIGRIDIR%%#$(CIGRIDIR)#g;;\
@@ -80,9 +81,9 @@ install-cigri-user-config:
 
 install-cigri-launcher:
 	install -d -m 0755 $(DESTDIR)$(CIGRIDIR)
-	install -m 0755 sbin/cigri_start.in $(DESTDIR)/etc/init.d/cigri_start
+	install -m 0755 sbin/cigri_start.in $(DESTDIR)/etc/init.d/cigri
 	perl -pi -e "s#%%CIGRIDIR%%#$(CIGRIDIR)#g;;\
-	     s#%%CIGRIUSER%%#$(CIGRIUSER)#g" $(DESTDIR)/etc/init.d/cigri_start
+	     s#%%CIGRIUSER%%#$(CIGRIUSER)#g" $(DESTDIR)/etc/init.d/cigri
 	
 install-cigri-api:
 	install -d -m 0755 $(DESTDIR)$(CIGRIDIR)
@@ -106,6 +107,11 @@ install-cigri-server-config:
 	chown $(WWWUSER) $(DESTDIR)$(CIGRICONFDIR)/api-apache.conf
 
 clean:
-	rm -rf doc/rdoc doc/yard .yardoc $(DESTDIR)$(CIGRIDIR) $(DESTDIR)$(CIGRICONFDIR)
-	@for cmd in $(USERCMDS) ; do rm $(DESTDIR)$(BINDIR)/$$cmd ; done
+	rm -rf doc/rdoc doc/yard .yardoc
+ 
+uninstall:
+	@if [ -d $(DESTDIR)$(CIGRICONFDIR) ]; then echo "Not removing $(DESTDIR)$(CIGRICONFDIR)"; fi
+	rm -rf $(DESTDIR)$(CIGRIDIR) 
+	@for cmd in $(USERCMDS) ; do rm -f $(DESTDIR)$(BINDIR)/$$cmd ; done
 	rm -f $(DESTDIR)/etc/init.d/cigri_start
+	rm -f $(DESTDIR)/etc/init.d/cigri
