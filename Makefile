@@ -9,6 +9,7 @@ SBINDIR=$(PREFIX)/sbin
 CIGRIDIR=$(PREFIX)/share/cigri
 DOCDIR=$(PREFIX)/share/doc/cigri
 VARDIR=/var/lib/cigri
+LOGDIR=/var/log
 CIGRICONFDIR=/etc/cigri
 WWWDIR=/var/www
 WWWUSER=www-data
@@ -84,6 +85,9 @@ install-cigri-launcher:
 	install -m 0755 sbin/cigri_start.in $(DESTDIR)/etc/init.d/cigri
 	perl -pi -e "s#%%CIGRIDIR%%#$(CIGRIDIR)#g;;\
 	     s#%%CIGRIUSER%%#$(CIGRIUSER)#g" $(DESTDIR)/etc/init.d/cigri
+	touch $(DESTDIR)$(LOGDIR)/cigri.log
+	chmod 600 $(DESTDIR)$(LOGDIR)/cigri.log
+	chown $(CIGRIUSER) $(DESTDIR)$(LOGDIR)/cigri.log
 	
 install-cigri-api:
 	install -d -m 0755 $(DESTDIR)$(CIGRIDIR)
