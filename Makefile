@@ -47,7 +47,7 @@ install:
 
 install-cigri: install-cigri-server install-cigri-user
 
-install-cigri-server: install-cigri-libs install-cigri-modules install-cigri-launcher install-cigri-api install-cigri-server-config
+install-cigri-server: install-cigri-libs install-cigri-modules install-cigri-launcher install-cigri-api install-cigri-server-config gen-ssl-cert
 
 install-cigri-user: install-cigri-libs install-cigri-user-cmds install-cigri-user-config install-cigri-server-config
 
@@ -109,6 +109,16 @@ install-cigri-server-config:
 		perl -pi -e "s#%%CIGRIDIR%%#$(CIGRIDIR)#g;;\
 		s#%%APIBASE%%#$(APIBASE)#g" $(DESTDIR)$(CIGRICONFDIR)/api-apache.conf; fi
 	chown $(WWWUSER) $(DESTDIR)$(CIGRICONFDIR)/api-apache.conf
+
+gen-ssl-cert: /etc/cigri/ssl
+
+/etc/cigri/ssl:
+	install -d -m 0700 $(DESTDIR)$(CIGRICONFDIR)/ssl
+	chown cigri $(DESTDIR)$(CIGRICONFDIR)/ssl
+	install -m 0644 etc/ssl/cigri.cnf $(DESTDIR)$(CIGRICONFDIR)/ssl/cigri.cnf 
+	openssl genrsa -out $(DESTDIR)$(CIGRICONFDIR)/ssl/cigri.key 1024
+	openssl req -config $(DESTDIR)$(CIGRICONFDIR)/ssl/cigri.cnf -new -key $(DESTDIR)$(CIGRICONFDIR)/ssl/cigri.key -out $(DESTDIR)$(CIGRICONFDIR)/ssl/cigri.csr
+	openssl x509 -req -days 3650 -in $(DESTDIR)$(CIGRICONFDIR)/ssl/cigri.csr -CA $(DESTDIR)/etc/ssl/certs/ssl-cert-snakeoil.pem -CAkey $(DESTDIR)/etc/ssl/private/ssl-cert-snakeoil.key -CAcreateserial -out $(DESTDIR)$(CIGRICONFDIR)/ssl/cigri.crt
 
 clean:
 	rm -rf doc/rdoc doc/yard .yardoc
