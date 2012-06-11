@@ -88,7 +88,6 @@ module Cigri
     # So, group the jobs by campaigns as only jobs from a
     # same campaign can be launched in the same array
     def submit(cluster_id)
-      array_jobs=[]
       cluster=Cluster.new(:id => cluster_id)
       self.campaigns.each do |campaign_id|
         campaign=Campaign.new(:id => campaign_id)
