@@ -190,8 +190,14 @@ module Cigri
         @api.get("jobs")
       end
 
+      # G5K API does not support job arrays, so we split in several calls.
       def submit_job(job, user)
-        @api.post("jobs", job, {@description["api_auth_header"] => user})
+        command = job["command"]
+        params = job.delete("param_file").split("\n")
+        params.each do |param|
+          job ["command"] = "#{command} #{param}"
+          @api.post("jobs", job, {@description["api_auth_header"] => user})
+        end
       end
 
       def delete_job(job_id, user)
