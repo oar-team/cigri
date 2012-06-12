@@ -564,14 +564,15 @@ end
 # - offset
 #
 # == Returns
-# Array of properties
-# property[0] = id
+# Array: [id, name, param, state]
 #
 ##
 def get_campaign_tasks(dbh, id, limit, offset)
-  query = "SELECT id, name, param
-           FROM parameters
-           WHERE campaign_id = ? 
+  query = "SELECT p.id, p.name, p.param, j.state
+           FROM parameters as p
+           LEFT JOIN jobs as j 
+            ON p.id = j.param_id
+           WHERE p.campaign_id = ? 
            ORDER BY id
            LIMIT ? 
            OFFSET ?"

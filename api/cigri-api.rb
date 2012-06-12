@@ -268,7 +268,7 @@ class API < Sinatra::Base
           :id => task_id,
           :name => task[1],
           :parameters => task[2],
-          :state => :waiting,
+          :state => task[3] || :waiting,
           :href => to_url("campaigns/#{id}/jobs/#{task_id}")
         }
       end
