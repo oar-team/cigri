@@ -181,23 +181,31 @@ module Cigri
     ##
     class G5kCluster < RestCluster
 
-      def get_job(job_id)
-        @api.get("jobs/#{job_id}")
+      def get_job(job_id, user=nil)
+        job = @api.get("jobs/#{job_id}")
+        job["id"] = job["uid"]
+        job
       end
 
       # Get the running jobs
-      def get_jobs
-        @api.get("jobs")
+      def get_jobs(props = {})
+        res = []
+        props[:array].each do |job_id|
+          res << self.get_job(job_id)
+        end
+        res
       end
 
       # G5K API does not support job arrays, so we split in several calls.
       def submit_job(job, user)
         command = job["command"]
         params = job.delete("param_file").split("\n")
+        ids = []
         params.each do |param|
           job ["command"] = "#{command} #{param}"
-          @api.post("jobs", job, {@description["api_auth_header"] => user})
+          ids << @api.post("jobs", job, {@description["api_auth_header"] => user})["uid"]
         end
+        {"id" => ids}
       end
 
       def delete_job(job_id, user)

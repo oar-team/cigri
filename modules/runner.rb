@@ -70,15 +70,15 @@ while true do
       begin
         cluster_job = cluster.get_job(job.props[:remote_id].to_i, job.props[:grid_user])
         case cluster_job["state"] 
-          when "Terminated"
+          when /Terminated/i
             job.update({'state' => 'terminated'})
-          when "Error"
+          when /Error/i
             job.update({'state' => 'event'})
-          when "Running"
+          when /Running/i
             job.update({'state' => 'running'})
-          when "Finishing"
+          when /Finishing/i
             job.update({'state' => 'running'})
-          when "Waiting"
+          when /Waiting/i
             job.update({'state' => 'remote_waiting'})
             # close the tap
             tap = 0
@@ -106,7 +106,7 @@ while true do
     jobs = tolaunch_jobs.take
     # Submit the new jobs
     begin
-      jobs.submit(cluster.id)        
+      jobs.submit(cluster.id)
     rescue => e
       # TODO: Event!
       logger.warn("Could not submit jobs on #{cluster.name}: #{e.inspect}")

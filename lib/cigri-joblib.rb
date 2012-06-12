@@ -117,7 +117,7 @@ module Cigri
                                    'submission_time' => Time::now(),
                                    'cluster_id' => cluster_id,
                                  },'jobs' )
-          submitted_jobs.match_remote_ids(cluster_id,j["id"])
+          submitted_jobs.match_remote_ids(cluster_id, campaign.clusters[cluster_id]["exec_file"], j["id"])
         end
       end
       JOBLIBLOGGER.debug("Remote ids of array jobs just submitted on #{cluster.description["name"]}: #{array_jobs.join(',')}")
@@ -128,10 +128,10 @@ module Cigri
     # each job of a oar array_job with the corresponding cigri job.
     # For this, we ensure that the parameters part of the oar command is the same
     # of the param value in the cigri database.
-    def match_remote_ids(cluster_id,array_id)
-      cluster=Cluster.new(:id => cluster_id)
+    def match_remote_ids(cluster_id, command, array_id)
+      cluster  = Cluster.new(:id => cluster_id)
       begin
-        cluster_jobs=cluster.get_jobs(:array => array_id)
+        cluster_jobs = cluster.get_jobs(:array => array_id)
       rescue
         # TODO: We should create an event here
         # Could not get the submitted jobs id
@@ -139,16 +139,16 @@ module Cigri
       end
       # For each job of the array on the cluster
       cluster_jobs.each do |cluster_job|
-        matched=0
+        matched = false
         # we try to match the parameters of each job of the jobset
         jobs.each do |cigri_job|
-          if cluster_job["command"].split(nil,2)[1] == cigri_job.props[:param]
-            cigri_job.update({'remote_id' => cluster_job["id"]},"jobs")
-            matched=1
+          if cluster_job["command"].include?("#{command} #{cigri_job.props[:param]}")
+            cigri_job.update({'remote_id' => cluster_job["id"]}, "jobs")
+            matched = true
             break
           end  
         end
-        if matched == 0
+        if !matched
           JOBLIBLOGGER.error("Could not find the CIGRI job corresponding to the OAR job #{cluster_job["id"]} !")
         end
       end
