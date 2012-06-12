@@ -141,14 +141,11 @@ module Cigri
       cluster_jobs.each do |cluster_job|
         matched = false
         # we try to match the parameters of each job of the jobset
-        jobs.each do |cigri_job|
-          if cluster_job["command"].include?("#{command} #{cigri_job.props[:param]}")
-            cigri_job.update({'remote_id' => cluster_job["id"]}, "jobs")
-            matched = true
-            break
-          end  
-        end
-        if !matched
+        index = jobs.index {|cigri_job| cluster_job["command"].include?("#{command} #{cigri_job.props[:param]}")}
+        if index
+          cigri_job = jobs.delete_at(index)
+          cigri_job.update({'remote_id' => cluster_job["id"]}, "jobs")
+        else
           JOBLIBLOGGER.error("Could not find the CIGRI job corresponding to the OAR job #{cluster_job["id"]} !")
         end
       end
