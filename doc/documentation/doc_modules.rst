@@ -3,7 +3,7 @@
 Modules Description
 ===================
 
-|soft| is divided in several independent modules. Each module has a
+Cigri is divided in several independent modules. Each module has a
 specific unique role. This section depicts the roles of the different
 modules.
 
@@ -67,7 +67,7 @@ Deletes jobs that should be killed
 Almighty
 --------
 
-Almighty is the central component of |soft|. It is a coordinator as it
+Almighty is the central component of Cigri. It is a coordinator as it
 chooses what other module to launch. 
 
 Modules are launched in this order:

@@ -10,9 +10,7 @@
 :Status: Testing
 :Copyright: Licenced under the ????
 :Abstract:
-  |soft| is a tool for campaigns management.
-
-.. |soft| replace:: CiGri-ng
+  Cigri is a tool for campaigns management.
 
 .. Local Variables:
 .. ispell-local-dictionary: "american"

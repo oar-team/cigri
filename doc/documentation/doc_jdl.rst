@@ -62,7 +62,7 @@ as value on all clusters.
 
 - walltime: maximum duration of the jobs
 
-  - **Default** defined in |soft| configuration file
+  - **Default** defined in Cigri configuration file
 
 - exec_file*: script to execute
 - exec_directory: path to a directory execution.
@@ -100,7 +100,7 @@ as value on all clusters.
 
 - temporal_grouping: allow to execute several jobs one after the other
   in a single submission. The number of jobs is computed automatically
-  by |soft|
+  by Cigri
 
   - **true**
   - false

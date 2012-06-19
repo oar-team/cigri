@@ -12,13 +12,13 @@ URLs
 HTTPrequest URL                                     Purpose
 =========== ======================================= ==========================================================
 GET         /                                       List the available links
-GET         /campaigns                              List of all running campaigns
-GET         /campaigns/<campaign_id>                Get details on a specific campaign
-GET         /campaigns/<campaign_id>/jdl            Get the JDL of the campaign
-GET         /campaigns/<campaign_id>/jobs           List all jobs of a specific campaign
-GET         /campaigns/<campaign_id>/jobs/<job_id>  Get details of a specific job of a specific campaign
 GET         /clusters                               List all clusters available in Cigri
 GET         /clusters/<cluster_id>                  Get details on a specific cluster
+GET         /campaigns                              List of all running campaigns
+GET         /campaigns/<campaign_id>                Get details on a specific campaign
+GET         /campaigns/<campaign_id>/jdl            Get the expanded JDL of a campaign
+GET         /campaigns/<campaign_id>/jobs           List all jobs of a specific campaign (See `API options`_)
+GET         /campaigns/<campaign_id>/jobs/<job_id>  Get details of a specific job of a specific campaign
 POST        /campaigns                              Submit a new campaign
 PUT         /campaigns/<campaign_id>                Update a campaign (status, name)
 DELETE      /campaigns/<campaign_id>                Delete a campaign
@@ -65,9 +65,9 @@ Exemples::
 API options
 -----------
 
-Some options can be passed in the URL:
+Options that can be passed in the URL with their default value in parenthesis:
 
-- **pretty**: Will display the answered JSON in a more readable format (but larger). Only not giving the option or putting it to false will disable it::
+- **pretty** (false): Will display the answered JSON in a more readable format (but larger). Only not giving the option or putting it to false will disable it::
 
   $ curl http://api-host:port?pretty => pretty print on
   $ curl http://api-host:port?pretty=true => pretty print on
@@ -75,13 +75,11 @@ Some options can be passed in the URL:
   $ curl http://api-host:port => pretty print off
   $ curl http://api-host:port?pretty=false => pretty print off
 
+- **limit** (100) and **offset** (0): Some resources may contain many items, therefore, only a subset of them are displayed.::
 
-- **action={delete,update}**: Instead of using a DELETE or a PUT request, you can use a POST request with action. The action can be passed in the URL directly or in the POST values::
-
-   $ curl -X POST http://api-host:port/campaigns/1 -d "action=delete"
-    => $ curl -X DELETE http://api-host:port/campaigns/1
-   $ curl -X POST http://api-host:port/campaigns/1?action=update -d "name=TOTO; state=paused" 
-    => curl -X PUT http://api-host:port/campaigns/569 -d "name=TOTO; state=paused"
+  $ curl http://api-host:port/campaigns/<campaign_id>/jobs => display the first 100 jobs
+  $ curl http://api-host:port/campaigns/<campaign_id>/jobs?limit=23 => display the first 23 jobs
+  $ curl http://api-host:port/campaigns/<campaign_id>/jobs?limit=12&offset=50 => display jobs 50 to 62
 
 
 .. Local Variables:

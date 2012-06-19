@@ -3,7 +3,7 @@
 Libraries Description
 =====================
 
-Different libraries may be used by |soft| components. 
+Different libraries may be used by Cigri components. 
 
 conflib
 -------
@@ -12,7 +12,7 @@ Library handling the configuration file and variables. The configuration file is
 iolib
 -----
 
-Library handling all interactions with the |soft| database. It
+Library handling all interactions with the Cigri database. It
 provides a connection method that gives a database handle, and many
 useful queries.
 
@@ -30,7 +30,7 @@ provides methods to submit jobs to the batchs.
 apilib
 ------
 
-Library handling the |soft| API that serves REST queries.
+Library handling the Cigri API that serves REST queries.
 
 .. Local Variables:
 .. ispell-local-dictionary: "american"
