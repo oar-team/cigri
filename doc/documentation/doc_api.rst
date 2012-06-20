@@ -47,7 +47,7 @@ Code HTTPrequest             Meaning
 ==== ======================= ====================================================
 200  GET                     Request successful: everything went well :)
 201  POST                    Resource created: the campaign has been submitted
-202  PUT                     Accepted: modifications done
+202  PUT, DELETE             Accepted: modifications done
 400  POST, PUT               Bad request: see the body of the answer for details
 403  POST, PUT, DELETE       Forbidden: see response for details
 404  GET, POST, PUT, DELETE  Page not found: the URL does not exist

@@ -202,7 +202,7 @@ class API < Sinatra::Base
       halt 400, print({:status => 400, :title => "Error", :message => "Error updating campaign #{id}: #{e}"})
     end
   
-    status 200
+    status 202
     print(get_formated_campaign(id))
   end
   

@@ -220,7 +220,7 @@ def cigri_submit_jobs(dbh, params, campaign_id, user)
     #TODO configure size of loop (10000 should be in conf file)
     while params.length > 0 do
       slice = params.slice!(0...10000)
-      slice.map!{ |param| "(#{quote(param.split.first)}, #{quote(param)}, #{campaign_id})"}
+      slice.map!{ |param| "(#{quote(param.to_s.split.first)}, #{quote(param)}, #{campaign_id})"}
 
       sth = dbh.execute(base_query + slice.join(', ') + " RETURNING id")
       inserted_ids = sth.fetch_all
