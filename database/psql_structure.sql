@@ -72,6 +72,7 @@ CREATE TABLE parameters (
   campaign_id INTEGER NOT NULL,
   name VARCHAR(255),
   param TEXT,
+  UNIQUE (campaign_id, name),
   PRIMARY KEY (id)
 );
 CREATE INDEX parameters_idx_id ON parameters (id);
