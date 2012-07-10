@@ -1815,9 +1815,19 @@ sub get_remoteWaiting_times($){
     my $dbh = shift;
 
     my $sth = $dbh->prepare("SELECT jobId, (NOW() - jobTSub) 
-							 FROM jobs WHERE
-								jobState = \"RemoteWaiting\"
-                                                         GROUP BY jobRemoteId;
+				FROM jobs WHERE
+				  jobState = \"RemoteWaiting\"
+                                  AND jobClusterName NOT IN 
+                                      ( SELECT  clusterName FROM clusters WHERE 
+                                          clusterName IN 
+                                          ( SELECT clusterBlackList.clusterBlackListClusterName 
+                                              FROM clusterBlackList,events 
+                                              WHERE clusterBlackListEventId = eventId
+                                              AND eventState = \"ToFIX\" 
+                                              AND clusterBlackListMJobsID=0
+                                          )
+                                       )                  
+                                GROUP BY jobRemoteId;
                             ");
     $sth->execute();
 
@@ -2579,9 +2589,9 @@ sub how_many_to_30min($$$) {
 
     $sth->finish();
 
-    if (!defined($res[0]) or $res[0] > 5*60/2 ) { return 1; } #task too long, don't batch 
+    if (!defined($res[0]) or $res[0] > 30*60/2 ) { return 1; } #task too long, don't batch 
 	
     #plein de magie
-    return ((!defined($res[0]) || $res[0] > 5*60/2 )? 1 : int( (5*60) / $res[0] ));
+    return ((!defined($res[0]) || $res[0] > 30*60/2 )? 1 : int( (30*60) / $res[0] ));
 
 }
