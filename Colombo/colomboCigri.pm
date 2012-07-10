@@ -513,9 +513,15 @@ Mjob $ref[2]  \n";
                                 print "[COLOMBO]       BB 04/2011 disabled Auto-frag... seems buggy in some cases\n";
 				#TODO emathias: mail everybody 
 			}else{
-				my $job_to_resubmit = get_jobid_from_blacklistid($dbh,$id);
-				print "[COLOMBO]     Resubmit job $job_to_resubmit, due to blacklisting \n";
-		 		resubmit_job($dbh,$job_to_resubmit);
+                                # B.Bzeznik 2012-07-10 - disabled automatic resubmssion
+                                # when blacklisting, because it can cause multiple conflicts between jobs!!
+                                # Imagine a job uploading files into a ditributed FS (irods) failing while
+                                # sending 1 of two files. It's up to the user to choose if the error can lead
+                                # to a resubmission (by sending a 66 exit code)
+                                # 
+				#my $job_to_resubmit = get_jobid_from_blacklistid($dbh,$id);
+				#print "[COLOMBO]     Resubmit job $job_to_resubmit, due to blacklisting \n";
+		 		#resubmit_job($dbh,$job_to_resubmit);
 			}
 
 
