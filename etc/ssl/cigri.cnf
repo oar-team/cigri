@@ -13,7 +13,7 @@ L                      = Default CIGRI Locality
 O                      = Default CIGRI O
 OU                     = Default CIGRI OU
 CN                     = Default CIGRI CN
-emailAddress           = gridmaster@ujf-grenoble.fr
+emailAddress           = gridmaster@changeme.org
 
 [ req_attributes ]
 challengePassword              = cigri
