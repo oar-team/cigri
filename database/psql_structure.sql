@@ -123,3 +123,24 @@ CREATE INDEX jobs_idx_campaign_id ON jobs (campaign_id);
 CREATE INDEX jobs_idx_batch_id ON jobs (batch_id);
 CREATE INDEX jobs_idx_state ON jobs (state);
 CREATE INDEX jobs_idx_cluster_id ON jobs (cluster_id);
+
+DROP TABLE IF EXISTS events;
+CREATE TYPE event_class as ENUM('cluster','job','campaign');
+CREATE TYPE event_state as ENUM('open','closed');
+CREATE TABLE  events (
+  id BIGSERIAL NOT NULL,
+  class event_class NOT NULL,
+  code VARCHAR(32) NOT NULL,
+  state event_state NOT NULL,
+  job_id INTEGER,
+  cluster_id INTEGER,
+  campaign_id INTEGER,
+  MESSAGE TEXT,
+  PRIMARY KEY (id)
+);
+CREATE INDEX events_idx_id ON events (id);
+CREATE INDEX events_idx_class ON events (class);
+CREATE INDEX events_idx_code ON events (code);
+CREATE INDEX events_idx_job_id ON events (job_id);
+CREATE INDEX events_idx_cluster_id ON events (cluster_id);
+CREATE INDEX events_idx_campaign_id ON events (campaign_id);
