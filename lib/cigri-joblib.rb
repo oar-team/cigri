@@ -151,6 +151,14 @@ module Cigri
         end
       end
     end
+    
+    def ids
+      ids=[]
+      jobs.each do |job|
+        ids << job.id
+      end
+      ids
+    end
 
   end # Class Jobset
 

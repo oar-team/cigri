@@ -5,6 +5,7 @@ $LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
 require 'cigri'
 require 'cigri-clusterlib'
 require 'cigri-joblib'
+require 'cigri-eventlib'
 
 config = Cigri.conf
 logger = Cigri::Logger.new("RUNNER #{ARGV[0]}", config.get('LOG_FILE'))
@@ -108,8 +109,12 @@ while true do
     begin
       jobs.submit(cluster.id)
     rescue => e
-      # TODO: Event!
-      logger.warn("Could not submit jobs on #{cluster.name}: #{e.inspect}")
+      message = "Could not submit jobs #{jobs.ids.inspect} on #{cluster.name}: #{e}"
+      jobs.each do |job|
+        job.update({'state' => 'event'})
+        Cigri::Event.new(:class => "job", :code => "SUBMIT_ERROR", :cluster_id => cluster.id, :job_id => job.id, :message => message)
+      end
+      logger.warn(message)
     end
   else
     sleep_more = SLEEP_MORE
