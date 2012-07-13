@@ -274,9 +274,9 @@ module Cigri
 
     # Return true if campaign has at least an active cluster
     def have_active_clusters?
-      @clusters.each do |cluster|
-        #TODO: should check for blacklisted clusters (colombo)
-        return true
+      @clusters.each_key do |cluster_id|
+        cluster=Cigri::Cluster.new(:id=>cluster_id)
+        return true unless cluster.blacklisted?(:campaign_id=>id)
       end
       false
     end

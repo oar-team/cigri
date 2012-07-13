@@ -14,6 +14,7 @@ require 'cigri-logger'
 require 'cigri-conflib'
 require 'cigri-iolib'
 require 'cigri-restclientlib'
+require 'cigri-eventlib'
 
 CLUSTERLIBLOGGER = Cigri::Logger.new('CLUSTERLIB', CONF.get('LOG_FILE'))
 
@@ -82,6 +83,20 @@ module Cigri
       @description["name"]
     end
 
+    # Check if the cluster is blacklisted
+    # It may be a check for a campaign blacklist only if :campaign_id is given
+    def blacklisted?(opt={})
+      events=Cigri::Eventset.new(:where => "state='open' and cluster_id=#{@id} and class='cluster'")
+      return true if events.length > 0
+      if opt[:campaign_id]
+        events=Cigri::Eventset.new(:where => "state='open' and cluster_id=#{@id} 
+                                   and campaign_id=#{opt[:campaign_id]} 
+                                   and class='campaign'")
+        return true if events.length > 0
+      end
+      false
+    end
+
     # Get the resources
     def get_resources
       raise "Method must be overridden"
@@ -148,8 +163,12 @@ module Cigri
       end 
  
       def submit_job(job, user="")
-        @api.post("jobs",job, {@description["api_auth_header"] => user})
-           # TODO: manage event (cluster blacklist) if timeout
+        begin
+          @api.post("jobs",job, {@description["api_auth_header"] => user})
+        rescue => e
+          Cigri::Event.new(:class => "cluster", :cluster_id => @id, :code => "SUBMIT_JOB", :message => e)
+          raise
+        end
       end
  
       def get_job(job_id, user=nil)

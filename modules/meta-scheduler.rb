@@ -5,6 +5,7 @@ $LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
 require 'cigri'
 require 'cigri-joblib'
 require 'cigri-scheduler-fifo'
+require 'cigri-eventlib'
 
 $0='cigri: metascheduler'
 
@@ -35,20 +36,24 @@ begin
     campaign.get_clusters
     while campaign.have_remaining_tasks? and campaign.have_active_clusters? do
       campaign.clusters.each_key do |cluster_id|
-        logger.debug("Queuing for campaign #{campaign.id} on cluster #{cluster_id}")
+        cluster = Cigri::Cluster.new(:id => cluster_id)
+        if not cluster.blacklisted?
+          logger.debug("Queuing for campaign #{campaign.id} on cluster #{cluster.name}")
 
-        # As an example, we check the campaign_type:
-        if campaign.clusters[cluster_id]["campaign_type"] != "best-effort"
-          logger.warn("Only best-effort campaigns are supported for now!")
+          # As an example, we check the campaign_type:
+          if campaign.clusters[cluster.id]["campaign_type"] != "best-effort"
+            logger.warn("Only best-effort campaigns are supported for now!")
+          end
+
+          # Scheduler call
+          scheduler=Cigri::SchedulerFifo.new(campaign,cluster.id,{
+                                                              :max_jobs => max_jobs,
+                                                              :best_effort => true
+                                                              })
+          scheduler.do
+        else
+          logger.debug("Cluster #{cluster.name} is blacklisted") 
         end
-
-        # Scheduler call
-        scheduler=Cigri::SchedulerFifo.new(campaign,cluster_id,{
-                                                            :max_jobs => max_jobs,
-                                                            :best_effort => true
-                                                            })
-        scheduler.do
-
       end
     sleep 2
     end

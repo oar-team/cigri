@@ -55,44 +55,51 @@ while true do
   sleep_more = 0
   tap = DEFAULT_TAP
 
+
   ##########################################################################
   # Jobs control
   ##########################################################################
-  # Update the jobs state and close the tap if necessary
-  current_jobs = Cigri::Jobset.new
-  current_jobs.get_submitted(cluster.id)
-  current_jobs.get_running(cluster.id)
-  current_jobs.each do |job|
-    if job.props[:remote_id].nil? || job.props[:remote_id] == ""
-      #Create an event here: the job is lost, it has no remote_id
-      job.update({'state' => 'event'})
-      logger.error("Job #{job.id} is lost, it has no remote_id!") 
-    else
-      begin
-        cluster_job = cluster.get_job(job.props[:remote_id].to_i, job.props[:grid_user])
-        case cluster_job["state"] 
-          when /Terminated/i
-            job.update({'state' => 'terminated'})
-          when /Error/i
-            job.update({'state' => 'event'})
-          when /Running/i
-            job.update({'state' => 'running'})
-          when /Finishing/i
-            job.update({'state' => 'running'})
-          when /Waiting/i
-            job.update({'state' => 'remote_waiting'})
-            # close the tap
-            tap = 0
-          else
-            # close the tap
-            tap = 0
+  # Check if the cluster is blacklisted
+  if cluster.blacklisted? 
+    tap=0
+    logger.warn("Cluster is blacklisted") 
+  else  
+    # Update the jobs state and close the tap if necessary
+    current_jobs = Cigri::Jobset.new
+    current_jobs.get_submitted(cluster.id)
+    current_jobs.get_running(cluster.id)
+    current_jobs.each do |job|
+      if job.props[:remote_id].nil? || job.props[:remote_id] == ""
+        #Create an event here: the job is lost, it has no remote_id
+        job.update({'state' => 'event'})
+        logger.error("Job #{job.id} is lost, it has no remote_id!") 
+      else
+        begin
+          cluster_job = cluster.get_job(job.props[:remote_id].to_i, job.props[:grid_user])
+          case cluster_job["state"] 
+            when /Terminated/i
+              job.update({'state' => 'terminated'})
+            when /Error/i
+              job.update({'state' => 'event'})
+            when /Running/i
+              job.update({'state' => 'running'})
+            when /Finishing/i
+              job.update({'state' => 'running'})
+            when /Waiting/i
+              job.update({'state' => 'remote_waiting'})
+              # close the tap
+              tap = 0
+            else
+              # close the tap
+              tap = 0
+          end
+        rescue => e
+          #TODO: event: could not get the remote job
+          logger.error("Could not get remote job #{job.id}! #{e.inspect}") 
         end
-      rescue => e
-        #TODO: event: could not get the remote job
-        logger.error("Could not get remote job #{job.id}! #{e.inspect}") 
       end
-    end
-  end 
+    end 
+  end
 
   ##########################################################################
   # Jobs submission

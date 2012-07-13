@@ -26,7 +26,11 @@ module Cigri
         if props[:state].nil?
           props[:state]="open"
         end
-        EVENTLOGGER.debug("New event:" + props.inspect)        
+        msg=""
+        props.each_key do |prop| 
+          msg += "#{prop}=\"#{props[prop]}\" "
+        end
+        EVENTLOGGER.debug("New event:" + msg)        
       end
       super("events",props)
     end
