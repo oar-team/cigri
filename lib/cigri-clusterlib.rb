@@ -97,6 +97,15 @@ module Cigri
       false
     end
 
+    # Check if the cluster has some launching jobs
+    def has_launching_jobs?
+      n=0
+      db_connect() do |dbh|
+        n=get_cluster_nb_launching_jobs(dbh, @id)
+      end
+      return n > 0
+    end
+
     # Get the resources
     def get_resources
       raise "Method must be overridden"

@@ -276,7 +276,6 @@ def get_clusters_ids(dbh, clusters_names)
   res
 end
 
-
 ##
 # Insert a new cluster into the database
 #
@@ -654,6 +653,25 @@ dbh.select_one("SELECT COUNT(*) FROM jobs
                                 WHERE campaign_id = ? 
                                   AND state = 'terminated'", id)[0]
 end
+
+##
+# Returns the number of launching jobs for a given cluster
+#
+# == Parameters
+# - dbh: dababase handle
+# - id: cluster_id
+#
+# == Returns
+# Number of jobs (integer)
+#
+##
+def get_cluster_nb_launching_jobs(dbh, id)
+dbh.select_one("SELECT COUNT(*) FROM jobs
+                                WHERE cluster_id = ? 
+                                  AND state = 'launching'", id)[0]
+end
+
+
 
 ##
 # Returns a hash with a campaign id as key and it's number of finished jobs as value

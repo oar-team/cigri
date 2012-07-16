@@ -104,20 +104,21 @@ module Cigri
                      }
         # TODO: add walltime, manage grouping,etc...
         JOBLIBLOGGER.info("Submitting new array job on #{cluster.description["name"]} with #{params.length} parameter(s).")
+        launching_jobs=Jobset.new
+        launching_jobs.fill(jobs,true)       
+        launching_jobs.update({'state' => 'launching'})
         j=cluster.submit_job(submission,campaign.props[:grid_user])
         if j.nil?
           JOBLIBLOGGER.error("Unhandled error when submitting jobs on #{cluster.description["name"]}!")
         else
           array_jobs << j["id"]
           # Update jobs infos
-          submitted_jobs=Jobset.new
-          submitted_jobs.fill(jobs,true)
-          submitted_jobs.update!(
+          launching_jobs.update!(
                                  { 'state' => 'submitted', 
                                    'submission_time' => Time::now(),
                                    'cluster_id' => cluster_id,
                                  },'jobs' )
-          submitted_jobs.match_remote_ids(cluster_id, campaign.clusters[cluster_id]["exec_file"], j["id"])
+          launching_jobs.match_remote_ids(cluster_id, campaign.clusters[cluster_id]["exec_file"], j["id"])
         end
       end
       JOBLIBLOGGER.debug("Remote ids of array jobs just submitted on #{cluster.description["name"]}: #{array_jobs.join(',')}")

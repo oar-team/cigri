@@ -59,6 +59,12 @@ while true do
   ##########################################################################
   # Jobs control
   ##########################################################################
+  # Check if there are some jobs in the transitionnal "launching" jobs
+  if cluster.has_launching_jobs?
+    # TODO: Add an event here, so that colombo will pass them as event re-submit
+    logger.warn("There are some 'launching' jobs!")
+  end
+
   # Check if the cluster is blacklisted
   if cluster.blacklisted? 
     tap=0
