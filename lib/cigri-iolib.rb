@@ -621,6 +621,24 @@ def get_campaign_active_jobs_number(dbh, id)
 end
 
 ##
+# Returns the number of to_launch jobs for a given campaign
+#
+# == Parameters
+# - dbh: dababase handle
+# - id: campaign id
+#
+# == Returns
+# Number of tasks (integer)
+#
+##
+def get_campaign_to_launch_jobs_number(dbh, id)
+  dbh.select_one("SELECT COUNT(*) FROM jobs_to_launch,bag_of_tasks
+                                  WHERE task_id=bag_of_tasks.id
+                                    AND campaign_id=?", id)[0]
+end
+
+
+##
 # Returns the number of completed tasks for a given campaign
 #
 # == Parameters

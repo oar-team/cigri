@@ -20,7 +20,7 @@ begin
   end
   
   logger.debug('Starting')
-  
+
   # Check for finished campaigns
   campaigns=Cigri::Campaignset.new
   campaigns.get_running
