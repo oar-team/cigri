@@ -599,6 +599,28 @@ def get_campaign_remaining_tasks_number(dbh, id)
 end
 
 ##
+# Returns the number of active jobs (running, waiting, event open, remotewaiting) for a given campaign
+#
+# == Parameters
+# - dbh: dababase handle
+# - id: campaign id
+#
+# == Returns
+# Number of tasks (integer)
+#
+##
+def get_campaign_active_jobs_number(dbh, id)
+  dbh.select_one("SELECT COUNT(*) FROM jobs
+                                  LEFT JOIN events ON jobs.id=events.job_id
+                                  WHERE (jobs.state='running'
+                                     OR jobs.state='submitted'
+                                     OR jobs.state='to_launch'
+                                     OR jobs.state='remote_waiting'
+                                     OR (jobs.state='event' and events.state='open'))
+                                    AND jobs.campaign_id=?", id)[0]
+end
+
+##
 # Returns the number of completed tasks for a given campaign
 #
 # == Parameters

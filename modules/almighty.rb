@@ -83,6 +83,7 @@ begin
     logger.debug('New iteration')
     check_processes(childs)
     system("#{File.dirname(__FILE__)}/meta-scheduler.rb")
+    system("#{File.dirname(__FILE__)}/updator.rb")
     sleep 10
   end
 end

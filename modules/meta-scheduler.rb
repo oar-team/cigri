@@ -34,7 +34,7 @@ begin
   campaigns.each do |campaign|
     logger.debug("Campaign #{campaign.id}")
     campaign.get_clusters
-    while campaign.have_remaining_tasks? and campaign.have_active_clusters? do
+    while campaign.has_remaining_tasks? and campaign.have_active_clusters? do
       campaign.clusters.each_key do |cluster_id|
         cluster = Cigri::Cluster.new(:id => cluster_id)
         if not cluster.blacklisted?

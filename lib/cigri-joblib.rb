@@ -247,10 +247,24 @@ module Cigri
     end
 
     # Checks if a campaign has remaining tasks to execute
-    def have_remaining_tasks?
+    def has_remaining_tasks?
       db_connect() do |dbh|
         return get_campaign_remaining_tasks_number(dbh, id) > 0
       end
+    end
+
+    # Check if a campaign has active jobs
+    def has_active_jobs?
+      db_connect() do |dbh|
+        return get_campaign_active_jobs_number(dbh, id) > 0
+      end
+    end
+
+    # Check if a campaign is finished
+    def finished?
+      return false if has_remaining_tasks?
+      return false if has_active_jobs?
+      return true
     end
 
     def min_task_id
