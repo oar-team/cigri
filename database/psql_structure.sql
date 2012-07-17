@@ -135,6 +135,7 @@ CREATE TABLE  events (
   job_id INTEGER,
   cluster_id INTEGER,
   campaign_id INTEGER,
+  parent INTEGER,
   MESSAGE TEXT,
   PRIMARY KEY (id)
 );
