@@ -127,6 +127,7 @@ CREATE INDEX jobs_idx_cluster_id ON jobs (cluster_id);
 DROP TABLE IF EXISTS events;
 CREATE TYPE event_class as ENUM('cluster','job','campaign');
 CREATE TYPE event_state as ENUM('open','closed');
+CREATE TYPE checkbox as ENUM('yes','no');
 CREATE TABLE  events (
   id BIGSERIAL NOT NULL,
   class event_class NOT NULL,
@@ -136,6 +137,7 @@ CREATE TABLE  events (
   cluster_id INTEGER,
   campaign_id INTEGER,
   parent INTEGER,
+  checked checkbox,
   MESSAGE TEXT,
   PRIMARY KEY (id)
 );
