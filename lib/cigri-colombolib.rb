@@ -52,8 +52,8 @@ module Cigri
     def check_clusters
       COLOMBOLIBLOGGER.debug("Checking cluster events")
       @events.each do |event|
-          COLOMBOLIBLOGGER.debug("Checking event #{event.props[:code]}")
         if event.props[:class]=="cluster"
+          COLOMBOLIBLOGGER.debug("Checking event #{event.props[:code]}")
           case event.props[:code]
           when "SUBMIT_JOB"
             blacklist_cluster(event.id,event.props[:cluster_id],event.props[:campaign_id])
@@ -64,6 +64,18 @@ module Cigri
           else
           end
         end
+      end
+    end
+
+    def check_launching_jobs
+      COLOMBOLIBLOGGER.debug("Checking launching jobs")
+      @events.each do |event|
+        job=Job.new({:id => event.props[:job_id], :state => 'event'})
+        COLOMBOLIBLOGGER.warn("Resubmitting job #{job.id} as it was stuck into launching state")
+        event.update({:message => event.props[:message].to_s+";Colombo resubmit at "+Time::now().to_s+"for stuck into launching state"})
+        job.resubmit
+        event.checked
+        event.close
       end
     end
 

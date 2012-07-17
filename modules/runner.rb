@@ -62,8 +62,15 @@ while true do
   ##########################################################################
   # Check if there are some jobs in the transitionnal "launching" jobs
   if cluster.has_launching_jobs?
-    # TODO: Add an event here, so that colombo will pass them as event re-submit
     logger.warn("There are some 'launching' jobs!")
+    launching_jobs = Cigri::Jobset.new
+    launching_jobs.get_launching(cluster.id)
+    launching_jobs.update({:state => 'event'})
+    events=Cigri::Eventset.new()
+    launching_jobs.each do |job|
+      events << Cigri::Event.new(:class => "job", :code => "STUCK_LAUNCHING_JOB", :cluster_id => cluster.id, :job_id => job.id)
+    end
+    Cigri::Colombo.new(events).check_launching_jobs
   end
 
   # Check if the cluster is blacklisted
@@ -87,6 +94,7 @@ while true do
             when /Terminated/i
               job.update({'state' => 'terminated'})
             when /Error/i
+              #TODO: more checks here, to create the event and trigger automatic resubmission for jobs killed
               job.update({'state' => 'event'})
             when /Running/i
               job.update({'state' => 'running'})

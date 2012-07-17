@@ -29,6 +29,7 @@ module Cigri
         if props[:checked].nil?
           props[:checked]="no"
         end
+        props[:date_open]=Time::now()
         msg=""
         props.each_key do |prop| 
           msg += "#{prop}=\"#{props[prop]}\" "
@@ -36,6 +37,11 @@ module Cigri
         EVENTLOGGER.debug("New event:" + msg) unless props[:nodb]    
       end
       super("events",props)
+    end
+
+    # Close the event
+    def close
+      update({:date_closed => Time::now(), :state => 'closed'})    
     end
 
     # Mark the event as checked (check='yes')

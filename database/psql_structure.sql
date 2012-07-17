@@ -138,7 +138,9 @@ CREATE TABLE  events (
   campaign_id INTEGER,
   parent INTEGER,
   checked checkbox,
-  MESSAGE TEXT,
+  date_open TIMESTAMP,
+  date_closed TIMESTAMP,
+  message TEXT,
   PRIMARY KEY (id)
 );
 CREATE INDEX events_idx_id ON events (id);

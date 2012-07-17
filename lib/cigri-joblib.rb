@@ -26,6 +26,10 @@ module Cigri
       super("jobs",props)
     end
 
+    def resubmit
+      Datarecord.new("bag_of_tasks",{:param_id => @props[:param_id], :campaign_id => @props[:campaign_id]})
+    end
+
   end # class Job
 
   # Jobset class
@@ -56,6 +60,15 @@ module Cigri
     # Alias to the dataset records
     def jobs
       @records
+    end
+
+    # Fill the jobset with the launching jobs
+    def get_launching(cluster_id=nil)
+      cluster_query=""
+      if not cluster_id.nil?
+        cluster_query="and cluster_id=#{cluster_id}"
+      end
+      fill(get("jobs,parameters,campaigns",@fields,"jobs.state = 'launching' and #{@join} #{cluster_query}"))
     end
 
     # Fill the jobset with the currently running jobs
@@ -160,7 +173,7 @@ module Cigri
       end
       ids
     end
-
+    
   end # Class Jobset
 
 

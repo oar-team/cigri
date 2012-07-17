@@ -241,6 +241,7 @@ def cigri_submit_jobs(dbh, params, campaign_id, user)
   end
 end
 
+
 ##
 # Returns the ID in the database of the cluster corresponding to the name
 #
@@ -1005,6 +1006,11 @@ class Dataset
         record.props[field.to_sym]=value
       end
     end
+  end
+
+  # Add a Datarecord to the dataset
+  def <<(record)
+    @records << record
   end
 
 end
