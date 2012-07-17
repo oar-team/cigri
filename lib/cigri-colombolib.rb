@@ -82,6 +82,7 @@ module Cigri
     def check
       COLOMBOLIBLOGGER.debug("Global check requested")
       check_clusters
+      check_launching_jobs
     end
 
   end

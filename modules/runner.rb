@@ -112,7 +112,7 @@ while true do
           job.update({'state' => 'event'})
           message="Could not get remote job #{job.id}! #{e.to_s}"
           event=Cigri::Event.new(:class => "job", :code => "GET_ERROR", :cluster_id => cluster.id, :job_id => job.id, :message => message)
-          Cigri::Colombo.new(event).check
+          Cigri::Colombo.new(event).check_clusters
         end
       end
     end 
