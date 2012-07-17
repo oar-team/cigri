@@ -45,7 +45,9 @@ def db_connect()
     dbh.disconnect() if dbh
   rescue Exception => e
     IOLIBLOGGER.error("Failed to connect to database with string: #{str}\nError: #{e}")
-    raise e
+    IOLIBLOGGER.error("Retrying in 10s")
+    sleep 10
+    retry
   end
 end
 
