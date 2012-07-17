@@ -6,6 +6,7 @@ require 'cigri'
 require 'cigri-clusterlib'
 require 'cigri-joblib'
 require 'cigri-eventlib'
+require 'cigri-colombolib'
 
 config = Cigri.conf
 logger = Cigri::Logger.new("RUNNER #{ARGV[0]}", config.get('LOG_FILE'))
@@ -76,9 +77,9 @@ while true do
     current_jobs.get_running(cluster.id)
     current_jobs.each do |job|
       if job.props[:remote_id].nil? || job.props[:remote_id] == ""
-        #Create an event here: the job is lost, it has no remote_id
         job.update({'state' => 'event'})
-        logger.error("Job #{job.id} is lost, it has no remote_id!") 
+        message="Job #{job.id} is lost, it has no remote_id!"
+        Cigri::Event.new(:class => "job", :code => "GET_REMOTE_ID_ERROR", :cluster_id => cluster.id, :job_id => job.id, :message => message)
       else
         begin
           cluster_job = cluster.get_job(job.props[:remote_id].to_i, job.props[:grid_user])
@@ -100,8 +101,10 @@ while true do
               tap = 0
           end
         rescue => e
-          #TODO: event: could not get the remote job
-          logger.error("Could not get remote job #{job.id}! #{e.inspect}") 
+          job.update({'state' => 'event'})
+          message="Could not get remote job #{job.id}! #{e.to_s}"
+          event=Cigri::Event.new(:class => "job", :code => "GET_ERROR", :cluster_id => cluster.id, :job_id => job.id, :message => message)
+          Cigri::Colombo.new(event).check
         end
       end
     end 
@@ -125,7 +128,8 @@ while true do
       message = "Could not submit jobs #{jobs.ids.inspect} on #{cluster.name}: #{e}"
       jobs.each do |job|
         job.update({'state' => 'event'})
-        Cigri::Event.new(:class => "job", :code => "SUBMIT_ERROR", :cluster_id => cluster.id, :job_id => job.id, :message => message)
+        event=Cigri::Event.new(:class => "job", :code => "SUBMIT_ERROR", :cluster_id => cluster.id, :job_id => job.id, :message => message)
+        Cigri::Colombo.new(event).check
       end
       logger.warn(message)
     end

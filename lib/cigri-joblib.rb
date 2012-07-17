@@ -268,10 +268,19 @@ module Cigri
       end
     end
 
+    # Check if a campaign has launching jobs
+    def has_launching_jobs?
+      db_connect() do |dbh|
+        return get_campaign_launching_jobs_number(dbh, id) > 0
+      end
+    end
+
+
     # Check if a campaign is finished
     def finished?
       return false if has_remaining_tasks?
       return false if has_to_launch_jobs?
+      return false if has_launching_jobs?
       return false if has_active_jobs?
       return true
     end

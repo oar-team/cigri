@@ -86,12 +86,13 @@ module Cigri
     # Check if the cluster is blacklisted
     # It may be a check for a campaign blacklist only if :campaign_id is given
     def blacklisted?(opt={})
-      events=Cigri::Eventset.new(:where => "state='open' and cluster_id=#{@id} and class='cluster'")
+      events=Cigri::Eventset.new(:where => "state='open' and cluster_id=#{@id} and class='cluster' and code='BLACKLIST'")
       return true if events.length > 0
       if opt[:campaign_id]
         events=Cigri::Eventset.new(:where => "state='open' and cluster_id=#{@id} 
                                    and campaign_id=#{opt[:campaign_id]} 
-                                   and class='campaign'")
+                                   and class='campaign'
+                                   and code='BLACKLIST'")
         return true if events.length > 0
       end
       false
@@ -175,7 +176,8 @@ module Cigri
         begin
           @api.post("jobs",job, {@description["api_auth_header"] => user})
         rescue => e
-          Cigri::Event.new(:class => "cluster", :cluster_id => @id, :code => "SUBMIT_JOB", :message => e)
+          event=Cigri::Event.new(:class => "cluster", :cluster_id => @id, :code => "SUBMIT_JOB", :message => e)
+          Cigri::Colombo.new(event).check
           raise
         end
       end

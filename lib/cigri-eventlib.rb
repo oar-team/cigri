@@ -26,13 +26,23 @@ module Cigri
         if props[:state].nil?
           props[:state]="open"
         end
+        if props[:checked].nil?
+          props[:checked]="no"
+        end
         msg=""
         props.each_key do |prop| 
           msg += "#{prop}=\"#{props[prop]}\" "
         end
-        EVENTLOGGER.debug("New event:" + msg)        
+        EVENTLOGGER.debug("New event:" + msg) unless props[:nodb]    
       end
       super("events",props)
+    end
+
+    # Mark the event as checked (check='yes')
+    # An event maybe checked by colombo, but still open, for example
+    # when colombo generates another event depending on this one
+    def checked
+      update({:checked => 'yes'}) 
     end
 
   end # class Event
@@ -44,11 +54,23 @@ module Cigri
     # Creates the new Eventset
     def initialize(props={})
       super("events",props)
+      to_events
     end
 
     # Alias to the dataset records
     def events
       @records
+    end
+
+    def to_events
+      events=[]
+      @records.each do |record|
+        props = record.props
+        props[:nodb] = true
+        event = Event.new(props)
+        events << event
+      end
+      @records = events
     end
 
   end # Class Eventset

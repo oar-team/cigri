@@ -3,6 +3,7 @@ $LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
 
 require 'cigri'
 require 'cigri-clusterlib'
+require 'cigri-colombolib'
 
 $0='cigri: almighty'
 
@@ -59,6 +60,9 @@ begin
 
   
   logger.info('Starting cigri')
+
+  #Do an initial check of events
+  Cigri::Colombo.new().check
 
   #Start the runners
   clusters=Cigri::ClusterSet.new
