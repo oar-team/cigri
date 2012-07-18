@@ -43,11 +43,14 @@ def db_connect()
     return dbh unless block_given?
     yield dbh
     dbh.disconnect() if dbh
-  rescue Exception => e
+  rescue DBI::OperationalError => e
     IOLIBLOGGER.error("Failed to connect to database with string: #{str}\nError: #{e}")
     IOLIBLOGGER.error("Retrying in 10s")
     sleep 10
     retry
+  rescue Exception => e
+    IOLIBLOGGER.error("Failed to connect to database with string: #{str}\nError: #{e}")
+    raise
   end
 end
 
