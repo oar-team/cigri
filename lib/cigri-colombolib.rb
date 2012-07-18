@@ -57,7 +57,13 @@ module Cigri
         if event.props[:class]=="cluster"
           COLOMBOLIBLOGGER.debug("Checking event #{event.props[:code]}")
           case event.props[:code]
+          when "TIMEOUT"
+            blacklist_cluster(event.id,event.props[:cluster_id],event.props[:campaign_id])
+            event.checked
           when "SUBMIT_JOB"
+            blacklist_cluster(event.id,event.props[:cluster_id],event.props[:campaign_id])
+            event.checked
+          when "GET_JOBS"
             blacklist_cluster(event.id,event.props[:cluster_id],event.props[:campaign_id])
             event.checked
           when "GET_JOB"

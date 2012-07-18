@@ -168,13 +168,26 @@ module Cigri
       
       def get_jobs(props={})
         array="?array=#{props[:array]}" if props[:array]
-        @api.get_collection("jobs/details#{array}")
-           # TODO: manage event (cluster blacklist) if timeout
+        begin
+          @api.get_collection("jobs/details#{array}")
+        rescue RestClient::RequestTimeout => e
+          event=Cigri::Event.new(:class => "cluster", :cluster_id => @id, :code => "TIMEOUT", :message => e)
+          Cigri::Colombo.new(event).check
+          raise
+        rescue => e
+          event=Cigri::Event.new(:class => "cluster", :cluster_id => @id, :code => "GET_JOBS", :message => e)
+          Cigri::Colombo.new(event).check
+          raise
+        end
       end 
  
       def submit_job(job, user="")
         begin
           @api.post("jobs",job, {@description["api_auth_header"] => user})
+        rescue RestClient::RequestTimeout => e
+          event=Cigri::Event.new(:class => "cluster", :cluster_id => @id, :code => "TIMEOUT", :message => e)
+          Cigri::Colombo.new(event).check
+          raise
         rescue => e
           event=Cigri::Event.new(:class => "cluster", :cluster_id => @id, :code => "SUBMIT_JOB", :message => e)
           Cigri::Colombo.new(event).check
@@ -183,17 +196,26 @@ module Cigri
       end
  
       def get_job(job_id, user=nil)
-        if (job_id.is_a?(Integer))
-          if (user.nil?)
-            @api.get("jobs/#{job_id}")
-          else
-            @api.get("jobs/#{job_id}",{@description["api_auth_header"] => user})
+        begin
+          if (job_id.is_a?(Integer))
+            if (user.nil?)
+              @api.get("jobs/#{job_id}")
+            else
+              @api.get("jobs/#{job_id}",{@description["api_auth_header"] => user})
+            end
+           else
+            CLUSTERLIBLOGGER.error("No valid id passed to get_job on #{name}!")
+            nil
           end
-        else
-          CLUSTERLIBLOGGER.error("No valid id passed to get_job on #{name}!")
-          nil
+        rescue RestClient::RequestTimeout => e
+          event=Cigri::Event.new(:class => "cluster", :cluster_id => @id, :code => "TIMEOUT", :message => e)
+          Cigri::Colombo.new(event).check
+          raise
+        rescue => e
+          event=Cigri::Event.new(:class => "cluster", :cluster_id => @id, :code => "GET_JOB", :message => e)
+          Cigri::Colombo.new(event).check
+          raise
         end
-           # TODO: manage event (cluster blacklist) if timeout
       end
  
       def delete_job(job_id, user="")

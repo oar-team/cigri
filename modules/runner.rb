@@ -77,6 +77,7 @@ while true do
   if cluster.blacklisted? 
     tap=0
     logger.warn("Cluster is blacklisted") 
+    sleep_more = SLEEP_MORE
   else  
     # Update the jobs state and close the tap if necessary
     # TODO: we need to find a way to have a tap per campaign as a campaign
@@ -88,7 +89,7 @@ while true do
       if job.props[:remote_id].nil? || job.props[:remote_id] == ""
         job.update({'state' => 'event'})
         message="Job #{job.id} is lost, it has no remote_id!"
-        Cigri::Event.new(:class => "job", :code => "GET_REMOTE_ID_ERROR", :cluster_id => cluster.id, :job_id => job.id, :message => message)
+        Cigri::Event.new(:class => "job", :code => "RUNNER_GET_REMOTE_ID_ERROR", :cluster_id => cluster.id, :job_id => job.id, :message => message)
       else
         begin
           cluster_job = cluster.get_job(job.props[:remote_id].to_i, job.props[:grid_user])
@@ -111,46 +112,46 @@ while true do
               tap = 0
           end
         rescue => e
-          job.update({'state' => 'event'})
           message="Could not get remote job #{job.id}! #{e.to_s}"
-          event=Cigri::Event.new(:class => "job", :code => "GET_ERROR", :cluster_id => cluster.id, :job_id => job.id, :message => message)
-          Cigri::Colombo.new(event).check_clusters
+          logger.warn(message)
+          tap=0 # There's a problem, so we close the tap
+          break
         end
       end
     end 
-  end
 
-  ##########################################################################
-  # Jobs submission
-  ##########################################################################
-  #
-  # Get the jobs to launch and submit them
-  # 
-  tolaunch_jobs = Cigri::JobtolaunchSet.new
-  # Get the jobs in state to_launch (should only happen after a crash)
-  jobs=Cigri::Jobset.new(:where => "jobs.state='to_launch' and jobs.cluster_id=#{cluster.id}")
-  # Get the jobs in the bag of tasks (if no more remaining to_launch jobs to treat)
-  if jobs.length == 0 and tolaunch_jobs.get_next(cluster.id, tap) > 0 # if the tap is open
-    logger.info("Got #{tolaunch_jobs.length} jobs to launch")
-    # Take the jobs from the b-o-t
-    jobs = tolaunch_jobs.take
-  end
-  if jobs.length > 0
-    # Submit the new jobs
-    begin
-      jobs.submit(cluster.id)
-    rescue => e
-      message = "Could not submit jobs #{jobs.ids.inspect} on #{cluster.name}: #{e}"
-      jobs.each do |job|
-        job.update({'state' => 'event'})
-        event=Cigri::Event.new(:class => "job", :code => "SUBMIT_ERROR", :cluster_id => cluster.id, :job_id => job.id, :message => message)
-        Cigri::Colombo.new(event).check
-      end
-      logger.warn(message)
+    ##########################################################################
+    # Jobs submission
+    ##########################################################################
+    #
+    # Get the jobs to launch and submit them
+    # 
+    tolaunch_jobs = Cigri::JobtolaunchSet.new
+    # Get the jobs in state to_launch (should only happen after a crash)
+    jobs=Cigri::Jobset.new(:where => "jobs.state='to_launch' and jobs.cluster_id=#{cluster.id}")
+    # Get the jobs in the bag of tasks (if no more remaining to_launch jobs to treat)
+    if jobs.length == 0 and tolaunch_jobs.get_next(cluster.id, tap) > 0 # if the tap is open
+      logger.info("Got #{tolaunch_jobs.length} jobs to launch")
+      # Take the jobs from the b-o-t
+      jobs = tolaunch_jobs.take
     end
-  else
-    sleep_more = SLEEP_MORE
-  end
+    if jobs.length > 0
+      # Submit the new jobs
+      begin
+        jobs.submit(cluster.id)
+      rescue => e
+        message = "Could not submit jobs #{jobs.ids.inspect} on #{cluster.name}: #{e}"
+        jobs.each do |job|
+          job.update({'state' => 'event'})
+          event=Cigri::Event.new(:class => "job", :code => "RUNNER_SUBMIT_ERROR", :cluster_id => cluster.id, :job_id => job.id, :message => message)
+          Cigri::Colombo.new(event).check
+        end
+        logger.warn(message)
+      end
+    else
+      sleep_more = SLEEP_MORE
+    end
+  end 
 
   # Sleep if necessary
   cycle_duration = Time::now.to_i - start_time
