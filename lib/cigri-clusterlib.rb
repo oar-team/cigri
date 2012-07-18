@@ -117,6 +117,26 @@ module Cigri
       end
     end     
 
+    # Runs a procedure with common exception checks
+    # Every rest query call has to be send via this method
+    def secure_run(p,default_error_code)
+      begin
+        return p.call
+      rescue RestClient::RequestTimeout => e
+        event=Cigri::Event.new(:class => "cluster", :cluster_id => @id, :code => "TIMEOUT", :message => e)
+        Cigri::Colombo.new(event).check
+        raise
+      rescue Errno::ECONNREFUSED => e
+        event=Cigri::Event.new(:class => "cluster", :cluster_id => @id, :code => "CONNECTION_REFUSED", :message => e)
+        Cigri::Colombo.new(event).check
+        raise
+      rescue => e
+        event=Cigri::Event.new(:class => "cluster", :cluster_id => @id, :code => default_error_code, :message => e)
+        Cigri::Colombo.new(event).check
+        raise
+      end
+    end    
+
     # Get the resources
     def get_resources
       raise "Method must be overridden"
@@ -178,59 +198,28 @@ module Cigri
       
       def get_jobs(props={})
         array="?array=#{props[:array]}" if props[:array]
-        begin
-          @api.get_collection("jobs/details#{array}")
-        rescue RestClient::RequestTimeout => e
-          event=Cigri::Event.new(:class => "cluster", :cluster_id => @id, :code => "TIMEOUT", :message => e)
-          Cigri::Colombo.new(event).check
-          raise
-        rescue => e
-          event=Cigri::Event.new(:class => "cluster", :cluster_id => @id, :code => "GET_JOBS", :message => e)
-          Cigri::Colombo.new(event).check
-          raise
-        end
+        secure_run proc{ @api.get_collection("jobs/details#{array}") },"GET_JOBS"
       end 
  
       def submit_job(job, user="")
-        begin
-          @api.post("jobs",job, {@description["api_auth_header"] => user})
-        rescue RestClient::RequestTimeout => e
-          event=Cigri::Event.new(:class => "cluster", :cluster_id => @id, :code => "TIMEOUT", :message => e)
-          Cigri::Colombo.new(event).check
-          raise
-        rescue => e
-          event=Cigri::Event.new(:class => "cluster", :cluster_id => @id, :code => "SUBMIT_JOB", :message => e)
-          Cigri::Colombo.new(event).check
-          raise
-        end
+        secure_run proc{ @api.post("jobs",job, {@description["api_auth_header"] => user}) }, "SUBMIT_JOB"
       end
  
       def get_job(job_id, user=nil)
-        begin
-          if (job_id.is_a?(Integer))
-            if (user.nil?)
-              @api.get("jobs/#{job_id}")
-            else
-              @api.get("jobs/#{job_id}",{@description["api_auth_header"] => user})
-            end
-           else
-            CLUSTERLIBLOGGER.error("No valid id passed to get_job on #{name}!")
-            nil
+        if (job_id.is_a?(Integer))
+          if (user.nil?)
+            secure_run proc{ @api.get("jobs/#{job_id}") }, "GET_JOB"
+          else
+            secure_run proc{ @api.get("jobs/#{job_id}",{@description["api_auth_header"] => user}) }, "GET_JOB"
           end
-        rescue RestClient::RequestTimeout => e
-          event=Cigri::Event.new(:class => "cluster", :cluster_id => @id, :code => "TIMEOUT", :message => e)
-          Cigri::Colombo.new(event).check
-          raise
-        rescue => e
-          event=Cigri::Event.new(:class => "cluster", :cluster_id => @id, :code => "GET_JOB", :message => e)
-          Cigri::Colombo.new(event).check
-          raise
+         else
+          CLUSTERLIBLOGGER.error("No valid id passed to get_job on #{name}!")
+          nil
         end
       end
  
       def delete_job(job_id, user="")
-        @api.delete("jobs/#{job_id}", {@description["api_auth_header"] => user})
-           # TODO: manage event (cluster blacklist) if timeout
+        secure_run proc{ @api.delete("jobs/#{job_id}", {@description["api_auth_header"] => user}) }, "DELETE_JOB"
       end
   
     end # OARCluster
