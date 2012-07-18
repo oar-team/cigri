@@ -43,6 +43,10 @@ begin
   # Check for blacklists
   events=Cigri::Eventset.new({:where => "state='open' and code='BLACKLIST'"})
   Cigri::Colombo.new(events).check_blacklists
+
+  # Check jobs to resubmit
+  events=Cigri::Eventset.new({:where => "state='open' and code='RESUBMIT' and class='job'"})
+  Cigri::Colombo.new(events).check_jobs
  
   logger.debug('Exiting')
 end

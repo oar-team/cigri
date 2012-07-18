@@ -118,8 +118,8 @@ module Cigri
           job=Job.new({:id => event.props[:job_id], :state => 'event'})
           COLOMBOLIBLOGGER.warn("Resubmitting job #{job.id} as it was stuck into launching state")
           event.update({:message => event.props[:message].to_s+";Colombo resubmit at "+Time::now().to_s+"for stuck into launching state"})
-          job.resubmit
           event.checked
+          job.resubmit
           event.close
         end
       end
@@ -129,17 +129,39 @@ module Cigri
     # This is where we decide to automatically resubmit a job when it was killed
     def self.analyze_remote_job_events(job,cluster_job)
       resubmit=false
+      type=''
       cluster_job["events"].each do |remote_event|
-        if remote_event["type"] == "FRAG_JOB_REQUEST" or remote_event["type"] == "BEST_EFFORT_KILL"
+        type=remote_event["type"] 
+        if type == "FRAG_JOB_REQUEST" or type == "BESTEFFORT_KILL"
           resubmit=true
           break
         end
       end
       if resubmit
-        COLOMBOLIBLOGGER.info("Resubmitting job #{job.id}")
-        #TODO: create a resubmit event        
+        COLOMBOLIBLOGGER.debug("Creating a resubmission event for job #{job.id}")
+        Cigri::Event.new(:class => "job", 
+                         :code => "RESUBMIT", 
+                         :job_id => job.id, 
+                         :message => "Resubmit cause: #{type}")
       end
       job.update({:state => 'event'}) 
+    end
+
+    # Check the jobs
+    def check_jobs
+      COLOMBOLIBLOGGER.debug("Checking jobs") 
+      @events.each do |event|
+        # Treat resubmissions
+        if ( event.props[:class] == "job" and 
+              event.props[:code] == "RESUBMIT" and
+              event.props[:checked] == "no" )
+          event.checked
+          job=Job.new(:id => event.props[:job_id])
+          COLOMBOLIBLOGGER.info("Resubmitting job #{job.id}")
+          job.resubmit 
+          event.close
+        end
+      end
     end
 
     # Do some default checking
