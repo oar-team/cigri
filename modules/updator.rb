@@ -36,13 +36,13 @@ begin
     end
   end 
 
-  # Check for blacklists
-  events=Cigri::Eventset.new({:where => "state='open' and code='BLACKLIST'"})
-  Cigri::Colombo.new(events).check_blacklists
- 
   # Autofix clusters
   events=Cigri::Eventset.new({:where => "state='open' and class='cluster'"})
   Cigri::Colombo.new(events).autofix_clusters
+
+  # Check for blacklists
+  events=Cigri::Eventset.new({:where => "state='open' and code='BLACKLIST'"})
+  Cigri::Colombo.new(events).check_blacklists
  
   logger.debug('Exiting')
 end
