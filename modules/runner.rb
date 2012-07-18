@@ -97,8 +97,8 @@ while true do
             when /Terminated/i
               job.update({'state' => 'terminated'})
             when /Error/i
-              #TODO: more checks here, to create the event and trigger automatic resubmission for jobs killed
-              job.update({'state' => 'event'})
+              logger.info("Job #{job.id} is in Error state.")
+              Cigri::Colombo::analyze_remote_job_events(job,cluster_job)
             when /Running/i
               job.update({'state' => 'running'})
             when /Finishing/i

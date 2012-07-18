@@ -125,6 +125,24 @@ module Cigri
       end
     end
 
+    # Take some decisions by analyzing remote job events (OAR events actually)
+    # This is where we decide to automatically resubmit a job when it was killed
+    def self.analyze_remote_job_events(job,cluster_job)
+      resubmit=false
+      cluster_job["events"].each do |remote_event|
+        if remote_event["type"] == "FRAG_JOB_REQUEST" or remote_event["type"] == "BEST_EFFORT_KILL"
+          resubmit=true
+          break
+        end
+      end
+      if resubmit
+        COLOMBOLIBLOGGER.info("Resubmitting job #{job.id}")
+        #TODO: create a resubmit event        
+      end
+      job.update({:state => 'event'}) 
+    end
+
+    # Do some default checking
     def check
       COLOMBOLIBLOGGER.debug("Global check requested")
       check_clusters
