@@ -34,7 +34,7 @@ module Cigri
         props.each_key do |prop| 
           msg += "#{prop}=\"#{props[prop]}\" "
         end
-        EVENTLOGGER.debug("New event:" + msg) unless props[:nodb]    
+        EVENTLOGGER.debug("New event:" + msg) unless props[:nodb] or props[:id]
       end
       super("events",props)
     end

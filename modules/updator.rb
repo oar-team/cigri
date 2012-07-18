@@ -4,6 +4,7 @@ $LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
 
 require 'cigri'
 require 'cigri-joblib'
+require 'cigri-colombolib'
 
 $0='cigri: updator'
 
@@ -25,11 +26,19 @@ begin
   campaigns=Cigri::Campaignset.new
   campaigns.get_running
   campaigns.each do |campaign|
+    logger.debug("campaign #{campaign.id} has remaining tasks") if campaign.has_remaining_tasks?
+    logger.debug("campaign #{campaign.id} has to_launch jobs") if campaign.has_to_launch_jobs?
+    logger.debug("campaign #{campaign.id} has launching jobs") if campaign.has_launching_jobs?
+    logger.debug("campaign #{campaign.id} has active jobs") if campaign.has_active_jobs?
     if campaign.finished?
       campaign.update({'state' => 'terminated'})
       logger.info("Campaign #{campaign.id} is finished")
     end
-  end  
+  end 
+
+  # Check for blacklists
+  events=Cigri::Eventset.new({:where => "state='open' and code='BLACKLIST'"})
+  Cigri::Colombo.new(events).check_blacklists
   
   logger.debug('Exiting')
 end

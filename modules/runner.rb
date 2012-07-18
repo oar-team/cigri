@@ -68,7 +68,7 @@ while true do
     launching_jobs.update({:state => 'event'})
     events=Cigri::Eventset.new()
     launching_jobs.each do |job|
-      events << Cigri::Event.new(:class => "job", :code => "STUCK_LAUNCHING_JOB", :cluster_id => cluster.id, :job_id => job.id)
+      events << Cigri::Event.new(:class => "job", :code => "STUCK_LAUNCHING_JOB", :cluster_id => cluster.id, :job_id => job.id, :message => "Runner #{cluster.name} found this job stuck in the launching state")
     end
     Cigri::Colombo.new(events).check_launching_jobs
   end
@@ -79,6 +79,8 @@ while true do
     logger.warn("Cluster is blacklisted") 
   else  
     # Update the jobs state and close the tap if necessary
+    # TODO: we need to find a way to have a tap per campaign as a campaign
+    # may have waiting jobs but another may run fluently
     current_jobs = Cigri::Jobset.new
     current_jobs.get_submitted(cluster.id)
     current_jobs.get_running(cluster.id)
@@ -125,10 +127,15 @@ while true do
   # Get the jobs to launch and submit them
   # 
   tolaunch_jobs = Cigri::JobtolaunchSet.new
-  if tolaunch_jobs.get_next(cluster.id, tap) > 0 # if the tap is open
+  # Get the jobs in state to_launch (should only happen after a crash)
+  jobs=Cigri::Jobset.new(:where => "jobs.state='to_launch' and jobs.cluster_id=#{cluster.id}")
+  # Get the jobs in the bag of tasks (if no more remaining to_launch jobs to treat)
+  if jobs.length == 0 and tolaunch_jobs.get_next(cluster.id, tap) > 0 # if the tap is open
     logger.info("Got #{tolaunch_jobs.length} jobs to launch")
     # Take the jobs from the b-o-t
     jobs = tolaunch_jobs.take
+  end
+  if jobs.length > 0
     # Submit the new jobs
     begin
       jobs.submit(cluster.id)
