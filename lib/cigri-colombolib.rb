@@ -74,6 +74,26 @@ module Cigri
         end
       end
     end
+   
+    # Try to automatically fix some events
+    def autofix_clusters
+      COLOMBOLIBLOGGER.debug("Autofixing clusters")
+      @events.each do |event|
+        #TODO: add a field date_update into events so that we can check
+        # only after a given amount of time
+        if event.props[:class]=="cluster"
+          case event.props[:code]
+          when "TIMEOUT"
+            cluster=Cluster.new({:id => event.props[:cluster_id]})
+            if cluster.check_api?
+              COLOMBOLIBLOGGER.debug("Autofixing #{cluster.name}")
+              event.checked
+              event.close
+            end
+          end
+        end
+      end
+    end
 
     # Remove a blacklist if the parent event is fixed
     def check_blacklists

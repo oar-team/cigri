@@ -107,6 +107,16 @@ module Cigri
       return n > 0
     end
 
+    # Check the api connexion
+    def check_api?
+      begin
+        @api.get("")
+      rescue => e
+        CLUSTERLIBLOGGER.warn("Check function returned error: #{e}")
+        false
+      end
+    end     
+
     # Get the resources
     def get_resources
       raise "Method must be overridden"
