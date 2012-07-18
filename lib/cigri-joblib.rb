@@ -156,7 +156,7 @@ module Cigri
         matched = false
         # we try to match the parameters of each job of the jobset
         index = jobs.index {|cigri_job| 
-                    cluster_job["command"].split(/ /,2)[1].include?("#{cigri_job.props[:param]}")}
+                    cluster_job["command"].split(/ /,2)[1].to_s.include?("#{cigri_job.props[:param]}")}
         if index
           cigri_job = jobs.delete_at(index)
           cigri_job.update({'remote_id' => cluster_job["id"]}, "jobs")
