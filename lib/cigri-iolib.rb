@@ -383,10 +383,11 @@ def cancel_campaign(dbh, user, id)
     end 
        
     #TODO add kill event in event table !!!!!
-    query = "UPDATE jobs SET state = 'event' WHERE campaign_id = ? AND state != 'terminated'"
-    nb = dbh.do(query, id)
-    IOLIBLOGGER.debug("Adding kill event for #{nb} jobs for campaign #{id}")
-     
+    #query = "UPDATE jobs SET state = 'event' WHERE campaign_id = ? AND state != 'terminated'"
+    #nb = dbh.do(query, id)
+    IOLIBLOGGER.debug("Adding kill event for campaign #{id}")
+    Event.new({:code => "USER_FRAG", :campaign_id => id, :class => "campaign"})
+
     query = "UPDATE campaigns SET state = 'cancelled' where id = ? and state != 'cancelled'"
     nb = dbh.do(query, id)
     
@@ -658,6 +659,26 @@ def get_campaign_launching_jobs_number(dbh, id)
                                   WHERE state='launching'
                                     AND campaign_id=?", id)[0]
 end
+
+##
+# Returns the number of open events for a given campaign
+#
+# == Parameters
+# - dbh: dababase handle
+# - id: campaign id
+#
+# == Returns
+# Number of tasks (integer)
+#
+##
+def get_campaign_events_number(dbh, id)
+  dbh.select_one("SELECT COUNT(*) FROM jobs,events
+                                  WHERE jobs.state='event'
+                                    AND events.job_id=jobs.id
+                                    AND events.state='open'
+                                    AND jobs.campaign_id=?", id)[0]
+end
+
 
 
 ##

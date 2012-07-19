@@ -30,6 +30,7 @@ begin
     logger.debug("campaign #{campaign.id} has to_launch jobs") if campaign.has_to_launch_jobs?
     logger.debug("campaign #{campaign.id} has launching jobs") if campaign.has_launching_jobs?
     logger.debug("campaign #{campaign.id} has active jobs") if campaign.has_active_jobs?
+    logger.info("campaign #{campaign.id} has open events") if campaign.has_open_events?
     if campaign.finished?
       campaign.update({'state' => 'terminated'})
       logger.info("Campaign #{campaign.id} is finished")

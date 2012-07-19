@@ -10,6 +10,7 @@ ENV['CIGRICONFDIR'] = File.expand_path('../../etc', __FILE__)
 require 'cigri'
 require 'cigri-clusterlib'
 require 'cigri-joblib'
+require 'cigri-eventlib'
 require 'jdl-parser'
 require 'rack_debugger'
 

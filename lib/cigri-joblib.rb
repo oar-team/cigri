@@ -301,6 +301,12 @@ module Cigri
       end
     end
 
+    # Check if a campaign has open events
+    def has_open_events?
+      db_connect() do |dbh|
+        return get_campaign_events_number(dbh, id) > 0
+      end
+    end
 
     # Check if a campaign is finished
     def finished?

@@ -88,6 +88,7 @@ begin
     check_processes(childs)
     system("#{File.dirname(__FILE__)}/meta-scheduler.rb")
     system("#{File.dirname(__FILE__)}/updator.rb")
+    system("#{File.dirname(__FILE__)}/nikita.rb")
     sleep 10
   end
 end
