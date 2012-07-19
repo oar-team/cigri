@@ -41,9 +41,9 @@ begin
           logger.debug("Queuing for campaign #{campaign.id} on cluster #{cluster.name}")
 
           # As an example, we check the campaign_type:
-          if campaign.clusters[cluster.id]["campaign_type"] != "best-effort"
-            logger.warn("Only best-effort campaigns are supported for now!")
-          end
+          #if campaign.clusters[cluster.id]["campaign_type"] != "best-effort"
+          #  logger.warn("Only best-effort campaigns are supported for now!")
+          #end
 
           # Scheduler call
           scheduler=Cigri::SchedulerFifo.new(campaign,cluster.id,{

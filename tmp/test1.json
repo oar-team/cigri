@@ -4,8 +4,11 @@
   "exec_file": "$HOME/cigri-3/tmp/test1.sh",
   "clusters": {
     "tchernobyl": {
+      "campaign_type": "normal",
+      "walltime": "300"
     },
     "fukushima": {
+      "walltime": "3600"
     }
   },
   "params": [ 

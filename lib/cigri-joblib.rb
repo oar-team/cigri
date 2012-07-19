@@ -112,10 +112,19 @@ module Cigri
                        "param_file" => params.join("\n"),
                        "resources" => campaign.clusters[cluster_id]["resources"],
                        "command" => campaign.clusters[cluster_id]["exec_file"]
-                       #"properties" => campaign.props[:properties],
-                       #"directory" => campaign.props[:exec_dir]
                      }
-        # TODO: add walltime, manage grouping,etc...
+        # Properties from the JDL
+        submission["walltime"]=campaign.clusters[cluster_id]["walltime"] unless campaign.clusters[cluster_id]["walltime"]
+        submission["directory"]=campaign.clusters[cluster_id]["exec_directory"] unless campaign.clusters[cluster_id]["exec_directory"]
+        submission["properties"]=campaign.clusters[cluster_id]["properties"] unless campaign.clusters[cluster_id]["properties"]
+        # Campaign types
+        # TODO: manage clusters calendars for semi-best-effort and nightly
+        if campaign.clusters[cluster_id]["campaign_type"] != "normal"
+          submission["type"]="besteffort"
+        end
+        
+        # TODO: manage grouping
+
         JOBLIBLOGGER.info("Submitting new array job on #{cluster.description["name"]} with #{params.length} parameter(s).")
         launching_jobs=Jobset.new
         launching_jobs.fill(jobs,true)       
