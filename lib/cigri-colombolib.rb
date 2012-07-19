@@ -101,7 +101,7 @@ module Cigri
     def check_blacklists
       COLOMBOLIBLOGGER.debug("Checking blacklists")
       @events.each do |event|
-        if event.props[:class]=="cluster" and event.props[:code] == "BLACKLIST"
+        if event.props[:code] == "BLACKLIST"
           parent_event=Event.new({:id => event.props[:parent]})
           if parent_event.props[:state] == "closed"
             COLOMBOLIBLOGGER.debug("Removing blacklist for cluster #{event.props[:cluster_id]} on event #{parent_event.props[:code]}")
