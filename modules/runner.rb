@@ -95,10 +95,19 @@ while true do
           cluster_job = cluster.get_job(job.props[:remote_id].to_i, job.props[:grid_user])
           case cluster_job["state"] 
             when /Terminated/i
-              job.update({'state' => 'terminated'})
+              if (cluster_job["exit_code"] >> 8) > 0
+                logger.info("Job #{job.id} has non-null exit-status.")
+                Cigri::Colombo::analyze_remote_job_events(job,cluster_job)
+                events=Cigri::Eventset.new({ :where => "class = 'job' and cluster_id = #{cluster.id} and state='open'"})
+                Cigri::Colombo.new(events).check_jobs
+              else
+                job.update({'state' => 'terminated'})
+              end
             when /Error/i
               logger.info("Job #{job.id} is in Error state.")
               Cigri::Colombo::analyze_remote_job_events(job,cluster_job)
+              events=Cigri::Eventset.new({ :where => "class = 'job' and cluster_id = #{cluster.id} and state='open'"})
+              Cigri::Colombo.new(events).check_jobs
             when /Running/i
               job.update({'state' => 'running'})
             when /Finishing/i
@@ -138,7 +147,8 @@ while true do
     if jobs.length > 0
       # Submit the new jobs
       begin
-        jobs.submit(cluster.id)
+        submitted_jobs=jobs.submit(cluster.id)
+        sleep_more = SLEEP_MORE if submitted_jobs.length < 1
       rescue => e
         message = "Could not submit jobs #{jobs.ids.inspect} on #{cluster.name}: #{e}"
         jobs.each do |job|

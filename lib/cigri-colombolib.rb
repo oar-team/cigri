@@ -42,7 +42,7 @@ module Cigri
       if campaign_id.nil?
         Cigri::Event.new(:class => "cluster", :code => "BLACKLIST", :cluster_id => cluster_id, :parent => parent_id)
       else
-        Cigri::Event.new(:class => "cluster", :code => "BLACKLIST", :cluster_id => cluster_id, :campaign_id => campaign_id, :parent => parent_id)
+        Cigri::Event.new(:class => "campaign", :code => "BLACKLIST", :cluster_id => cluster_id, :campaign_id => campaign_id, :parent => parent_id)
       end
     end
 
@@ -132,27 +132,52 @@ module Cigri
     def self.analyze_remote_job_events(job,cluster_job)
       resubmit=false
       type=''
-      cluster_job["events"].each do |remote_event|
-        type=remote_event["type"] 
-        if type == "FRAG_JOB_REQUEST" or type == "BESTEFFORT_KILL"
-          resubmit=true
-          break
+      # Automatic resubmit with the special exit status 66
+      if (cluster_job["exit_code"] >> 8) == 66
+        resubmit=true
+        type="Special exit status 66"
+      # Automatic resubmit when the job was killed
+      else
+        cluster_job["events"].each do |remote_event|
+          type=remote_event["type"] 
+          if type == "FRAG_JOB_REQUEST" or type == "BESTEFFORT_KILL"
+            resubmit=true
+            break
+          end
         end
       end
+      # Treat resubmission
       if resubmit
-        COLOMBOLIBLOGGER.debug("Creating a resubmission event for job #{job.id}")
+        COLOMBOLIBLOGGER.debug("Creating a RESUBMIT event for job #{job.id}")
         Cigri::Event.new(:class => "job", 
                          :code => "RESUBMIT", 
                          :job_id => job.id, 
+                         :cluster_id => job.props[:cluster_id], 
                          :message => "Resubmit cause: #{type}")
+      # Other errors 
+      elsif (cluster_job["exit_code"] >> 8) > 0
+        COLOMBOLIBLOGGER.debug("Creating a EXIT_ERROR event for job #{job.id}")
+        Cigri::Event.new(:class => "job",
+                         :code => "EXIT_ERROR",
+                         :job_id => job.id,
+                         :cluster_id => job.props[:cluster_id], 
+                         :message => "The job exited with exit status #{cluster_job["exit_code"] >> 8}")
+      else 
+        COLOMBOLIBLOGGER.debug("Creating a UNKNOWN_ERROR event for job #{job.id}")
+        Cigri::Event.new(:class => "job",
+                         :code => "UNKNOWN_ERROR",
+                         :job_id => job.id,
+                         :cluster_id => job.props[:cluster_id], 
+                         :message => "The job exited with an unknown error. Job events: #{cluster_job["events"].inspect}")
       end
-      job.update({:state => 'event'}) 
+      job.update({:state => 'event'})
     end
 
     # Check the jobs
     def check_jobs
       COLOMBOLIBLOGGER.debug("Checking jobs") 
       @events.each do |event|
+
         # Treat resubmissions
         if ( event.props[:class] == "job" and 
               event.props[:code] == "RESUBMIT" and
@@ -162,6 +187,13 @@ module Cigri
           COLOMBOLIBLOGGER.info("Resubmitting job #{job.id}")
           job.resubmit 
           event.close
+
+        # Treat other errors (blacklist cluster for campaign)
+        elsif ( event.props[:class] == "job" and 
+                  event.props[:checked] == "no" )
+          event.checked
+          job=Job.new(:id => event.props[:job_id])
+          blacklist_cluster(event.id,job.props[:cluster_id],job.props[:campaign_id])
         end
       end
     end
