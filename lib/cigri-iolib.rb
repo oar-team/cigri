@@ -375,18 +375,14 @@ def cancel_campaign(dbh, user, id)
     nb = dbh.do(query, id)
     IOLIBLOGGER.debug("Deleted #{nb} 'jobs_to_launch' for campaign #{id}")
     
-    to_delete = {'bag_of_tasks' => 'campaign_id', 'jobs' =>'campaign_id',
-                 'parameters' => 'campaign_id'} 
+    to_delete = {'bag_of_tasks' => 'campaign_id'} 
     to_delete.each do |k, v|
       nb = dbh.do("DELETE FROM #{k} WHERE #{v} = ?", id)
       IOLIBLOGGER.debug("Deleted #{nb} rows from table '#{k}' for campaign #{id}")
     end 
        
-    #TODO add kill event in event table !!!!!
     #query = "UPDATE jobs SET state = 'event' WHERE campaign_id = ? AND state != 'terminated'"
     #nb = dbh.do(query, id)
-    IOLIBLOGGER.debug("Adding kill event for campaign #{id}")
-    Event.new({:code => "USER_FRAG", :campaign_id => id, :class => "campaign"})
 
     query = "UPDATE campaigns SET state = 'cancelled' where id = ? and state != 'cancelled'"
     nb = dbh.do(query, id)

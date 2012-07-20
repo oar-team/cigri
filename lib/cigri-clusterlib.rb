@@ -153,7 +153,7 @@ module Cigri
     end
 
     # Delete the given job
-    def delete_job(job_id)
+    def delete_job(job_id,user)
       raise "Method must be overridden"
     end
 

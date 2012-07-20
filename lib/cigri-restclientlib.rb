@@ -147,6 +147,7 @@ module Cigri
     # Delete a resource
     def delete(uri,header={})
       uri = rel_uri(uri)
+      header[:content_type]=@content_type
       begin # Rest error handling
         parse(@api[uri].delete(header))
       rescue RestClient::RequestTimeout

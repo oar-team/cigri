@@ -5,6 +5,7 @@ $LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
 require 'cigri'
 require 'cigri-joblib'
 require 'cigri-eventlib'
+require 'cigri-colombolib'
 
 $0='cigri: nikita'
 
@@ -23,28 +24,56 @@ begin
   logger.debug('Starting')
 
   # Check for campaigns to kill
-  events=Cigri::Eventset.new({:where => "class='campaign' and code='USER_KILL'"})
+  events=Cigri::Eventset.new({:where => "class='campaign' and code='USER_FRAG'"})
   events.each do |event|
     can_close=true
-    jobs=Cigri::Jobset.new({:where => "campaign_id=#{event.props[:campaign_id]}"})
+
+    # Treat the jobs that have open events (close them)
+    job_events=Cigri::Eventset.new({:where => "class='job' and campaign_id=#{event.props[:campaign_id]} and state='open'"})
+    job_events.update({:state => 'closed'}) if job_events.length > 0
+
+    # Treat the other jobs
+    jobs=Cigri::Jobset.new({:where => "jobs.campaign_id=#{event.props[:campaign_id]} and jobs.state != 'event'"})
     jobs.each do |job|
       state=job.props[:state]
+
+      # Kill running or waiting jobs
       if state == "running" or state == "remote_waiting"
         logger.debug("Killing job #{job.id}")
-        # TODO: Kill the job and set it to event
+        job_event=Cigri::Event.new({:class => "job", 
+                          :job_id => job.id, 
+                          :code => "USER_FRAG",
+                          :message => "Nikita requested to kill the job because of a USER_FRAG event on campaign #{event.props[:campaign_id]}"})
+        job.update({:state => "event"})
+        job_event.close
+        begin
+          job.kill
+        rescue => e
+          logger.warn("Could not kill job #{job.id}")
+          logger.debug("Error while killing #{job.id}: #{e}")
+        end
+
+      # Remove to_launch jobs
       elsif state == "to_launch"
-        # TODO: remove the job
+        job.delete
+
+      # Do nothing for launching jobs, but warn as we must wait
       elsif state == "launching"
-        # TODO: log a message
+        logger.warn("The job #{job.id} is in the launching state. We have to wait.")
         can_close=false
-      elsif state == "event"
-        # TODO: hum, what can we do?
       end
     end
     if can_close
       event.close
     end
   end
+
+  # Check for unitary jobs to kill
+  # TODO
+
+  # Check for jobs in remotewaiting for too long
+  # TODO
+
 
   logger.debug('Exiting')
 end

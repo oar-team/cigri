@@ -26,8 +26,31 @@ module Cigri
       super("jobs",props)
     end
 
+    # Clone the job into the bag of tasks for resubmission of the same job
     def resubmit
       Datarecord.new("bag_of_tasks",{:param_id => @props[:param_id], :campaign_id => @props[:campaign_id]})
+    end
+   
+    # Kill a job running on a cluster
+    def kill
+      if props[:cluster_id]
+        cluster=Cluster.new(:id => props[:cluster_id])
+        if !cluster.blacklisted?
+          if props[:state] == "running" or props[:state] == "remote_waiting"
+            if props[:remote_id]
+              cluster.delete_job(props[:remote_id],props[:grid_user])
+            else
+              JOBLIBLOGGER.warn("Can't kill a job without a remote_id: #{id}!")
+            end
+          else
+            JOBLIBLOGGER.warn("Can't kill a job that is not running or remote_waiting: #{id}!")
+          end
+        else
+          JOBLIBLOGGER.debug("Not killing job on a blacklisted cluster: #{id}")
+        end
+      else
+        JOBLIBLOGGER.warn("Can't kill a job without a cluster_id: #{id}!")
+      end  
     end
 
   end # class Job
@@ -55,6 +78,19 @@ module Cigri
         end
       end
       super("jobs,parameters,campaigns",props)
+      to_jobs
+    end
+
+    # This method converts the Datarecord objects into Job objects
+    def to_jobs
+      jobs=[]
+      @records.each do |record|
+        props = record.props
+        props[:nodb] = true
+        job = Job.new(props)
+        jobs << job
+      end
+      @records = jobs
     end
 
     # Alias to the dataset records

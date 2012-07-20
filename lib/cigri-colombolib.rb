@@ -72,6 +72,14 @@ module Cigri
           when "GET_JOB"
             blacklist_cluster(event.id,event.props[:cluster_id],event.props[:campaign_id])
             event.checked
+           when "DELETE_JOB"
+            if event.props[:message].include?("This job was already killed")
+              COLOMBOLIBLOGGER.debug("Closing alright event #{event.id} for an already killed job}")
+              event.close
+            else
+              blacklist_cluster(event.id,event.props[:cluster_id],event.props[:campaign_id])
+            end
+            event.checked
           else
           end
         end
