@@ -239,7 +239,7 @@ module Cigri
     class G5kCluster < RestCluster
 
       def get_job(job_id, user=nil)
-        job = @api.get("jobs/#{job_id}")
+        job = secure_run proc{ @api.get("jobs/#{job_id}") }, "GET_JOB"
         job["id"] = job["uid"]
         job
       end
@@ -260,13 +260,14 @@ module Cigri
         ids = []
         params.each do |param|
           job ["command"] = "#{command} #{param}"
-          ids << @api.post("jobs", job, {@description["api_auth_header"] => user})["uid"]
+          id = secure_run proc { @api.post("jobs", job, {@description["api_auth_header"] => user})["uid"] }, "SUBMIT_JOB"
+          ids << id
         end
         {"id" => ids}
       end
 
       def delete_job(job_id, user)
-        @api.delete("jobs/#{job_id}", {@description["api_auth_header"] => user})
+        secure_run proc { @api.delete("jobs/#{job_id}", {@description["api_auth_header"] => user})}, "DELETE_JOB"
       end
 
       def get_resources
