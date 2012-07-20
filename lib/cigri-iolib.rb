@@ -424,7 +424,7 @@ def delete_campaign(dbh, user, id)
 
     to_delete = {'campaigns' => 'id', 'bag_of_tasks' => 'campaign_id',
                  'campaign_properties' => 'campaign_id', 'jobs' =>'campaign_id',
-                 'parameters' => 'campaign_id'} 
+                 'parameters' => 'campaign_id', 'events' => 'campaign_id'} 
     
     to_delete.each do |k, v|
       nb = dbh.do("DELETE FROM #{k} WHERE #{v} = ?", id)
