@@ -157,6 +157,11 @@ module Cigri
       raise "Method must be overridden"
     end
 
+    # Get the stderr of a job
+    def get_stderr(job_id,user)
+      raise "Method must be overridden"
+    end
+
   end # RestCluster
 
 
@@ -227,7 +232,17 @@ module Cigri
       def delete_job(job_id, user="")
         secure_run proc{ @api.delete("jobs/#{job_id}", {@description["api_auth_header"] => user}) }, "DELETE_JOB"
       end
-  
+ 
+      def get_stderr(job_id, user=nil)
+        # First we have to get the job infos
+        job=get_job(job_id, user)
+        stderr_file=job.props[:stderr_file]
+        launching_directory=job.props[:launching_directory]
+        # Then get the file and return the content
+        # TODO
+        return "#{launching_directory}/#{stderr_file}"
+      end
+ 
     end # OARCluster
  
  

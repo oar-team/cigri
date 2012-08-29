@@ -174,11 +174,18 @@ module Cigri
       # Other errors 
       elsif (cluster_job["exit_code"] >> 8) > 0
         COLOMBOLIBLOGGER.debug("Creating a EXIT_ERROR event for job #{job.id}")
+        # Get the STDERR output file
+        # TODO
+        # Work in progress:
+        cluster=Cluster.new({:id => job.props[:cluster_id]})
+        stderr=""
+        #stderr=cluster.get_stderr(job.props[:remote_id],job.props[:grid_user])
+        # not a oar job!-----------------^
         Cigri::Event.new(:class => "job",
                          :code => "EXIT_ERROR",
                          :job_id => job.id,
                          :cluster_id => job.props[:cluster_id], 
-                         :message => "The job exited with exit status #{cluster_job["exit_code"] >> 8}")
+                         :message => "The job exited with exit status #{cluster_job["exit_code"] >> 8}; stderr_file:#{stderr}")
       else 
         COLOMBOLIBLOGGER.debug("Creating a UNKNOWN_ERROR event for job #{job.id}")
         Cigri::Event.new(:class => "job",
