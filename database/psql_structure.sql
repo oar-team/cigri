@@ -83,6 +83,7 @@ CREATE TABLE bag_of_tasks (
   id BIGSERIAL NOT NULL,
   campaign_id INTEGER NOT NULL,
   param_id INTEGER NOT NULL,
+  priority INTEGER NOT NULL DEFAULT 10,
   PRIMARY KEY (id)
 );
 CREATE INDEX bag_of_tasks_idx_id ON bag_of_tasks (id);

@@ -231,8 +231,8 @@ def cigri_submit_jobs(dbh, params, campaign_id, user)
       inserted_ids = sth.fetch_all
       sth.finish
 
-      inserted_ids.map!{ |param| "(#{param}, #{campaign_id})"}
-      dbh.do('INSERT INTO bag_of_tasks (param_id, campaign_id) VALUES ' + inserted_ids.join(','))
+      inserted_ids.map!{ |param| "(#{param}, #{campaign_id}, 10)"}
+      dbh.do('INSERT INTO bag_of_tasks (param_id, campaign_id, priority) VALUES ' + inserted_ids.join(','))
     end
     dbh.commit() unless old_autocommit == false
   rescue Exception => e
@@ -756,7 +756,7 @@ def get_tasks_ids_for_campaign(dbh, id, number = nil)
   dbh.select_all("SELECT bag_of_tasks.id FROM bag_of_tasks 
                          LEFT JOIN jobs_to_launch ON bag_of_tasks.id = task_id
                          WHERE task_id is null AND campaign_id=?
-                         ORDER by bag_of_tasks.id
+                         ORDER by bag_of_tasks.priority DESC,bag_of_tasks.id
                          #{limit}", id).flatten!
 end
 
@@ -803,7 +803,8 @@ def take_tasks(dbh, tasks)
     jobs = dbh.select_all("SELECT b.id as id, b.param_id as param_id, b.campaign_id as campaign_id, cluster_id 
                            FROM bag_of_tasks AS b, jobs_to_launch AS j
                            WHERE j.task_id = b.id AND
-                                 b.id IN (#{tasks.join(',')})")
+                                 b.id IN (#{tasks.join(',')})
+                           ORDER BY b.priority DESC, b.id")
     jobs.each do |job|
       # delete from the bag of task
       dbh.do("DELETE FROM bag_of_tasks where id = #{job['id']}")     

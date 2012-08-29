@@ -27,8 +27,14 @@ module Cigri
     end
 
     # Clone the job into the bag of tasks for resubmission of the same job
+    # A re-submitted job has a priority of 20 (higher than default which is 10)
     def resubmit
-      Datarecord.new("bag_of_tasks",{:param_id => @props[:param_id], :campaign_id => @props[:campaign_id]})
+      Datarecord.new("bag_of_tasks",{:param_id => @props[:param_id], :campaign_id => @props[:campaign_id], :priority => '20'})
+    end
+
+    # Same as resubmit, but with a 0 priority, so that the job is at the end of the queue
+    def resubmit_end
+      Datarecord.new("bag_of_tasks",{:param_id => @props[:param_id], :campaign_id => @props[:campaign_id], :priority => '0'})
     end
    
     # Kill a job running on a cluster
@@ -259,7 +265,7 @@ module Cigri
     def get_next(cluster_id,n)
       fill(get("jobs_to_launch,bag_of_tasks","*","cluster_id=#{cluster_id} 
                                                     AND task_id=bag_of_tasks.id
-                                                    ORDER BY jobs_to_launch.id
+                                                    ORDER BY bag_of_tasks.priority DESC, jobs_to_launch.id
                                                     LIMIT #{n}
                                                  "))
       return self.length

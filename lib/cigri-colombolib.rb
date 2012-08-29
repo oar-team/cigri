@@ -143,7 +143,11 @@ module Cigri
       # Automatic resubmit with the special exit status 66
       if (cluster_job["exit_code"] >> 8) == 66
         resubmit=true
-        type="Special exit status 66"
+        type="Special_exit_status_66"
+      # Automatic resubmit with the special exit status 67 (job placed at the end of the queue)
+      elsif (cluster_job["exit_code"] >> 8) == 67
+        resubmit=true
+        type="Special_exit_status_67"
       # Automatic resubmit when the job was killed
       else
         cluster_job["events"].each do |remote_event|
@@ -156,9 +160,14 @@ module Cigri
       end
       # Treat resubmission
       if resubmit
+        if type == "Special_exit_status_67"
+          code="RESUBMIT_END"
+        else
+          code="RESUBMIT"
+        end
         COLOMBOLIBLOGGER.debug("Creating a RESUBMIT event for job #{job.id}")
         Cigri::Event.new(:class => "job", 
-                         :code => "RESUBMIT", 
+                         :code => code, 
                          :job_id => job.id, 
                          :cluster_id => job.props[:cluster_id], 
                          :message => "Resubmit cause: #{type}")
@@ -188,12 +197,16 @@ module Cigri
 
         # Treat resubmissions
         if ( event.props[:class] == "job" and 
-              event.props[:code] == "RESUBMIT" and
+              ( event.props[:code] == "RESUBMIT" or event.props[:code] == "RESUBMIT_END" ) and
               event.props[:checked] == "no" )
           event.checked
           job=Job.new(:id => event.props[:job_id])
           COLOMBOLIBLOGGER.info("Resubmitting job #{job.id}")
-          job.resubmit 
+          if event.props[:code] == "RESUBMIT_END"
+            job.resubmit_end
+          else
+            job.resubmit
+          end 
           event.close
 
         # Treat other errors (blacklist cluster for campaign)
