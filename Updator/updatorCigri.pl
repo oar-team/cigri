@@ -181,7 +181,10 @@ while(@strTmp) {
 	                print "[UPDATOR] Task exited with resubmit code 66, so we resubmit.\n";
 	                iolibCigri::set_job_state($base, $vars{JOBID}, "Event");
 	                colomboCigri::resubmit_job($base,$vars{JOBID});
-	                        #a verifier si ca fait bien ce qu'on veut
+	        } elsif ($vars{CODE} == 67){ 
+	                print "[UPDATOR] Task exited with resubmit code 67, so we resubmit at the end.\n";
+	                iolibCigri::set_job_state($base, $vars{JOBID}, "Event");
+	                colomboCigri::resubmit_job_at_end($base,$vars{JOBID});
 	        } elsif ($vars{CODE} == 0) {
 	                print "[UPDATOR] Job $vars{JOBID} terminated with success.\n";
 		        iolibCigri::set_job_state($base, $vars{JOBID}, "Terminated");
@@ -305,7 +308,10 @@ if (defined $vars{FINISH}) {
 			          print "[UPDATOR]     Job ${$j}{jobId} exited with resubmit code 66, so we resubmit.\n";
 				  iolibCigri::set_job_state($base, ${$j}{jobId}, "Event");
 			          colomboCigri::resubmit_job($base,${$j}{jobId});
-	
+				}elsif ($fileVars{RET_CODE} == 67){
+			          print "[UPDATOR]     Job ${$j}{jobId} exited with resubmit code 67, so we resubmit at the end.\n";
+				  iolibCigri::set_job_state($base, ${$j}{jobId}, "Event");
+			          colomboCigri::resubmit_job_at_end($base,${$j}{jobId});
 				}else{
 	                          iolibCigri::set_job_state($base, ${$j}{jobId}, "Event");
 	                          colomboCigri::add_new_job_event($base,${$j}{jobId},"UPDATOR_RET_CODE_ERROR","Executable exited with error code $fileVars{RET_CODE}; $cmdResult{STDERR}\nCheck OAR.${$j}{jobName}.${$j}{remoteJobId}.stderr on ${$j}{clusterName} for more infos");

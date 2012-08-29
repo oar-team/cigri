@@ -287,7 +287,7 @@ sub add_mjobs($$$) {
                         ($paramName, @tmp) = split (' ', $_, 2);
                         $paramName=~s/\//_/g;
                         print("Insert ($id,\'$_\',\'$paramName\')\n");
-                        $doRet = $dbh->do("INSERT INTO parameters (parametersMJobsId,parametersParam,parametersName) VALUES ($id,\'$_\',\'$paramName\')");
+                        $doRet = $dbh->do("INSERT INTO parameters (parametersMJobsId,parametersParam,parametersName,parametersPriority) VALUES ($id,\'$_\',\'$paramName\',10)");
                         if ($doRet != 1){
                             warn("Duplicate parameters\n");
                             warn("$@");
@@ -309,7 +309,7 @@ sub add_mjobs($$$) {
 
         }elsif (defined($JDLParserCigri::clusterConf{DEFAULT}{nbJobs})){
             for (my $k=0; $k<$JDLParserCigri::clusterConf{DEFAULT}{nbJobs}; $k++) {
-            	$dbh->do("INSERT INTO parameters (parametersMJobsId,parametersParam) VALUES ($id,\'$k\')");
+            	$dbh->do("INSERT INTO parameters (parametersMJobsId,parametersParam,parametersPriority) VALUES ($id,\'$k\',10)");
 
 				$ParamNb ++;
 				 

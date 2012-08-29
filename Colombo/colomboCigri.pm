@@ -641,12 +641,24 @@ sub resubmit_job($$){
     my $jobId = shift;
     print("[COLOMBO]     Resubmiting job: $jobId\n");
     $dbh->do("    INSERT INTO parameters (parametersMJobsId,parametersParam,parametersName,parametersPriority)
-                SELECT jobMJobsId, jobParam, jobName, 1
+                SELECT jobMJobsId, jobParam, jobName, 20
                 FROM jobs
                 WHERE jobId = $jobId
             ");
 
 }
+sub resubmit_job_at_end($$){
+    my $dbh = shift;
+    my $jobId = shift;
+    print("[COLOMBO]     Resubmiting job: $jobId\n");
+    $dbh->do("    INSERT INTO parameters (parametersMJobsId,parametersParam,parametersName,parametersPriority)
+                SELECT jobMJobsId, jobParam, jobName, 0
+                FROM jobs
+                WHERE jobId = $jobId
+            ");
+
+}
+
 
 # resubmit an mjob 
 # arg1 --> database parameter
