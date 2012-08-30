@@ -159,20 +159,25 @@ module Cigri
                          :job_id => job.id, 
                          :cluster_id => job.props[:cluster_id], 
                          :message => "Resubmit cause: #{type}")
-      # Other errors 
+      # Other errors (exit status)
       elsif (cluster_job["exit_code"] >> 8) > 0
         COLOMBOLIBLOGGER.debug("Creating a EXIT_ERROR event for job #{job.id}")
         # Get the STDERR output file
-        # TODO
-        # Work in progress:
         cluster=Cluster.new({:id => job.props[:cluster_id]})
-        stderr=""
-        stderr=cluster.get_file(cluster_job["launching_directory"]+"/"+cluster_job["stderr_file"],job.props[:grid_user])
+        stderr_file=cluster_job["launching_directory"]+"/"+cluster_job["stderr_file"]
+        begin
+          stderr=cluster.get_file(stderr_file,job.props[:grid_user])
+        rescue => e
+          stderr=''
+          COLOMBOLIBLOGGER.warn("Could not get the stderr file #{stderr_file} for failed job #{job.id}: #{e.to_s}")
+        end
+        # Create event
         Cigri::Event.new(:class => "job",
                          :code => "EXIT_ERROR",
                          :job_id => job.id,
                          :cluster_id => job.props[:cluster_id], 
                          :message => "The job exited with exit status #{cluster_job["exit_code"] >> 8}; stderr_file:#{stderr}")
+      # Unknown errors
       else 
         COLOMBOLIBLOGGER.debug("Creating a UNKNOWN_ERROR event for job #{job.id}")
         Cigri::Event.new(:class => "job",
