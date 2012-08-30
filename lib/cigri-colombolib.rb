@@ -57,22 +57,10 @@ module Cigri
         if event.props[:class]=="cluster"
           COLOMBOLIBLOGGER.debug("Checking event #{event.props[:code]}")
           case event.props[:code]
-          when "TIMEOUT"
+          when "TIMEOUT", "CONNECTION_REFUSED", "SUBMIT_JOB", "GET_JOBS", "GET_JOB", "GET_MEDIA"
             blacklist_cluster(event.id,event.props[:cluster_id],event.props[:campaign_id])
             event.checked
-          when "CONNECTION_REFUSED"
-            blacklist_cluster(event.id,event.props[:cluster_id],event.props[:campaign_id])
-            event.checked
-          when "SUBMIT_JOB"
-            blacklist_cluster(event.id,event.props[:cluster_id],event.props[:campaign_id])
-            event.checked
-          when "GET_JOBS"
-            blacklist_cluster(event.id,event.props[:cluster_id],event.props[:campaign_id])
-            event.checked
-          when "GET_JOB"
-            blacklist_cluster(event.id,event.props[:cluster_id],event.props[:campaign_id])
-            event.checked
-           when "DELETE_JOB"
+          when "DELETE_JOB"
             if event.props[:message].include?("This job was already killed")
               COLOMBOLIBLOGGER.debug("Closing alright event #{event.id} for an already killed job}")
               event.close
