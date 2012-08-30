@@ -161,6 +161,7 @@ module Cigri
                       'dimensional_grouping'    => 'false',
                       'temporal_grouping'       => 'true',
                       'checkpointing_type'      => 'None',
+                      'test_mode'               => 'false',
                       'properties'              => ''}
     # Default values defined by configuration file
     DEFAULT_VALUES_CONF = {'walltime'  => 'DEFAULT_JOB_WALLTIME', 

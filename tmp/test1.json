@@ -2,9 +2,10 @@
   "name": "test1",
   "resources": "core=1",
   "exec_file": "$HOME/cigri-3/tmp/test1.sh",
+  "test_mode": "true",
   "clusters": {
     "tchernobyl": {
-      "campaign_type": "normal",
+      "type": "normal",
       "walltime": "300"
     },
     "fukushima": {

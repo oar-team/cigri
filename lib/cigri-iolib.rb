@@ -163,7 +163,7 @@ def cigri_submit(dbh, json, user)
         at_least_one_cluster = true
         %w{checkpointing_type dimensional_grouping epilogue exec_file 
           output_destination output_file output_gathering_method prologue 
-          properties resources temporal_grouping walltime}.each do |prop|
+          properties resources temporal_grouping walltime type test_mode}.each do |prop|
             dbh.do(query, prop, json['clusters'][cluster][prop], cluster_id, campaign_id) if json['clusters'][cluster][prop]
         end
       else
@@ -826,6 +826,23 @@ def take_tasks(dbh, tasks)
   end
 end
 
+##
+# Remove remaining tasks for a given campaign: all the tasks
+# left into the b-o-t and that are not scheduled are simply removed 
+# from the b-o-t. This is used by the "test" mode.
+# 
+# == Parameters
+# - dbh: db handler
+# - campaign_id
+#
+##
+def remove_remaining_tasks(dbh, campaign_id)
+  dbh.do("DELETE FROM bag_of_tasks
+           WHERE id IN 
+            (SELECT bag_of_tasks.id FROM bag_of_tasks LEFT JOIN jobs_to_launch ON bag_of_tasks.id=task_id
+              WHERE task_id IS NULL) 
+            AND campaign_id = #{campaign_id}") 
+end
 
 #######################################################################
 ######################### iolib classes ###############################

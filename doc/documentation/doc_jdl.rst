@@ -111,6 +111,15 @@ as value on all clusters.
   - BLCR
   - ...
 
+- test_mode: when test_mode is enabled, only one job per active cluster is 
+  submitted into normal mode even if best-effort is enabled. The jobs of such
+  a campaign are also executed prior to other campaigns.
+  This allow testing of a campaign without sending all the jobs and with less
+  waiting.
+
+  - true
+  - **false**
+
 .. NOTE::
 
   - *resources*: if several type of resources are asked, the default

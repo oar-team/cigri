@@ -34,30 +34,56 @@ begin
   campaigns.each do |campaign|
     logger.debug("Campaign #{campaign.id}")
     campaign.get_clusters
+    test=false
     while campaign.has_remaining_tasks? and campaign.have_active_clusters? do
       campaign.clusters.each_key do |cluster_id|
         cluster = Cigri::Cluster.new(:id => cluster_id)
         if not cluster.blacklisted? and not cluster.blacklisted?(:campaign_id => campaign.id)
           logger.debug("Queuing for campaign #{campaign.id} on cluster #{cluster.name}")
 
-          # As an example, we check the campaign_type:
-          #if campaign.clusters[cluster.id]["campaign_type"] != "best-effort"
-          #  logger.warn("Only best-effort campaigns are supported for now!")
-          #end
-
           # Scheduler call
-          scheduler=Cigri::SchedulerFifo.new(campaign,cluster.id,{
+          # Test mode
+          if campaign.clusters[cluster.id]["test_mode"] == "true"
+            test=true
+            scheduler=Cigri::SchedulerFifo.new(campaign,cluster.id,{
+                                                              :max_jobs => 1,
+                                                              :best_effort => false
+                                                              })
+            scheduler.do
+          # Campaign types
+          else
+            case campaign.clusters[cluster.id]["type"]
+              when "best-effort"
+              scheduler=Cigri::SchedulerFifo.new(campaign,cluster.id,{
                                                               :max_jobs => max_jobs,
                                                               :best_effort => true
                                                               })
-          scheduler.do
+              scheduler.do
+              when "normal"
+              scheduler=Cigri::SchedulerFifo.new(campaign,cluster.id,{
+                                                              :max_jobs => max_jobs,
+                                                              :best_effort => false
+                                                              })
+              scheduler.do
+              else
+              logger.warn("Unknown campaign type: "+campaign.clusters[cluster.id]["type"].to_s)
+            end
+          end # End campaign types
         else
           logger.debug("Cluster #{cluster.name} is blacklisted for campaign #{campaign.id}") 
         end
+        
       end
-    sleep 2
+     
+      # For the test mode, remove all remaining tasks
+      if test
+        db_connect() do |dbh|
+           remove_remaining_tasks(dbh,campaign.id)
+        end
+      end
+      sleep 2
     end
-  end
+ end
   
   logger.debug('Exiting')
 end
