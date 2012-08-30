@@ -10,6 +10,11 @@ require 'cigri-eventlib'
 
 CONF=Cigri.conf unless defined? CONF
 COLOMBOLIBLOGGER = Cigri::Logger.new('COLOMBOLIB', CONF.get('LOG_FILE'))
+if CONF.exists?('STDERR_TAIL')
+  STDERR_TAIL = CONF.get('STDERR_TAIL').to_i
+else
+  STDERR_TAIL = 5 
+end
 
 module Cigri
 
@@ -166,7 +171,7 @@ module Cigri
         cluster=Cluster.new({:id => job.props[:cluster_id]})
         stderr_file=cluster_job["launching_directory"]+"/"+cluster_job["stderr_file"]
         begin
-          stderr=cluster.get_file(stderr_file,job.props[:grid_user])
+          stderr=cluster.get_file(stderr_file,job.props[:grid_user],STDERR_TAIL)
         rescue => e
           stderr=''
           COLOMBOLIBLOGGER.warn("Could not get the stderr file #{stderr_file} for failed job #{job.id}: #{e.to_s}")

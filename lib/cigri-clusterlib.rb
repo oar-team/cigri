@@ -233,8 +233,8 @@ module Cigri
         secure_run proc{ @api.delete("jobs/#{job_id}", {@description["api_auth_header"] => user}) }, "DELETE_JOB"
       end
  
-      def get_file(path, user=nil)
-        secure_run proc{ @api.get("media"+path,{@description["api_auth_header"] => user},:raw => true) }, "GET_MEDIA"
+      def get_file(path, user=nil,tail=0)
+        secure_run proc{ @api.get("media"+path+"?tail="+tail.to_s,{@description["api_auth_header"] => user},:raw => true) }, "GET_MEDIA"
       end
  
     end # OARCluster
