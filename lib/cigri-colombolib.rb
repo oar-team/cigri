@@ -179,8 +179,7 @@ module Cigri
         # Work in progress:
         cluster=Cluster.new({:id => job.props[:cluster_id]})
         stderr=""
-        #stderr=cluster.get_stderr(job.props[:remote_id],job.props[:grid_user])
-        # not a oar job!-----------------^
+        stderr=cluster.get_file(cluster_job["launching_directory"]+"/"+cluster_job["stderr_file"],job.props[:grid_user])
         Cigri::Event.new(:class => "job",
                          :code => "EXIT_ERROR",
                          :job_id => job.id,

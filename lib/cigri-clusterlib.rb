@@ -157,8 +157,8 @@ module Cigri
       raise "Method must be overridden"
     end
 
-    # Get the stderr of a job
-    def get_stderr(job_id,user)
+    # Get a file
+    def get_file(path,user)
       raise "Method must be overridden"
     end
 
@@ -233,19 +233,11 @@ module Cigri
         secure_run proc{ @api.delete("jobs/#{job_id}", {@description["api_auth_header"] => user}) }, "DELETE_JOB"
       end
  
-      def get_stderr(job_id, user=nil)
-        # First we have to get the job infos
-        job=get_job(job_id, user)
-        stderr_file=job.props[:stderr_file]
-        launching_directory=job.props[:launching_directory]
-        # Then get the file and return the content
-        # TODO
-        return "#{launching_directory}/#{stderr_file}"
+      def get_file(path, user=nil)
+        secure_run proc{ @api.get("media"+path,{@description["api_auth_header"] => user},:raw => true) }, "GET_MEDIA"
       end
  
     end # OARCluster
- 
- 
   
     ##
     # g5k REST API methods definitions

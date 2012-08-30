@@ -92,11 +92,21 @@ module Cigri
       end
     end
 
-    def get(uri,header={})
+    # Get a rest resource
+    #
+    # == Parameters
+    # - uri: the uri of the resource to get
+    # - header: an optional hash to pass as headers options
+    # - props: set :raw => true to get a raw content without parsing
+    def get(uri,header={},props={:raw => false})
       uri = rel_uri(uri)
       header[:accept] = @content_type
       begin
-        parse(@api[uri].get(header))      
+        if props[:raw]
+          @api[uri].get(header)
+        else
+          parse(@api[uri].get(header))
+        end
       rescue RestClient::RequestTimeout
         message = "GET #{base_uri}#{uri}: REST query timeouted!"
         RESTCLIENTLIBLOGGER.error(message)
