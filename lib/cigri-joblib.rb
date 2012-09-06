@@ -371,10 +371,23 @@ module Cigri
       end
     end
 
+    def events(limit, offset)
+      db_connect() do |dbh|
+        return get_campaign_events(dbh, id, limit, offset)
+      end
+    end
+
     # Return the number of completed tasks
     def nb_completed_tasks
       db_connect() do |dbh|
         return get_campaign_nb_finished_jobs(dbh, id)
+      end
+    end
+
+    # Return the number of open events
+    def nb_events
+      db_connect() do |dbh|
+        return get_campaign_nb_events(dbh, id)
       end
     end
 

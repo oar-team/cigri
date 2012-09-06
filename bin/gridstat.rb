@@ -3,6 +3,7 @@
 $LOAD_PATH.unshift(File.join(File.dirname(File.expand_path(__FILE__)), '..', 'lib'))
 
 require 'cigri-clientlib'
+require 'cigri-clusterlib'
 require 'json'
 require 'optparse'
 require 'time'
@@ -19,8 +20,9 @@ full = false
 header = true
 dump = false
 pretty = false
+events = false
 optparse = OptionParser.new do |opts|
-  opts.banner = 'Usage: #{File.basename(__FILE__)} [options] ...'
+  opts.banner = "Usage: #{File.basename(__FILE__)} [options] ..."
   
   opts.on( '-c', '--campaign ID', String, 'Only print informations for campaign ID' ) do |c|
     campaign_id = c
@@ -35,6 +37,10 @@ optparse = OptionParser.new do |opts|
     full = true
   end
   
+  opts.on( '-e', '--events', 'Print open events on a campaign' ) do
+    events = true
+  end
+
   opts.on( '-H', '--headerless', 'Remove the columns title' ) do
     header = false
   end
@@ -66,8 +72,16 @@ rescue OptionParser::ParseError => e
   exit 1
 end
 
+if events
+  if not campaign_id
+    puts "You must give a campaign id to print the events!"
+    exit 1
+  end
+end
+
 url = '/campaigns'
 url << "/#{campaign_id}" if campaign_id
+url << "/events" if events
 url << '?pretty' if dump and pretty
 
 #TODO -H et -d incompatibles
@@ -78,6 +92,15 @@ begin
   
   if dump
     puts response.body
+  elsif events
+    events = JSON.parse(response.body)['items']
+    events.each do |event|
+      #cluster=Cigri::Cluster.new(:id => event['cluster_id'].to_i)
+      #cluster_name=cluster.props[:name]
+      cluster_name=event['cluster_id']
+      puts "\n#{event['id']}: #{event['code']} on job #{event['job_id']} at #{event['date_open']} on #{cluster_name}"
+      puts event['message']
+    end
   else
     if campaign_id  
       campaigns = [JSON.parse(response.body)]
@@ -91,8 +114,8 @@ begin
     end
 
     if header
-      puts "Campaign id Name                User             Submission time     S Progress"
-      puts '----------- ------------------- ---------------- ------------------- - --------'
+      puts "Campaign id Name                User             Submission time     S  Progress"
+      puts '----------- ------------------- ---------------- ------------------- -- --------'
     end 
     
     #TODO sort by campaign ID
@@ -103,12 +126,14 @@ begin
         rescue ZeroDivisionError => e
           progress = nil
         end
+        e=' '
+        e='e' if campaign['has_events']
         printf("%-11d %-19s %-16s %-19s %s %7.2f%\n", 
                 campaign['id'], 
                 campaign['name'][0..18], 
                 campaign['user'][0..15], 
                 Time.at(campaign['submission_time']).strftime('%Y-%m-%d %H-%M-%S'), 
-                STATES[campaign['state']], 
+                STATES[campaign['state']]+e, 
                 progress);
       end
     rescue Errno::EPIPE

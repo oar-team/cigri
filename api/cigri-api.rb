@@ -101,7 +101,20 @@ class API < Sinatra::Base
     status 200
     print(output)
   end
-  
+ 
+  # Get the events of a campaign
+  get '/campaigns/:id/events/?' do |id|
+    response['Allow'] = 'GET'
+    
+    limit = params['limit'] || 100
+    offset = params['offset'] || 0
+
+    output = get_formated_events(id, limit, offset)
+
+    status 200
+    print(output)
+  end
+ 
   # List all clusters
   get '/clusters/?' do
     response['Allow'] = 'GET'
@@ -283,6 +296,43 @@ class API < Sinatra::Base
       }
     end
 
+    # Gets events on a campaign
+    #
+    # == Parameters: 
+    #  - id: id of the campaign
+    #  - limit: number of events to get
+    #  - offset: start from event "offset"
+    def get_formated_events(id, limit, offset)      
+      campaign = get_campaign(id)
+      events = nil
+      begin
+        events = campaign.events(limit, offset)
+      rescue DBI::ProgrammingError => e
+        halt 400, print({:status => 400, :title => "Error", :message => "#{e}"})
+      end
+      not_found if events.size == 0
+
+      items = []
+      events.each do |event|
+        items << {
+          :id => event[0],
+          :class => event[1],
+          :code => event[2],
+          :job_id => event[3],
+          :cluster_id => event[4],
+          :date_open => event[6],
+          :message => event[5]
+        }
+      end
+
+      {:items => items,
+       :total => campaign.nb_events.to_i,
+       :offset => offset
+      }
+    end
+
+
+
     # Gets a campaign from the database
     #
     # == Parameters: 
@@ -313,6 +363,7 @@ class API < Sinatra::Base
        :name => props[:name], 
        :user => props[:grid_user],
        :state => props[:state],
+       :has_events => campaign.has_open_events?,
        :submission_time => Time.parse(props[:submission_time]).to_i,
        :total_jobs => props[:nb_jobs].to_i,
        :finished_jobs => props[:finished_jobs],

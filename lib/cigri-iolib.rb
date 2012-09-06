@@ -583,6 +583,47 @@ def get_campaign_tasks(dbh, id, limit, offset)
 end
 
 ##
+# Returns the open events of a campaign
+#
+# == Parameters
+# - dbh: dababase handle
+# - id: campaign id
+# - limit
+# - offset
+#
+# == Returns
+# Array: [id,class,code,job_id,cluster_id,message,date_open]
+#
+##
+def get_campaign_events(dbh, id, limit, offset)
+  query = "SELECT id,class,code,job_id,cluster_id,message,date_open
+           FROM events
+           WHERE campaign_id = ? and state='open' and not code = 'BLACKLIST'
+           ORDER BY id
+           LIMIT ? 
+           OFFSET ?"
+
+  dbh.select_all(query, id, limit, offset)
+end
+
+##
+# Returns the number of open events of a campaign
+#
+# == Parameters
+# - dbh: dababase handle
+# - id: campaign id
+#
+# == Returns
+# Integer
+#
+##
+def get_campaign_nb_events(dbh, id)
+  dbh.select_one("SELECT count(*)
+           FROM events
+           WHERE campaign_id = ? and state='open' and not code = 'BLACKLIST'", id)[0]
+end
+
+##
 # Returns the number of remaining tasks for a given campaign
 #
 # == Parameters

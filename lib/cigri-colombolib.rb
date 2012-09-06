@@ -162,6 +162,7 @@ module Cigri
         Cigri::Event.new(:class => "job", 
                          :code => code, 
                          :job_id => job.id, 
+                         :campaign_id => job.props[:campaign_id],
                          :cluster_id => job.props[:cluster_id], 
                          :message => "Resubmit cause: #{type}")
       # Other errors (exit status)
@@ -180,14 +181,16 @@ module Cigri
         Cigri::Event.new(:class => "job",
                          :code => "EXIT_ERROR",
                          :job_id => job.id,
+                         :campaign_id => job.props[:campaign_id],
                          :cluster_id => job.props[:cluster_id], 
-                         :message => "The job exited with exit status #{cluster_job["exit_code"] >> 8}; stderr_file:#{stderr}")
+                         :message => "The job exited with exit status #{cluster_job["exit_code"] >> 8}; stderr_file:\n#{stderr}")
       # Unknown errors
       else 
         COLOMBOLIBLOGGER.debug("Creating a UNKNOWN_ERROR event for job #{job.id}")
         Cigri::Event.new(:class => "job",
                          :code => "UNKNOWN_ERROR",
                          :job_id => job.id,
+                         :campaign_id => job.props[:campaign_id],
                          :cluster_id => job.props[:cluster_id], 
                          :message => "The job exited with an unknown error. Job events: #{cluster_job["events"].inspect}")
       end
