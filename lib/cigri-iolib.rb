@@ -598,12 +598,17 @@ end
 def get_campaign_events(dbh, id, limit, offset)
   query = "SELECT id,class,code,job_id,cluster_id,message,date_open,parent
            FROM events
-           WHERE campaign_id = ? and state='open'
+           WHERE state='open'
+                and ( campaign_id = ?
+                      or
+                      cluster_id in
+                      (select distinct cluster_id from campaign_properties where campaign_id = ?)
+                    )
            ORDER BY id
            LIMIT ? 
            OFFSET ?"
 
-  dbh.select_all(query, id, limit, offset)
+  dbh.select_all(query, id, id, limit, offset)
 end
 
 ##
