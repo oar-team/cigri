@@ -121,7 +121,7 @@ while true do
               tap = 0
           end
         rescue => e
-          message="Could not get remote job #{job.id}! #{e.to_s}"
+          message="Could not get remote job #{job.id}!\n#{e.to_s}\n#{e.backtrace.to_s}"
           logger.warn(message)
           tap=0 # There's a problem, so we close the tap
           break
