@@ -9,15 +9,16 @@ CIGRI_GROUP=realuser
 CIGRI_CONFIGFILE=/etc/cigri.conf
 IRODS_ADMIN_HOST=quath.ujf-grenoble.fr
 IRODS_ADMIN_USER=irods
-IRODS_ADMIN_PATH=/applis/ciment/stow/x86_64/iRODS-2.4.1/clients/icommands/bin
+IRODS_ADMIN_PATH=/applis/ciment/v2/stow/x86_64/gcc_4.6.2/irods_2.5/clients/icommands/bin/
 IRODS_DEFAULT_HOST=195.220.82.20
 IRODS_DEFAULT_ZONE=cigri
 IRODS_DEFAULT_PORT=1247
-IRODS_INIT_CMD='/applis/ciment/stow/`uname -m`/iRODS-2.4.1/clients/icommands/bin/iinit'
+IRODS_INIT_CMD="/applis/ciment/v2/stow/x86_64/gcc_4.6.2/irods_2.5/clients/icommands/bin/iinit"
 PASSWD_BACKUP_FILE=~cigri/irods_passwords
-IGNORE_CLUSTERS="browalle.ujf-grenoble.fr|cmserver.e-ima.ujf-grenoble.fr|p2chpd-cluster.univ-lyon1.fr|psmn-cluster.ens-lyon.fr|zephir.mirage.ujf-grenoble.fr|edel.imag.fr|adonis.imag.fr"
+IGNORE_CLUSTERS="browalle.ujf-grenoble.fr|cmserver.e-ima.ujf-grenoble.fr|p2chpd-cluster.univ-lyon1.fr|psmn-cluster.ens-lyon.fr|healthphy.ujf-grenoble.fr|zephir.mirage.ujf-grenoble.fr|edel.imag.fr"
 ADD_HOSTS="killeen.ujf-grenoble.fr"
-DEFAULT_QUOTA=200000000000
+IGNORE_USERS="clevy clevy1 clevy12 pvan-de pvan-de1 aantoni cmessag capitn cthomas fouka jddubois" 
+DEFAULT_QUOTA=500000000000
 SSH_COMMAND="ssh -o BatchMode=yes"
 
 touch $PASSWD_BACKUP_FILE
@@ -42,6 +43,23 @@ else
   USERS=`getent group $CIGRI_GROUP |cut -f 4 -d:|sed "s/,/ /g"`
 fi
 
+# Filter users
+for user in $USERS
+do
+  flag=1
+  for exclude_user in $IGNORE_USERS
+  do
+    if [ "$exclude_user" = "$user" ]
+    then
+      flag=0
+    fi
+  done
+  if [ "$flag" = "1" ]
+  then
+    FILTERED_USERS="$user $FILTERED_USERS"
+  fi
+done
+
 # Get the force option
 if [ "$1" = "-f" -o "$2" = "-f" ]
 then
@@ -50,7 +68,7 @@ else
   FORCE=0
 fi
 
-for user in $USERS
+for user in $FILTERED_USERS
 do
     echo "Checking $user"
 
@@ -75,13 +93,15 @@ do
       $SSH_COMMAND $IRODS_ADMIN_USER@$IRODS_ADMIN_HOST "$IRODS_ADMIN_PATH/iadmin mkuser $user rodsuser" || exit 1
       $SSH_COMMAND $IRODS_ADMIN_USER@$IRODS_ADMIN_HOST "$IRODS_ADMIN_PATH/iadmin moduser $user password $password" || exit 1
       $SSH_COMMAND $IRODS_ADMIN_USER@$IRODS_ADMIN_HOST "$IRODS_ADMIN_PATH/iadmin atg cigri-user $user" || exit 1
-    else
-      echo "    IRODS user $user already exists."
-    fi
 
       # Set quota for the newly created user
       echo "    Setting intial irods quota for $user..."
       $SSH_COMMAND $IRODS_ADMIN_USER@$IRODS_ADMIN_HOST "$IRODS_ADMIN_PATH/iadmin suq $user total $DEFAULT_QUOTA" || exit 1
+
+    else
+      echo "    IRODS user $user already exists."
+    fi
+
 
     # Check users irods environments on the clusters
     for cluster in $CLUSTERS
@@ -96,11 +116,8 @@ do
                
         # Check if the user already has an irods environment
         echo "    Checking $remote_user on $cluster..."
-        WHOAMI_OK=`$SSH_COMMAND $cluster "sudo -H -u $remote_user bash -c 'whoami > /dev/null && echo 1 || echo 0'"`
-        HOMEDIR=`$SSH_COMMAND $cluster "getent passwd $remote_user |cut -d: -f6"`
-        HOMEDIR_OK=`$SSH_COMMAND $cluster "sudo -H -u $remote_user bash -c 'touch $HOMEDIR/.test_sync_irods && echo 1 || echo 0'"`
         ALREADY=`$SSH_COMMAND $cluster "sudo -H -u $remote_user bash -c '[ -f ~/.irods/.irodsEnv ] && echo 1 || echo 0'"`
-        if [ $? -eq 0  -a \( "$ALREADY" = "0" -o "$FORCE" = "1" \) -a "$WHOAMI_OK" = "1" -a "$HOMEDIR_OK" = "1" ]
+        if [ $? -eq 0  -a \( "$ALREADY" = "0" -o "$FORCE" = "1" \) ]
         then
           # Create an irods environment file
           echo "    Creating $cluster:~$remote_user/.irods/.irodsEnv"
@@ -115,7 +132,7 @@ do
 
         # Check if the user already has an irods password file
         ALREADY=`$SSH_COMMAND $cluster "sudo -H -u $remote_user bash -c '[ -f ~/.irods/.irodsA ] && echo 1 || echo 0'"`
-        if [ $? -eq 0 -a \( "$ALREADY" = "0" -o "$FORCE" = "1" \) -a "$WHOAMI_OK" = "1" -a "$HOMEDIR_OK" = "1" ]
+        if [ $? -eq 0 -a \( "$ALREADY" = "0" -o "$FORCE" = "1" \) ]
         then
           # Init irods password 
           echo "    Creating $cluster:~$remote_user/.irods/.irodsA"
