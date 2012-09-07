@@ -305,6 +305,12 @@ class API < Sinatra::Base
     def get_formated_events(id, limit, offset)      
       campaign = get_campaign(id)
       events = nil
+      # Cluster id <-> name matching
+      cluster_names = {}
+      clusters=Cigri::ClusterSet.new
+      clusters.each do |cluster|
+       cluster_names[cluster.id]=cluster.name
+      end
       begin
         events = campaign.events(limit, offset)
       rescue DBI::ProgrammingError => e
@@ -320,6 +326,7 @@ class API < Sinatra::Base
           :code => event[2],
           :job_id => event[3],
           :cluster_id => event[4],
+          :cluster_name => cluster_names[event[4]],
           :date_open => event[6],
           :message => event[5]
         }

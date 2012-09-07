@@ -3,7 +3,6 @@
 $LOAD_PATH.unshift(File.join(File.dirname(File.expand_path(__FILE__)), '..', 'lib'))
 
 require 'cigri-clientlib'
-require 'cigri-clusterlib'
 require 'json'
 require 'optparse'
 require 'time'
@@ -22,7 +21,7 @@ dump = false
 pretty = false
 events = false
 optparse = OptionParser.new do |opts|
-  opts.banner = "Usage: #{File.basename(__FILE__)} [options] ..."
+  opts.banner = "Usage: #{File.basename(__FILE__)} [options] [<campaign ID>]"
   
   opts.on( '-c', '--campaign ID', String, 'Only print informations for campaign ID' ) do |c|
     campaign_id = c
@@ -72,6 +71,12 @@ rescue OptionParser::ParseError => e
   exit 1
 end
 
+# Campaign id can be passed as an argument (same as -c option)
+if campaign_id.nil? && ARGV[0]
+  campaign_id=ARGV[0]
+end
+
+# Events printing needs a campaign ID
 if events
   if not campaign_id
     puts "You must give a campaign id to print the events!"
@@ -89,17 +94,20 @@ url << '?pretty' if dump and pretty
 begin 
   client = Cigri::Client.new()
   response = client.get(url)
+
+#TODO: manage empty results
   
   if dump
     puts response.body
   elsif events
     events = JSON.parse(response.body)['items']
-    events.each do |event|
-      #cluster=Cigri::Cluster.new(:id => event['cluster_id'].to_i)
-      #cluster_name=cluster.props[:name]
-      cluster_name=event['cluster_id']
-      puts "\n#{event['id']}: #{event['code']} on job #{event['job_id']} at #{event['date_open']} on #{cluster_name}"
-      puts event['message']
+    if events.nil?
+      puts "No events for campaign #{campaign_id}"
+    else
+      events.each do |event|
+        puts "\n#{event['id']}: #{event['code']} of job #{event['job_id']} at #{event['date_open']} on #{event['cluster_name']}"
+        puts event['message']
+      end
     end
   else
     if campaign_id  
