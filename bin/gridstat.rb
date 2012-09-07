@@ -105,8 +105,12 @@ begin
       puts "No events for campaign #{campaign_id}"
     else
       events.each do |event|
-        puts "\n#{event['id']}: #{event['code']} of job #{event['job_id']} at #{event['date_open']} on #{event['cluster_name']}"
-        puts event['message']
+        job=''
+        job=" of job #{event['job_id']}" if event['job_id']
+        because=''
+        because=" because of #{event['parent']}" if event['parent']
+        puts "\n#{event['id']}: #{event['code']}#{job} at #{event['date_open']} on #{event['cluster_name']}#{because}"
+        puts event['message'] if !event['message'].nil?
       end
     end
   else

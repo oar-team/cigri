@@ -596,9 +596,9 @@ end
 #
 ##
 def get_campaign_events(dbh, id, limit, offset)
-  query = "SELECT id,class,code,job_id,cluster_id,message,date_open
+  query = "SELECT id,class,code,job_id,cluster_id,message,date_open,parent
            FROM events
-           WHERE campaign_id = ? and state='open' and not code = 'BLACKLIST'
+           WHERE campaign_id = ? and state='open'
            ORDER BY id
            LIMIT ? 
            OFFSET ?"
