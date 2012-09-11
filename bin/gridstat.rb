@@ -101,18 +101,7 @@ begin
     puts response.body
   elsif events
     events = JSON.parse(response.body)['items']
-    if events.nil?
-      puts "No events for campaign #{campaign_id}"
-    else
-      events.each do |event|
-        job=''
-        job=" of job #{event['job_id']}" if event['job_id']
-        because=''
-        because=" because of #{event['parent']}" if event['parent']
-        puts "\n#{event['id']}: #{event['code']}#{job} at #{event['date_open']} on #{event['cluster_name']}#{because}"
-        puts event['message'] if !event['message'].nil?
-      end
-    end
+    Cigri::Client.print_events(events)
   else
     if campaign_id  
       campaigns = [JSON.parse(response.body)]

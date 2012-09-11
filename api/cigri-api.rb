@@ -219,6 +219,26 @@ class API < Sinatra::Base
     status 202
     print(get_formated_campaign(id))
   end
+
+  delete '/campaigns/:id/events/?' do |id|
+    protected!
+
+    db_connect() do |dbh|
+      begin
+        close_campaign_events(dbh, request.env[settings.username_variable], id)
+      rescue Cigri::NotFound => e
+        not_found
+      rescue Cigri::Unauthorized => e
+        halt 403, print({:status => 403, :title => "Forbidden", :message => "Campaign #{id} does not belong to you: #{e.message}"})
+      rescue Exception => e
+        halt 400, print({:status => 400, :title => "Error", :message => "Error fixing campaign #{id}: #{e}"})
+      end
+    end
+ 
+    status 202
+    print({:status => 202, :title => :Accepted, :message => "Campaign #{id} events closed"})
+  end
+ 
   
   delete '/campaigns/:id/?' do |id|
     protected!
@@ -241,7 +261,8 @@ class API < Sinatra::Base
     status 202
     print({:status => 202, :title => :Accepted, :message => "Campaign #{id} cancelled"})
   end
-  
+
+ 
   not_found do 
     print( {:status => 404, :title => 'Not Found', :message => "#{request.request_method} #{request.url} not found on this server"} )
   end

@@ -443,6 +443,28 @@ def delete_campaign(dbh, user, id)
 end
 
 ##
+# Closes all the events opened on a campaign
+#
+# == Parameters
+# - dbh: database handle
+# - user: user requesting campaign events fixing 
+# - id: campaign id to fix
+#
+# == Exceptions
+# - Cigri::Unauthorized if the user does not have the rights to delete the campaign
+# - Cigri::NotFound if the campaign "id" does not exist
+#
+##
+def close_campaign_events(dbh, user, id)
+  IOLIBLOGGER.debug("Received request to close all events for campaign '#{id}'")
+  check_rights!(dbh, user, id)
+  nb = dbh.do("UPDATE events 
+                SET state='closed' 
+                WHERE campaign_id = ? AND NOT code = 'BLACKLIST'", id)
+  IOLIBLOGGER.debug("Closed #{nb} 'events' for campaign #{id}")
+end
+
+##
 # Updates a campaign 
 #
 # == Parameters

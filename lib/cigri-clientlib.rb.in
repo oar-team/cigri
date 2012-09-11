@@ -43,6 +43,26 @@ module Cigri
       @http.request(Net::HTTP::Delete.new(url))
     end
 
+    # Print formated events to console
+    def self.print_events(events)
+      if events.nil?
+        puts "No events!"
+      else
+        events.each do |event|
+          job=''
+          job=" of job #{event['job_id']}" if event['job_id']
+          because=''
+          because=" because of #{event['parent']}" if event['parent']
+          puts "------------------------------------------------------------------------------"
+          puts "#{event['id']}: #{event['code']}#{job} at #{event['date_open']} on #{event['cluster_name']}#{because}"
+          puts event['message'] if !event['message'].nil?
+        end
+        puts "------------------------------------------------------------------------------"
+      end
+    end
+
   end # class Client    
 
 end # module Cigri
+
+
