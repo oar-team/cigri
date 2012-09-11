@@ -68,7 +68,7 @@ begin
     # Close events
     if fix 
       url << "/#{eventid}" if eventid # TODO: Not implemented into API for now
-      url << '?resubmit' if resubmit
+      url << '?resubmit=1' if resubmit
       response = client.delete(url)
       parsed_response = JSON.parse(response.body)
       if response.code != "202"

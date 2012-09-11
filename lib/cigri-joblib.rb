@@ -371,6 +371,7 @@ module Cigri
       end
     end
 
+    # Get open events
     def events(limit, offset)
       db_connect() do |dbh|
         return get_campaign_events(dbh, id, limit, offset)

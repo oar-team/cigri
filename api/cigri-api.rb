@@ -8,6 +8,7 @@ require 'time'
 $LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
 ENV['CIGRICONFDIR'] = File.expand_path('../../etc', __FILE__)
 require 'cigri'
+require 'cigri-iolib'
 require 'cigri-clusterlib'
 require 'cigri-joblib'
 require 'cigri-eventlib'
@@ -224,8 +225,24 @@ class API < Sinatra::Base
     protected!
 
     db_connect() do |dbh|
+
       begin
+        # Get the jobs to resubmit if needed
+        if params['resubmit']
+          dataset=Dataset.new("jobs,events",{:what => 
+               "jobs.id as id,jobs.param_id as param_id,jobs.campaign_id as campaign_id",
+                                             :where => "events.campaign_id=#{id} and
+                                              events.state='open' and 
+                                              jobs.id=events.job_id"}) 
+          jobs=Cigri::Jobset.new()
+          jobs.fill(dataset.records,true)
+          jobs.to_jobs
+        end
+        # Fix the campaign
         close_campaign_events(dbh, request.env[settings.username_variable], id)
+        # Resubmit the jobs if needed
+        jobs.each{|job| job.resubmit} if params['resubmit']
+
       rescue Cigri::NotFound => e
         not_found
       rescue Cigri::Unauthorized => e
