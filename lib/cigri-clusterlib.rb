@@ -130,6 +130,10 @@ module Cigri
         event=Cigri::Event.new(:class => "cluster", :cluster_id => @id, :code => "CONNECTION_REFUSED", :message => e)
         Cigri::Colombo.new(event).check
         raise
+      rescue Errno::ECONNRESET => e
+        event=Cigri::Event.new(:class => "cluster", :cluster_id => @id, :code => "CONNECTION_RESET", :message => e)
+        Cigri::Colombo.new(event).check
+        raise
       rescue => e
         event=Cigri::Event.new(:class => "cluster", :cluster_id => @id, :code => default_error_code, :message => e)
         Cigri::Colombo.new(event).check

@@ -62,7 +62,7 @@ module Cigri
         if event.props[:class]=="cluster"
           COLOMBOLIBLOGGER.debug("Checking event #{event.props[:code]}")
           case event.props[:code]
-          when "TIMEOUT", "CONNECTION_REFUSED", "SUBMIT_JOB", "GET_JOBS", "GET_JOB", "GET_MEDIA"
+          when "TIMEOUT", "CONNECTION_RESET", "CONNECTION_REFUSED", "SUBMIT_JOB", "GET_JOBS", "GET_JOB", "GET_MEDIA"
             blacklist_cluster(event.id,event.props[:cluster_id],event.props[:campaign_id])
             event.checked
           when "DELETE_JOB"
@@ -86,7 +86,7 @@ module Cigri
         #TODO: add a field date_update into events so that we can check
         # only after a given amount of time
         if event.props[:class]=="cluster"
-          if event.props[:code] == "TIMEOUT" or event.props[:code] == "CONNECTION_REFUSED"
+          if event.props[:code] == "TIMEOUT" or event.props[:code] == "CONNECTION_REFUSED" or event.props[:code] == "CONNECTION_RESET"
             cluster=Cluster.new({:id => event.props[:cluster_id]})
             if cluster.check_api?
               COLOMBOLIBLOGGER.debug("Autofixing #{cluster.name}")
