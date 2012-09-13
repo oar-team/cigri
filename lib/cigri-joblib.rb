@@ -401,6 +401,16 @@ module Cigri
       false
     end
 
+    # Return true if the prologue has been executed on the specified cluster
+    def prologue_ok?(cluster_id)
+      return true unless @clusters[cluster_id]["prologue"]
+      #TODO
+      #Cigri::Events.new(:where => "campaign_id=#{@id} and cluster_id=#{cluster_id} 
+      #                                   and code='PROLOGUE_RUNNING'
+      #                                   and state='closed'")
+      true
+    end
+
   end # class Campaign
 
   # Campaignset class

@@ -6,12 +6,26 @@
   "clusters": {
     "tchernobyl": {
       "type": "normal",
-      "walltime": "300"
+      "walltime": "300",
+      "prologue": [
+        "mkdir -p $HOME/workdir",
+        "cd $HOME/workdir",
+        "touch tchernobyl_prologue_works"
+       ]
     },
     "fukushima": {
       "walltime": "3600"
     }
   },
+  "prologue": [
+    "mkdir $HOME/workdir",
+    "cd $HOME/workdir",
+    "touch prologue_works"
+  ],
+  "epilogue": [
+    "cd $HOME/workdir",
+    "touch epilogue_works"
+  ],
   "params": [ 
     "param1 1", 
     "param2 2", 

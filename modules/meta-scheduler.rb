@@ -38,7 +38,10 @@ begin
     while campaign.has_remaining_tasks? and campaign.have_active_clusters? do
       campaign.clusters.each_key do |cluster_id|
         cluster = Cigri::Cluster.new(:id => cluster_id)
-        if not cluster.blacklisted? and not cluster.blacklisted?(:campaign_id => campaign.id)
+        if ( not cluster.blacklisted? and not 
+                 cluster.blacklisted?(:campaign_id => campaign.id) and
+                 campaign.prologue_ok?(cluster_id) 
+           )
           logger.debug("Queuing for campaign #{campaign.id} on cluster #{cluster.name}")
 
           # Scheduler call

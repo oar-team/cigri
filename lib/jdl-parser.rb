@@ -149,7 +149,7 @@ module Cigri
       end
       jdl['params'] = params unless jdl['params']
     end # def self.get_params!
-    
+
     private
     
     # Default global fixed values
@@ -181,7 +181,7 @@ module Cigri
         jdl[key] = config.get(val) unless jdl[key]
       end
       
-      # set default values for clusters attriburtes
+      # set default values for clusters attributes
       jdl['clusters'].each_value do |cluster|
         DEFAULT_VALUES.each do |key, val|
           cluster[key] = val unless jdl[key] or cluster[key]
