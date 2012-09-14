@@ -50,7 +50,7 @@ begin
             test=true
             scheduler=Cigri::SchedulerFifo.new(campaign,cluster.id,{
                                                               :max_jobs => 1,
-                                                              :best_effort => false
+                                                              :besteffort => false
                                                               })
             scheduler.do
           # Campaign types
@@ -59,13 +59,13 @@ begin
               when "best-effort"
               scheduler=Cigri::SchedulerFifo.new(campaign,cluster.id,{
                                                               :max_jobs => max_jobs,
-                                                              :best_effort => true
+                                                              :besteffort => true
                                                               })
               scheduler.do
               when "normal"
               scheduler=Cigri::SchedulerFifo.new(campaign,cluster.id,{
                                                               :max_jobs => max_jobs,
-                                                              :best_effort => false
+                                                              :besteffort => false
                                                               })
               scheduler.do
               else

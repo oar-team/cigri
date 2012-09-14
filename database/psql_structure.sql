@@ -95,7 +95,8 @@ CREATE TABLE  jobs_to_launch (
   task_id BIGINT NOT NULL,
   cluster_id INTEGER NOT NULL,
   tag VARCHAR(255),
-  runner_options TEXT
+  runner_options TEXT,
+  PRIMARY KEY (id)
 );
 CREATE INDEX jobs_to_launch_idx_cluster_id ON jobs_to_launch (cluster_id);
 
@@ -117,6 +118,8 @@ CREATE TABLE  jobs (
   node_name varchar(255),
   resources_used INTEGER,
   remote_id BIGINT,
+  tag VARCHAR(255),
+  runner_options TEXT,
   PRIMARY KEY (id)
 );
 CREATE INDEX jobs_idx_id ON jobs (id);
@@ -124,6 +127,7 @@ CREATE INDEX jobs_idx_campaign_id ON jobs (campaign_id);
 CREATE INDEX jobs_idx_batch_id ON jobs (batch_id);
 CREATE INDEX jobs_idx_state ON jobs (state);
 CREATE INDEX jobs_idx_cluster_id ON jobs (cluster_id);
+CREATE INDEX jobs_idx_tag ON jobs (tag);
 
 DROP TABLE IF EXISTS events;
 CREATE TYPE event_class as ENUM('cluster','job','campaign');

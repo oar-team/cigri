@@ -9,6 +9,7 @@ require 'cigri-logger'
 require 'cigri-conflib'
 require 'cigri-iolib'
 require 'cigri-clusterlib'
+require 'json'
 
 CONF = Cigri.conf unless defined? CONF
 JOBLIBLOGGER = Cigri::Logger.new('JOBLIB', CONF.get('LOG_FILE'))
@@ -24,6 +25,11 @@ module Cigri
     # Creates a new job or get it from the database
     def initialize(props={})
       super("jobs",props)
+      begin
+        @props[:runner_options]=JSON.parse(@props[:runner_options])
+      rescue
+        JOBLIBLOGGER.warn("Couldn't convert runner_options field of job #{id}")   
+      end
     end
 
     # Clone the job into the bag of tasks for resubmission of the same job
@@ -75,7 +81,7 @@ module Cigri
                parameters.campaign_id as campaign_id, param_id, batch_id, cluster_id, 
                collect_id, jobs.state as state, return_code, 
                jobs.submission_time as submission_time, start_time, 
-               stop_time, node_name, resources_used, remote_id"
+               stop_time, node_name, resources_used, remote_id, tag, runner_options"
       @join="jobs.param_id=parameters.id and jobs.campaign_id=campaigns.id"
       if (not props[:where].nil?)
         props[:where]+=" and #{@join}"
@@ -152,40 +158,47 @@ module Cigri
         else
           campaign.get_clusters
           jobs=@records.select {|job| job.props[:campaign_id] == campaign_id}
-          params=jobs.collect {|job| job.props[:param]}
-          submission = {
+          # Now, we got the jobs of a campaign
+          # We need to split again, by runner_options
+          runner_options=jobs.map{|job| job.props[:runner_options]}
+          runner_options.uniq!
+          runner_options.each do |runner_option|
+            params=jobs.collect {|job| job.props[:param]}
+            submission = {
                          "param_file" => params.join("\n"),
                          "resources" => campaign.clusters[cluster_id]["resources"],
                          "command" => campaign.clusters[cluster_id]["exec_file"]
-                       }
-          # Properties from the JDL
-          submission["walltime"]=campaign.clusters[cluster_id]["walltime"] unless campaign.clusters[cluster_id]["walltime"]
-          submission["directory"]=campaign.clusters[cluster_id]["exec_directory"] unless campaign.clusters[cluster_id]["exec_directory"]
-          submission["properties"]=campaign.clusters[cluster_id]["properties"] unless campaign.clusters[cluster_id]["properties"]
-          # Campaign types
-          # TODO: manage clusters calendars for semi-best-effort and nightly
-          if campaign.clusters[cluster_id]["campaign_type"] != "normal"
-            submission["type"]="besteffort"
-          end
+                         }
+
+            # Properties from the JDL
+            submission["walltime"]=campaign.clusters[cluster_id]["walltime"] unless campaign.clusters[cluster_id]["walltime"]
+            submission["directory"]=campaign.clusters[cluster_id]["exec_directory"] unless campaign.clusters[cluster_id]["exec_directory"]
+            submission["properties"]=campaign.clusters[cluster_id]["properties"] unless campaign.clusters[cluster_id]["properties"]
+
+            # Runner options
+            if runner_option["besteffort"]
+              submission["type"]="besteffort"
+            end
           
-          # TODO: manage grouping
+            # TODO: manage grouping
   
-          JOBLIBLOGGER.info("Submitting new array job on #{cluster.description["name"]} with #{params.length} parameter(s).")
-          launching_jobs=Jobset.new
-          launching_jobs.fill(jobs,true)       
-          launching_jobs.update({'state' => 'launching'})
-          j=cluster.submit_job(submission,campaign.props[:grid_user])
-          if j.nil?
-            JOBLIBLOGGER.error("Unhandled error when submitting jobs on #{cluster.description["name"]}!")
-          else
-            array_jobs << j["id"]
-            # Update jobs infos
-            launching_jobs.update!(
+            JOBLIBLOGGER.info("Submitting new array job on #{cluster.description["name"]} with #{params.length} parameter(s).")
+            launching_jobs=Jobset.new
+            launching_jobs.fill(jobs,true)       
+            launching_jobs.update({'state' => 'launching'})
+            j=cluster.submit_job(submission,campaign.props[:grid_user])
+            if j.nil?
+              JOBLIBLOGGER.error("Unhandled error when submitting jobs on #{cluster.description["name"]}!")
+            else
+              array_jobs << j["id"]
+              # Update jobs infos
+              launching_jobs.update!(
                                    { 'state' => 'submitted', 
                                      'submission_time' => Time::now(),
                                      'cluster_id' => cluster_id,
                                    },'jobs' )
-            launching_jobs.match_remote_ids(cluster_id, campaign.clusters[cluster_id]["exec_file"], j["id"])
+              launching_jobs.match_remote_ids(cluster_id, campaign.clusters[cluster_id]["exec_file"], j["id"])
+            end
           end
         end
       end

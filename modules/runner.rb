@@ -80,8 +80,6 @@ while true do
     sleep_more = SLEEP_MORE
   else  
     # Update the jobs state and close the tap if necessary
-    # TODO: we need to find a way to have a tap per campaign as a campaign
-    # may have waiting jobs but another may run fluently
     current_jobs = Cigri::Jobset.new
     current_jobs.get_submitted(cluster.id)
     current_jobs.get_running(cluster.id)

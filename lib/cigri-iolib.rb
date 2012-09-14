@@ -3,6 +3,7 @@ require 'cigri-exception'
 require 'cigri-logger'
 require 'dbi'
 require 'pp'
+require 'json'
 
 # Configuration for IOLIB
 CONF = Cigri.conf unless defined? CONF
@@ -837,6 +838,7 @@ end
 #
 ##
 def add_jobs_to_launch(dbh, tasks, cluster_id, tag, runner_options)
+  runner_options=JSON.generate(runner_options)
   dbh['AutoCommit'] = false
   begin
     query = 'INSERT into jobs_to_launch
@@ -870,7 +872,7 @@ def take_tasks(dbh, tasks)
   begin
     jobids = []
     # Get the jobs from the cluster queue
-    jobs = dbh.select_all("SELECT b.id as id, b.param_id as param_id, b.campaign_id as campaign_id, cluster_id 
+    jobs = dbh.select_all("SELECT b.id as id, b.param_id as param_id, b.campaign_id as campaign_id, cluster_id, j.tag as tag, j.runner_options as runner_options 
                            FROM bag_of_tasks AS b, jobs_to_launch AS j
                            WHERE j.task_id = b.id AND
                                  b.id IN (#{tasks.join(',')})
@@ -881,9 +883,11 @@ def take_tasks(dbh, tasks)
       # delete from the cluster queue
       dbh.do("DELETE FROM jobs_to_launch where task_id = #{job['id']}")     
       # insert the new job into the jobs table
-      dbh.do("INSERT INTO jobs (campaign_id, state, cluster_id, param_id)
-              VALUES (?, ?, ?, ?)",
-              job['campaign_id'], "to_launch", job['cluster_id'], job['param_id'])
+      dbh.do("INSERT INTO jobs (campaign_id, state, cluster_id, param_id, tag, runner_options)
+              VALUES (?, ?, ?, ?, ?, ?)",
+              job['campaign_id'], "to_launch", job['cluster_id'], job['param_id'], job['tag'], 
+                job['runner_options']
+            )
       jobids << last_inserted_id(dbh, "jobs_id_seq")
     end
     return jobids

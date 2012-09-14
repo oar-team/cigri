@@ -23,12 +23,19 @@ module Cigri
     
     def do
        tasks=get_tasks_ids_for_campaign(@dbh,@campaign.id,@opts[:max_jobs])
+       @opts.delete(:max_jobs)
        if not tasks.nil? and tasks.length > 0
          SCHEDULERFIFOLOGGER.debug("Adding tasks in cluster #{@cluster_id} queue: #{tasks.join(",")}")
-         # TODO: runner_options and tag management
-         runner_options=""
-         tag=""
-         add_jobs_to_launch(@dbh,tasks,@cluster_id,tag,runner_options)
+         # The tag is something that may be passed by the meta-scheduler ("prologue" or "epilogue"
+         # for example)
+         tag=''
+         if @opts[:tag]
+           tag=@opts[:tag]
+           @opts.delete(:tag)
+         end
+         # Put the jobs into the runner queue. All options except tag and max_jobs are
+         # passed to the runner.
+         add_jobs_to_launch(@dbh,tasks,@cluster_id,tag,@opts)
        end
     end
 
