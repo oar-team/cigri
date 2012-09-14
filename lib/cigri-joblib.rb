@@ -35,6 +35,7 @@ module Cigri
     # Clone the job into the bag of tasks for resubmission of the same job
     # A re-submitted job has a priority of 20 (higher than default which is 10)
     def resubmit
+      # TODO: manage resubmition of prologue/epilogue jobs
       Datarecord.new("bag_of_tasks",{:param_id => @props[:param_id], :campaign_id => @props[:campaign_id], :priority => '20'})
     end
 
@@ -42,7 +43,7 @@ module Cigri
     def resubmit_end
       Datarecord.new("bag_of_tasks",{:param_id => @props[:param_id], :campaign_id => @props[:campaign_id], :priority => '0'})
     end
-   
+  
     # Kill a job running on a cluster
     def kill
       if props[:cluster_id]
@@ -78,7 +79,7 @@ module Cigri
     # Creates the new jobset
     def initialize(props={})
       @fields="jobs.id as id, parameters.param as param, campaigns.grid_user as grid_user,
-               parameters.campaign_id as campaign_id, param_id, batch_id, cluster_id, 
+               jobs.campaign_id as campaign_id, param_id, batch_id, cluster_id, 
                collect_id, jobs.state as state, return_code, 
                jobs.submission_time as submission_time, start_time, 
                stop_time, node_name, resources_used, remote_id, tag, runner_options"
@@ -164,16 +165,34 @@ module Cigri
           runner_options.uniq!
           runner_options.each do |runner_option|
             params=jobs.collect {|job| job.props[:param]}
-            submission = {
-                         "param_file" => params.join("\n"),
-                         "resources" => campaign.clusters[cluster_id]["resources"],
-                         "command" => campaign.clusters[cluster_id]["exec_file"]
-                         }
-
+            array=true
+            # Prologue job
+            if jobs[0].props[:tag] == "prologue"
+              submission = {
+                            "resources" => "resource_id=1",
+                            "command" => campaign.clusters[cluster_id]["prologue"]
+                           }
+              array=false 
+            # Epilogue job
+            elsif jobs[0].props[:tag] == "epilogue"
+              submission = {
+                            "resources" => "resource_id=1",
+                            "command" => campaign.clusters[cluster_id]["epilogue"]
+                           }
+              array=false
+            # Other jobs
+            else
+              submission = {
+                            "param_file" => params.join("\n"),
+                            "resources" => campaign.clusters[cluster_id]["resources"],
+                            "command" => campaign.clusters[cluster_id]["exec_file"]
+                           }
+            end
             # Properties from the JDL
             submission["walltime"]=campaign.clusters[cluster_id]["walltime"] unless campaign.clusters[cluster_id]["walltime"]
             submission["directory"]=campaign.clusters[cluster_id]["exec_directory"] unless campaign.clusters[cluster_id]["exec_directory"]
             submission["properties"]=campaign.clusters[cluster_id]["properties"] unless campaign.clusters[cluster_id]["properties"]
+            # MAYBE TODO: specific walltime,directory,... from JDL for pro/epilogue scripts
 
             # Runner options
             if runner_option["besteffort"]
@@ -181,28 +200,47 @@ module Cigri
             end
           
             # TODO: manage grouping
-  
-            JOBLIBLOGGER.info("Submitting new array job on #{cluster.description["name"]} with #{params.length} parameter(s).")
-            launching_jobs=Jobset.new
-            launching_jobs.fill(jobs,true)       
-            launching_jobs.update({'state' => 'launching'})
-            j=cluster.submit_job(submission,campaign.props[:grid_user])
-            if j.nil?
-              JOBLIBLOGGER.error("Unhandled error when submitting jobs on #{cluster.description["name"]}!")
-            else
-              array_jobs << j["id"]
-              # Update jobs infos
-              launching_jobs.update!(
+ 
+            # Submitting the array job
+            if array 
+              JOBLIBLOGGER.info("Submitting new array job on #{cluster.description["name"]} with #{params.length} parameter(s).")
+              launching_jobs=Jobset.new
+              launching_jobs.fill(jobs,true)       
+              launching_jobs.update({'state' => 'launching'})
+              j=cluster.submit_job(submission,campaign.props[:grid_user])
+              if j.nil?
+                JOBLIBLOGGER.error("Unhandled error when submitting jobs on #{cluster.description["name"]}!")
+              else
+                array_jobs << j["id"]
+                # Update jobs infos
+                launching_jobs.update!(
                                    { 'state' => 'submitted', 
                                      'submission_time' => Time::now(),
                                      'cluster_id' => cluster_id,
                                    },'jobs' )
-              launching_jobs.match_remote_ids(cluster_id, campaign.clusters[cluster_id]["exec_file"], j["id"])
+                launching_jobs.match_remote_ids(cluster_id, campaign.clusters[cluster_id]["exec_file"], j["id"])
+              end
+            # Submitting a unique job (prologue or epilogue)
+            else
+              JOBLIBLOGGER.info("Submitting new job on #{cluster.description["name"]}.")
+              j=cluster.submit_job(submission,campaign.props[:grid_user])
+              if j.nil?
+                JOBLIBLOGGER.error("Unhandled error when submitting job on #{cluster.description["name"]}!")
+              else
+                array_jobs << j["id"]
+                # Update job info
+                jobs[0].update(
+                                 { 'state' => 'submitted', 
+                                   'submission_time' => Time::now(),
+                                   'cluster_id' => cluster_id,
+                                   'remote_id' => j["id"]
+                                 },'jobs' )
+              end
             end
           end
         end
       end
-      JOBLIBLOGGER.debug("Remote ids of array jobs just submitted on #{cluster.description["name"]}: #{array_jobs.join(',')}") if array_jobs.length > 0
+      JOBLIBLOGGER.debug("Remote ids of (array) jobs just submitted on #{cluster.description["name"]}: #{array_jobs.join(',')}") if array_jobs.length > 0
       return array_jobs
     end
 
@@ -415,13 +453,29 @@ module Cigri
     end
 
     # Return true if the prologue has been executed on the specified cluster
+    # or if there's no prologue to execute
     def prologue_ok?(cluster_id)
       return true unless @clusters[cluster_id]["prologue"]
-      #TODO
-      #Cigri::Events.new(:where => "campaign_id=#{@id} and cluster_id=#{cluster_id} 
-      #                                   and code='PROLOGUE_RUNNING'
-      #                                   and state='closed'")
-      true
+      Cigri::Jobset.new({:where => "tag='prologue' 
+                                  and jobs.state='terminated' 
+                                  and jobs.campaign_id=#{id}
+                                  and jobs.cluster_id=#{cluster_id}"}).length > 0
+    end
+
+    # Return true if the prologue is running on the specified cluster
+    def prologue_running?(cluster_id)
+      Cigri::Jobset.new({:where => "tag='prologue' 
+                                  and (jobs.state='running' or jobs.state='remote_waiting'
+                                       or jobs.state='to_launch' or jobs.state='launching'
+                                       or jobs.state='submitted')
+                                  and jobs.campaign_id=#{id}
+                                  and cluster_id=#{cluster_id}"}).length > 0
+    end
+
+    # Return an error string if the prologue job is in non-closed event state
+    def prologue_error?(cluster_id)
+     #TODO 
+     return false
     end
 
   end # class Campaign

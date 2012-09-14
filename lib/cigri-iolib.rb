@@ -1125,4 +1125,10 @@ class Dataset
     @records << record
   end
 
+  def to_s
+    self.each do |data|
+      puts data.to_s
+    end
+  end
+
 end

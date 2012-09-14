@@ -35,7 +35,33 @@ begin
     logger.debug("Campaign #{campaign.id}")
     campaign.get_clusters
     test=false
-    while campaign.has_remaining_tasks? and campaign.have_active_clusters? do
+
+    # Prologue
+    campaign.clusters.each_key do |cluster_id|
+      cluster = Cigri::Cluster.new(:id => cluster_id)
+      if not campaign.prologue_ok?(cluster_id)
+        logger.info("Prologue not executed for #{campaign.id} on #{cluster.name}")
+        if not campaign.prologue_running?(cluster_id)
+          logger.info("Launching prologue for #{campaign.id} on #{cluster.name}")
+          # launch the prologue job
+          Cigri::Job.new({:cluster_id => cluster_id,
+                   :param_id => 0,
+                   :campaign_id => campaign.id,
+                   :tag => "prologue",
+                   :state => "to_launch",
+                   :runner_options => '{"besteffort":"false"}'})
+        elsif campaign.prologue_error?(cluster_id)
+          logger.info("Prologue error for #{campaign.id} on #{cluster.name}")
+          # TODO: new event
+        else
+          logger.info("Prologue currently running for #{campaign.id} on #{cluster.name}")
+        end
+      end
+    end
+
+    queuing=true
+    while campaign.has_remaining_tasks? and campaign.have_active_clusters? and queuing do
+      queuing=false
       campaign.clusters.each_key do |cluster_id|
         cluster = Cigri::Cluster.new(:id => cluster_id)
         if ( not cluster.blacklisted? and not 
@@ -43,6 +69,7 @@ begin
                  campaign.prologue_ok?(cluster_id) 
            )
           logger.debug("Queuing for campaign #{campaign.id} on cluster #{cluster.name}")
+          queing=true
 
           # Scheduler call
           # Test mode

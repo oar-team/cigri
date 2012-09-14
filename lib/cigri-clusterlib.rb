@@ -212,7 +212,7 @@ module Cigri
  
       def submit_job(job, user="")
         # Workaround for OAR not taking 1 parameters array jobs
-        if job["param_file"].lines.count == 1
+        if job["param_file"] and job["param_file"].lines.count == 1
           job["command"] += " " + job["param_file"]
           job.delete("param_file")         
         end

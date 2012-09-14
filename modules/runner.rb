@@ -134,7 +134,7 @@ while true do
     # Get the jobs to launch and submit them
     # 
     tolaunch_jobs = Cigri::JobtolaunchSet.new
-    # Get the jobs in state to_launch (should only happen after a crash)
+    # Get the jobs in state to_launch (should only happen for prologue/epilogue or after  a crash)
     jobs=Cigri::Jobset.new(:where => "jobs.state='to_launch' and jobs.cluster_id=#{cluster.id}")
     # Get the jobs in the bag of tasks (if no more remaining to_launch jobs to treat)
     if jobs.length == 0 and tolaunch_jobs.get_next(cluster.id, tap) > 0 # if the tap is open
@@ -148,7 +148,7 @@ while true do
         submitted_jobs=jobs.submit(cluster.id)
         sleep_more = SLEEP_MORE if submitted_jobs.length < 1
       rescue => e
-        message = "Could not submit jobs #{jobs.ids.inspect} on #{cluster.name}: #{e}"
+        message = "Could not submit jobs #{jobs.ids.inspect} on #{cluster.name}: #{e}\n#{e.backtrace}"
         jobs.each do |job|
           job.update({'state' => 'event'})
           event=Cigri::Event.new(:class => "job", :code => "RUNNER_SUBMIT_ERROR", :cluster_id => cluster.id, :job_id => job.id, :message => message)
