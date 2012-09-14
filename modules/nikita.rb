@@ -24,7 +24,7 @@ begin
   logger.debug('Starting')
 
   # Check for campaigns to kill
-  events=Cigri::Eventset.new({:where => "class='campaign' and code='USER_FRAG'"})
+  events=Cigri::Eventset.new({:where => "class='campaign' and code='USER_FRAG' and state='open'"})
   events.each do |event|
     can_close=true
 
