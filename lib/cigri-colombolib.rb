@@ -158,7 +158,7 @@ module Cigri
         else
           code="RESUBMIT"
         end
-        COLOMBOLIBLOGGER.debug("Creating a RESUBMIT event for job #{job.id}")
+        COLOMBOLIBLOGGER.debug("Creating a #{code} event for job #{job.id}")
         Cigri::Event.new(:class => "job", 
                          :code => code, 
                          :job_id => job.id, 
@@ -167,7 +167,15 @@ module Cigri
                          :message => "Resubmit cause: #{type}")
       # Other errors (exit status)
       elsif (!cluster_job["exit_code"].nil? && cluster_job["exit_code"] >> 8) > 0
-        COLOMBOLIBLOGGER.debug("Creating a EXIT_ERROR event for job #{job.id}")
+        case job.props[:tag]
+          when "prologue"
+            code="PROLOG_EXIT_ERROR"
+          when "epilogue"
+            code="EPILOG_EXIT_ERROR"
+          else
+            code="EXIT_ERROR"
+        end        
+        COLOMBOLIBLOGGER.debug("Creating a #{code} event for job #{job.id}")
         # Get the STDERR output file
         cluster=Cluster.new({:id => job.props[:cluster_id]})
         stderr_file=cluster_job["launching_directory"]+"/"+cluster_job["stderr_file"]
@@ -179,7 +187,7 @@ module Cigri
         end
         # Create event
         Cigri::Event.new(:class => "job",
-                         :code => "EXIT_ERROR",
+                         :code => code,
                          :job_id => job.id,
                          :campaign_id => job.props[:campaign_id],
                          :cluster_id => job.props[:cluster_id], 
