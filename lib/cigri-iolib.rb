@@ -625,10 +625,13 @@ def get_campaign_events(dbh, id, limit, offset)
            FROM events
            WHERE state='open'
                 and ( campaign_id = ?
-                      or
-                      cluster_id in
-                      (select distinct cluster_id from campaign_properties where campaign_id = ?)
+                      or (
+                        cluster_id in
+                          (select distinct cluster_id from campaign_properties where campaign_id = ?)
+                        and campaign_id is null
+                         )
                     )
+                and not campaign_id = 0
            ORDER BY id
            LIMIT ? 
            OFFSET ?"

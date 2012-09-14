@@ -39,66 +39,72 @@ begin
     # Prologue
     campaign.clusters.each_key do |cluster_id|
       cluster = Cigri::Cluster.new(:id => cluster_id)
-      if not campaign.prologue_ok?(cluster_id)
-        logger.info("Prologue not executed for #{campaign.id} on #{cluster.name}")
-        if not campaign.prologue_running?(cluster_id)
-          logger.info("Launching prologue for #{campaign.id} on #{cluster.name}")
-          # launch the prologue job
-          Cigri::Job.new({:cluster_id => cluster_id,
-                   :param_id => 0,
-                   :campaign_id => campaign.id,
-                   :tag => "prologue",
-                   :state => "to_launch",
-                   :runner_options => '{"besteffort":"false"}'})
-        elsif campaign.prologue_error?(cluster_id)
-          logger.info("Prologue error for #{campaign.id} on #{cluster.name}")
-          # TODO: new event
-        else
-          logger.info("Prologue currently running for #{campaign.id} on #{cluster.name}")
-        end
-      end
+      if ( not cluster.blacklisted? and not 
+                 cluster.blacklisted?(:campaign_id => campaign.id) )
+        if not campaign.prologue_ok?(cluster_id)
+          logger.info("Prologue not executed for #{campaign.id} on #{cluster.name}")
+          if not campaign.prologue_running?(cluster_id)
+            logger.info("Launching prologue for #{campaign.id} on #{cluster.name}")
+            # launch the prologue job
+            Cigri::Job.new({:cluster_id => cluster_id,
+                     :param_id => 0,
+                     :campaign_id => campaign.id,
+                     :tag => "prologue",
+                     :state => "to_launch",
+                     :runner_options => '{"besteffort":"false"}'})
+          elsif campaign.prologue_error?(cluster_id)
+            logger.info("Prologue error for #{campaign.id} on #{cluster.name}")
+            # TODO: new event
+          else
+            logger.info("Prologue currently running for #{campaign.id} on #{cluster.name}")
+          end # Prologue running
+        end # Prologue not ok
+      end # Cluster blacklisted
     end
 
+    # Filling queues
     queuing=true
     while campaign.has_remaining_tasks? and campaign.have_active_clusters? and queuing do
       queuing=false
       campaign.clusters.each_key do |cluster_id|
         cluster = Cigri::Cluster.new(:id => cluster_id)
         if ( not cluster.blacklisted? and not 
-                 cluster.blacklisted?(:campaign_id => campaign.id) and
-                 campaign.prologue_ok?(cluster_id) 
-           )
-          logger.debug("Queuing for campaign #{campaign.id} on cluster #{cluster.name}")
-          queing=true
-
-          # Scheduler call
-          # Test mode
-          if campaign.clusters[cluster.id]["test_mode"] == "true"
-            test=true
-            scheduler=Cigri::SchedulerFifo.new(campaign,cluster.id,{
-                                                              :max_jobs => 1,
-                                                              :besteffort => false
-                                                              })
-            scheduler.do
-          # Campaign types
-          else
-            case campaign.clusters[cluster.id]["type"]
-              when "best-effort"
+                 cluster.blacklisted?(:campaign_id => campaign.id) ) 
+          if not campaign.prologue_ok?(cluster_id)
+            logger.debug("Not queuing cluster #{cluster.name} for campaign #{campaign.id} because of prologue") 
+          else 
+            logger.debug("Queuing for campaign #{campaign.id} on cluster #{cluster.name}")
+            queing=true
+  
+            # Scheduler call
+            # Test mode
+            if campaign.clusters[cluster.id]["test_mode"] == "true"
+              test=true
               scheduler=Cigri::SchedulerFifo.new(campaign,cluster.id,{
-                                                              :max_jobs => max_jobs,
-                                                              :besteffort => true
-                                                              })
+                                                                :max_jobs => 1,
+                                                                :besteffort => false
+                                                                })
               scheduler.do
-              when "normal"
-              scheduler=Cigri::SchedulerFifo.new(campaign,cluster.id,{
-                                                              :max_jobs => max_jobs,
-                                                              :besteffort => false
-                                                              })
-              scheduler.do
-              else
-              logger.warn("Unknown campaign type: "+campaign.clusters[cluster.id]["type"].to_s)
-            end
-          end # End campaign types
+            # Campaign types
+            else
+              case campaign.clusters[cluster.id]["type"]
+                when "best-effort"
+                scheduler=Cigri::SchedulerFifo.new(campaign,cluster.id,{
+                                                                :max_jobs => max_jobs,
+                                                                :besteffort => true
+                                                                })
+                scheduler.do
+                when "normal"
+                scheduler=Cigri::SchedulerFifo.new(campaign,cluster.id,{
+                                                                :max_jobs => max_jobs,
+                                                                :besteffort => false
+                                                                })
+                scheduler.do
+                else
+                logger.warn("Unknown campaign type: "+campaign.clusters[cluster.id]["type"].to_s)
+              end
+            end # End campaign types
+          end # Prologue nok
         else
           logger.debug("Cluster #{cluster.name} is blacklisted for campaign #{campaign.id}") 
         end
