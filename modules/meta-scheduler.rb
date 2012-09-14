@@ -39,12 +39,12 @@ begin
     # Prologue
     campaign.clusters.each_key do |cluster_id|
       cluster = Cigri::Cluster.new(:id => cluster_id)
-      if ( not cluster.blacklisted? and not 
+      if not campaign.prologue_ok?(cluster_id)
+        if ( not cluster.blacklisted? and not 
                  cluster.blacklisted?(:campaign_id => campaign.id) )
-        if not campaign.prologue_ok?(cluster_id)
-          logger.info("Prologue not executed for #{campaign.id} on #{cluster.name}")
+          logger.debug("Prologue not executed for #{campaign.id} on #{cluster.name}")
           if not campaign.prologue_running?(cluster_id)
-            logger.info("Launching prologue for #{campaign.id} on #{cluster.name}")
+            logger.debug("Launching prologue for #{campaign.id} on #{cluster.name}")
             # launch the prologue job
             Cigri::Job.new({:cluster_id => cluster_id,
                      :param_id => 0,
@@ -52,14 +52,13 @@ begin
                      :tag => "prologue",
                      :state => "to_launch",
                      :runner_options => '{"besteffort":"false"}'})
-          elsif campaign.prologue_error?(cluster_id)
-            logger.info("Prologue error for #{campaign.id} on #{cluster.name}")
-            # TODO: new event
           else
-            logger.info("Prologue currently running for #{campaign.id} on #{cluster.name}")
+            logger.debug("Prologue currently running for #{campaign.id} on #{cluster.name}")
           end # Prologue running
-        end # Prologue not ok
-      end # Cluster blacklisted
+        else
+          logger.info("Not running prologue for #{campaign.id} on #{cluster.name} because of blacklist")
+        end # Cluster blacklisted
+      end # Prologue not ok
     end
 
     # Filling queues
@@ -106,7 +105,7 @@ begin
             end # End campaign types
           end # Prologue nok
         else
-          logger.debug("Cluster #{cluster.name} is blacklisted for campaign #{campaign.id}") 
+          logger.info("Cluster #{cluster.name} is blacklisted for campaign #{campaign.id}") 
         end
         
       end

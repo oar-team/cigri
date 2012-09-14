@@ -472,12 +472,6 @@ module Cigri
                                   and cluster_id=#{cluster_id}"}).length > 0
     end
 
-    # Return an error string if the prologue job is in non-closed event state
-    def prologue_error?(cluster_id)
-     #TODO 
-     return false
-    end
-
   end # class Campaign
 
   # Campaignset class
