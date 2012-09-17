@@ -2,7 +2,7 @@ cigri_deps:
  - rspec:
    - exec_chroot: bash -c "HOME=/tmp gem install rspec"
  - sinatra:
-   - exec_chroot: bash -c "HOME=/tmp gem install sinatra"
+   - exec_chroot: bash -c "HOME=/tmp gem install sinatra --no-rdoc --no-ri"
  - restfully:
    - exec_chroot: bash -c "HOME=/tmp gem install restfully --source http://gemcutter.org -- --without-readline"
  - shotgun:
