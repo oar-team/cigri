@@ -631,7 +631,6 @@ def get_campaign_events(dbh, id, limit, offset)
                         and campaign_id is null
                          )
                     )
-                and not campaign_id = 0
            ORDER BY id
            LIMIT ? 
            OFFSET ?"
