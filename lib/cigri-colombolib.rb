@@ -7,6 +7,7 @@
 require 'cigri-logger'
 require 'cigri-conflib'
 require 'cigri-eventlib'
+require 'cigri-iolib'
 
 CONF=Cigri.conf unless defined? CONF
 COLOMBOLIBLOGGER = Cigri::Logger.new('COLOMBOLIB', CONF.get('LOG_FILE'))
@@ -51,7 +52,13 @@ module Cigri
       end
     end
 
-
+    # Check the database
+    # Make some checks of the database (used at startup)
+    def self.check_database
+      db_connect() do |dbh|
+        check_null_parameter(dbh)
+      end
+    end
 
     #### Check methods that may be called by the cigri modules ####
 

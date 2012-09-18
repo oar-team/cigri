@@ -64,6 +64,9 @@ begin
   #Do an initial check of events
   Cigri::Colombo.new().check
 
+  # Make some initial checks of the database
+  Cigri::Colombo::check_database
+
   #Start the runners
   clusters=Cigri::ClusterSet.new
   if clusters.length <= 0

@@ -921,6 +921,17 @@ def remove_remaining_tasks(dbh, campaign_id)
             AND campaign_id = #{campaign_id}") 
 end
 
+##
+# Add the null parameter if it is missing (done once at almighty boot)
+#
+def check_null_parameter(dbh)
+ if dbh.select_one("SELECT COUNT(*) FROM parameters WHERE id = 0")[0] < 1
+   IOLIBLOGGER.debug("Initializing the null parameter")
+   dbh.do("INSERT INTO parameters (id,campaign_id,name,param)
+                       VALUES (0,0,'null','null parameter for special jobs, dont delete!')")
+ end
+end
+
 #######################################################################
 ######################### iolib classes ###############################
 #######################################################################
