@@ -15,4 +15,5 @@ module Cigri
   class NotFound < Error; end
   class ParseError < Error; end
   class Unauthorized < Error; end
+  class PermissionDenied < Error; end
 end

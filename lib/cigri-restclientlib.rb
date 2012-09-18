@@ -112,7 +112,11 @@ module Cigri
         RESTCLIENTLIBLOGGER.error(message)
         raise RestClient::RequestTimeout, message
       rescue RestClient::Exception => e
-        raise Cigri::Error, "#{e.http_code} error in GET for #{uri}:\n #{e.response.body}"
+        if  e.http_code == 401
+          raise Cigri::PermissionDenied, "#{e.http_code} error in GET for #{uri}:\n #{e.response.body}"
+        else
+          raise Cigri::Error, "#{e.http_code} error in GET for #{uri}:\n #{e.response.body}"
+        end
       end
     end
 
@@ -150,7 +154,11 @@ module Cigri
         RESTCLIENTLIBLOGGER.error(message)
         raise RestClient::RequestTimeout, message
       rescue RestClient::Exception => e
-        raise Cigri::Error, "#{e.http_code} error in POST for #{uri}:\n #{e.response.body}"
+        if  e.http_code == 401
+          raise Cigri::PermissionDenied, "#{e.http_code} error in POST for #{uri}:\n #{e.response.body}"
+        else
+          raise Cigri::Error, "#{e.http_code} error in POST for #{uri}:\n #{e.response.body}"
+        end
       end
     end
 
@@ -165,7 +173,11 @@ module Cigri
         RESTCLIENTLIBLOGGER.error(message)
         raise RestClient::RequestTimeout, message
       rescue RestClient::Exception => e
-        raise Cigri::Error, "#{e.http_code} error in DELETE for #{uri}:\n #{e.response.body}"
+        if  e.http_code == 401
+          raise Cigri::PermissionDenied, "#{e.http_code} error in DELETE for #{uri}:\n #{e.response.body}"
+        else
+          raise Cigri::Error, "#{e.http_code} error in DELETE for #{uri}:\n #{e.response.body}"
+        end
       end
     end
 

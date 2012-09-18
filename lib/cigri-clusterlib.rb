@@ -134,8 +134,14 @@ module Cigri
         event=Cigri::Event.new(:class => "cluster", :cluster_id => @id, :code => "CONNECTION_RESET", :message => e)
         Cigri::Colombo.new(event).check
         raise
+      rescue Cigri::PermissionDenied => e
+        # Just for logging, create a closed event as this is not a fatal error
+        # (this exception must be catched by another level for a campaign event, possibly the runner)
+        event=Cigri::Event.new(:state => 'closed', :class => "cluster", :cluster_id => @id, :code => "PERMISSION_DENIED", :message => e)
+        Cigri::Colombo.new(event).check
+        raise
       rescue => e
-        event=Cigri::Event.new(:class => "cluster", :cluster_id => @id, :code => default_error_code, :message => e)
+        event=Cigri::Event.new(:class => "cluster", :cluster_id => @id, :code => default_error_code, :message => "#{e.class}: #{e}")
         Cigri::Colombo.new(event).check
         raise
       end

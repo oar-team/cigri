@@ -153,6 +153,7 @@ while true do
           job.update({'state' => 'event'})
           event=Cigri::Event.new(:class => "job", :code => "RUNNER_SUBMIT_ERROR", :cluster_id => cluster.id, :job_id => job.id, :message => message)
           Cigri::Colombo.new(event).check
+          Cigri::Colombo.new(event).check_jobs
         end
         logger.warn(message)
       end
