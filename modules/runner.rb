@@ -151,7 +151,9 @@ while true do
         message = "Could not submit jobs #{jobs.ids.inspect} on #{cluster.name}: #{e}\n#{e.backtrace}"
         jobs.each do |job|
           job.update({'state' => 'event'})
-          event=Cigri::Event.new(:class => "job", :code => "RUNNER_SUBMIT_ERROR", :cluster_id => cluster.id, :job_id => job.id, :message => message)
+          event=Cigri::Event.new(:class => "job", :code => "RUNNER_SUBMIT_ERROR", 
+                                 :cluster_id => cluster.id, :job_id => job.id, 
+                                 :message => message, :campaign_id => job.props[:campaign_id])
           Cigri::Colombo.new(event).check
           Cigri::Colombo.new(event).check_jobs
         end
