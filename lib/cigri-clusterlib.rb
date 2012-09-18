@@ -112,7 +112,7 @@ module Cigri
       begin
         @api.get("")
       rescue => e
-        CLUSTERLIBLOGGER.warn("Check function returned error: #{e}")
+        CLUSTERLIBLOGGER.warn("Check function returned error for #{name}: #{e}")
         false
       end
     end     
