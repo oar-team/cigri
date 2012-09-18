@@ -47,7 +47,7 @@ install:
 
 install-cigri: install-cigri-server install-cigri-user
 
-install-cigri-server: check-old install-cigri-libs install-cigri-modules install-cigri-launcher install-cigri-api install-cigri-server-config
+install-cigri-server: check-old install-cigri-libs install-cigri-modules install-cigri-launcher install-cigri-api install-cigri-server-config install-cigri-server-tools
 
 install-cigri-user: check-old install-cigri-libs install-cigri-user-cmds install-cigri-user-config install-cigri-server-config
 
@@ -67,6 +67,11 @@ install-cigri-modules:
 	install -d -m 0755 $(DESTDIR)$(CIGRIDIR)
 	install -d -m 0755 $(DESTDIR)$(CIGRIDIR)/modules
 	@for file in modules/*; do install -m 0755 $$file $(DESTDIR)$(CIGRIDIR)/modules; done
+
+install-cigri-server-tools:
+	install -d -m 0755 $(DESTDIR)$(CIGRIDIR)
+	install -d -m 0755 $(DESTDIR)$(CIGRIDIR)/sbin
+	install -m 0755 sbin/new_cluster.rb $(DESTDIR)$(CIGRIDIR)/sbin/newcluster
 
 install-cigri-user-cmds:
 	install -d -m 0755 $(DESTDIR)$(CIGRIDIR)
