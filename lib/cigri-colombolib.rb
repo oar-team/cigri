@@ -75,7 +75,7 @@ module Cigri
         if event.props[:class]=="cluster"
           COLOMBOLIBLOGGER.debug("Checking event #{event.props[:code]}")
           case event.props[:code]
-          when "TIMEOUT", "CONNECTION_RESET", "CONNECTION_REFUSED", "SUBMIT_JOB", "GET_JOBS", "GET_JOB", "GET_MEDIA"
+          when "TIMEOUT", "CONNECTION_RESET", "CONNECTION_REFUSED", "SSL_ERROR", "SUBMIT_JOB", "GET_JOBS", "GET_JOB", "GET_MEDIA"
             blacklist_cluster(event.id,event.props[:cluster_id],event.props[:campaign_id])
             event.checked
           when "PERMISSION_DENIED"
@@ -102,7 +102,8 @@ module Cigri
         if event.props[:class]=="cluster"
           if  ( event.props[:code] == "TIMEOUT" ||
                 event.props[:code] == "CONNECTION_REFUSED" ||
-                event.props[:code] == "CONNECTION_RESET"
+                event.props[:code] == "CONNECTION_RESET" ||
+                event.props[:code] == "SSL_ERROR"
               ) && (Time.now.to_i - Time.parse(event.props[:date_update]).to_i) > AUTOFIX_DELAY
             event.checked
             cluster=Cluster.new({:id => event.props[:cluster_id]})

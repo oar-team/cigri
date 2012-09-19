@@ -147,6 +147,12 @@ while true do
       begin
         submitted_jobs=jobs.submit(cluster.id)
         sleep_more = SLEEP_MORE if submitted_jobs.length < 1
+      rescue Cigri::ClusterAPIConnectionError => e
+        message = "Could not submit jobs #{jobs.ids.inspect} on #{cluster.name} because of an API error. Automatically resubmitting."
+        jobs.each do |job|
+          job.update({'state' => 'event'})
+          job.resubmit
+        end
       rescue => e
         message = "Could not submit jobs #{jobs.ids.inspect} on #{cluster.name}: #{e}\n#{e.backtrace}"
         jobs.each do |job|

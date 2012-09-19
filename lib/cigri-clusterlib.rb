@@ -119,25 +119,42 @@ module Cigri
 
     # Runs a procedure with common exception checks
     # Every rest query call has to be send via this method
+    # We raise a Cigri::ClusterAPIConnectionError for errors
+    # that are not specific to a campaign. From the runner point
+    # of view, whith such an error, it should retry later (ie
+    # automatically resubmit a job for example)
+    # On the other side, PermissionDenied (401) and ServerError (500)
+    # are considered campaign problems and should not block the cluster
+    # for other campaigns, so we do not generate an open event.
     def secure_run(p,default_error_code)
       begin
         return p.call
       rescue RestClient::RequestTimeout => e
         event=Cigri::Event.new(:class => "cluster", :cluster_id => @id, :code => "TIMEOUT", :message => e)
         Cigri::Colombo.new(event).check
-        raise
+        raise Cigri::ClusterAPIConnectionError, e.message
       rescue Errno::ECONNREFUSED => e
         event=Cigri::Event.new(:class => "cluster", :cluster_id => @id, :code => "CONNECTION_REFUSED", :message => e)
         Cigri::Colombo.new(event).check
-        raise
+        raise Cigri::ClusterAPIConnectionError, e.message
       rescue Errno::ECONNRESET => e
         event=Cigri::Event.new(:class => "cluster", :cluster_id => @id, :code => "CONNECTION_RESET", :message => e)
         Cigri::Colombo.new(event).check
-        raise
-      rescue Cigri::PermissionDenied => e
+        raise Cigri::ClusterAPIConnectionError, e.message
+      rescue OpenSSL::SSL::SSLError => e
+        event=Cigri::Event.new(:class => "cluster", :cluster_id => @id, :code => "SSL_ERROR", :message => e)
+        Cigri::Colombo.new(event).check
+        raise Cigri::ClusterAPIConnectionError, e.message
+      rescue Cigri::ClusterAPIPermissionDenied => e
         # Just for logging, create a closed event as this is not a fatal error
         # (this exception must be catched by another level for a campaign event, possibly the runner)
         event=Cigri::Event.new(:state => 'closed', :class => "cluster", :cluster_id => @id, :code => "PERMISSION_DENIED", :message => e)
+        Cigri::Colombo.new(event).check
+        raise
+      rescue Cigri::ClusterAPIServerError => e
+        # Just for logging, create a closed event as this is not a fatal error
+        # (this exception must be catched by another level for a campaign event, possibly the runner)
+        event=Cigri::Event.new(:state => 'closed', :class => "cluster", :cluster_id => @id, :code => "CLUSTER_API_SERVER_ERROR", :message => e)
         Cigri::Colombo.new(event).check
         raise
       rescue => e
