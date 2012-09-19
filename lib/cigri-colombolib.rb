@@ -16,6 +16,12 @@ if CONF.exists?('STDERR_TAIL')
 else
   STDERR_TAIL = 5 
 end
+if CONF.exists?('AUTOFIX_DELAY')
+  AUTOFIX_DELAY = CONF.get('AUTOFIX_DELAY').to_i
+else
+  AUTOFIX_DELAY = 30
+end
+
 
 module Cigri
 
@@ -93,14 +99,15 @@ module Cigri
     def autofix_clusters
       COLOMBOLIBLOGGER.debug("Autofixing clusters")
       @events.each do |event|
-        #TODO: add a field date_update into events so that we can check
-        # only after a given amount of time
         if event.props[:class]=="cluster"
-          if event.props[:code] == "TIMEOUT" or event.props[:code] == "CONNECTION_REFUSED" or event.props[:code] == "CONNECTION_RESET"
+          if  ( event.props[:code] == "TIMEOUT" ||
+                event.props[:code] == "CONNECTION_REFUSED" ||
+                event.props[:code] == "CONNECTION_RESET"
+              ) && (Time.now.to_i - Time.parse(event.props[:date_update]).to_i) > AUTOFIX_DELAY
+            event.checked
             cluster=Cluster.new({:id => event.props[:cluster_id]})
             if cluster.check_api?
               COLOMBOLIBLOGGER.debug("Autofixing #{cluster.name}")
-              event.checked
               event.close
             end
           end

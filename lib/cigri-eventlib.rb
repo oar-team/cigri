@@ -48,7 +48,7 @@ module Cigri
     # An event maybe checked by colombo, but still open, for example
     # when colombo generates another event depending on this one
     def checked
-      update({:checked => 'yes'}) 
+      update({:date_update => Time::now(), :checked => 'yes'}) 
     end
 
   end # class Event

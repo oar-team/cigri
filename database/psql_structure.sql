@@ -145,6 +145,7 @@ CREATE TABLE  events (
   checked checkbox,
   date_open TIMESTAMP,
   date_closed TIMESTAMP,
+  date_update TIMESTAMP,
   message TEXT,
   PRIMARY KEY (id)
 );
