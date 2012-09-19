@@ -47,6 +47,9 @@ module Cigri
         if CONF.exists?('REST_CLIENT_CA_FILE')
           options[:ssl_ca_file] = CONF.get('REST_CLIENT_CA_FILE')
         end
+        if CONF.exists?('REST_CLIENT_VERIFY_SSL')
+          options[:verify_ssl] = CONF.get('REST_CLIENT_VERIFY_SSL')
+        end
       elsif auth_type == "password"
         # if (user.nil? || user == "")
         #   options[:user]=user
