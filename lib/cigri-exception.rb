@@ -15,10 +15,16 @@ module Cigri
   class NotFound < Error; end
   class ParseError < Error; end
   class Unauthorized < Error; end
+  ##
   # Raised for a 401 api rest-server error
+  ##
   class ClusterAPIPermissionDenied < Error; end
+  ##
   # Raised for a 500 api rest-server error
+  ##
   class ClusterAPIServerError < Error; end
+  ##
   # Raised for a connection error to a cluster api rest-server 
+  ##
   class ClusterAPIConnectionError < Error; end
 end

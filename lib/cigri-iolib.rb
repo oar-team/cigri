@@ -165,8 +165,10 @@ def cigri_submit(dbh, json, user)
         %w{checkpointing_type dimensional_grouping epilogue exec_file 
           output_destination output_file output_gathering_method prologue 
           properties resources temporal_grouping walltime type test_mode}.each do |prop|
-            json['clusters'][cluster][prop]=json['clusters'][cluster][prop].join("\n") if prop == "prologue"
-            json['clusters'][cluster][prop]=json['clusters'][cluster][prop].join("\n") if prop == "epilogue"
+            json['clusters'][cluster][prop]=json['clusters'][cluster][prop].join("\n") if 
+                                                         prop == "prologue" && json['clusters']["prologue"]
+            json['clusters'][cluster][prop]=json['clusters'][cluster][prop].join("\n") if 
+                                                         prop == "epilogue" && json['clusters']["epilogue"]
             dbh.do(query, prop, json['clusters'][cluster][prop], cluster_id, campaign_id) if json['clusters'][cluster][prop]
         end
       else
@@ -184,7 +186,7 @@ def cigri_submit(dbh, json, user)
     
     dbh.commit()
   rescue Exception => e
-    IOLIBLOGGER.error('Error running campaign submission: ' + e.inspect)
+    IOLIBLOGGER.error('Error running campaign submission: ' + e.inspect + e.backtrace.to_s)
     dbh.rollback()
     raise e
   ensure
@@ -873,6 +875,7 @@ def take_tasks(dbh, tasks)
   dbh['AutoCommit'] = false
   begin
     jobids = []
+    counts = {}
     # Get the jobs from the cluster queue
     jobs = dbh.select_all("SELECT b.id as id, b.param_id as param_id, b.campaign_id as campaign_id, cluster_id, j.tag as tag, j.runner_options as runner_options 
                            FROM bag_of_tasks AS b, jobs_to_launch AS j
@@ -883,7 +886,10 @@ def take_tasks(dbh, tasks)
       # delete from the bag of task
       dbh.do("DELETE FROM bag_of_tasks where id = #{job['id']}")     
       # delete from the cluster queue
-      dbh.do("DELETE FROM jobs_to_launch where task_id = #{job['id']}")     
+      dbh.do("DELETE FROM jobs_to_launch where task_id = #{job['id']}")
+      # Increment the count for (campaign,cluster) pair
+      count_key=[job['campaign_id'], job['cluster_id']]
+      counts[count_key] ? counts[count_key] += 1 : counts[count_key]=1
       # insert the new job into the jobs table
       dbh.do("INSERT INTO jobs (campaign_id, state, cluster_id, param_id, tag, runner_options)
               VALUES (?, ?, ?, ?, ?, ?)",
@@ -891,6 +897,13 @@ def take_tasks(dbh, tasks)
                 job['runner_options']
             )
       jobids << last_inserted_id(dbh, "jobs_id_seq")
+    end
+    # Update the queue counts that are used for throughputs calculations
+    counts.each do |pair,count|
+      dbh.do("INSERT INTO queue_counts (date,campaign_id,cluster_id,jobs_count)
+              VALUES (?, ?, ?, ?)",
+              Time.now, pair[0],pair[1],count
+            )
     end
     return jobids
   rescue Exception => e

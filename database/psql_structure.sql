@@ -155,3 +155,10 @@ CREATE INDEX events_idx_code ON events (code);
 CREATE INDEX events_idx_job_id ON events (job_id);
 CREATE INDEX events_idx_cluster_id ON events (cluster_id);
 CREATE INDEX events_idx_campaign_id ON events (campaign_id);
+CREATE TABLE queue_counts (
+  date TIMESTAMP,
+  campaign_id INTEGER,
+  cluster_id INTEGER,
+  jobs_count INTEGER
+);
+CREATE INDEX queue_counts_campaign_cluster ON queue_counts (campaign_id,cluster_id);
