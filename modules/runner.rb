@@ -28,17 +28,6 @@ $0 = "Cigri: runner #{ARGV[0]}"
   }
 end
 
-# The "tap" variable is like a tap. It represents the number of jobs
-# we can start at a time (as a oar array job)
-# We close the tap (ie set tap to 0) if the cluster is not running
-# our jobs, and we open it if all the jobs are running or terminated
-if config.exists?('RUNNER_DEFAULT_INITIAL_NUMBER_OF_JOBS') 
-  tap = config.get('RUNNER_DEFAULT_INITIAL_NUMBER_OF_JOBS').to_i
-else
-  tap = 5
-end
-DEFAULT_TAP = tap
-
 if config.exists?('RUNNER_MIN_CYCLE_DURATION')
   MIN_CYCLE_DURATION = config.get('RUNNER_MIN_CYCLE_DURATION').to_i
 else
@@ -52,10 +41,16 @@ logger.info("Starting runner on #{ARGV[0]}")
 while true do
   logger.debug('New iteration')
 
+  # The "tap" variable is like a tap. It represents the number of jobs
+  # we can start at a time (as a oar array job)
+  # We close the tap (ie set tap to 0) if the cluster is not running
+  # our jobs, and we open it if all the jobs are running or terminated
+  # There's a tap per campaign (represented into a hash with campaign_id 
+  # as the key)
+  cluster.reset_taps
+
   start_time = Time::now.to_i
   sleep_more = 0
-  tap = DEFAULT_TAP
-
 
   ##########################################################################
   # Jobs control
@@ -75,7 +70,7 @@ while true do
 
   # Check if the cluster is blacklisted
   if cluster.blacklisted? 
-    tap=0
+    cluster.reset_taps(0)
     logger.warn("Cluster is blacklisted") 
     sleep_more = SLEEP_MORE
   else  
@@ -113,15 +108,15 @@ while true do
             when /Waiting/i
               job.update({'state' => 'remote_waiting'})
               # close the tap
-              tap = 0
+              cluster.set_tap(job.props[:campaign_id],0)
             else
               # close the tap
-              tap = 0
+              cluster.set_tap(job.props[:campaign_id],0)
           end
         rescue => e
           message="Could not get remote job #{job.id}!\n#{e.to_s}\n#{e.backtrace.to_s}"
           logger.warn(message)
-          tap=0 # There's a problem, so we close the tap
+          cluster.set_tap(job.props[:campaign_id],0) # There's a problem, so we close the tap
           break
         end
       end
@@ -133,11 +128,12 @@ while true do
     #
     # Get the jobs to launch and submit them
     # 
+    cluster.get_taps
     tolaunch_jobs = Cigri::JobtolaunchSet.new
     # Get the jobs in state to_launch (should only happen for prologue/epilogue or after  a crash)
     jobs=Cigri::Jobset.new(:where => "jobs.state='to_launch' and jobs.cluster_id=#{cluster.id}")
     # Get the jobs in the bag of tasks (if no more remaining to_launch jobs to treat)
-    if jobs.length == 0 and tolaunch_jobs.get_next(cluster.id, tap) > 0 # if the tap is open
+    if jobs.length == 0 and tolaunch_jobs.get_next(cluster.id, cluster.taps) > 0 # if the tap is open
       logger.info("Got #{tolaunch_jobs.length} jobs to launch")
       # Take the jobs from the b-o-t
       jobs = tolaunch_jobs.take

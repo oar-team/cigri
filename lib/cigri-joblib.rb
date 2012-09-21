@@ -312,13 +312,22 @@ module Cigri
       @records
     end
 
-    # Get max n jobs to launch on cluster cluster_id
-    def get_next(cluster_id,n)
-      fill(get("jobs_to_launch,bag_of_tasks","*","cluster_id=#{cluster_id} 
+    # Get jobs to launch on cluster cluster_id, with a limit per campaign
+    # The tap hash contains the maximum jobs to get per campaign_id 
+    def get_next(cluster_id,tap={})
+      jobs=get("jobs_to_launch,bag_of_tasks","*","cluster_id=#{cluster_id} 
                                                     AND task_id=bag_of_tasks.id
-                                                    ORDER BY bag_of_tasks.priority DESC, jobs_to_launch.id
-                                                    LIMIT #{n}
-                                                 "))
+                                                    ORDER BY bag_of_tasks.priority DESC, jobs_to_launch.id")
+      counts={}
+      jobs.each do |job|
+        campaign_id=job[:campaign_id].to_i
+        counts[campaign_id] ? counts[campaign_id]+=1 : counts[campaign_id]=1
+        tap[campaign_id] ||= 0
+        if tap[campaign_id] >=  counts[campaign_id]
+          job[:nodb]=true
+          @records << Datarecord.new(@table,job) 
+        end
+      end
       return self.length
     end
 

@@ -18,6 +18,14 @@ require 'cigri-eventlib'
 
 CLUSTERLIBLOGGER = Cigri::Logger.new('CLUSTERLIB', CONF.get('LOG_FILE'))
 
+config = Cigri.conf
+
+if config.exists?('RUNNER_DEFAULT_INITIAL_NUMBER_OF_JOBS')
+  DEFAULT_TAP = config.get('RUNNER_DEFAULT_INITIAL_NUMBER_OF_JOBS').to_i
+else
+  DEFAULT_TAP = 5
+end
+
 module Cigri
   ##
   # Meta class for REST Clusters
@@ -25,7 +33,7 @@ module Cigri
   ##
   class RestCluster
     # description is a hash containing all the fields describing a cluster
-    attr_reader :description, :id
+    attr_reader :description, :id, :taps
 
     ##
     # Creates a new restcluster object, getting it by its id or its name
@@ -52,6 +60,7 @@ module Cigri
           @description["api_auth_header"]="X_REMOTE_IDENT" 
         end
         @id = id
+        @taps={}
       end
 
       # Create a rest_client api instance
@@ -107,6 +116,19 @@ module Cigri
       return n > 0
     end
 
+    # Get the running campaigns on this cluster
+    def running_campaigns
+      result=[]
+      db_connect() do |dbh|
+        query = "SELECT distinct campaign_id FROM campaign_properties, campaigns 
+               WHERE campaigns.id=campaign_properties.campaign_id AND state='in_treatment' 
+                   AND cluster_id = ?"
+        result=dbh.select_all(query, @id).flatten
+      end
+      return result unless result.nil?
+      return []
+    end
+
     # Check the api connexion
     def check_api?
       begin
@@ -116,6 +138,38 @@ module Cigri
         false
       end
     end     
+
+    # Update the taps from the database
+    def get_taps
+      db_connect() do |dbh|
+        query = "SELECT campaign_id,tap
+                 FROM taps
+                 WHERE cluster_id = ?"
+        result=dbh.select_all(query, @id)
+        @taps=Hash[*result.flatten]
+      end
+    end
+
+    # Set a tap
+    def set_tap(campaign_id,tap_value)
+      if @taps[campaign_id]
+        tap=Dataset.new("taps",:where => "cluster_id=#{@id} and campaign_id=#{campaign_id}").records[0]
+        tap.update(:tap => tap_value)
+      else
+        Datarecord.new("taps",{:cluster_id => @id, :campaign_id => campaign_id, :tap => tap_value})
+      end
+      @taps[campaign_id]=tap_value
+    end
+
+   # Reset all the taps
+   def reset_taps(value=DEFAULT_TAP)
+     get_taps
+     campaigns=running_campaigns
+     return if campaigns.nil?
+     campaigns.each do |campaign_id|
+       set_tap(campaign_id,value)
+     end
+   end
 
     # Runs a procedure with common exception checks
     # Every rest query call has to be send via this method

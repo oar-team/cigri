@@ -10,8 +10,7 @@
       "prologue": [
         "mkdir -p $HOME/workdir",
         "cd $HOME/workdir",
-        "touch tchernobyl_prologue_\$1_campaign_works",
-        "exit 1"
+        "touch tchernobyl_prologue_\$1_campaign_works"
        ]
     },
     "fukushima": {

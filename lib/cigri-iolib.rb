@@ -787,8 +787,6 @@ dbh.select_one("SELECT COUNT(*) FROM jobs
                                   AND state = 'launching'", id)[0]
 end
 
-
-
 ##
 # Returns a hash with a campaign id as key and it's number of finished jobs as value
 #
