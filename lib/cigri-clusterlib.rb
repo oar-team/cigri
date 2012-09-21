@@ -139,37 +139,19 @@ module Cigri
       end
     end     
 
-    # Update the taps from the database
-    def get_taps
-      db_connect() do |dbh|
-        query = "SELECT campaign_id,tap
-                 FROM taps
-                 WHERE cluster_id = ?"
-        result=dbh.select_all(query, @id)
-        @taps=Hash[*result.flatten]
-      end
-    end
-
     # Set a tap
     def set_tap(campaign_id,tap_value)
-      if @taps[campaign_id]
-        tap=Dataset.new("taps",:where => "cluster_id=#{@id} and campaign_id=#{campaign_id}").records[0]
-        tap.update(:tap => tap_value)
-      else
-        Datarecord.new("taps",{:cluster_id => @id, :campaign_id => campaign_id, :tap => tap_value})
-      end
       @taps[campaign_id]=tap_value
     end
 
-   # Reset all the taps
-   def reset_taps(value=DEFAULT_TAP)
-     get_taps
-     campaigns=running_campaigns
-     return if campaigns.nil?
-     campaigns.each do |campaign_id|
-       set_tap(campaign_id,value)
-     end
-   end
+    # Reset/init all the taps
+    def reset_taps(value=DEFAULT_TAP)
+      campaigns=running_campaigns
+      return if campaigns.nil?
+      campaigns.each do |campaign_id|
+        set_tap(campaign_id,value)
+      end
+    end
 
     # Runs a procedure with common exception checks
     # Every rest query call has to be send via this method

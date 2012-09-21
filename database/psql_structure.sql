@@ -162,10 +162,3 @@ CREATE TABLE queue_counts (
   jobs_count INTEGER
 );
 CREATE INDEX queue_counts_campaign_cluster ON queue_counts (campaign_id,cluster_id);
-CREATE TABLE taps (
-  id SERIAL NOT NULL,
-  campaign_id INTEGER,
-  cluster_id INTEGER,
-  tap INTEGER
-);
-CREATE INDEX taps_idx_cluster_id ON taps (cluster_id);

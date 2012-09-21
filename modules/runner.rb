@@ -108,15 +108,15 @@ while true do
             when /Waiting/i
               job.update({'state' => 'remote_waiting'})
               # close the tap
-              cluster.set_tap(job.props[:campaign_id],0)
+              cluster.set_tap(job.props[:campaign_id].to_i,0)
             else
               # close the tap
-              cluster.set_tap(job.props[:campaign_id],0)
+              cluster.set_tap(job.props[:campaign_id].to_i,0)
           end
         rescue => e
           message="Could not get remote job #{job.id}!\n#{e.to_s}\n#{e.backtrace.to_s}"
           logger.warn(message)
-          cluster.set_tap(job.props[:campaign_id],0) # There's a problem, so we close the tap
+          cluster.set_tap(job.props[:campaign_id].to_i,0) # There's a problem, so we close the tap
           break
         end
       end
@@ -127,8 +127,9 @@ while true do
     ##########################################################################
     #
     # Get the jobs to launch and submit them
-    # 
-    cluster.get_taps
+    #
+
+puts cluster.taps.inspect 
     tolaunch_jobs = Cigri::JobtolaunchSet.new
     # Get the jobs in state to_launch (should only happen for prologue/epilogue or after  a crash)
     jobs=Cigri::Jobset.new(:where => "jobs.state='to_launch' and jobs.cluster_id=#{cluster.id}")
