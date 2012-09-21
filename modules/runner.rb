@@ -129,7 +129,6 @@ while true do
     # Get the jobs to launch and submit them
     #
 
-puts cluster.taps.inspect 
     tolaunch_jobs = Cigri::JobtolaunchSet.new
     # Get the jobs in state to_launch (should only happen for prologue/epilogue or after  a crash)
     jobs=Cigri::Jobset.new(:where => "jobs.state='to_launch' and jobs.cluster_id=#{cluster.id}")
