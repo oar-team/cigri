@@ -165,11 +165,12 @@ def cigri_submit(dbh, json, user)
         %w{checkpointing_type dimensional_grouping epilogue exec_file 
           output_destination output_file output_gathering_method prologue 
           properties resources temporal_grouping walltime type test_mode}.each do |prop|
-            json['clusters'][cluster][prop]=json['clusters'][cluster][prop].join("\n") if 
-                                                         prop == "prologue" && json['clusters']["prologue"]
-            json['clusters'][cluster][prop]=json['clusters'][cluster][prop].join("\n") if 
-                                                         prop == "epilogue" && json['clusters']["epilogue"]
-            dbh.do(query, prop, json['clusters'][cluster][prop], cluster_id, campaign_id) if json['clusters'][cluster][prop]
+            if json['clusters'][cluster][prop]
+              if prop == "prologue" || prop == "epilogue"
+                json['clusters'][cluster][prop]=json['clusters'][cluster][prop].join("\n")
+              end
+              dbh.do(query, prop, json['clusters'][cluster][prop], cluster_id, campaign_id)
+            end
         end
       else
         IOLIBLOGGER.warn("Cluster '#{cluster}' unknown, campaign_property not added for this cluster")
