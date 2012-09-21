@@ -26,6 +26,10 @@ else
   DEFAULT_TAP = 5
 end
 
+# TODO: this is maybe something not to be fixed, but computed, and maybe 
+# dependent on the campaign, not only the cluster
+QUEUE_GAUGE = 10
+
 module Cigri
   ##
   # Meta class for REST Clusters
@@ -114,6 +118,19 @@ module Cigri
         n=get_cluster_nb_launching_jobs(dbh, @id)
       end
       return n > 0
+    end
+
+    # Returns yes if the queue (jobs_to_launch) is under the gauge
+    def queue_low?
+      n=0
+      db_connect() do |dbh|
+        n=dbh.select_one("SELECT count(*) 
+                        FROM jobs_to_launch 
+                        WHERE cluster_id=?",@id)[0].to_i
+      end
+      return true if n < QUEUE_GAUGE
+      CLUSTERLIBLOGGER.debug("Cluster #{name} has #{n} jobs in queue")
+      return false
     end
 
     # Get the running campaigns on this cluster
