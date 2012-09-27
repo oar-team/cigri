@@ -77,8 +77,8 @@ as value on all clusters.
     should answer this field.
 
 - properties: properties passed to OAR to select resources
-- prologue: commands that are executed before each job
-- epilogue: commands that are executed after each job
+- prologue: commands that are executed before the first job on each cluster 
+- epilogue: commands that are executed at the end of a campaign
 - output_gathering_method: method to use to gather results in a single
   place
 
