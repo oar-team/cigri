@@ -170,6 +170,8 @@ class API < Sinatra::Base
         id = Cigri::JDLParser.save(dbh, request.body.read, request.env[settings.username_variable]).to_s
         answer = get_formated_campaign(id)
       end
+    rescue Cigri::AdmissionRuleError => e
+      halt 400, print({:status => 400, :title => "Admission rule error", :message => e.to_s})
     rescue Exception => e
       halt 400, print({:status => 400, :title => "Error", :message => "Error submitting campaign: #{e}"})
     end

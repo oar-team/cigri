@@ -119,6 +119,29 @@ def quote(value)
   "'#{value}'"
 end
 
+## 
+# Execute the admission rules
+#
+# == Parameters
+# - jdl: the parsed jdl file (without the campaign params)
+# - user: the user submitting the campaign
+#
+# == Exceptions
+# If an admission rule fails, then exits with AdmissionRuleError
+#
+# == Output
+# nil
+def check_admission_rules(jdl, user)
+  rules=Dataset.new("admission_rules",:where => "true")
+  rules.each do |rule|
+    begin 
+      IOLIBLOGGER.debug("Running admission rule #{rule.props[:id]}")
+      eval rule.props[:code], binding
+    rescue => e
+      raise Cigri::AdmissionRuleError, "rule #{rule.props[:id]} failed: #{e.message}"
+    end
+  end
+end
 
 ##
 # This method saves a new campaign into the cigri database.
@@ -143,6 +166,8 @@ def cigri_submit(dbh, json, user)
   begin
     params = json['params']
     json['params'] = []
+
+    check_admission_rules(json, user)
 
     #INSERT INTO campaigns
     query = 'INSERT into campaigns 
@@ -182,7 +207,7 @@ def cigri_submit(dbh, json, user)
     unless json['jobs_type'].eql?('desktop_computing')
       cigri_submit_jobs(dbh, params, campaign_id, user)
     else
-      raise Cigri::Error, 'Desktop_computing campaigns are not yet sopported'
+      raise Cigri::Error, 'Desktop_computing campaigns are not yet supported'
     end
     
     dbh.commit()

@@ -119,6 +119,9 @@ install-cigri-server-config:
 		perl -pi -e "s#%%CIGRIDIR%%#$(CIGRIDIR)#g;;\
 		s#%%APIBASE%%#$(APIBASE)#g" $(DESTDIR)$(CIGRICONFDIR)/api-apache.conf; fi
 	chown $(WWWUSER) $(DESTDIR)$(CIGRICONFDIR)/api-apache.conf
+	if [ -f $(DESTDIR)$(CIGRICONFDIR)/user_lists ]; then echo "$(DESTDIR)$(CIGRICONFDIR)/user_lists found, not erasing."; \
+		else install -m 0644 etc/user_lists $(DESTDIR)$(CIGRICONFDIR)/user_lists; fi
+	chown $(WWWUSER) $(DESTDIR)$(CIGRICONFDIR)/api-apache.conf
 
 gen-ssl-cert: /etc/cigri/ssl
 

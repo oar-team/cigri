@@ -84,7 +84,15 @@ begin
         puts response.body if details
         puts "CAMPAIGN_ID=#{JSON.parse(response.body)['id']}"
     else
-      STDERR.puts("Error submitting campaign: #{response.body}")
+      if error=JSON.parse(response.body)
+        if error["title"] == "Admission rule error"
+          STDERR.puts("Admission rule error: \n  #{error['message']}")
+        else
+          STDERR.puts("Error: #{response.body}")
+        end
+      else
+        STDERR.puts("Error: #{response.body}")
+      end
     end
   end
   jobs.each do |job|

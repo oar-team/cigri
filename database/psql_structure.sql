@@ -162,3 +162,20 @@ CREATE TABLE queue_counts (
   jobs_count INTEGER
 );
 CREATE INDEX queue_counts_campaign_cluster ON queue_counts (campaign_id,cluster_id);
+CREATE TABLE admission_rules (
+  id SERIAL NOT NULL,
+  code TEXT
+);
+INSERT INTO admission_rules VALUES (1, '# Title : Filtering users for normal mode on clusters 
+# Description : This rule rejects campaigns for which the user requests non best-effort (normal) mode on non-authorized cluster. The list of users is maintained into the /etc/cigri/user_lists file.
+
+user_lists = JSON.parse(File.read(''/etc/cigri/user_lists''))
+jdl["clusters"].each do |cluster_name,cluster|
+  if cluster["type"] == "normal"
+    if not user_lists["normal_authorized"][cluster_name].include?(user)
+      raise Cigri::Error, "You are not authorized to launch normal jobs on cluster #{cluster_name}!"
+    end
+  end
+end
+');
+

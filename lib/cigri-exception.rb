@@ -27,4 +27,8 @@ module Cigri
   # Raised for a connection error to a cluster api rest-server 
   ##
   class ClusterAPIConnectionError < Error; end
+  ##
+  # Raised for an admission_rule error
+  ##
+  class AdmissionRuleError < Error; end
 end
