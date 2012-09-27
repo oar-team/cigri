@@ -11,7 +11,11 @@
         "mkdir -p $HOME/workdir",
         "cd $HOME/workdir",
         "touch tchernobyl_prologue_\$1_campaign_works"
-       ]
+       ],
+      "epilogue": [
+        "cd $HOME/workdir",
+        "touch epilogue_tchernobyl_works"
+      ]
     },
     "fukushima": {
       "walltime": "3600"

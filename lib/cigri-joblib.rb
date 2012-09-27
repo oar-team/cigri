@@ -35,7 +35,6 @@ module Cigri
     # Clone the job into the bag of tasks for resubmission of the same job
     # A re-submitted job has a priority of 20 (higher than default which is 10)
     def resubmit
-      # TODO: manage resubmition of prologue/epilogue jobs
       Datarecord.new("bag_of_tasks",{:param_id => @props[:param_id], :campaign_id => @props[:campaign_id], :priority => '20'})
     end
 
@@ -416,6 +415,9 @@ module Cigri
       return false if has_to_launch_jobs?
       return false if has_launching_jobs?
       return false if has_active_jobs?
+      @clusters.each do |id,cluster|
+        return false if not epilogue_ok?(id)
+      end
       return true
     end
 
@@ -471,9 +473,29 @@ module Cigri
                                   and jobs.cluster_id=#{cluster_id}"}).length > 0
     end
 
+    # Return true if the epilogue has been executed on the specified cluster
+    # or if there's no epilogue to execute
+    def epilogue_ok?(cluster_id)
+      return true unless @clusters[cluster_id]["epilogue"]
+      Cigri::Jobset.new({:where => "tag='epilogue' 
+                                  and jobs.state='terminated' 
+                                  and jobs.campaign_id=#{id}
+                                  and jobs.cluster_id=#{cluster_id}"}).length > 0
+    end
+
     # Return true if the prologue is running on the specified cluster
     def prologue_running?(cluster_id)
       Cigri::Jobset.new({:where => "tag='prologue' 
+                                  and (jobs.state='running' or jobs.state='remote_waiting'
+                                       or jobs.state='to_launch' or jobs.state='launching'
+                                       or jobs.state='submitted')
+                                  and jobs.campaign_id=#{id}
+                                  and cluster_id=#{cluster_id}"}).length > 0
+    end
+
+    # Return true if the epilogue is running on the specified cluster
+    def epilogue_running?(cluster_id)
+      Cigri::Jobset.new({:where => "tag='epilogue' 
                                   and (jobs.state='running' or jobs.state='remote_waiting'
                                        or jobs.state='to_launch' or jobs.state='launching'
                                        or jobs.state='submitted')
