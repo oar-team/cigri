@@ -70,6 +70,15 @@ class API < Sinatra::Base
     print(output)
   end
 
+  # Details of an event
+  get '/events/:id/?' do |id|
+    response['Allow'] = 'DELETE,GET,POST,PUT'
+    output = get_formated_event(id)
+
+    status 200
+    print(output)
+  end
+
   # Get the jdl as saved in the database
   get '/campaigns/:id/jdl/?' do |id|
     response['Allow'] = 'GET'
@@ -110,7 +119,7 @@ class API < Sinatra::Base
     limit = params['limit'] || 100
     offset = params['offset'] || 0
 
-    output = get_formated_events(id, limit, offset)
+    output = get_formated_campaign_events(id, limit, offset)
 
     status 200
     print(output)
@@ -221,6 +230,29 @@ class API < Sinatra::Base
   
     status 202
     print(get_formated_campaign(id))
+  end
+
+  delete '/events/:id/?' do |id|
+    protected!
+
+    db_connect() do |dbh|
+
+      begin
+        event=close_event(dbh, request.env[settings.username_variable], id)
+        if params['resubmit'] && event.props[:job_id]
+          job=Cigri::Job.new(:id=>event.props[:job_id])
+          job.resubmit
+        end
+      rescue Cigri::NotFound => e
+        not_found
+      rescue Cigri::Unauthorized => e
+        halt 403, print({:status => 403, :title => "Forbidden", :message => "Event #{id} is not specific to a campaign belonging to you: #{e.message}"})
+      rescue Exception => e
+        halt 400, print({:status => 400, :title => "Error", :message => "Error fixing event #{id}: #{e}"})
+      end
+    end
+    status 202
+    print({:status => 202, :title => :Accepted, :message => "Event #{id} closed"})
   end
 
   delete '/campaigns/:id/events/?' do |id|
@@ -342,7 +374,7 @@ class API < Sinatra::Base
     #  - id: id of the campaign
     #  - limit: number of events to get
     #  - offset: start from event "offset"
-    def get_formated_events(id, limit, offset)      
+    def get_formated_campaign_events(id, limit, offset)      
       campaign = get_campaign(id)
       events = nil
       # Cluster id <-> name matching
@@ -422,6 +454,54 @@ class API < Sinatra::Base
          {:rel => :item, :href => to_url("campaigns/#{id}/jdl"), :title => 'jdl'}
        ]}
     end
+
+    # Gets an event from the database
+    #
+    # == Parameters: 
+    #  - id: id of the event to get
+    def get_event(id)
+      event = Cigri::Event.new({:id => id})
+      not_found unless event.props
+      event
+    end
+    
+    # Gets an event from the database and format it
+    #
+    # == Parameters: 
+    #  - id: id if the event to get
+    def get_formated_event(id)
+      event=get_event(id)
+      event.props[:id]=id.to_i
+      event.props[:links]=[
+         {:rel => :self, :href => to_url("events/#{id}")},
+         {:rel => :parent, :href => to_url('events')}
+      ]
+      event.props
+    end
+    
+    # Gets the useful information about a campaign
+    #
+    # == Parameters: 
+    #  - campaign: Cigri::Campaign campaign to format
+    def format_campaign(campaign)
+      props = campaign.props
+      id = props[:id]
+      {:id => id.to_i, 
+       :name => props[:name], 
+       :user => props[:grid_user],
+       :state => props[:state],
+       :has_events => campaign.has_open_events?,
+       :submission_time => Time.parse(props[:submission_time]).to_i,
+       :total_jobs => props[:nb_jobs].to_i,
+       :finished_jobs => props[:finished_jobs],
+       :links => [
+         {:rel => :self, :href => to_url("campaigns/#{id}")},
+         {:rel => :parent, :href => to_url('campaigns')},
+         {:rel => :collection, :href => to_url("campaigns/#{id}/jobs"), :title => 'jobs'},
+         {:rel => :item, :href => to_url("campaigns/#{id}/jdl"), :title => 'jdl'}
+       ]}
+    end
+ 
     
     def params_to_update
       res = {}

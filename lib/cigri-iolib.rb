@@ -496,6 +496,32 @@ def close_campaign_events(dbh, user, id)
 end
 
 ##
+# Closes an event
+#
+# == Parameters
+# - dbh: database handle
+# - user: user requesting campaign event fixing 
+# - id: event id to fix
+#
+# == Exceptions
+# - Cigri::Unauthorized if the user does not have the rights to delete the event
+# - Cigri::NotFound if the event "id" does not exist
+#
+##
+def close_event(dbh, user, id)
+  IOLIBLOGGER.debug("Received request to close the event '#{id}'")
+  event=Cigri::Event.new(:id=>id)
+  raise Cigri::NotFound, "Event #{id} not found" unless event.props
+  raise Cigri::Unauthorized, "Not authorized to close event #{id}" unless event.props[:campaign_id]
+  check_rights!(dbh, user, event.props[:campaign_id])
+  nb = dbh.do("UPDATE events 
+                SET state='closed' 
+                WHERE id = ?", id)
+  IOLIBLOGGER.debug("Closed event ##{id}")
+  event
+end
+
+##
 # Updates a campaign 
 #
 # == Parameters

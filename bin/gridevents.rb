@@ -12,7 +12,7 @@ campaign_id = nil
 username = nil
 fix = false
 resubmit = false
-eventid = nil
+event_id = nil
 
 optparse = OptionParser.new do |opts|
   opts.banner = "Usage:  #{File.basename(__FILE__)} [options]"
@@ -24,12 +24,16 @@ optparse = OptionParser.new do |opts|
   opts.on( '-c', '--campaign ID', String, 'Show or close events for this campaign ID' ) do |c|
     campaign_id = c
   end
-  
-  opts.on('-f', '--fix', 'Fix the campaign: close all events on the specified campaign') do
+
+  opts.on( '-e', '--event ID', String, 'Show or close only this event' ) do |e|
+    event_id = e
+  end
+   
+  opts.on('-f', '--fix', 'Fix: close the event if specified or all events of a campaign') do
     fix = true
   end
 
-  opts.on('-r', '--resubmit', 'Close all events and resubmit each concerned job') do
+  opts.on('-r', '--resubmit', 'Resubmit each job concerned by the fixed events') do
     resubmit = true
   end
 
@@ -57,30 +61,31 @@ if campaign_id.nil? && ARGV[0]
   campaign_id=ARGV[0]
 end
 
-abort("Missing CAMPAIGN_ID\n" + optparse.to_s) unless campaign_id
+abort("Missing CAMPAIGN (-c) or EVENT (-e) id\n" + optparse.to_s) unless campaign_id or event_id
 
-url = "/campaigns/#{campaign_id}/events"
-
+url = "/campaigns/#{campaign_id}/events" if campaign_id
+url = "/events/#{event_id}" if event_id
 
 begin 
   client = Cigri::Client.new 
 
     # Close events
     if fix 
-      url << "/#{eventid}" if eventid # TODO: Not implemented into API for now
       url << '?resubmit=1' if resubmit
       response = client.delete(url)
       parsed_response = JSON.parse(response.body)
       if response.code != "202"
-        STDERR.puts("Failed to fix campaign #{campaign_id}: #{parsed_response['message']}.")
+        STDERR.puts("Failed to fix event(s): #{parsed_response['message']}.")
       else
         puts "#{parsed_response['message']}." if verbose
       end
     # Show events
     else
       response = client.get(url)
-      events = JSON.parse(response.body)['items']
-      Cigri::Client.print_events(events)
+      events = JSON.parse(response.body)
+      items = events["items"] if events["items"]
+      items = [events] if events["id"]
+      Cigri::Client.print_events(items)
     end
    
 rescue Errno::ECONNREFUSED => e
