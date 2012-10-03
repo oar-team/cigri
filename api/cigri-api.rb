@@ -451,6 +451,7 @@ class API < Sinatra::Base
          {:rel => :self, :href => to_url("campaigns/#{id}")},
          {:rel => :parent, :href => to_url('campaigns')},
          {:rel => :collection, :href => to_url("campaigns/#{id}/jobs"), :title => 'jobs'},
+         {:rel => :collection, :href => to_url("campaigns/#{id}/events"), :title => 'events'},
          {:rel => :item, :href => to_url("campaigns/#{id}/jdl"), :title => 'jdl'}
        ]}
     end
@@ -478,30 +479,6 @@ class API < Sinatra::Base
       ]
       event.props
     end
-    
-    # Gets the useful information about a campaign
-    #
-    # == Parameters: 
-    #  - campaign: Cigri::Campaign campaign to format
-    def format_campaign(campaign)
-      props = campaign.props
-      id = props[:id]
-      {:id => id.to_i, 
-       :name => props[:name], 
-       :user => props[:grid_user],
-       :state => props[:state],
-       :has_events => campaign.has_open_events?,
-       :submission_time => Time.parse(props[:submission_time]).to_i,
-       :total_jobs => props[:nb_jobs].to_i,
-       :finished_jobs => props[:finished_jobs],
-       :links => [
-         {:rel => :self, :href => to_url("campaigns/#{id}")},
-         {:rel => :parent, :href => to_url('campaigns')},
-         {:rel => :collection, :href => to_url("campaigns/#{id}/jobs"), :title => 'jobs'},
-         {:rel => :item, :href => to_url("campaigns/#{id}/jdl"), :title => 'jdl'}
-       ]}
-    end
- 
     
     def params_to_update
       res = {}
