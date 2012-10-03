@@ -1110,14 +1110,15 @@ end
 #
 class Dataset
   attr_reader :records, :table
-
+  @@dbh = nil
   # Creates a new dataset
   # - If props[:values] is given, then insert the dataset into the given table
   # - If props[:where] is given, then get the dataset from the database
   # - The table value may be coma separated list of tables (for joins)
   def initialize(table,props={})
     # Get a DB handler
-    @dbh=db_connect()
+    @@dbh ||= db_connect()
+    @dbh = @@dbh
     @table=table
     @records=[]
     if props[:where]
