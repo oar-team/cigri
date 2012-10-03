@@ -45,8 +45,9 @@ def db_connect()
     yield dbh
     dbh.disconnect() if dbh
   rescue DBI::OperationalError => e
-    IOLIBLOGGER.error("Failed to connect to database with string: #{str}\nError: #{e}")
+    IOLIBLOGGER.error("Failed to connect to database with string: #{str}\nError: #{e}\n#{e.backtrace.join("\n")}")
     IOLIBLOGGER.error("Retrying in 10s")
+    GC.start
     sleep 10
     retry
   rescue Exception => e
