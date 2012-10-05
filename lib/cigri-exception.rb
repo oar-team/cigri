@@ -20,6 +20,10 @@ module Cigri
   ##
   class ClusterAPIPermissionDenied < Error; end
   ##
+  # Raised for a 403 api rest-server error
+  ##
+  class ClusterAPIForbidden < Error; end
+  ##
   # Raised for a 500 api rest-server error
   ##
   class ClusterAPIServerError < Error; end

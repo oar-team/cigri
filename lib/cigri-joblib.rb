@@ -405,7 +405,7 @@ module Cigri
     # Check if a campaign has open events
     def has_open_events?
       db_connect() do |dbh|
-        return get_campaign_events_number(dbh, id) > 0
+        return get_campaign_nb_events(dbh, id) > 0
       end
     end
 

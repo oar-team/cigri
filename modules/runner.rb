@@ -83,7 +83,7 @@ while true do
         job.update({'state' => 'event'})
         message="Job #{job.id} is lost, it has no remote_id!"
         Cigri::Event.new(:class => "job", :code => "RUNNER_GET_REMOTE_ID_ERROR", :cluster_id => cluster.id, :job_id => job.id, :message => message)
-      else
+      elsif not cluster.blacklisted?(:campaign_id => job.props[:campaign_id].to_i)
         begin
           cluster_job = cluster.get_job(job.props[:remote_id].to_i, job.props[:grid_user])
           case cluster_job["state"] 
@@ -113,12 +113,23 @@ while true do
               # close the tap
               cluster.set_tap(job.props[:campaign_id].to_i,0)
           end
+        rescue Cigri::ClusterAPIConnectionError => e
+          message="Could not get remote job #{job.id}!\n#{e.to_s} because of a connexion problem to the cluster API"
+          logger.warn(message)
+          cluster.set_tap(job.props[:campaign_id].to_i,0) # There's a problem, so we close the tap
         rescue => e
           message="Could not get remote job #{job.id}!\n#{e.to_s}\n#{e.backtrace.to_s}"
           logger.warn(message)
           cluster.set_tap(job.props[:campaign_id].to_i,0) # There's a problem, so we close the tap
+          event=Cigri::Event.new(:class => "job", :code => "RUNNER_GET_JOB_ERROR", 
+                                 :cluster_id => cluster.id, :job_id => job.id, 
+                                 :message => message, :campaign_id => job.props[:campaign_id].to_i)
+
+          Cigri::Colombo.new(event).check_jobs
           break
         end
+      else
+        logger.debug("Not checking job #{job.id} because of campaign blacklist")
       end
     end 
 

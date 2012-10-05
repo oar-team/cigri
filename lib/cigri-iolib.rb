@@ -706,8 +706,16 @@ end
 ##
 def get_campaign_nb_events(dbh, id)
   dbh.select_one("SELECT count(*)
-           FROM events
-           WHERE campaign_id = ? and state='open' and not code = 'BLACKLIST'", id)[0]
+                  FROM events
+                  WHERE state='open'
+                   AND ( campaign_id = ?
+                      or (
+                        cluster_id in
+                          (select distinct cluster_id from campaign_properties where campaign_id = ?)
+                        and campaign_id is null
+                         )
+                    )
+                  ", id, id)[0]
 end
 
 ##
@@ -783,27 +791,6 @@ def get_campaign_launching_jobs_number(dbh, id)
                                   WHERE state='launching'
                                     AND campaign_id=?", id)[0]
 end
-
-##
-# Returns the number of open events for a given campaign
-#
-# == Parameters
-# - dbh: dababase handle
-# - id: campaign id
-#
-# == Returns
-# Number of tasks (integer)
-#
-##
-def get_campaign_events_number(dbh, id)
-  dbh.select_one("SELECT COUNT(*) FROM jobs,events
-                                  WHERE jobs.state='event'
-                                    AND events.job_id=jobs.id
-                                    AND events.state='open'
-                                    AND jobs.campaign_id=?", id)[0]
-end
-
-
 
 ##
 # Returns the number of completed tasks for a given campaign
