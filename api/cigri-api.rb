@@ -401,7 +401,8 @@ class API < Sinatra::Base
           :cluster_name => cluster_names[event[4]],
           :date_open => event[6],
           :message => event[5],
-          :parent => event[7]
+          :parent => event[7],
+          :state => event[8]
         }
       end
 

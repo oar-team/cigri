@@ -676,7 +676,7 @@ end
 #
 ##
 def get_campaign_events(dbh, id, limit, offset)
-  query = "SELECT id,class,code,job_id,cluster_id,message,date_open,parent
+  query = "SELECT id,class,code,job_id,cluster_id,message,date_open,parent,state
            FROM events
            WHERE state='open'
                 and ( campaign_id = ?
