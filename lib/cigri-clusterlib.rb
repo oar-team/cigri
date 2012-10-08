@@ -238,6 +238,13 @@ module Cigri
       end
     end    
 
+    # Map user if necessary (if an entry is found into users_mapping table)
+    def map_user(user)
+      nil if user.nil?
+      mapped_user=Dataset.new("users_mapping", :where => "grid_login='#{user}' and cluster_id = #{@id}")
+      mapped_user.length > 0 ? mapped_user.records[0].props[:cluster_login] : user
+    end
+
     # Get the resources
     def get_resources
       raise "Method must be overridden"
@@ -314,7 +321,7 @@ module Cigri
           job.delete("param_file")         
         end
         #
-        secure_run proc{ @api.post("jobs",job, {@description["api_auth_header"] => user}) }, "SUBMIT_JOB"
+        secure_run proc{ @api.post("jobs",job, {@description["api_auth_header"] => map_user(user)}) }, "SUBMIT_JOB"
       end
  
       def get_job(job_id, user=nil)
@@ -322,7 +329,7 @@ module Cigri
           if (user.nil?)
             secure_run proc{ @api.get("jobs/#{job_id}") }, "GET_JOB"
           else
-            secure_run proc{ @api.get("jobs/#{job_id}",{@description["api_auth_header"] => user}) }, "GET_JOB"
+            secure_run proc{ @api.get("jobs/#{job_id}",{@description["api_auth_header"] => map_user(user)}) }, "GET_JOB"
           end
          else
           CLUSTERLIBLOGGER.error("No valid id passed to get_job on #{name}!")
@@ -331,11 +338,11 @@ module Cigri
       end
  
       def delete_job(job_id, user="")
-        secure_run proc{ @api.delete("jobs/#{job_id}", {@description["api_auth_header"] => user}) }, "DELETE_JOB"
+        secure_run proc{ @api.delete("jobs/#{job_id}", {@description["api_auth_header"] => map_user(user)}) }, "DELETE_JOB"
       end
  
       def get_file(path, user=nil,tail=0)
-        secure_run proc{ @api.get("media"+path+"?tail="+tail.to_s,{@description["api_auth_header"] => user},:raw => true) }, "GET_MEDIA"
+        secure_run proc{ @api.get("media"+path+"?tail="+tail.to_s,{@description["api_auth_header"] => map_user(user)},:raw => true) }, "GET_MEDIA"
       end
  
     end # OARCluster
@@ -368,14 +375,14 @@ module Cigri
         ids = []
         params.each do |param|
           job ["command"] = "#{command} #{param}"
-          id = secure_run proc { @api.post("jobs", job, {@description["api_auth_header"] => user})["uid"] }, "SUBMIT_JOB"
+          id = secure_run proc { @api.post("jobs", job, {@description["api_auth_header"] => map_user(user)})["uid"] }, "SUBMIT_JOB"
           ids << id
         end
         {"id" => ids}
       end
 
       def delete_job(job_id, user)
-        secure_run proc { @api.delete("jobs/#{job_id}", {@description["api_auth_header"] => user})}, "DELETE_JOB"
+        secure_run proc { @api.delete("jobs/#{job_id}", {@description["api_auth_header"] => map_user(user)})}, "DELETE_JOB"
       end
 
       def get_resources

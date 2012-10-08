@@ -28,11 +28,11 @@ CREATE TABLE clusters (
 );
 
 DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS users_mapping;
 DROP TYPE IF EXISTS auth;
-CREATE TYPE auth as ENUM('ldap','mapping');
-CREATE TABLE users (
+CREATE TABLE users_mapping (
+  id SERIAL NOT NULL,
   grid_login VARCHAR(255) NOT NULL,
-  auth_type auth NOT NULL,
   cluster_login VARCHAR(255),
   cluster_id INTEGER,
   PRIMARY KEY (grid_login)
