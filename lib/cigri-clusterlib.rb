@@ -375,6 +375,7 @@ module Cigri
         ids = []
         params.each do |param|
           job ["command"] = "#{command} #{param}"
+          job["queue"] = "besteffort"
           id = secure_run proc { @api.post("jobs", job, {@description["api_auth_header"] => map_user(user)})["uid"] }, "SUBMIT_JOB"
           ids << id
         end
