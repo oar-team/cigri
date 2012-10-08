@@ -124,24 +124,24 @@ end
 # Execute the admission rules
 #
 # == Parameters
-# - jdl: the parsed jdl file (without the campaign params)
-# - user: the user submitting the campaign
+# - vars: variables scope (binding)
 #
 # == Exceptions
 # If an admission rule fails, then exits with AdmissionRuleError
 #
 # == Output
 # nil
-def check_admission_rules(jdl, user)
-  rules=Dataset.new("admission_rules",:where => "true")
+def check_admission_rules(vars)
+  rules=Dataset.new("admission_rules",:where => "true order by id")
   rules.each do |rule|
     begin 
       IOLIBLOGGER.debug("Running admission rule #{rule.props[:id]}")
-      eval rule.props[:code], binding
+      eval rule.props[:code], vars
     rescue => e
       raise Cigri::AdmissionRuleError, "rule #{rule.props[:id]} failed: #{e.message}"
     end
   end
+  eval "jdl", vars
 end
 
 ##
@@ -161,41 +161,41 @@ end
 # == Output
 # - Campaign id
 ##
-def cigri_submit(dbh, json, user)
+def cigri_submit(dbh, jdl, user)
   IOLIBLOGGER.debug('Saving campaign into database')
   dbh['AutoCommit'] = false
   begin
-    params = json['params']
-    json['params'] = []
+    params = jdl['params']
+    jdl['params'] = []
 
-    check_admission_rules(json, user)
+    jdl=check_admission_rules(binding)
 
     #INSERT INTO campaigns
     query = 'INSERT into campaigns 
              (grid_user, state, type, name, submission_time, nb_jobs, jdl)
              VALUES (?, \'in_treatment\', ?, ?, NOW(), ?, ?)'
-    dbh.do(query, user, json['jobs_type'], json['name'], 0, json.to_json)
+    dbh.do(query, user, jdl['jobs_type'], jdl['name'], 0, jdl.to_json)
     
     campaign_id = last_inserted_id(dbh, 'campaigns_id_seq')
-    clusters = get_clusters_ids(dbh, json['clusters'].keys)
+    clusters = get_clusters_ids(dbh, jdl['clusters'].keys)
     
     #add campaigns properties
     query = 'INSERT INTO campaign_properties 
              (name, value, cluster_id, campaign_id)
              VALUES (?, ?, ?, ?)'
     at_least_one_cluster = false
-    json['clusters'].each_key do |cluster|
+    jdl['clusters'].each_key do |cluster|
       cluster_id = clusters[cluster]
       if cluster_id
         at_least_one_cluster = true
         %w{checkpointing_type dimensional_grouping epilogue exec_file 
           output_destination output_file output_gathering_method prologue 
           properties resources temporal_grouping walltime type test_mode}.each do |prop|
-            if json['clusters'][cluster][prop]
+            if jdl['clusters'][cluster][prop]
               if prop == "prologue" || prop == "epilogue"
-                json['clusters'][cluster][prop]=json['clusters'][cluster][prop].join("\n")
+                jdl['clusters'][cluster][prop]=jdl['clusters'][cluster][prop].join("\n")
               end
-              dbh.do(query, prop, json['clusters'][cluster][prop], cluster_id, campaign_id)
+              dbh.do(query, prop, jdl['clusters'][cluster][prop], cluster_id, campaign_id)
             end
         end
       else
@@ -205,7 +205,7 @@ def cigri_submit(dbh, json, user)
     raise Cigri::Error, "No clusters usable for the campaign" unless at_least_one_cluster
 
     # Create bag_of_tasks
-    unless json['jobs_type'].eql?('desktop_computing')
+    unless jdl['jobs_type'].eql?('desktop_computing')
       cigri_submit_jobs(dbh, params, campaign_id, user)
     else
       raise Cigri::Error, 'Desktop_computing campaigns are not yet supported'
