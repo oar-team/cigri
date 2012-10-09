@@ -9,9 +9,9 @@ cigri_init:
  - install_cigri:
    - exec_chroot: bash -c "cd /home/kameleon/`basename $$cigri_svn` && make install-cigri"
  - init_clusters:
-   - exec_chroot: bash -c "cd /home/kameleon/`basename $$cigri_svn` && ./sbin/new_cluster.rb tchernobyl https://tchernobyl/oarapi-secured/ cert kameleon kameleon tchernobyl oar2_5 core 100 \"cluster='tchernobyl'\""
-   - exec_chroot: bash -c "cd /home/kameleon/`basename $$cigri_svn` && ./sbin/new_cluster.rb threemile https://threemile/oarapi-secured/ cert kameleon kameleon threemile oar2_5 core 10 \"cluster='threemile'\""
-   - exec_chroot: bash -c "cd /home/kameleon/`basename $$cigri_svn` && ./sbin/new_cluster.rb fukushima https://fukushima/oarapi-secured/ cert kameleon kameleon fukushima oar2_5 core 50 \"cluster='fukushima'\""
+   - exec_chroot: bash -c "cd /home/kameleon/`basename $$cigri_svn` && ./sbin/new_cluster.rb tchernobyl https://tchernobyl/oarapi-secured/ cert kameleon kameleon '' tchernobyl oar2_5 core 100 \"cluster='tchernobyl'\""
+   - exec_chroot: bash -c "cd /home/kameleon/`basename $$cigri_svn` && ./sbin/new_cluster.rb threemile https://threemile/oarapi-secured/ cert kameleon kameleon '' threemile oar2_5 core 10 \"cluster='threemile'\""
+   - exec_chroot: bash -c "cd /home/kameleon/`basename $$cigri_svn` && ./sbin/new_cluster.rb fukushima https://fukushima/oarapi-secured/ cert kameleon kameleon '' fukushima oar2_5 core 50 \"cluster='fukushima'\""
  - activate_api:
    - exec_chroot: ln -s /etc/cigri/api-apache.conf /etc/apache2/conf.d/cigri-api.conf
  - oar_https_api:

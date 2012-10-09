@@ -324,13 +324,13 @@ end
 # == Exceptions
 # - Exception if insertion failed
 ##
-def new_cluster(dbh, name, api_url, api_auth_type, api_username, api_password, ssh_host, batch, resource_unit, power, properties)
+def new_cluster(dbh, name, api_url, api_auth_type, api_username, api_password, api_auth_header, ssh_host, batch, resource_unit, power, properties)
   IOLIBLOGGER.debug("Creating the new cluster #{name}")
   begin
     query = 'INSERT into clusters
-             (name,api_url,api_auth_type,api_username,api_password,ssh_host,batch,resource_unit,power,properties)
-             VALUES (?,?,?,?,?,?,?,?,?,?)'
-    dbh.do(query,name,api_url,api_auth_type,api_username,api_password,ssh_host,batch,resource_unit,power,properties)
+             (name,api_url,api_auth_type,api_username,api_password,api_auth_header,ssh_host,batch,resource_unit,power,properties)
+             VALUES (?,?,?,?,?,?,?,?,?,?, ?)'
+    dbh.do(query,name,api_url,api_auth_type,api_username,api_password,api_auth_header,ssh_host,batch,resource_unit,power,properties)
   rescue Exception => e
     IOLIBLOGGER.error("Error inserting cluster #{name}: " + e.inspect)
     raise e

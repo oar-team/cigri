@@ -56,12 +56,12 @@ require 'cigri-clusterlib'
 # exit
 
 
-abort("Usage: #{File.basename(__FILE__)} <name> <api_url> <api_auth_type(cert|password)> <api_username> <api_password> <ssh_host> <batch> <resource_unit> <power> <properties>") unless ARGV.length == 10
+abort("Usage: #{File.basename(__FILE__)} <name> <api_url> <api_auth_type(cert|password)> <api_username> <api_password> <api_auth_header> <ssh_host> <batch> <resource_unit> <power> <properties>") unless ARGV.length == 11
 
 # Check the batch type
 available_batch_types = Cigri::Cluster.available_types
-unless available_batch_types.include?(ARGV[6])
-  raise "\"#{ARGV[6]}\" is not a valid batch system type. Valid types are: #{available_batch_types.join(', ')}"
+unless available_batch_types.include?(ARGV[7])
+  raise "\"#{ARGV[7]}\" is not a valid batch system type. Valid types are: #{available_batch_types.join(', ')}"
 end
 
 db_connect() do |dbh|

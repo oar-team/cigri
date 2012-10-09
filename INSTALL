@@ -40,7 +40,7 @@ Cigri v3 quick installation guide
 
 *You can add OAR clusters with the provided helper, for example, from the cigri sources directory*:
 
-    ./sbin/new_cluster.rb tchernobyl http://tchernobyl/oarapi-priv/ kameleon kameleon tchernobyl oar2_5 core 100 "cluster='tchernobyl'"  
+    ./sbin/new_cluster.rb tchernobyl http://tchernobyl/oarapi-priv/ cert kameleon kameleon "" tchernobyl oar2_5 core 100 "cluster='tchernobyl'"  
 
 *Start cigri:*
 
