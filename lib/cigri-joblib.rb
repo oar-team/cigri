@@ -334,6 +334,7 @@ module Cigri
     # This is done in an atomical way to prevent from losing jobs in case of a 
     # crash. This is why we directly call an iolib function ithout using datarecords.
     def take
+      check_connection!
       jobids=take_tasks(@dbh,self.ids)
       Jobset.new(:where => "jobs.id in (#{jobids.join(',')})")
     end
@@ -525,6 +526,7 @@ module Cigri
     # Convert the datarecords objects to campaign objects
     # couldn't find someting similar to "extend Module"...
     def to_campaigns
+      check_connection!
       finished_jobs = get_campaigns_nb_finished_jobs(@dbh, ids)
       campaigns=[]
       @records.each do |record|

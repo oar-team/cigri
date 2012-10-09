@@ -1131,6 +1131,7 @@ class Dataset
   # Get a dataset from the database
   def get(table,what,where)
     what="*" if what.nil?
+    check_connection!
     sth=@dbh.execute("SELECT #{what} FROM #{table} WHERE #{where}")
     result=[]
     sth.fetch_hash do |row|
@@ -1166,6 +1167,7 @@ class Dataset
   # Delete all the datarecords of this dataset from the database
   def delete(table=@table,id_column="id")
     IOLIBLOGGER.debug("Removing #{self.length} records from #{table}")    
+    check_connection!
     @dbh.do("DELETE FROM #{table} WHERE #{id_column} in (#{self.ids.join(',')})")
   end
  
@@ -1178,6 +1180,7 @@ class Dataset
   # Update fields of the dataset into the database
   def update(values, table = @table, id_column = "id")
     table=table.split(/,/)[0]
+    check_connection!
     values.each_key do |field|
       @dbh.do("UPDATE #{table} SET #{field} = ? WHERE #{id_column} in (#{self.ids.join(',')})", values[field])
     end
@@ -1204,4 +1207,12 @@ class Dataset
     end
   end
 
+  private
+  #Verify the state of the connection and connect if not
+  def check_connection!
+    unless @@dbh.ping
+      @@dbh = db_connect()
+      @dbh = @@dbh
+    end
+  end
 end
