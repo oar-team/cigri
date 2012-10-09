@@ -24,6 +24,7 @@ begin
   #Childs array
   childs=[]
   runner_childs={}
+  judas_pid=nil
 
   #Signal handling
   %w{INT TERM}.each do |signal|
@@ -56,6 +57,17 @@ begin
         runner_childs.delete(pid)
       end
     end
+    if pid == judas_pid
+      sleep 5
+      logger.warn("Restarting judas")
+      npid=fork
+      if npid.nil?
+        exec("#{File.dirname(__FILE__)}/judas.rb")
+      else
+        childs << npid
+        judas_pid = npid
+      end
+    end
   }
 
   
@@ -84,7 +96,17 @@ begin
     end
     sleep 0.5
   end
-  
+ 
+  # Start the notification module (judas)
+  logger.debug("Starting judas")
+  pid=fork
+  if pid.nil?
+    exec("#{File.dirname(__FILE__)}/judas.rb")
+  else
+    childs << pid
+    judas_pid = pid
+  end
+
   #Main almighty loop
   while true do
     logger.debug('New iteration')

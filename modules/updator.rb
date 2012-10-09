@@ -5,13 +5,6 @@ $LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
 require 'cigri'
 require 'cigri-joblib'
 require 'cigri-colombolib'
-require 'cigri-notificationlib'
-begin
-  require 'xmpp4r/client'
-  XMPPLIB=true
-rescue LoadError
-  XMPPLIB=false
-end
 
 $0='cigri: updator'
 
@@ -56,20 +49,5 @@ begin
   events=Cigri::Eventset.new({:where => "state='open' and code='RESUBMIT' and class='job'"})
   Cigri::Colombo.new(events).check_jobs
 
-  # Send notifications
-  # !! This piece of code is just for testing. !!
-  # !! It should go into a notification module that runs asynchronously !!
-  # and get a signal to send notifications.
-  # TODO: check events that are not yet notified and aggregate if necessary before sending message(s)
-  im_handlers={}
-  if XMPPLIB 
-    jid = Jabber::JID.new(config.get("NOTIFICATIONS_XMPP_IDENTITY"))
-    im_handlers[:xmpp] = Jabber::Client.new(jid)
-    im_handlers[:xmpp].connect(config.get("NOTIFICATIONS_XMPP_SERVER"),config.get("NOTIFICATIONS_XMPP_PORT"))
-    im_handlers[:xmpp].auth(config.get("NOTIFICATIONS_XMPP_PASSWORD"))
-  end
-  message=Cigri::Message.new({:admin => true, :user => "kameleon", :message => "Test message!"},im_handlers)
-  message.send
- 
   logger.debug('Exiting')
 end

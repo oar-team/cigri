@@ -101,8 +101,12 @@ module Cigri
           when "mail"
             if CONF.exists?("NOTIFICATIONS_SMTP_SERVER")
               if SMTPLIB
-                Net::SMTP.start(CONF.get("NOTIFICATIONS_SMTP_SERVER"), CONF.get("NOTIFICATIONS_SMTP_PORT",25)) do |smtp|
-                    smtp.send_message formatted_mail(to), from, to
+                begin
+                  Net::SMTP.start(CONF.get("NOTIFICATIONS_SMTP_SERVER"), CONF.get("NOTIFICATIONS_SMTP_PORT",25)) do |smtp|
+                      smtp.send_message formatted_mail(to), from, to
+                  end
+                rescue => e
+                  NOTIFICATIONLIBLOGGER.error(e.message)
                 end
               else
                 NOTIFICATIONLIBLOGGER.warn("Net/smtp library not found. Disabling MAIL notifications! ")
