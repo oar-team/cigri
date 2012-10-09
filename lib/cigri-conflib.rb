@@ -74,9 +74,11 @@ module Cigri
       @conf.has_key?(key)
     end
  
-    # Return the value of the given configuration variable
-    def get(key)
-      @conf[key]
+    # Return the value of the given configuration variable or the default value
+    # if not defined
+    def get(key,default=nil)
+      return @conf[key] if @conf.has_key?(key)
+      default
     end
   end 
 end
