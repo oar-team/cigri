@@ -166,6 +166,15 @@ CREATE TABLE admission_rules (
   id SERIAL NOT NULL,
   code TEXT
 );
+CREATE TYPE notifications as ENUM('mail','xmpp');
+CREATE TABLE user_notifications (
+  id SERIAL NOT NULL,
+  grid_user VARCHAR(255) NOT NULL,
+  type notifications,
+  identity VARCHAR(255)
+);
+CREATE INDEX user_notifications_idx_grid_user ON user_notifications (grid_user);
+
 INSERT INTO admission_rules VALUES (1, '# Title : Filtering users for normal mode on clusters 
 # Description : This rule rejects campaigns for which the user requests non best-effort (normal) mode on non-authorized cluster. The list of users is maintained into the /etc/cigri/user_lists file.
 

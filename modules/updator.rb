@@ -5,6 +5,7 @@ $LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
 require 'cigri'
 require 'cigri-joblib'
 require 'cigri-colombolib'
+require 'cigri-notificationlib'
 
 $0='cigri: updator'
 
@@ -48,6 +49,11 @@ begin
   # Check jobs to resubmit
   events=Cigri::Eventset.new({:where => "state='open' and code='RESUBMIT' and class='job'"})
   Cigri::Colombo.new(events).check_jobs
+
+  # Send notifications
+  # TODO: check events that are not yet notified and aggregate if necessary before sending message(s)
+  message=Cigri::Message.new({:admin => true, :user => "kameleon", :message => "Test message!"})
+  message.send
  
   logger.debug('Exiting')
 end

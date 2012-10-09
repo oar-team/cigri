@@ -13,7 +13,7 @@
 
 -------------------------------------------------------------------------------
 
-Setting up Cigri
+Installing Cigri
 =================
 
 Use the makefile.
@@ -29,6 +29,21 @@ TODO
 TODO
 - Create a client certificate 
 TODO
+
+Setting up CIGRI
+================
+
+- Set up cigri.conf
+TODO
+- Set up cigri API
+TODO
+- Set up the database
+TODO
+- Insert clusters of the grid
+TODO
+- Map user names if necessary (users_mapping table)
+TODO
+- Start cigri
 
 .. Local Variables:
 .. ispell-local-dictionary: "american"

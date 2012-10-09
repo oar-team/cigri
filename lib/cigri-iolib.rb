@@ -1145,6 +1145,14 @@ class Dataset
     @records.each(&blk)
   end
 
+  # Concatenation
+  def +(dataset)
+    dataset.records.each do |record|
+      self << record
+    end
+    self
+  end
+
   # Returns an array of all the ids of the datarecords of this dataset
   def ids
     @records.collect {|record| record.id}
