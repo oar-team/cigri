@@ -551,6 +551,11 @@ module Cigri
       fill(get("campaigns","*","state IN ('in_treatment', 'paused')"))
       to_campaigns
     end
+
+    # Returns a hash campaign_id => grid_user
+    def get_users
+      Hash[@records.map {|record| [record.id,record.props[:grid_user]]}]
+    end
  
   end # Class Campaignset
   

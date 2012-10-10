@@ -5,6 +5,9 @@ $LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
 require 'cigri'
 require 'cigri-notificationlib'
 require 'cigri-conflib'
+require 'cigri-joblib'
+require 'cigri-colombolib'
+
 config = Cigri.conf
 logger = Cigri::Logger.new("JUDAS #{ARGV[0]}", config.get('LOG_FILE'))
 
@@ -61,10 +64,11 @@ end
 while true do
   logger.debug('New iteration')
 
-  # Just for testing:
-  message=Cigri::Message.new({:admin => true, :user => "kameleon", :message => "Test message!"},im_handlers)
-  message.send
+  # Notify all open events
+  events=Cigri::Eventset.new(:where => "state='open' and notified=false")
+  Cigri::Colombo.new(events).notify(im_handlers)
 
   # Main sleep
+  # TODO: should wait for signal comming from other modules instead
   sleep 10
 end

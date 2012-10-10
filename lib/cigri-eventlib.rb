@@ -29,6 +29,9 @@ module Cigri
         if props[:checked].nil?
           props[:checked]="no"
         end
+        if props[:notified].nil?
+          props[:notified]=false
+        end
         props[:date_open]=Time::now()
         msg=""
         props.each_key do |prop| 
@@ -49,6 +52,12 @@ module Cigri
     # when colombo generates another event depending on this one
     def checked
       update({:date_update => Time::now(), :checked => 'yes'}) 
+    end
+
+    # Mark the event as notified (check=true)
+    # (when the user or admin has been notified of this event)
+    def notified
+      update({:notified => 'yes'}) 
     end
 
   end # class Event

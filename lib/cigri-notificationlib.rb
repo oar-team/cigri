@@ -52,6 +52,8 @@ module Cigri
       @subject=opts[:subject] || "info"
       @message=opts[:message] || "<empty message>"
       @handlers=handlers      
+      @user_notifications=Dataset.new("user_notifications")
+      @admin_notifications=Dataset.new("user_notifications")
 
       if @user
         @user_notifications=Dataset.new("user_notifications",:where => "grid_user='#{@user}'")

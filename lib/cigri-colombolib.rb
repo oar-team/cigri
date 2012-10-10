@@ -8,6 +8,8 @@ require 'cigri-logger'
 require 'cigri-conflib'
 require 'cigri-eventlib'
 require 'cigri-iolib'
+require 'cigri-notificationlib'
+require 'cigri-joblib'
 
 CONF=Cigri.conf unless defined? CONF
 COLOMBOLIBLOGGER = Cigri::Logger.new('COLOMBOLIB', CONF.get('LOG_FILE'))
@@ -257,6 +259,43 @@ module Cigri
       COLOMBOLIBLOGGER.debug("Global check requested")
       check_clusters
       check_launching_jobs
+    end
+    
+    ##
+    # Notify events
+    #
+    # == Parameters:
+    # - im: instant message handlers hash
+    #
+    def notify(im_handlers)
+      COLOMBOLIBLOGGER.debug("Notifying #{events.length} events") if events.length > 0
+      campaigns=Cigri::Campaignset.new
+      campaigns.get_unfinished
+      campaign_users=campaigns.get_users
+      @events.each do |event|
+        # TODO:
+        # - agregate exit errors
+        # - only send blacklist events to the admin
+        # - manage severity
+        message_props={
+                        :subject => "New event ##{event.id}: #{event.props[:code]}" ,
+                        :message => event.props[:message]
+                      }
+        if event.props[:campaign_id]
+          campaign_id=event.props[:campaign_id].to_i
+          message_props[:user]=campaign_users[campaign_id] unless campaign_users[campaign_id].nil?
+          message_props[:subject]+=" on campaign ##{event.props[:campaign_id]}"
+        end
+        message_props[:subject]+=" because of event ##{event.props[:parent]}" if event.props[:parent]
+        message_props[:admin]=true
+        message=Cigri::Message.new(message_props,im_handlers)
+        begin
+          message.send
+          event.notified
+        rescue => e
+          COLOMBOLIBLOGGER.error("Error sending notification: #{e.message} #{e.backtrace}")
+        end
+      end # events
     end
 
   end

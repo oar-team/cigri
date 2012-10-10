@@ -146,6 +146,7 @@ CREATE TABLE  events (
   campaign_id INTEGER,
   parent INTEGER,
   checked checkbox,
+  notified boolean NOT NULL DEFAULT false,
   date_open TIMESTAMP,
   date_closed TIMESTAMP,
   date_update TIMESTAMP,
