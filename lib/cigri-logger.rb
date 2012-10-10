@@ -60,6 +60,8 @@ module Cigri
           fore_color = 36
         when progname.match(/LIB/)
           fore_color = 37
+        when progname.match(/JUDAS/)
+          fore_color = 33
         else
           fore_color = 0 # No special color
       end

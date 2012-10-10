@@ -106,13 +106,13 @@ module Cigri
                       smtp.send_message formatted_mail(to), from, to
                   end
                 rescue => e
-                  NOTIFICATIONLIBLOGGER.error(e.message)
+                  NOTIFICATIONLIBLOGGER.error("Could not notify #{@user} with mail: #{e.message}")
                 end
               else
-                NOTIFICATIONLIBLOGGER.warn("Net/smtp library not found. Disabling MAIL notifications! ")
+                NOTIFICATIONLIBLOGGER.warn("Could not notify #{@user} with mail: Net/smtp library not found!")
               end
             else
-              NOTIFICATIONLIBLOGGER.debug("Mail notifications are disabled (no NOTIFICATIONS_SMTP_SERVER variable)")
+              NOTIFICATIONLIBLOGGER.debug("Could not notify #{@user} with mail: Mail notifications are disabled (no NOTIFICATIONS_SMTP_SERVER variable)")
             end
           # Xmpp notifications
           when "xmpp"
@@ -122,13 +122,13 @@ module Cigri
                   message=Jabber::Message.new(to,formatted_im)
                   @handlers[:xmpp].send(message)
                 else
-                  NOTIFICATIONLIBLOGGER.error("No XMPP handler!")
+                  NOTIFICATIONLIBLOGGER.error("Error notifying #{@user} with xmpp: No XMPP handler!")
                 end
               else
-                NOTIFICATIONLIBLOGGER.warn("Xmpp4r library not found. Disabling XMPP notifications! ")
+                NOTIFICATIONLIBLOGGER.warn("Could not notify #{@user} with xmpp: Xmpp4r library not found!")
               end
             else
-              NOTIFICATIONLIBLOGGER.debug("Xmpp notifications are disabled (no NOTIFICATIONS_XMPP_SERVER variable)")
+              NOTIFICATIONLIBLOGGER.debug("Could not notify #{@user} with xmpp: Xmpp notifications are disabled (no NOTIFICATIONS_XMPP_SERVER variable)")
             end
           else
             NOTIFICATIONLIBLOGGER.error("#{notification.props[:type]} notification method unknown!")

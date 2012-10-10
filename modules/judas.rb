@@ -42,10 +42,15 @@ im_handlers={}
 if XMPPLIB
   # Xmpp connexion
   if config.exists?("NOTIFICATIONS_XMPP_SERVER")
-    jid = Jabber::JID.new(config.get("NOTIFICATIONS_XMPP_IDENTITY"))
-    im_handlers[:xmpp] = Jabber::Client.new(jid)
-    im_handlers[:xmpp].connect(config.get("NOTIFICATIONS_XMPP_SERVER"),config.get("NOTIFICATIONS_XMPP_PORT",5222))
-    im_handlers[:xmpp].auth(config.get("NOTIFICATIONS_XMPP_PASSWORD"))
+    begin
+      jid = Jabber::JID.new(config.get("NOTIFICATIONS_XMPP_IDENTITY"))
+      im_handlers[:xmpp] = Jabber::Client.new(jid)
+      im_handlers[:xmpp].connect(config.get("NOTIFICATIONS_XMPP_SERVER"),config.get("NOTIFICATIONS_XMPP_PORT",5222))
+      im_handlers[:xmpp].auth(config.get("NOTIFICATIONS_XMPP_PASSWORD"))
+    rescue => e
+      logger.error("Could not connect to XMPP server, notifications disabled: #{e.inspect}")
+      im_handlers[:xmpp]=nil
+    end
   end
 end
 if IRCLIB
