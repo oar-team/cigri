@@ -192,7 +192,7 @@ user_lists = JSON.parse(File.read(''/etc/cigri/user_lists''))
 jdl["clusters"].each do |cluster_name,cluster|
   if cluster["type"] != "best-effort"
     if not (user_lists["normal_authorized"][cluster_name] || []).include?(user)
-      raise Cigri::Error, "You are not authorized to launch normal jobs on cluster #{cluster_name}!"
+      raise Cigri::Error, "You are not authorized to launch non best-effort jobs on cluster #{cluster_name}!"
     end
   end
 end
