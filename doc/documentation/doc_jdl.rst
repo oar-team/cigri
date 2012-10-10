@@ -49,7 +49,7 @@ Cluster Settings
 Settings in this section can be defined in the global section to act
 as value on all clusters.
 
-- campaign_type: Values other than best-effort may require approval
+- type: Values other than best-effort may require approval
   from platform admins
 
   - **best-effort**: jobs are executed day and night as best-effort

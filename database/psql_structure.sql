@@ -130,6 +130,9 @@ CREATE INDEX jobs_idx_cluster_id ON jobs (cluster_id);
 CREATE INDEX jobs_idx_tag ON jobs (tag);
 
 DROP TABLE IF EXISTS events;
+DROP TYPE IF EXISTS event_class;
+DROP TYPE IF EXISTS event_state;
+DROP TYPE IF EXISTS checkbox;
 CREATE TYPE event_class as ENUM('cluster','job','campaign');
 CREATE TYPE event_state as ENUM('open','closed');
 CREATE TYPE checkbox as ENUM('yes','no');
@@ -155,6 +158,8 @@ CREATE INDEX events_idx_code ON events (code);
 CREATE INDEX events_idx_job_id ON events (job_id);
 CREATE INDEX events_idx_cluster_id ON events (cluster_id);
 CREATE INDEX events_idx_campaign_id ON events (campaign_id);
+
+DROP TABLE IF EXISTS queue_counts;
 CREATE TABLE queue_counts (
   date TIMESTAMP,
   campaign_id INTEGER,
@@ -162,10 +167,15 @@ CREATE TABLE queue_counts (
   jobs_count INTEGER
 );
 CREATE INDEX queue_counts_campaign_cluster ON queue_counts (campaign_id,cluster_id);
+
+DROP TABLE IF EXISTS admission_rules;
 CREATE TABLE admission_rules (
   id SERIAL NOT NULL,
   code TEXT
 );
+
+DROP TABLE IF EXISTS user_notifications;
+DROP TYPE IF EXISTS notifications;
 CREATE TYPE notifications as ENUM('mail','xmpp');
 CREATE TABLE user_notifications (
   id SERIAL NOT NULL,
@@ -180,8 +190,8 @@ INSERT INTO admission_rules VALUES (1, '# Title : Filtering users for normal mod
 
 user_lists = JSON.parse(File.read(''/etc/cigri/user_lists''))
 jdl["clusters"].each do |cluster_name,cluster|
-  if cluster["type"] == "normal"
-    if not user_lists["normal_authorized"][cluster_name].include?(user)
+  if cluster["type"] != "best-effort"
+    if not (user_lists["normal_authorized"][cluster_name] || []).include?(user)
       raise Cigri::Error, "You are not authorized to launch normal jobs on cluster #{cluster_name}!"
     end
   end
