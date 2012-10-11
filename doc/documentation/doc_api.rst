@@ -22,6 +22,15 @@ GET         /campaigns/<campaign_id>/jobs/<job_id>  Get details of a specific jo
 POST        /campaigns                              Submit a new campaign
 PUT         /campaigns/<campaign_id>                Update a campaign (status, name)
 DELETE      /campaigns/<campaign_id>                Delete a campaign
+GET         /campaigns/<campaign_id>/events         List the open events for the given campaign
+DELETE      /campaigns/<campaign_id>/events         Fix (close) all the events for the given campaign
+GET         /notifications                          List notification subscriptions for the current user
+POST        /notifications/mail                     Subscribe to the mail notification service
+POST        /notifications/jabber                   Subscribe to the jabber notification service
+DELETE      /notifications/<mail|jabber>            Unsubscribe from a notification service
+GET         /events/<id>                            Get a specific event
+DELETE      /events/<id>                            Fix (close) a specific event
+DELETE      /events/<id>?resubmit                   Fix (close) a specific event and resubmit the job
 =========== ======================================= ==========================================================
 
 Accessing the API
