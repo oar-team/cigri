@@ -313,7 +313,68 @@ class API < Sinatra::Base
     print({:status => 202, :title => :Accepted, :message => "Campaign #{id} cancelled"})
   end
 
+  # List subscribed notifications
+  get '/notifications/?' do
+    protected!
+    response['Allow'] = 'GET'
+    begin
+      notifications = Dataset.new("user_notifications",:where => "grid_user = '#{request.env[settings.username_variable]}'")
+      items=[]
+      notifications.each do |notification|
+        items << notification.props
+      end
+      output={ :items => items,
+               :links => [{:rel => :self, :href => to_url("notifications/")}] }
+    rescue Exception => e
+      halt 400, print({:status => 400, :title => "Error", :message => "Error with notification listing: #{e}"})
+    end
+    
+    status 200
+    print(output)
+  end
+
+  #new notification subscription
+  post '/notifications/:type/?' do |type|
+    protected!
+    request.body.rewind
+    not_found if type != "jabber" && type != "mail"
+    subscription=JSON.parse(request.body.read)
+    type="xmpp" if type == "jabber"
+    subscription["type"]=type   
  
+    begin
+      db_connect() do |dbh|
+        add_notification_subscription(dbh, subscription, request.env[settings.username_variable])
+      end
+    rescue Exception => e
+      halt 400, print({:status => 400, :title => "Error", :message => "Error with notification subscription: #{e}"})
+    end
+
+    status 201
+    print({:status => 201, :title => :Created, :message => "New subscription created"})
+    #response['Location'] = to_url("/notifications/#{id}")
+  end
+
+  #unsubscription from a notification 
+  delete '/notifications/:type/?' do |type|
+    protected!
+    not_found if type != "jabber" && type != "mail"
+    type="xmpp" if type == "jabber"
+
+    begin
+      db_connect() do |dbh|
+        del_notification_subscription(dbh, type, params["identity"], request.env[settings.username_variable])
+      end
+    rescue Exception => e
+      halt 400, print({:status => 400, :title => "Error", :message => "Error with notification unsubscription: #{e}"})
+    end
+
+    status 202
+    print({:status => 202, :title => :Deleted, :message => "Unsubscription ok"})
+  end
+
+
+
   not_found do 
     print( {:status => 404, :title => 'Not Found', :message => "#{request.request_method} #{request.url} not found on this server"} )
   end

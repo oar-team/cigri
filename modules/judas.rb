@@ -50,6 +50,7 @@ if XMPPLIB
       im_handlers[:xmpp] = Jabber::Client.new(jid)
       im_handlers[:xmpp].connect(config.get("NOTIFICATIONS_XMPP_SERVER"),config.get("NOTIFICATIONS_XMPP_PORT",5222))
       im_handlers[:xmpp].auth(config.get("NOTIFICATIONS_XMPP_PASSWORD"))
+      im_handlers[:xmpp].send(Jabber::Presence.new.set_show(:xa).set_status('I am the grid!'))
     rescue => e
       logger.error("Could not connect to XMPP server, notifications disabled: #{e.inspect}")
       im_handlers[:xmpp]=nil
@@ -61,6 +62,7 @@ if IRCLIB
 end
 
 # Main loop
+logger.info("Ready")
 while true do
   logger.debug('New iteration')
 

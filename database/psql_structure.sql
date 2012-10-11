@@ -182,7 +182,9 @@ CREATE TABLE user_notifications (
   id SERIAL NOT NULL,
   grid_user VARCHAR(255) NOT NULL,
   type notifications,
-  identity VARCHAR(255)
+  identity VARCHAR(255),
+  severity VARCHAR(32),
+  UNIQUE (grid_user, identity, type)
 );
 CREATE INDEX user_notifications_idx_grid_user ON user_notifications (grid_user);
 
