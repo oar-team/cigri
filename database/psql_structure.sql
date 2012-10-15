@@ -133,7 +133,7 @@ DROP TABLE IF EXISTS events;
 DROP TYPE IF EXISTS event_class;
 DROP TYPE IF EXISTS event_state;
 DROP TYPE IF EXISTS checkbox;
-CREATE TYPE event_class as ENUM('cluster','job','campaign');
+CREATE TYPE event_class as ENUM('cluster','job','campaign','notify');
 CREATE TYPE event_state as ENUM('open','closed');
 CREATE TYPE checkbox as ENUM('yes','no');
 CREATE TABLE  events (

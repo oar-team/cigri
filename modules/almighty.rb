@@ -40,6 +40,12 @@ begin
   }
   end
 
+  #Forward SIGUSR1 to Judas (check notifications) 
+  trap("USR1") {
+    logger.debug("Received USR1, forwarding to Judas.")
+    Process.kill("USR1",judas_pid)
+  }
+
   #Child processes monitoring
   trap("CLD") {
     pid = Process.wait

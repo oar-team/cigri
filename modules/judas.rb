@@ -61,16 +61,25 @@ if IRCLIB
   # Irc connexion goes here
 end
 
-# Main loop
-logger.info("Ready")
-while true do
-  logger.debug('New iteration')
-
+# Notify function
+def notify(im_handlers)
   # Notify all open events
   events=Cigri::Eventset.new(:where => "state='open' and notified=false")
   Cigri::Colombo.new(events).notify(im_handlers)
 
-  # Main sleep
-  # TODO: should wait for signal comming from other modules instead
+  # Notify events of the class notify (events created closed, just for notification)
+  events=Cigri::Eventset.new(:where => "class='notify' and notified=false")
+  Cigri::Colombo.new(events).notify(im_handlers)
+end
+
+# Setting up trap on USR1
+trap("USR1") {
+  logger.debug("Received USR1, so checking notifications")
+  notify(im_handlers)
+}
+
+# Main loop
+logger.info("Ready")
+while true do
   sleep 10
 end

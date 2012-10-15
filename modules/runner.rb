@@ -35,6 +35,9 @@ else
 end
 SLEEP_MORE = 10 # used as a sleep value when no job is submitted
 
+def notify_judas
+  Process.kill("USR1",Process.ppid)
+end
 
 #Main runner loop
 logger.info("Starting runner on #{ARGV[0]}")
@@ -51,6 +54,7 @@ while true do
 
   start_time = Time::now.to_i
   sleep_more = 0
+  have_to_notify = false
 
   ##########################################################################
   # Jobs control
@@ -83,6 +87,7 @@ while true do
         job.update({'state' => 'event'})
         message="Job #{job.id} is lost, it has no remote_id!"
         Cigri::Event.new(:class => "job", :code => "RUNNER_GET_REMOTE_ID_ERROR", :cluster_id => cluster.id, :job_id => job.id, :message => message)
+        have_to_notify = true
       elsif not cluster.blacklisted?(:campaign_id => job.props[:campaign_id].to_i) or
                 cluster.blacklisted_because_of_exit_errors?(:campaign_id => job.props[:campaign_id].to_i)
         begin
@@ -94,6 +99,7 @@ while true do
                 Cigri::Colombo::analyze_remote_job_events(job,cluster_job)
                 events=Cigri::Eventset.new({ :where => "class = 'job' and cluster_id = #{cluster.id} and state='open'"})
                 Cigri::Colombo.new(events).check_jobs
+                have_to_notify = true
               else
                 job.update({'state' => 'terminated'})
               end
@@ -102,6 +108,7 @@ while true do
               Cigri::Colombo::analyze_remote_job_events(job,cluster_job)
               events=Cigri::Eventset.new({ :where => "class = 'job' and cluster_id = #{cluster.id} and state='open'"})
               Cigri::Colombo.new(events).check_jobs
+              have_to_notify = true
             when /Running/i
               job.update({'state' => 'running'})
             when /Finishing/i
@@ -127,6 +134,7 @@ while true do
                                  :message => message, :campaign_id => job.props[:campaign_id].to_i)
 
           Cigri::Colombo.new(event).check_jobs
+          have_to_notify = true
           break
         end
       else
@@ -170,6 +178,7 @@ while true do
                                  :message => message, :campaign_id => job.props[:campaign_id])
           Cigri::Colombo.new(event).check
           Cigri::Colombo.new(event).check_jobs
+          have_to_notify = true
         end
         logger.warn(message)
       end
@@ -177,6 +186,9 @@ while true do
       sleep_more = SLEEP_MORE
     end
   end 
+
+  # notify
+  notify_judas if have_to_notify
 
   # Sleep if necessary
   cycle_duration = Time::now.to_i - start_time
