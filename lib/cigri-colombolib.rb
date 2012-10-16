@@ -272,23 +272,63 @@ module Cigri
       campaigns=Cigri::Campaignset.new
       campaigns.get_unfinished
       campaign_users=campaigns.get_users
-      @events.each do |event|
-        # TODO:
-        # - agregate exit errors
-        # - only send blacklist events to the admin
-        # - manage severity
+
+############# TO DEBUG!!
+
+      # Exit errors events grouping
+      exit_errors_events=@events.records.select{|event| event.props[:code]=="EXIT_ERROR"}
+      exit_error_number={}
+      exit_errors_events.each do |event|
+        if exit_error_number[event.props[:campaign_id]].nil?
+          exit_error_number[event.props[:campaign_id]]=1
+        else
+          exit_error_number[event.props[:campaign_id]]+=1
+        end
+        event.notified
+      end
+      exit_error_number.each do |campaign_id,number| 
+        message_props={
+                        :subject => "#{number} exit errors on campaign ##{campaign_id}" ,
+                        :message => "You have several exit errors on campaign ##{campaign_id}. Please, check cigri events.",
+                        :severity => 'high',
+                      }
+        message_props[:user]=campaign_users[campaign_id] unless campaign_users[campaign_id].nil?
+        message=Cigri::Message.new(message_props,im_handlers)
+        # Actual sending of a grouped message
+        begin
+          message.send
+        rescue => e
+          COLOMBOLIBLOGGER.error("Error sending notification: #{e.message} #{e.backtrace}")
+        end
+      end
+
+############# END OF TO DEBUG!!
+
+      # Other events
+      other_events=@events.records.select{|event| event.props[:code]!="EXIT_ERROR"}
+      other_events.each do |event|
         message_props={
                         :subject => "New event ##{event.id}: #{event.props[:code]}" ,
                         :message => event.props[:message]
                       }
+        # Very simple severity classifying (better TODO)
+        if ["FINISHED_CAMPAIGN","NEW_CAMPAIGN"].include?(event.props[:code])
+          severity="low"
+        else
+          severity="high"
+        end
+        # User events
         if event.props[:campaign_id]
           campaign_id=event.props[:campaign_id].to_i
           message_props[:user]=campaign_users[campaign_id] unless campaign_users[campaign_id].nil?
           message_props[:subject]+=" on campaign ##{event.props[:campaign_id]}"
+        # Admin events
+        else 
+          message_props[:admin]=true
         end
         message_props[:subject]+=" because of event ##{event.props[:parent]}" if event.props[:parent]
-        message_props[:admin]=true
         message=Cigri::Message.new(message_props,im_handlers)
+        # Actual sending
         begin
           message.send
           event.notified
