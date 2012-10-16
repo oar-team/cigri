@@ -8,6 +8,10 @@ require 'cigri-colombolib'
 
 $0='cigri: updator'
 
+def notify_judas
+  Process.kill("USR1",Process.ppid)
+end
+
 begin
   config = Cigri.conf
   logger = Cigri::Logger.new('UPDATOR', config.get('LOG_FILE'))
@@ -34,6 +38,9 @@ begin
     if campaign.finished?
       campaign.update({'state' => 'terminated'})
       logger.info("Campaign #{campaign.id} is finished")
+      Cigri::Event.new(:class => 'notify', :state => 'closed', :campaign_id => campaign.id,
+                       :code => "FINISHED_CAMPAIGN", :message => "Campaign is finished")
+      notify_judas
     end
   end 
 
