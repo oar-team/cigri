@@ -5,6 +5,19 @@ DEAMON_OPT=""  #argument à utiliser par le programme
 DAEMONUSER="cigri" #utilisateur du programme
 DEAMON_NAME="almighty.rb" #Nom du programme (doit être identique à l'exécutable)
 
+# chkconfig: 2345 99 01
+# description: Cigri server
+#
+### BEGIN INIT INFO
+# Provides:         cigri-server
+# Required-Start:   $all
+# Required-Stop:    $all
+# Default-Start:    2 3 4 5
+# Default-Stop:     0 1 6
+# Short-Description:    Cigri grid server
+### END INIT INFO
+
+
 test -x $DAEMON || exit 5
 
 . /lib/lsb/init-functions
