@@ -132,10 +132,14 @@ module Cigri
             else
               NOTIFICATIONLIBLOGGER.debug("Could not notify #{@user} with xmpp: Xmpp notifications are disabled (no NOTIFICATIONS_XMPP_SERVER variable)")
             end
+          # Log notifications (for debug purposes)
+          when "log"
+            NOTIFICATIONLIBLOGGER.debug("NOTIFICATION (#{notification.props[:grid_user]}): #{formatted_im}")
+          # Should not enter here
           else
             NOTIFICATIONLIBLOGGER.error("#{notification.props[:type]} notification method unknown!")
+          end
         end
-      end
       if @campaign_id
         #TODO
         NOTIFICATIONLIBLOGGER.warn("Notification to a campaign_id channel not yet implemented!")

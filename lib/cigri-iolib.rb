@@ -1103,6 +1103,14 @@ class Datarecord
     end
   end
 
+  # Same thing as update, but also update the object
+  def update!(values,table=@table)
+    update(values,table)
+    values.each do |field,value|
+      @props[field.to_sym]=value
+    end
+  end
+
 end
 
 ##

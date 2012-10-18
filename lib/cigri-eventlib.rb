@@ -54,10 +54,16 @@ module Cigri
       update({:date_update => Time::now(), :checked => 'yes'}) 
     end
 
-    # Mark the event as notified (check=true)
+    # Mark the event as notified into the database (notified=true)
     # (when the user or admin has been notified of this event)
     def notified
       update({:notified => 'yes'}) 
+    end
+
+    # Mark the event as notified into the database and the object (notified=true)
+    # (when the user or admin has been notified of this event)
+    def notified!
+      update!({:notified => 'yes'}) 
     end
 
   end # class Event

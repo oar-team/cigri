@@ -177,7 +177,7 @@ CREATE TABLE admission_rules (
 
 DROP TABLE IF EXISTS user_notifications;
 DROP TYPE IF EXISTS notifications;
-CREATE TYPE notifications as ENUM('mail','xmpp');
+CREATE TYPE notifications as ENUM('mail','xmpp','log','irc');
 CREATE TABLE user_notifications (
   id SERIAL NOT NULL,
   grid_user VARCHAR(255) NOT NULL,
