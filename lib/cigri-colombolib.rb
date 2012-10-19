@@ -158,11 +158,11 @@ module Cigri
       resubmit=false
       type=''
       # Automatic resubmit with the special exit status 66
-      if (!cluster_job["exit_code"].nil? && cluster_job["exit_code"] >> 8) == 66
+      if (!cluster_job["exit_code"].nil? && cluster_job["exit_code"].to_i >> 8) == 66
         resubmit=true
         type="Special_exit_status_66"
       # Automatic resubmit with the special exit status 67 (job placed at the end of the queue)
-      elsif (!cluster_job["exit_code"].nil? && cluster_job["exit_code"] >> 8) == 67
+      elsif (!cluster_job["exit_code"].nil? && cluster_job["exit_code"].to_i >> 8) == 67
         resubmit=true
         type="Special_exit_status_67"
       # Automatic resubmit when the job was killed
@@ -190,7 +190,7 @@ module Cigri
                          :cluster_id => job.props[:cluster_id], 
                          :message => "Resubmit cause: #{type}")
       # Other errors (exit status)
-      elsif (!cluster_job["exit_code"].nil? && cluster_job["exit_code"] >> 8) > 0
+      elsif (!cluster_job["exit_code"].nil? && cluster_job["exit_code"].to_i >> 8) > 0
         case job.props[:tag]
           when "prologue"
             code="PROLOG_EXIT_ERROR"
@@ -215,7 +215,7 @@ module Cigri
                          :job_id => job.id,
                          :campaign_id => job.props[:campaign_id],
                          :cluster_id => job.props[:cluster_id], 
-                         :message => "The job exited with exit status #{cluster_job["exit_code"] >> 8};\nLast #{STDERR_TAIL} lines of stderr_file:\n#{stderr}")
+                         :message => "The job exited with exit status #{cluster_job["exit_code"].to_i >> 8};\nLast #{STDERR_TAIL} lines of stderr_file:\n#{stderr}")
       # Unknown errors
       else 
         COLOMBOLIBLOGGER.debug("Creating a UNKNOWN_ERROR event for job #{job.id}")
