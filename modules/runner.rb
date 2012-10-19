@@ -94,7 +94,7 @@ while true do
           cluster_job = cluster.get_job(job.props[:remote_id].to_i, job.props[:grid_user])
           case cluster_job["state"] 
             when /Terminated/i
-              if (cluster_job["exit_code"] >> 8) > 0
+              if (cluster_job["exit_code"].to_i >> 8) > 0
                 logger.info("Job #{job.id} has non-null exit-status.")
                 Cigri::Colombo::analyze_remote_job_events(job,cluster_job)
                 events=Cigri::Eventset.new({ :where => "class = 'job' and cluster_id = #{cluster.id} and state='open'"})
