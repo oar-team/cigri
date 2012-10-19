@@ -7,5 +7,7 @@ cigri_deps:
    - exec_chroot: bash -c "HOME=/tmp gem install restfully --source http://gemcutter.org -- --without-readline"
  - shotgun:
    - exec_chroot: bash -c "HOME=/tmp gem install shotgun"
+ - xmpp4r:
+   - exec_chroot: bash -c "HOME=/tmp gem install xmpp4r"
  - gem_path:
    - exec_chroot: bash -c "echo export PATH=/var/lib/gems/1.8/bin/:$PATH >> /home/kameleon/.bashrc"

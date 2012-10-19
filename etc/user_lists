@@ -3,6 +3,6 @@
   "_comment_2":"In the following example, 'fukushima' and 'tchernobyl' are clusters, and 'kameleon' and 'bzizou' are users.",
   "normal_authorized": { 
     "fukushima": ["bzizou","kameleon"],
-    "tchernobyl": ["bzizou"]
+    "tchernobyl": ["kameleon"]
   }
 }
