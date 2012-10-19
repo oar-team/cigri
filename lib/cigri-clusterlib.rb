@@ -59,7 +59,7 @@ module Cigri
           end
         end
         @description = get_cluster(dbh, id)
-        if @description["api_auth_header"].nil?
+        if @description["api_auth_header"].nil? || @description["api_auth_header"]=""
           # Default value for API auth header variable
           @description["api_auth_header"]="X_REMOTE_IDENT" 
         end
