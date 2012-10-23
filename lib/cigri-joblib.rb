@@ -422,12 +422,6 @@ module Cigri
       return true
     end
 
-    def min_task_id
-      db_connect() do |dbh|
-        return get_min_param_id(dbh, id)
-      end
-    end
-
     def tasks(limit, offset)
       db_connect() do |dbh|
         return get_campaign_tasks(dbh, id, limit, offset)

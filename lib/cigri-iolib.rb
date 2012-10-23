@@ -622,21 +622,6 @@ def get_campaign_properties(dbh, id)
 end
 
 ##
-# Returns the minimum ID of a param for a given campaign
-#
-# == Parameters
-# - dbh: dababase handle
-# - id: campaign id
-#
-# == Returns
-# smallest ID for parameters for campaign id
-#
-##
-def get_min_param_id(dbh, id)
-  dbh.select_one("SELECT MIN(id) FROM parameters where campaign_id = ?", id)[0]
-end
-
-##
 # Returns the tasks of a campaign
 #
 # == Parameters

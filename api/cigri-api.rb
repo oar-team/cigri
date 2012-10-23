@@ -408,18 +408,15 @@ class API < Sinatra::Base
         halt 400, print({:status => 400, :title => "Error", :message => "#{e}"})
       end
       not_found if tasks.size == 0
-
-      min_id = campaign.min_task_id
-
+      
       items = []
       tasks.each do |task|
-        task_id = task[0] - min_id
         items << {
-          :id => task_id,
+          :id => task[0],
           :name => task[1],
           :parameters => task[2],
           :state => task[3] || :waiting,
-          :href => to_url("campaigns/#{id}/jobs/#{task_id}")
+          :href => to_url("campaigns/#{id}/jobs/#{task[0]}")
         }
       end
 
