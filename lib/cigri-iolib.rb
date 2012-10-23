@@ -1123,6 +1123,7 @@ end
 class Dataset
   attr_reader :records, :table
   @@dbh = nil
+  @@counter = 0
   # Creates a new dataset
   # - If props[:values] is given, then insert the dataset into the given table
   # - If props[:where] is given, then get the dataset from the database
@@ -1235,9 +1236,11 @@ class Dataset
   private
   #Verify the state of the connection and connect if not
   def check_connection!
-    unless @@dbh.ping
+    if @@counter > 100 or !@@dbh.ping
       @@dbh = db_connect()
       @dbh = @@dbh
+      @@counter = 0
     end
+    @@counter += 1
   end
 end
