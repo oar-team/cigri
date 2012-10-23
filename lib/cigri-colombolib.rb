@@ -49,6 +49,12 @@ module Cigri
       campaigns=Cigri::Campaignset.new
       campaigns.get_unfinished
       @campaign_users=campaigns.get_users
+      # Fill a hash with the cluster names
+      @cluster_names = {}
+      clusters=Cigri::ClusterSet.new
+      clusters.each do |cluster|
+       @cluster_names[cluster.id]=cluster.name
+      end
     end
 
     def get_all_open_events
@@ -286,7 +292,7 @@ module Cigri
     # == Parameters:
     # - im: instant message handlers hash
     #
-    def notify_exit_errors(im_handlers)
+    def notify_exit_errors!(im_handlers)
       events=@events.records.select{|event| event.props[:code]=="EXIT_ERROR" and event.props[:notified] == "f"}
       COLOMBOLIBLOGGER.debug("Notifying #{events.length} exit_error events") if events.length > 0
       count_events_per_campaign(events).each do |campaign_id,number| 
@@ -318,7 +324,7 @@ module Cigri
     # == Parameters:
     # - im: instant message handlers hash
     #
-    def notify_blacklists(im_handlers)
+    def notify_blacklists!(im_handlers)
       # Campaign blacklists (for users)
       events=@events.records.select{|event| event.props[:code]=="BLACKLIST" and event.props[:notified] == "f" and event.props[:campaign_id]}
       COLOMBOLIBLOGGER.debug("Notifying #{events.length} blacklist events") if events.length > 0
@@ -369,7 +375,7 @@ module Cigri
     # == Parameters:
     # - im: instant message handlers hash
     #
-    def notify_generic_events(im_handlers)
+    def notify_generic_events!(im_handlers)
       # Only notify events that are not already notified
       events=@events.records.select{|event| event.props[:notified] == "f"}
       COLOMBOLIBLOGGER.debug("Notifying #{events.length} generic events") if events.length > 0
@@ -378,17 +384,23 @@ module Cigri
                         :subject => "New event ##{event.id}: #{event.props[:code]}" ,
                         :message => event.props[:message]
                       }
-        # Very simple severity classifying (better TODO)
+        # Classifying severity
+        #   Informational events
         if ["FINISHED_CAMPAIGN","NEW_CAMPAIGN"].include?(event.props[:code])
-          severity="low"
+          message_props[:severity]="low"
+        #   Temporary or such events
+        elsif ["TIMEOUT","CONNECTION_REFUSED","CONNECTION_RESET","SSL_ERROR"].include?(event.props[:code])
+          message_props[:severity]="medium"
+        #   Fatal events (lead to a blacklist until manually fixed)
         else
-          severity="high"
+          message_props[:severity]="high"
         end
         # User events
         if event.props[:campaign_id]
           campaign_id=event.props[:campaign_id].to_i
           message_props[:user]=@campaign_users[campaign_id] unless @campaign_users[campaign_id].nil?
-          message_props[:subject]+=" on campaign ##{event.props[:campaign_id]}"
+          message_props[:subject]+=" on cluster #{@cluster_names[event.props[:cluster_id].to_i]}" if event.props[:cluster_id]
+          message_props[:subject]+=" for campaign ##{event.props[:campaign_id]}"
         # Admin events
         else 
           message_props[:admin]=true
@@ -405,6 +417,16 @@ module Cigri
       end # events
     end
 
+    # Some events should never be notified (internal events)
+    # This methods removes such events from the @events array.
+    def remove_not_to_be_notified_events!
+      @events.each do |event|
+        if ["RESUBMIT","RESUBMIT_END","FRAG"].include?(event.props[:code])
+          @events.records.delete(event)
+        end
+      end
+    end
+
     ##
     # Notify events
     #
@@ -413,9 +435,10 @@ module Cigri
     #
     def notify(im_handlers)
       COLOMBOLIBLOGGER.debug("Notifying #{@events.length} events") if @events.length > 0
-      notify_exit_errors(im_handlers)
-      notify_blacklists(im_handlers)
-      notify_generic_events(im_handlers)
+      remove_not_to_be_notified_events!
+      notify_exit_errors!(im_handlers)
+      notify_blacklists!(im_handlers)
+      notify_generic_events!(im_handlers)
     end
 
   end
