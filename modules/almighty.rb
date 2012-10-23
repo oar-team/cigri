@@ -7,16 +7,6 @@ require 'cigri-colombolib'
 
 $0='cigri: almighty'
 
-# Simple function to force a SIGCHLD if a child process
-# is dead.
-def check_processes(pids)
-  pids.each do |pid|
-#    Process.kill("CLD", Process.pid) if not Process::kill 0, pid
-## DISABLED: This is inefficient as Process::kill 0, pid is true, even for a "defunc" process
-## We have to find something to check defunc processes...
-  end 
-end
-
 begin
   config = Cigri.conf
   logger = Cigri::Logger.new('ALMIGHTY', config.get('LOG_FILE'))
@@ -31,6 +21,11 @@ begin
   Signal.trap(signal){ 
     #cleanup!
     logger.warn('Interruption caught: exiting.')
+    # Reset trap on childs
+    trap("CHLD") {
+      # do nothing
+    }
+    # Kill every child
     childs.each do |pid|
       logger.warn("Killing child process ##{pid}")
       Process.kill("TERM",pid)
@@ -47,9 +42,9 @@ begin
   }
 
   #Child processes monitoring
-  trap("CLD") {
-    pid = Process.wait
-    logger.error("Child pid #{pid}: terminated")
+  trap("CHLD") {
+    pid, status = Process.wait2
+    logger.error("Child pid #{pid}: terminated with status #{status.exitstatus}")
     childs.delete(pid)
     if not runner_childs[pid].nil?
       sleep 5
@@ -116,7 +111,6 @@ begin
   #Main almighty loop
   while true do
     logger.debug('New iteration')
-    check_processes(childs)
     system("#{File.dirname(__FILE__)}/meta-scheduler.rb")
     system("#{File.dirname(__FILE__)}/updator.rb")
     system("#{File.dirname(__FILE__)}/nikita.rb")
