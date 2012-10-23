@@ -208,20 +208,22 @@ module Cigri
         COLOMBOLIBLOGGER.debug("Creating a #{code} event for job #{job.id}")
         # Get the STDERR output file
         cluster=Cluster.new({:id => job.props[:cluster_id]})
-        stderr_file=cluster_job["launching_directory"]+"/"+cluster_job["stderr_file"]
         begin
+          stderr_file=cluster_job["launching_directory"]+"/"+cluster_job["stderr_file"]
           stderr=cluster.get_file(stderr_file,job.props[:grid_user],STDERR_TAIL)
         rescue => e
           stderr=''
           COLOMBOLIBLOGGER.warn("Could not get the stderr file #{stderr_file} for failed job #{job.id}: #{e.to_s}")
         end
         # Create event
+        message = "The job exited with exit status #{cluster_job["exit_code"].to_i >> 8};"
+        message += "\nLast #{STDERR_TAIL} lines of stderr_file:\n#{stderr}" if stderr.length > 0
         Cigri::Event.new(:class => "job",
                          :code => code,
                          :job_id => job.id,
                          :campaign_id => job.props[:campaign_id],
                          :cluster_id => job.props[:cluster_id], 
-                         :message => "The job exited with exit status #{cluster_job["exit_code"].to_i >> 8};\nLast #{STDERR_TAIL} lines of stderr_file:\n#{stderr}")
+                         :message => message)
       # Unknown errors
       else 
         COLOMBOLIBLOGGER.debug("Creating a UNKNOWN_ERROR event for job #{job.id}")
