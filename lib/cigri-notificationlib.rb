@@ -92,11 +92,26 @@ module Cigri
       msgstr
     end
 
+    ##
+    # Filtering depending on severity
+    # Returns an array of notifications methods after filtering
+    #
+    def filtered_notifications
+      severities={"low" => 1, "medium" => 2, "high" => 3}
+      notifications=[]
+      (@user_notifications+@admin_notifications).each do |notification|
+        if severities[notification.props[:severity]] <= severities[@severity]
+          notifications << notification
+        end
+      end
+      return notifications
+    end
+
     ## 
     # Sends the message with the different notification methods
     #
     def send
-      (@user_notifications+@admin_notifications).each do |notification|
+      filtered_notifications.each do |notification|
         to=notification.props[:identity]
         case notification.props[:type] 
           # Mail notifications
