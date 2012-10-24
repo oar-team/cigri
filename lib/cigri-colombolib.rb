@@ -321,7 +321,7 @@ module Cigri
 
     ##
     # Notify BLACKLIST events
-    # Such events are grouped into one aggregated notification message
+    # Many blacklist events may occur, but only one per campaign and cluster has to be notified
     #
     # == Parameters:
     # - im: instant message handlers hash
@@ -333,6 +333,8 @@ module Cigri
       campaigns=[]
       events.each do |event|
         campaign_id=event.props[:campaign_id].to_i
+        # Notify only once per campaign
+        ##TODO: should be "Notify only once per {campaign,cluster} couple" ?
         if not campaigns.include?(campaign_id)
            message_props={
                         :subject => "Cluster ##{event.props[:cluster_id]} blacklisted for campaign ##{event.props[:campaign_id]} ",

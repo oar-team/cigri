@@ -5,6 +5,8 @@ $LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
 require 'cigri'
 require 'cigri-joblib'
 require 'cigri-colombolib'
+require 'cigri-clusterlib'
+require 'cigri-iolib'
 
 $0='cigri: updator'
 
@@ -15,7 +17,9 @@ end
 begin
   config = Cigri.conf
   logger = Cigri::Logger.new('UPDATOR', config.get('LOG_FILE'))
-  
+ 
+  GRID_USAGE_UPDATE_PERIOD=config.get('GRID_USAGE_UPDATE_PERIOD',60)
+ 
   %w{INT TERM}.each do |signal|
     Signal.trap(signal){ 
       #cleanup!
@@ -55,6 +59,27 @@ begin
   # Check jobs to resubmit
   events=Cigri::Eventset.new({:where => "state='open' and code='RESUBMIT' and class='job'"})
   Cigri::Colombo.new(events).check_jobs
+
+  # Update grid_usage table
+  #TODO: test if it is the time to do this using GRID_USAGE_UPDATE_PERIOD
+  begin
+    Cigri::ClusterSet.new.each do |cluster|
+      resources=cluster.get_resources
+      # Count the resource_units
+      resource_units=resources.map{|r| r[cluster.props[:resource_unit]]}.uniq
+      # Match jobs and resources
+      #TODO
+      jobs=cluster.get_jobs
+      # Create the entry
+      date=Time.now
+      Datarecord.new("grid_usage",{:date => date,
+                                 :cluster_id => cluster.id,
+                                 :max_resources => resource_units.length
+                                })
+    end 
+  rescue => e
+    logger.warn("Could not update the grid_usage table! #{e.message} #{e.backtrace}") 
+  end
 
   logger.debug('Exiting')
 end

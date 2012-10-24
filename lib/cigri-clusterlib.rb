@@ -71,6 +71,11 @@ module Cigri
       @api = RestSession.new(@description,
                              "application/json")
     end
+
+    # Alias to behave like other cigri objects
+    def props
+      @description.inject({}){|h,(k,v)| h[k.to_sym] = v; h}
+    end
   
     ##
     # Parse the properties of the cluster if any
@@ -294,7 +299,6 @@ module Cigri
       def get_resources
         # Get the resources from the api
         resources = @api.get_collection("resources/full")
-        # TODO: manage event (cluster blacklist) if timeout
         # Filter the resources depending on cluster properties
         properties = parse_properties
         return resources unless properties

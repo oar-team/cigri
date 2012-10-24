@@ -188,6 +188,17 @@ CREATE TABLE user_notifications (
 );
 CREATE INDEX user_notifications_idx_grid_user ON user_notifications (grid_user);
 
+DROP TABLE IF EXISTS grid_usage;
+CREATE TABLE grid_usage (
+  id BIGSERIAL NOT NULL,
+  date TIMESTAMP NOT NULL,
+  cluster_id INTEGER,
+  max_resources INTEGER,
+  used_resources INTEGER,
+  used_by_cigri INTEGER
+);
+CREATE INDEX grid_usage_idx_date ON grid_usage (date);
+
 INSERT INTO admission_rules VALUES (1, '# Title : Filtering users for normal mode on clusters 
 # Description : This rule rejects campaigns for which the user requests non best-effort (normal) mode on non-authorized cluster. The list of users is maintained into the /etc/cigri/user_lists file.
 
