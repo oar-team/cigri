@@ -106,12 +106,44 @@ class API < Sinatra::Base
   get '/campaigns/:id/jobs/:jobid/?' do |id, jobid|
     response['Allow'] = 'GET'
 
-    output = get_formated_jobs(id, 1, jobid)[:items][0]
+    campaign = get_campaign(id)
+    task = nil
+    begin
+      task = campaign.task(jobid)
+    rescue DBI::ProgrammingError => e
+      halt 400, print({:status => 400, :title => "Error", :message => "#{e}"})
+    end
+    not_found unless task
+    
+    output = {
+      :id => task['id'],
+      :name => task['name'],
+      :parameters => task['param'],
+      :state => task['state'] || :waiting,
+      :links => [
+                  {:rel => :self, :href => to_url("campaigns/#{id}/jobs/#{task['id']}")},
+                  {:rel => :parent, :href => to_url("campaigns/#{id}/jobs")}
+                ]
+    }
+
+    jobs = []
+    task[4].each do |job|
+      jobs << {
+        :id => job['id'],
+        :cluster_id => job['cluster_id'],
+        :cluster_name => job['clustername'],
+        :state => job['state'],
+        :return_code => job['return_code'],
+        :remote_id => job['remote_id']
+      }
+    end
+
+    output[:execution] = jobs
 
     status 200
     print(output)
   end
- 
+
   # Get the events of a campaign
   get '/campaigns/:id/events/?' do |id|
     response['Allow'] = 'GET'
@@ -412,17 +444,22 @@ class API < Sinatra::Base
       items = []
       tasks.each do |task|
         items << {
-          :id => task[0],
-          :name => task[1],
-          :parameters => task[2],
-          :state => task[3] || :waiting,
-          :href => to_url("campaigns/#{id}/jobs/#{task[0]}")
+          :id => task['id'],
+          :name => task['name'],
+          :parameters => task['param'],
+          :state => task['state'] || :waiting,
+          :href => to_url("campaigns/#{id}/jobs/#{task['id']}")
         }
       end
 
-      {:items => items,
-       :total => campaign.props[:nb_jobs].to_i,
-       :offset => offset
+      {
+        :items => items,
+        :total => campaign.props[:nb_jobs].to_i,
+        :offset => offset,
+        :links => [
+                    {:rel => :self, :href => to_url("campaigns/#{id}/jobs")},
+                    {:rel => :parent, :href => to_url("campaigns/#{id}")}
+                  ]
       }
     end
 

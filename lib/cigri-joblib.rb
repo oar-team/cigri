@@ -428,6 +428,12 @@ module Cigri
       end
     end
 
+    def task(task_id)
+      db_connect() do |dbh|
+        return get_campaign_task(dbh, id, task_id)
+      end
+    end
+
     # Get open events
     def events(limit, offset)
       db_connect() do |dbh|

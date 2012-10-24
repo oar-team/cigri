@@ -635,7 +635,7 @@ end
 #
 ##
 def get_campaign_tasks(dbh, id, limit, offset)
-  query = "SELECT p.id, p.name, p.param, j.state
+  query = "SELECT p.id as id, p.name as name, p.param as param, j.state as state
            FROM parameters as p
            LEFT JOIN jobs as j 
             ON p.id = j.param_id
@@ -645,6 +645,38 @@ def get_campaign_tasks(dbh, id, limit, offset)
            OFFSET ?"
 
   dbh.select_all(query, id, limit, offset)
+end
+
+##
+# Returns a task of a campaign
+#
+# == Parameters
+# - dbh: dababase handle
+# - id: campaign id
+# - task_id
+#
+# == Returns
+# Array: [id, name, param, state]
+#
+##
+def get_campaign_task(dbh, id, task_id)
+  query = "SELECT p.id, p.name, p.param, j.state
+           FROM parameters as p
+           LEFT JOIN jobs as j 
+            ON p.id = j.param_id
+           WHERE p.campaign_id = ?
+             AND p.id = ?"
+
+  task = dbh.select_one(query, id, task_id)
+  if task
+    query = "SELECT jobs.*, clusters.name as clustername
+             FROM jobs, clusters
+             WHERE param_id = ?
+               AND jobs.cluster_id = clusters.id"
+    task << dbh.select_all(query, task_id)
+  end
+
+  task
 end
 
 ##
