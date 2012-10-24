@@ -63,18 +63,36 @@ begin
   # Update grid_usage table
   #TODO: test if it is the time to do this using GRID_USAGE_UPDATE_PERIOD
   begin
+    cigri_jobs=Cigri::Jobset.new
+    cigri_jobs.get_running           
     Cigri::ClusterSet.new.each do |cluster|
-      resources=cluster.get_resources
-      # Count the resource_units
-      resource_units=resources.map{|r| r[cluster.props[:resource_unit]]}.uniq
-      # Match jobs and resources
-      #TODO
-      jobs=cluster.get_jobs
+      # Get the resource_units
+      cluster_resources=cluster.get_resources
+      cigri_resources=0
+      resource_units={}
+      cluster_resources.each do |r|
+        resource_units[r["id"]]=r[cluster.props[:resource_unit]]
+      end
+      max_resource_units=resource_units.values.uniq.length 
+
+      # Get the cluster jobs
+      cluster_jobs=cluster.get_jobs
+      # Jobs consume resources units
+      cluster_jobs.each do |cluster_job|
+        cluster_job["resources"].each do |job_resource|
+          count=resource_units.length
+          resource_units.delete_if {|k,v| v==resource_units[job_resource["id"]] }
+          #TODO test cigri_resources+=count-resource_units.length
+        end
+      end
+
       # Create the entry
       date=Time.now
       Datarecord.new("grid_usage",{:date => date,
                                  :cluster_id => cluster.id,
-                                 :max_resources => resource_units.length
+                                 :max_resources => max_resource_units,
+                                 :used_resources => max_resource_units - resource_units.values.uniq.length,
+                                 :used_by_cigri => cigri_resources
                                 })
     end 
   rescue => e
