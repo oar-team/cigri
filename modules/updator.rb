@@ -30,7 +30,9 @@ begin
   
   logger.debug('Starting')
 
+  ## 
   # Check for finished campaigns
+  ## 
   campaigns=Cigri::Campaignset.new
   campaigns.get_running
   campaigns.each do |campaign|
@@ -48,56 +50,77 @@ begin
     end
   end 
 
+  ## 
   # Autofix clusters
+  ## 
   events=Cigri::Eventset.new({:where => "state='open' and class='cluster'"})
   Cigri::Colombo.new(events).autofix_clusters
 
+  ## 
   # Check for blacklists
+  ## 
   events=Cigri::Eventset.new({:where => "state='open' and code='BLACKLIST'"})
   Cigri::Colombo.new(events).check_blacklists
 
+  ## 
   # Check jobs to resubmit
+  ## 
   events=Cigri::Eventset.new({:where => "state='open' and code='RESUBMIT' and class='job'"})
   Cigri::Colombo.new(events).check_jobs
 
+  ## 
   # Update grid_usage table
-  #TODO: test if it is the time to do this using GRID_USAGE_UPDATE_PERIOD
-  begin
-    cigri_jobs=Cigri::Jobset.new
-    cigri_jobs.get_running           
-    Cigri::ClusterSet.new.each do |cluster|
-      # Get the resource_units
-      cluster_resources=cluster.get_resources
-      cigri_resources=0
-      resource_units={}
-      cluster_resources.each do |r|
-        resource_units[r["id"]]=r[cluster.props[:resource_unit]]
-      end
-      max_resource_units=resource_units.values.uniq.length 
-
-      # Get the cluster jobs
-      cluster_jobs=cluster.get_jobs
-      # Jobs consume resources units
-      cluster_jobs.each do |cluster_job|
-        cluster_job["resources"].each do |job_resource|
-          count=resource_units.length
-          resource_units.delete_if {|k,v| v==resource_units[job_resource["id"]] }
-          #TODO test cigri_resources+=count-resource_units.length
-        end
-      end
-
-      # Create the entry
-      date=Time.now
-      Datarecord.new("grid_usage",{:date => date,
-                                 :cluster_id => cluster.id,
-                                 :max_resources => max_resource_units,
-                                 :used_resources => max_resource_units - resource_units.values.uniq.length,
-                                 :used_by_cigri => cigri_resources
-                                })
-    end 
-  rescue => e
-    logger.warn("Could not update the grid_usage table! #{e.message} #{e.backtrace}") 
+  ## 
+  last_grid_usage_entry_date=0
+  db_connect do |dbh|
+    last_grid_usage_entry_date=last_grid_usage_entry_date(dbh)
   end
-
+  if Time.now.to_i - last_grid_usage_entry_date.strftime("%s").to_i > GRID_USAGE_UPDATE_PERIOD
+   logger.debug("updating grid_usage")
+    begin
+      cigri_jobs=Cigri::Jobset.new
+      cigri_jobs.get_running
+      cigri_jobs.records.map! {|j| j.props[:remote_id].to_i }        
+      Cigri::ClusterSet.new.each do |cluster|
+        # Get the resource_units
+        cluster_resources=cluster.get_resources
+        cigri_resources=0
+        unavailable_resources=[]
+        resource_units={}
+        cluster_resources.each do |r|
+          resource_units[r["id"]]=r[cluster.props[:resource_unit]]
+          unavailable_resources << r[cluster.props[:resource_unit]] if r["state"] != "Alive"
+                                                   #TODO: manage standby resources
+        end
+        max_resource_units=resource_units.values.uniq.length 
+  
+        # Get the cluster jobs
+        cluster_jobs=cluster.get_jobs
+        # Jobs consume resources units
+        cluster_jobs.each do |cluster_job|
+          cluster_job["resources"].each do |job_resource|
+            count=resource_units.length
+            resource_units.delete_if {|k,v| v==resource_units[job_resource["id"]] }
+            if cigri_jobs.records.include?(cluster_job["id"].to_i )
+              cigri_resources+=count-resource_units.length
+            end
+          end
+        end
+  
+        # Create the entry
+        date=Time.now
+        Datarecord.new("grid_usage",{:date => date,
+                                   :cluster_id => cluster.id,
+                                   :max_resources => max_resource_units,
+                                   :used_resources => max_resource_units - resource_units.values.uniq.length,
+                                   :used_by_cigri => cigri_resources,
+                                   :unavailable_resources => unavailable_resources.uniq.length
+                                  })
+      end 
+    rescue => e
+      logger.warn("Could not update the grid_usage table! #{e.message} #{e.backtrace}") 
+    end
+  end
+  
   logger.debug('Exiting')
 end

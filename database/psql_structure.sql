@@ -195,6 +195,7 @@ CREATE TABLE grid_usage (
   cluster_id INTEGER,
   max_resources INTEGER,
   used_resources INTEGER,
+  unavailable_resources INTEGER,
   used_by_cigri INTEGER
 );
 CREATE INDEX grid_usage_idx_date ON grid_usage (date);

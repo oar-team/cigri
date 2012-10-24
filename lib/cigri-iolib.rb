@@ -983,6 +983,12 @@ def del_notification_subscription(dbh,type,identity,user)
   dbh.do("DELETE FROM user_notifications WHERE grid_user=? and type=? and identity=?",
          user,type,identity)
 end
+##
+# Get the last inserted entry date from grid_usage table
+#
+def last_grid_usage_entry_date(dbh)
+  dbh.select_one("SELECT date FROM grid_usage ORDER by date desc limit 1")[0]
+end
 
 #######################################################################
 ######################### iolib classes ###############################
