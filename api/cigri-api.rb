@@ -24,6 +24,12 @@ class API < Sinatra::Base
   
   before do
     content_type :json
+    # Cluster id <-> name matching
+    cluster_names = {}
+    clusters=Cigri::ClusterSet.new
+    clusters.each do |cluster|
+      cluster_names[cluster.id]=cluster.name
+    end
   end
   
   # List all links
@@ -405,7 +411,28 @@ class API < Sinatra::Base
     print({:status => 202, :title => :Deleted, :message => "Unsubscription ok"})
   end
 
+  get '/gridusage/?' do
+    params['from'] ? from=params['from'] : from=nil
+    params['to'] ? to=params['to'] : to=nil
+    items=[]
+    begin
+      db_connect do |dbh|
+        items=get_grid_usage(dbh,from,to)
+      end
+    rescue Exception => e
+      halt 400, print({:status => 400, :title => "Error", :message => "Error with grid_usage extract: #{e} #{e.backtrace}"})
+    end
+   
+    output={"items" => items,
+            "from" => from,
+            "to" => to,
+            "total" => items.length
+           }
 
+    status 200
+    print(output)
+ 
+  end
 
   not_found do 
     print( {:status => 404, :title => 'Not Found', :message => "#{request.request_method} #{request.url} not found on this server"} )
@@ -472,13 +499,7 @@ class API < Sinatra::Base
     def get_formated_campaign_events(id, limit, offset)      
       campaign = get_campaign(id)
       events = nil
-      # Cluster id <-> name matching
-      cluster_names = {}
-      clusters=Cigri::ClusterSet.new
-      clusters.each do |cluster|
-       cluster_names[cluster.id]=cluster.name
-      end
-      begin
+     begin
         events = campaign.events(limit, offset)
       rescue DBI::ProgrammingError => e
         halt 400, print({:status => 400, :title => "Error", :message => "#{e}"})

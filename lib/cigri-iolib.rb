@@ -1019,7 +1019,47 @@ end
 # Get the last inserted entry date from grid_usage table
 #
 def last_grid_usage_entry_date(dbh)
-  dbh.select_one("SELECT date FROM grid_usage ORDER by date desc limit 1")[0]
+  dbh.select_one("SELECT extract(epoch from date) FROM grid_usage ORDER by date desc limit 1")[0]
+end
+
+## 
+# Get grid_usage infos between two dates (from and to)
+# If from and to are not given, get the last timestamp
+# and all corresponding entries
+#
+def get_grid_usage(dbh,from,to)
+  query="select extract(epoch from date),cluster_id,max_resources,used_resources,used_by_cigri,unavailable_resources,clusters.name
+            from grid_usage,clusters "
+  if from.nil? and to.nil?
+     last=last_grid_usage_entry_date(dbh)
+     query+="where extract(epoch from date)=#{last} and clusters.id=grid_usage.cluster_id"
+  elsif from.nil?
+     query+="where extract(epoch from date)<=#{to} and clusters.id=grid_usage.cluster_id"
+  elsif to.nil?
+     query+="where extract(epoch from date)>#{from} and clusters.id=grid_usage.cluster_id"
+  else
+     query+="where extract(epoch from date)<=#{to} and extract(epoch from date)>#{from} and clusters.id=grid_usage.cluster_id"
+  end
+  dates={}
+  result=dbh.select_all(query)
+  result.each do |row|
+    if dates[row[0]].nil?
+      dates[row[0]] = []
+    end
+    dates[row[0]] << {
+                        :cluster_name => row[6],
+                        :cluster_id => row[1],
+                        :max_resources => row[2],
+                        :used_resources => row[3],
+                        :used_by_cigri => row[4],
+                        :unavailable_resources => row[5]
+                      }
+  end
+  output=[]
+  dates.each do |date,val|
+    output << { :date => date.to_i, :clusters => val }
+  end
+  output
 end
 
 #######################################################################

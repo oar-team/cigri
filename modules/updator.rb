@@ -75,7 +75,7 @@ begin
   db_connect do |dbh|
     last_grid_usage_entry_date=last_grid_usage_entry_date(dbh)
   end
-  if Time.now.to_i - last_grid_usage_entry_date.strftime("%s").to_i > GRID_USAGE_UPDATE_PERIOD
+  if Time.now.to_i - last_grid_usage_entry_date.to_i > GRID_USAGE_UPDATE_PERIOD
    logger.debug("updating grid_usage")
     begin
       cigri_jobs=Cigri::Jobset.new

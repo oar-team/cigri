@@ -31,6 +31,8 @@ DELETE      /notifications/<mail|jabber>            Unsubscribe from a notificat
 GET         /events/<id>                            Get a specific event
 DELETE      /events/<id>                            Fix (close) a specific event
 DELETE      /events/<id>?resubmit                   Fix (close) a specific event and resubmit the job
+GET         /grid_usage                             Get the current usage state of the grid
+GET         /grid_usage?from=<date>&to=<date>       Get usage stats between two dates (unix timestamps)
 =========== ======================================= ==========================================================
 
 Accessing the API
