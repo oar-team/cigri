@@ -81,6 +81,7 @@ begin
       cigri_jobs=Cigri::Jobset.new
       cigri_jobs.get_running
       cigri_jobs.records.map! {|j| j.props[:remote_id].to_i }        
+      date=Time.now
       Cigri::ClusterSet.new.each do |cluster|
         # Get the resource_units
         cluster_resources=cluster.get_resources
@@ -108,7 +109,6 @@ begin
         end
   
         # Create the entry
-        date=Time.now
         Datarecord.new("grid_usage",{:date => date,
                                    :cluster_id => cluster.id,
                                    :max_resources => max_resource_units,
