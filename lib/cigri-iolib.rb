@@ -1019,7 +1019,9 @@ end
 # Get the last inserted entry date from grid_usage table
 #
 def last_grid_usage_entry_date(dbh)
-  dbh.select_one("SELECT extract(epoch from date) FROM grid_usage ORDER by date desc limit 1")[0]
+  result=dbh.select_one("SELECT extract(epoch from date) FROM grid_usage ORDER by date desc limit 1")
+  return 0 if result.nil?
+  result[0]
 end
 
 ## 
