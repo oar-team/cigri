@@ -5,7 +5,7 @@
   "test_mode": "false",
   "clusters": {
     "tchernobyl": {
-      "type": "normal",
+      "type": "besteffort",
       "walltime": "300",
       "prologue": [
         "mkdir -p $HOME/workdir",
