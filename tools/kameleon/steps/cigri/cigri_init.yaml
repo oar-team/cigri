@@ -126,4 +126,29 @@ cigri_init:
              Allow from             localhost
              Allow from             localhost.localdomain
        </Directory>
-   
+ - motd_config:
+   - append_file:
+     - /etc/motd.tail
+     - |
+
+       *********************** WELCOME TO THE CIGRI/OAR APPLIANCE *********************
+       This applicance was made with the amazing Kameleon script 
+          http://kameleon.imag.fr/
+       This appliance, aimed at OAR and CIGRI developpment contains:
+       - Oar server and clients with a bunch of fake oar nodes groupped into 3 clusters
+       - Cigri v3 server and clients pre-configured for using the OAR fake clusters
+       - Each Oar and Cigri REST-APIs are configured (/cigri-api, /oarapi)
+       - An SSL trust is setup between cigri and OAR api living into /oarapi-secured 
+       Examples :
+       - OAR:
+         $ su - kameleon
+         $ cd ~kameleon/oar_install/tests/rspec && make
+         $ wget -O - http://localhost/oarapi/resources.yaml
+         $ curl -i -X POST http://kameleon:kameleon@localhost/oarapi-priv/jobs.json \\
+             -H'Content-Type: application/json' \\
+             -d '{\"resource\":\"/nodes=1,walltime=00:10:00\", \"command\":\"sleep 600\"}'
+       - CIGRI:
+         $ gridsub -f cigri-3/tmp/test1.json
+         $ curl "http://localhost/cigri-api/gridusage?pretty" 
+       Note: Root password is kameleon  
+       ********************************************************************************
