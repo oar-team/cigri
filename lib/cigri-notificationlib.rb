@@ -136,7 +136,11 @@ module Cigri
             if CONF.exists?("NOTIFICATIONS_XMPP_SERVER")
               if XMPPLIB
                 if @handlers[:xmpp]
-                  message=Jabber::Message.new(to,formatted_im)
+                  msgstr=formatted_im
+                  if notification.props[:grid_user] == "%%admin%%"
+                    msgstr="*"+msgstr+"*"
+                  end
+                  message=Jabber::Message.new(to,msgstr)
                   @handlers[:xmpp].send(message)
                 else
                   NOTIFICATIONLIBLOGGER.error("Error notifying #{@user} with xmpp: No XMPP handler!")
