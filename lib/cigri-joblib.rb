@@ -504,6 +504,15 @@ module Cigri
                                   and cluster_id=#{cluster_id}"}).length > 0
     end
 
+    # Get the average job duration (in seconds)
+    # returns 2 values: [average,stddev]
+    def average_job_duration
+    end
+
+    # Get the job throughput (in jobs/seconds) in the last time_window
+    def throughput(time_window)
+    end
+
   end # class Campaign
 
   # Campaignset class

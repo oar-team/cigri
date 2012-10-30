@@ -196,7 +196,7 @@ module Cigri
                          :cluster_id => job.props[:cluster_id], 
                          :message => "Resubmit cause: #{type}")
       # Other errors (exit status)
-      elsif (!cluster_job["exit_code"].nil? && cluster_job["exit_code"].to_i >> 8) > 0
+      elsif (!cluster_job["exit_code"].nil? && cluster_job["exit_code"].to_i >> 8 > 0 )
         case job.props[:tag]
           when "prologue"
             code="PROLOG_EXIT_ERROR"
