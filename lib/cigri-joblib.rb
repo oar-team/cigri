@@ -507,10 +507,16 @@ module Cigri
     # Get the average job duration (in seconds)
     # returns 2 values: [average,stddev]
     def average_job_duration
+      res=nil
+      db_connect do |dbh|
+        res=get_average_job_duration(dbh,id)
+      end
+      return res
     end
 
     # Get the job throughput (in jobs/seconds) in the last time_window
     def throughput(time_window)
+      #TODO
     end
 
   end # class Campaign

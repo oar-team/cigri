@@ -48,6 +48,10 @@ begin
                        :code => "FINISHED_CAMPAIGN", :message => "Campaign is finished")
       notify_judas
     end
+    if config.get("LOG_LEVEL")=="DEBUG"
+      stats=campaign.average_job_duration
+      logger.debug("campaign #{campaign.id} avg: #{stats[0]} stddev: #{stats[1]}")
+    end
   end 
 
   ## 
