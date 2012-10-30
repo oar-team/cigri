@@ -24,12 +24,6 @@ class API < Sinatra::Base
   
   before do
     content_type :json
-    # Cluster id <-> name matching
-    cluster_names = {}
-    clusters=Cigri::ClusterSet.new
-    clusters.each do |cluster|
-      cluster_names[cluster.id]=cluster.name
-    end
   end
   
   # List all links
@@ -499,7 +493,13 @@ class API < Sinatra::Base
     def get_formated_campaign_events(id, limit, offset)      
       campaign = get_campaign(id)
       events = nil
-     begin
+      # Cluster id <-> name matching
+      cluster_names = {}
+      clusters=Cigri::ClusterSet.new
+      clusters.each do |cluster|
+        cluster_names[cluster.id]=cluster.name
+      end
+      begin
         events = campaign.events(limit, offset)
       rescue DBI::ProgrammingError => e
         halt 400, print({:status => 400, :title => "Error", :message => "#{e}"})
