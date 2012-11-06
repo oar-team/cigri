@@ -402,7 +402,12 @@ module Cigri
         # User events
         if event.props[:campaign_id]
           campaign_id=event.props[:campaign_id].to_i
-          message_props[:user]=@campaign_users[campaign_id] unless @campaign_users[campaign_id].nil?
+          if not @campaign_users[campaign_id].nil?
+            message_props[:user]=@campaign_users[campaign_id]
+          else
+            campaign=Campaign.new(:id => campaign_id)
+            message_props[:user]=campaign.props[:grid_user]
+          end
           message_props[:subject]+=" on cluster #{@cluster_names[event.props[:cluster_id].to_i]}" if event.props[:cluster_id]
           message_props[:subject]+=" for campaign ##{event.props[:campaign_id]}"
         # Admin events

@@ -63,6 +63,9 @@ module Cigri
         @admin_notifications=Dataset.new("user_notifications",:where => "grid_user='%%admin%%'")
         NOTIFICATIONLIBLOGGER.warn("No notification method for the grid administrator!") if @admin_notifications.length < 1
       end
+      if not @user and not @admin
+        NOTIFICATIONLIBLOGGER.warn("A message has to be notified, but no recipient given!")
+      end
     end
 
     ##
@@ -102,6 +105,8 @@ module Cigri
       (@user_notifications+@admin_notifications).each do |notification|
         if severities[notification.props[:severity]] <= severities[@severity]
           notifications << notification
+        else
+          NOTIFICATIONLIBLOGGER.debug("Not notifiying #{notification.props[:severity]} message to #{notification.props[:identity]}")
         end
       end
       return notifications
@@ -141,6 +146,7 @@ module Cigri
                     msgstr="*"+msgstr+"*"
                   end
                   message=Jabber::Message.new(to,msgstr)
+                  NOTIFICATIONLIBLOGGER.debug("Notifying #{to} on XMPP")
                   @handlers[:xmpp].send(message)
                 else
                   NOTIFICATIONLIBLOGGER.error("Error notifying #{@user} with xmpp: No XMPP handler!")
