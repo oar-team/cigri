@@ -162,7 +162,7 @@ while true do
     if jobs.length > 0
       # Submit the new jobs
       begin
-        submitted_jobs=jobs.submit(cluster.id)
+        submitted_jobs=jobs.submit2(cluster.id)
         sleep_more = SLEEP_MORE if submitted_jobs.length < 1
       rescue Cigri::ClusterAPIConnectionError => e
         message = "Could not submit jobs #{jobs.ids.inspect} on #{cluster.name} because of an API error. Automatically resubmitting."

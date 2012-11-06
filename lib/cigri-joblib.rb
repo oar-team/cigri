@@ -145,6 +145,124 @@ module Cigri
       return campaigns.keys
     end
 
+    # Add properties from the JDL to a submission string
+    def add_jdl_properties(submission_string,campaign,cluster_id)
+       submission_string["walltime"]=campaign.clusters[cluster_id]["walltime"] if campaign.clusters[cluster_id]["walltime"]
+       submission_string["directory"]=campaign.clusters[cluster_id]["exec_directory"] if campaign.clusters[cluster_id]["exec_directory"]
+       submission_string["properties"]=campaign.clusters[cluster_id]["properties"] if campaign.clusters[cluster_id]["properties"]
+       submission_string
+    end
+
+    # Submit a single job on the given cluster
+    def submit_single_job(cluster,job,campaign,submission_string)
+       # Add properties from the JDL
+      submission_string=add_jdl_properties(submission_string,campaign,cluster.id)
+      JOBLIBLOGGER.debug("Submitting new job on #{cluster.description["name"]}.")
+      # Actual submission
+      j=cluster.submit_job(submission_string,campaign.props[:grid_user])
+      if j.nil?
+        JOBLIBLOGGER.error("Unhandled error when submitting job on #{cluster.description["name"]}!")
+      else
+         # Update job info
+         job.update(
+                     { 'state' => 'submitted', 
+                       'submission_time' => Time::now(),
+                       'cluster_id' => cluster.id,
+                       'remote_id' => j["id"]
+                     },'jobs' )
+        JOBLIBLOGGER.debug("Remote id of single job just submitted on #{cluster.description['name']}: #{j['id']}")
+        return j['id']
+      end
+    end 
+
+    # Submit an array job on the given cluster
+    def submit_array_job(cluster,jobs,campaign,submission_string)
+       # Add properties from the JDL
+      submission_string=add_jdl_properties(submission_string,campaign,cluster.id)
+      JOBLIBLOGGER.debug("Submitting new array job on #{cluster.description["name"]}.")
+      # Actual submission
+      launching_jobs=Jobset.new
+      launching_jobs.fill(jobs,true)       
+      launching_jobs.update({'state' => 'launching'})
+      j=cluster.submit_job(submission_string,campaign.props[:grid_user])
+      if j.nil?
+        JOBLIBLOGGER.error("Unhandled error when submitting jobs on #{cluster.description["name"]}!")
+      else
+        # Update jobs infos
+        launching_jobs.update!(
+                               { 'state' => 'submitted', 
+                                 'submission_time' => Time::now(),
+                                 'cluster_id' => cluster.id,
+                               },'jobs' )
+        launching_jobs.match_remote_ids(cluster.id, campaign.clusters[cluster.id]["exec_file"], j["id"])
+        JOBLIBLOGGER.debug("Remote id of array job just submitted on #{cluster.description['name']}: #{j['id']}")
+        return j['id']
+      end
+    end 
+
+    # Submit the jobset on the cluster corresponding to cluster_id
+    # Second implementation
+    # Grouping optimization is done whenever it is possible: 
+    #   - for temporal grouping, creates batches of jobs executed sequentially
+    #   - for dimensional grouping, creates batches of jobs executed in parallel
+    #   - when no grouping is requested, submit as array jobs whenever it is possible
+    def submit2(cluster_id)
+      submitted_jobs=[]
+
+      # Get the cluster
+      cluster=Cluster.new(:id => cluster_id)
+
+      # Treat each campaign separately
+      self.campaigns.each do |campaign_id|
+        campaign=Campaign.new(:id => campaign_id)
+        # Don't treat campaigns for which the cluster is blacklisted
+        if cluster.blacklisted?(:campaign_id => campaign.id)
+          JOBLIBLOGGER.info("Not submitting jobs on #{cluster.name} for campaign #{campaign.id} because of blacklist.")
+        # Cluster ok for this campaign
+        else
+          campaign.get_clusters
+          # Select the jobs belonging to the current campaign
+          myjobs=@records.select {|job| job.props[:campaign_id] == campaign_id}
+          # Treat prologue and epilogue jobs
+          ["prologue","epilogue"].each do |tag|
+            tagged_job=myjobs.select {|job| job.props[:tag] == tag}
+            if tagged_job.length > 0
+              submitted_jobs << submit_single_job(cluster,tagged_job[0],campaign,{
+                               "resources" => "resource_id=1",
+                               "command" => campaign.clusters[cluster_id][tag] } )
+              myjobs.delete(tagged_job)
+            end
+          end
+          # Group the jobs by runner_options
+          by_options_jobs={}
+          myjobs.each do |job|
+            runner_options=job.props[:runner_options]
+            if by_options_jobs[runner_options].nil?
+              by_options_jobs[runner_options]=[]
+            end
+            by_options_jobs[runner_options] << job
+          end
+          # For each runner_options, we can try to group
+          by_options_jobs.each do |runner_options,jobs|
+            # Batch (temporal, dimensional) grouping
+            # TODO
+            # Array grouping
+            params=jobs.collect {|job| job.props[:param]}
+            submission = {
+                            "param_file" => params.join("\n"),
+                            "resources" => campaign.clusters[cluster_id]["resources"],
+                            "command" => campaign.clusters[cluster_id]["exec_file"]
+                         }
+            if runner_options["besteffort"]
+              submission["type"]="besteffort"
+            end
+            submitted_jobs << submit_array_job(cluster,jobs,campaign,submission)
+          end # Each runner option
+        end # Blacklisted cluster
+      end # Each campaign
+      return submitted_jobs
+    end
+
     # Submit a set of jobs, using OAR array jobs if possible
     # So, group the jobs by campaigns as only jobs from a
     # same campaign can be launched in the same array
