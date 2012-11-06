@@ -891,12 +891,35 @@ def get_tasks_ids_for_campaign(dbh, id, number = nil)
 end
 
 ##
+# Get a new batch id
+#
+# == Parameters
+# - dbh: database handle
+##
+def new_batch_id(dbh)
+  query = "SELECT batch_id FROM jobs ORDER BY batch_id LIMIT 1"
+  row = dbh.select_one(query)
+  return row[0]+1 if row and not row[0].nil?
+  return 1
+end
+
+##
 # Insert jobs into the queue of a given cluster (jobs_to_launch table)
 # 
 # == Parameters
-#
+# - dbh: database handle
+# - tasks: array of task ids to launch
+# - cluster_id: cluster to launch tasks on
+# - tag: tag (like prologue or epilogue)
+# - runner_options: options for the runner (a ruby hash that will be 
+#   converted into json for database storage). If grouping is requested
+#   all the given tasks are grouped into a unique batch_id
 ##
 def add_jobs_to_launch(dbh, tasks, cluster_id, tag, runner_options)
+  batch_id="NULL"
+  if defined?(runner_options["temporal_grouping"]) or defined?(runner_options["dimensional_grouping"]) 
+    runner_options["batch_id"]=new_batch_id(dbh)
+  end
   runner_options=JSON.generate(runner_options)
   dbh['AutoCommit'] = false
   begin
@@ -945,11 +968,17 @@ def take_tasks(dbh, tasks)
       # Increment the count for (campaign,cluster) pair
       count_key=[job['campaign_id'], job['cluster_id']]
       counts[count_key] ? counts[count_key] += 1 : counts[count_key]=1
+      # Get the batch_id if any
+      batch_id="null"
+      runner_options=JSON.parse(job['runner_options'])
+      if defined?(runner_options["batch_id"])
+        batch_id=runner_options["batch_id"].to_i
+      end
       # insert the new job into the jobs table
-      dbh.do("INSERT INTO jobs (campaign_id, state, cluster_id, param_id, tag, runner_options)
-              VALUES (?, ?, ?, ?, ?, ?)",
+      dbh.do("INSERT INTO jobs (campaign_id, state, cluster_id, param_id, tag, runner_options, batch_id)
+              VALUES (?, ?, ?, ?, ?, ?, ?)",
               job['campaign_id'], "to_launch", job['cluster_id'], job['param_id'], job['tag'], 
-                job['runner_options']
+                job['runner_options'], batch_id
             )
       jobids << last_inserted_id(dbh, "jobs_id_seq")
     end

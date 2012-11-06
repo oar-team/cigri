@@ -101,34 +101,47 @@ begin
               logger.debug("Queuing for campaign #{campaign.id} on cluster #{cluster.name}")
               queing=true
     
-              # Scheduler call
+              # Prepare options for scheduler call
+              opts={}
               # Test mode
               if campaign.clusters[cluster.id]["test_mode"] == "true"
                 test=true
-                scheduler=Cigri::SchedulerFifo.new(campaign,cluster.id,{
-                                                                  :max_jobs => 1,
-                                                                  :besteffort => false
-                                                                  })
-                scheduler.do
+                opts={
+                       :max_jobs => 1,
+                       :besteffort => false
+                     }
               # Campaign types
               else
                 case campaign.clusters[cluster.id]["type"]
                   when "best-effort"
-                  scheduler=Cigri::SchedulerFifo.new(campaign,cluster.id,{
-                                                                  :max_jobs => max_jobs,
-                                                                  :besteffort => true
-                                                                  })
-                  scheduler.do
+                  opts={
+                          :max_jobs => max_jobs,
+                          :besteffort => true
+                       }
                   when "normal"
-                  scheduler=Cigri::SchedulerFifo.new(campaign,cluster.id,{
-                                                                  :max_jobs => max_jobs,
-                                                                  :besteffort => false
-                                                                  })
-                  scheduler.do
+                  opts={
+                         :max_jobs => max_jobs,
+                         :besteffort => false
+                       }
                   else
-                  logger.warn("Unknown campaign type: "+campaign.clusters[cluster.id]["type"].to_s)
+                  logger.warn("Unknown campaign type: "+campaign.clusters[cluster.id]["type"].to_s+"; using best-effort")
+                  opts={
+                          :max_jobs => max_jobs,
+                          :besteffort => true
+                       }
                 end
-              end # End campaign types
+              end
+              # Grouping
+              if campaign.clusters[cluster.id]["temporal_grouping"] == "true"
+                opts["temporal_grouping"] = true
+              elsif campaign.clusters[cluster.id]["dimensional_grouping"] == "true"
+                opts["dimensional_grouping"] = true
+              end
+              
+              # Scheduler call
+              scheduler=Cigri::SchedulerFifo.new(campaign,cluster.id,opts)
+              scheduler.do
+
             end # Prologue nok
           end # Low queue
         else
