@@ -200,6 +200,46 @@ module Cigri
       end
     end 
 
+    # Submit jobs on the given cluster grouping them into a unique batch job
+    def submit_batch_job(cluster,jobs,campaign,runner_options)
+      if runner_options["temporal_grouping"]
+        script=""
+        jobs.each do |job|
+          script+=campaign.clusters[cluster.id]["exec_file"]+" "+job.props[:param]
+          script+=" && touch cigri_done_"+job.props[:param_id]+"\n"
+        end
+        submission_string={ "resources" => campaign.clusters[cluster.id]["resources"],
+                            "command" => script
+                          }
+        if runner_options["besteffort"]
+           submission_string["type"]="besteffort"
+        end
+      elsif runner_options["dimensional_grouping"]
+         #TODO
+      end
+       # Add properties from the JDL
+      submission_string=add_jdl_properties(submission_string,campaign,cluster.id)
+      JOBLIBLOGGER.debug("Submitting new array job on #{cluster.description["name"]}.")
+      # Actual submission
+      launching_jobs=Jobset.new
+      launching_jobs.fill(jobs,true)       
+      launching_jobs.update({'state' => 'launching'})
+      j=cluster.submit_job(submission_string,campaign.props[:grid_user])
+      if j.nil?
+        JOBLIBLOGGER.error("Unhandled error when submitting jobs on #{cluster.description["name"]}!")
+      else
+        # Update jobs infos
+        launching_jobs.update!(
+                               { 'state' => 'submitted', 
+                                 'submission_time' => Time::now(),
+                                 'cluster_id' => cluster.id,
+                                 'remote_id' => j['id'],
+                               },'jobs' )
+        JOBLIBLOGGER.debug("Remote id of batch job just submitted on #{cluster.description['name']}: #{j['id']}")
+        return j['id']
+      end
+    end 
+
     # Submit the jobset on the cluster corresponding to cluster_id
     # Second implementation
     # Grouping optimization is done whenever it is possible: 
@@ -245,18 +285,25 @@ module Cigri
           # For each runner_options, we can try to group
           by_options_jobs.each do |runner_options,jobs|
             # Batch (temporal, dimensional) grouping
-            # TODO
-            # Array grouping
-            params=jobs.collect {|job| job.props[:param]}
-            submission = {
+            if runner_options["dimensional_grouping"]
+              #TODO
+              JOBLIBLOGGER.warn("Dimensional grouping not yet supported!")
+            end
+            if runner_options["temporal_grouping"] 
+              submitted_jobs << submit_batch_job(cluster,jobs,campaign,runner_options)
+            else
+              # Array grouping
+              params=jobs.collect {|job| job.props[:param]}
+              submission = {
                             "param_file" => params.join("\n"),
                             "resources" => campaign.clusters[cluster_id]["resources"],
                             "command" => campaign.clusters[cluster_id]["exec_file"]
-                         }
-            if runner_options["besteffort"]
-              submission["type"]="besteffort"
+                           }
+              if runner_options["besteffort"]
+                submission["type"]="besteffort"
+              end
+              submitted_jobs << submit_array_job(cluster,jobs,campaign,submission)
             end
-            submitted_jobs << submit_array_job(cluster,jobs,campaign,submission)
           end # Each runner option
         end # Blacklisted cluster
       end # Each campaign
