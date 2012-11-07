@@ -51,7 +51,7 @@ def db_connect()
     sleep 10
     retry
   rescue Exception => e
-    IOLIBLOGGER.error("Failed to connect to database with string: #{str}\nError: #{e}")
+    IOLIBLOGGER.error("Failed to connect to database with string: #{str}\nError: #{e}\n#{e.backtrace.join("\n")}")
     raise
   end
 end

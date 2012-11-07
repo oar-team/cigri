@@ -375,7 +375,7 @@ module Cigri
       # G5K API does not support job arrays, so we split in several calls.
       def submit_job(job, user)
         command = job["command"]
-        params = job.delete("param_file").split("\n")
+        params = (job.delete("param_file") || " ").split("\n")
         ids = []
         params.each do |param|
           job["command"] = "#{command} #{param}"

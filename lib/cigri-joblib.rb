@@ -397,7 +397,7 @@ module Cigri
                                  { 'state' => 'submitted', 
                                    'submission_time' => Time::now(),
                                    'cluster_id' => cluster_id,
-                                   'remote_id' => j["id"]
+                                   'remote_id' => [j["id"]].flatten.first #This is a DIRTY trick because the G5K cluster always returns an array of ids
                                  },'jobs' )
               end
             end
