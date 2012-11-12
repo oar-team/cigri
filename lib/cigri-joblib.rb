@@ -233,7 +233,7 @@ module Cigri
                                { 'state' => 'submitted', 
                                  'submission_time' => Time::now(),
                                  'cluster_id' => cluster.id,
-                                 'remote_id' => j['id'],
+                                 'remote_id' => j['id']
                                },'jobs' )
         JOBLIBLOGGER.debug("Remote id of batch job just submitted on #{cluster.description['name']}: #{j['id']}")
         return j['id']
@@ -397,7 +397,7 @@ module Cigri
                                  { 'state' => 'submitted', 
                                    'submission_time' => Time::now(),
                                    'cluster_id' => cluster_id,
-                                   'remote_id' => [j["id"]].flatten.first #This is a DIRTY trick because the G5K cluster always returns an array of ids
+                                   'remote_id' => j["id"]
                                  },'jobs' )
               end
             end

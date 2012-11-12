@@ -383,6 +383,9 @@ module Cigri
           id = secure_run proc { @api.post("jobs", job, {@description["api_auth_header"] => map_user(user)})["uid"] }, "SUBMIT_JOB"
           ids << id
         end
+        if ids.length == 1
+          ids = ids.first.to_i
+        end
         {"id" => ids}
       end
 
