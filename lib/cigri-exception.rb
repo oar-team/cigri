@@ -35,4 +35,8 @@ module Cigri
   # Raised for an admission_rule error
   ##
   class AdmissionRuleError < Error; end
+  ##
+  # Raised when a cluster API does not find a resource
+  ##
+  class ClusterAPINotFound < Error; end
 end

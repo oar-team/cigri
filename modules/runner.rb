@@ -82,6 +82,7 @@ while true do
     current_jobs = Cigri::Jobset.new
     current_jobs.get_submitted(cluster.id)
     current_jobs.get_running(cluster.id)
+    current_jobs.to_jobs
     current_jobs.each do |job|
       if job.props[:remote_id].nil? || job.props[:remote_id] == ""
         job.update({'state' => 'event'})
@@ -94,14 +95,24 @@ while true do
           cluster_job = cluster.get_job(job.props[:remote_id].to_i, job.props[:grid_user])
           case cluster_job["state"] 
             when /Terminated/i
+              remote_job=nil
+              stop_time=nil
+              if job.props[:tag] == "batch"
+                 subjob_state=job.get_subjob_state(cluster)
+                 remote_job=subjob_state
+                 stop_time=subjob_state["stop_time"]
+              else
+                 remote_job=cluster_job
+                 stop_time=Time.at(cluster_job["stop_time"].to_i)
+              end
               if (cluster_job["exit_code"].to_i >> 8) > 0
                 logger.info("Job #{job.id} has non-null exit-status.")
-                Cigri::Colombo::analyze_remote_job_events(job,cluster_job)
+                Cigri::Colombo::analyze_remote_job_events(job,remote_job)
                 events=Cigri::Eventset.new({ :where => "class = 'job' and cluster_id = #{cluster.id} and state='open'"})
                 Cigri::Colombo.new(events).check_jobs
                 have_to_notify = true
               else
-                job.update({'state' => 'terminated','stop_time' => Time.at(cluster_job["stop_time"].to_i)})
+                job.update({'state' => 'terminated','stop_time' => stop_time})
               end
             when /Error/i
               logger.info("Job #{job.id} is in Error state.")
@@ -110,10 +121,31 @@ while true do
               Cigri::Colombo.new(events).check_jobs
               job.update({'stop_time' => Time.at(cluster_job["stop_time"].to_i)})
               have_to_notify = true
-            when /Running/i
-              job.update({'state' => 'running','start_time' => Time.at(cluster_job["start_time"].to_i)})
-            when /Finishing/i
-              job.update({'state' => 'running','start_time' => Time.at(cluster_job["start_time"].to_i)})
+            when /Running/i , /Finishing/i
+              if job.props[:tag] == "batch"
+                subjob_state=job.get_subjob_state(cluster)
+                case subjob_state[:state]
+                  when /notstarted/i
+                    job.update({'state' => 'batch_waiting'})
+                  when /running/i
+                    job.update({'state' => 'running','start_time' => subjob_state[:start_time]})
+                  when /finished/i
+                    if subjob_state[:exit_code] > 0
+                      logger.info("Sub-job #{job.id} has non-null exit-status.")
+                      Cigri::Colombo::analyze_remote_job_events(job,subjob_state)
+                      events=Cigri::Eventset.new({ :where => "class = 'job' and cluster_id = #{cluster.id} and state='open'"})
+                      Cigri::Colombo.new(events).check_jobs
+                      have_to_notify = true
+                      job.update({'stop_time' => batch_state[:stop_time]})
+                    else
+                      job.update({'stop_time' => batch_state[:stop_time],
+                                  'start_time' => batch_state[:start_time],
+                                  'state' => 'terminated'})
+                    end
+                end
+              else
+                job.update({'state' => 'running','start_time' => Time.at(cluster_job["start_time"].to_i)})
+              end
             when /Waiting/i
               job.update({'state' => 'remote_waiting'})
               # close the tap

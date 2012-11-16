@@ -202,6 +202,8 @@ module Cigri
     def secure_run(p,default_error_code)
       begin
         return p.call
+
+      # Exceptions that trig fatal events
       rescue RestClient::RequestTimeout => e
         event=Cigri::Event.new(:class => "cluster", :cluster_id => @id, :code => "TIMEOUT", :message => e)
         Cigri::Colombo.new(event).check
@@ -218,24 +220,26 @@ module Cigri
         event=Cigri::Event.new(:class => "cluster", :cluster_id => @id, :code => "SSL_ERROR", :message => e)
         Cigri::Colombo.new(event).check
         raise Cigri::ClusterAPIConnectionError, e.message
+
+      # Exceptions that trig logging only events (created in the closed state)
       rescue Cigri::ClusterAPIPermissionDenied => e
-        # Just for logging, create a closed event as this is not a fatal error
-        # (this exception must be catched by another level for a campaign event, possibly the runner)
         event=Cigri::Event.new(:state => 'closed', :class => "cluster", :cluster_id => @id, :code => "PERMISSION_DENIED", :message => e)
         Cigri::Colombo.new(event).check
         raise
       rescue Cigri::ClusterAPIForbidden => e
-        # Just for logging, create a closed event as this is not a fatal error
-        # (this exception must be catched by another level for a campaign event, possibly the runner)
         event=Cigri::Event.new(:state => 'closed', :class => "cluster", :cluster_id => @id, :code => "FORBIDDEN", :message => e)
         Cigri::Colombo.new(event).check
         raise
       rescue Cigri::ClusterAPIServerError => e
-        # Just for logging, create a closed event as this is not a fatal error
-        # (this exception must be catched by another level for a campaign event, possibly the runner)
         event=Cigri::Event.new(:state => 'closed', :class => "cluster", :cluster_id => @id, :code => "CLUSTER_API_SERVER_ERROR", :message => e)
         Cigri::Colombo.new(event).check
         raise
+
+      # Exceptions that should not trig events at this level
+      rescue Cigri::ClusterAPINotFound => e
+        raise 
+
+      # All other exceptions trig a fatal default event
       rescue => e
         event=Cigri::Event.new(:class => "cluster", :cluster_id => @id, :code => default_error_code, :message => "#{e.class}: #{e}")
         Cigri::Colombo.new(event).check

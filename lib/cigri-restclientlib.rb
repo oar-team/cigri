@@ -121,6 +121,8 @@ module Cigri
           raise Cigri::ClusterAPIForbidden, "#{e.http_code} error in GET for #{uri}:\n #{e.response.body}"
         elsif  e.http_code == 500
           raise Cigri::ClusterAPIServerError, "#{e.http_code} error in GET for #{uri}:\n #{e.response.body}"
+        elsif  e.http_code == 404
+          raise Cigri::ClusterAPINotFound, "#{e.http_code} error in GET for #{uri}:\n #{e.response.body}"
         else
           raise Cigri::Error, "#{e.http_code} error in GET for #{uri}:\n #{e.response.body}"
         end

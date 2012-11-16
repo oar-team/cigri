@@ -65,6 +65,41 @@ module Cigri
       end  
     end
 
+    # Get the state for a job that is part of a batch (jobs grouping)
+    # Output:
+    #  Mimic a OAR job so that we can use the Colombo::analyze_remote_job_events function
+    #  {state=<notstarted|running|finished>,start_time,stop_time,exit_code,stderr_file,launching_directory}
+    def get_subjob_state(cluster=nil)
+      output={}
+      cluster=Cluster.new(:id => cluster_id) if cluster.nil?
+      status_file=""
+      begin 
+        status_file=cluster.get_file("/~/cigri_batch_state_"+id.to_s,@props[:grid_user])
+        start_time=nil
+        exit_code=nil
+        stop_time=nil
+        status_file.each_line do |line|
+          tag=line.split(/=/)
+          case tag[0]
+          when /BEGIN_DATE/
+            start_time=tag[1]
+            output["state"]="running"
+          when /RET/
+            exit_code=tag[1]
+          when /END_DATE/
+            stop_time=tag[1]
+            output["state"]="finished"
+          end
+        end
+      rescue Cigri::ClusterAPINotFound => e
+        output["state"]="notstarted"
+      rescue
+        raise
+      end
+      output["events"]=[]
+      return output
+    end
+
   end # class Job
 
   # Jobset class
@@ -203,10 +238,17 @@ module Cigri
     # Submit jobs on the given cluster grouping them into a unique batch job
     def submit_batch_job(cluster,jobs,campaign,runner_options)
       if runner_options["temporal_grouping"]
-        script=""
+        script="#!/bin/bash\nset +e\n"
         jobs.each do |job|
+          state_file="cigri_batch_state_"+job.id.to_s
+          stdout_file="cigri_batch_stdout_"+job.id.to_s
+          stderr_file="cigri_batch_stderr_"+job.id.to_s
+          script+="echo \"BEGIN_DATE=`date +%s`\" >> #{state_file}\n"
+          #TODO: cd into the workdir?
           script+=campaign.clusters[cluster.id]["exec_file"]+" "+job.props[:param]
-          script+=" && touch cigri_done_"+job.props[:param_id]+"\n"
+          script+=" > #{stdout_file} 2>#{stderr_file}\n"
+          script+="echo \"RET=\\$?\" >> #{state_file}\n"
+          script+="echo \"END_DATE=`date +%s`\" >> #{state_file}\n"
         end
         submission_string={ "resources" => campaign.clusters[cluster.id]["resources"],
                             "command" => script
@@ -219,11 +261,11 @@ module Cigri
       end
        # Add properties from the JDL
       submission_string=add_jdl_properties(submission_string,campaign,cluster.id)
-      JOBLIBLOGGER.debug("Submitting new array job on #{cluster.description["name"]}.")
+      JOBLIBLOGGER.debug("Submitting new batch job on #{cluster.description["name"]}.")
       # Actual submission
       launching_jobs=Jobset.new
       launching_jobs.fill(jobs,true)       
-      launching_jobs.update({'state' => 'launching'})
+      launching_jobs.update({'state' => 'launching','tag' => 'batch'})
       j=cluster.submit_job(submission_string,campaign.props[:grid_user])
       if j.nil?
         JOBLIBLOGGER.error("Unhandled error when submitting jobs on #{cluster.description["name"]}!")
