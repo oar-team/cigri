@@ -136,6 +136,7 @@ gen-ssl-cert: /etc/cigri/ssl
 
 clean:
 	rm -rf doc/rdoc doc/yard .yardoc
+	rm -f doc/documentation/*.pdf doc/documentation/*.html doc/documentation/*.aux doc/documentation/*.out doc/documentation/*.log
  
 uninstall:
 	@if [ -d $(DESTDIR)$(CIGRICONFDIR) ]; then echo "Not removing $(DESTDIR)$(CIGRICONFDIR)"; fi
