@@ -159,7 +159,7 @@ module Cigri
                       'exec_directory'          => '$HOME',
                       'output_gathering_method' => 'None',
                       'dimensional_grouping'    => 'false',
-                      'temporal_grouping'       => 'true',
+                      'temporal_grouping'       => 'false',
                       'checkpointing_type'      => 'None',
                       'test_mode'               => 'false',
                       'properties'              => ''}

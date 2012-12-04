@@ -33,6 +33,7 @@ module Cigri
           props[:notified]=false
         end
         props[:date_open]=Time::now()
+        props[:date_update]=props[:date_open]
         msg=""
         props.each_key do |prop| 
           msg += "#{prop}=\"#{props[prop]}\" "
