@@ -513,8 +513,12 @@ def close_event(dbh, user, id)
   IOLIBLOGGER.debug("Received request to close the event '#{id}'")
   event=Cigri::Event.new(:id=>id)
   raise Cigri::NotFound, "Event #{id} not found" unless event.props
-  raise Cigri::Unauthorized, "Not authorized to close event #{id}" unless event.props[:campaign_id]
-  check_rights!(dbh, user, event.props[:campaign_id])
+  if event.props[:campaign_id].to_s=='' && user != 'root'
+    raise Cigri::Unauthorized, "Not authorized to close event #{id}"
+  end
+  if user != 'root'
+    check_rights!(dbh, user, event.props[:campaign_id])
+  end
   nb = dbh.do("UPDATE events 
                 SET state='closed' 
                 WHERE id = ?", id)
@@ -861,7 +865,7 @@ def get_campaigns_nb_finished_jobs(dbh, ids)
   dbh.execute("SELECT campaign_id, COUNT(*) 
               FROM jobs
               WHERE campaign_id in ('" << ids.join('\',\'') << "') 
-                AND state = 'terminated'
+                AND state = 'terminated' AND tag != 'prologue' AND tag != 'epilogue'
               GROUP BY campaign_id").each do |row|
     result[row[0]] = row[1]
   end
