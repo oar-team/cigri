@@ -105,6 +105,10 @@ begin
   else
     if campaign_id  
       campaigns = [JSON.parse(response.body)]
+      if campaigns[0]['status'] == 404
+        STDERR.puts("Campaign #{campaign_id} not found!")
+        exit
+      end
     else
       campaigns = JSON.parse(response.body)['items']
     end
@@ -141,6 +145,7 @@ begin
       exit
     end
   end
+rescue SystemExit
 rescue Errno::ECONNREFUSED => e
   STDERR.puts("API server not reachable: #{e.inspect}")
 rescue Exception => e
