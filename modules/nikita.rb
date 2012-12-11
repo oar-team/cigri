@@ -72,8 +72,23 @@ begin
   # TODO
 
   # Check for jobs in remotewaiting for too long
-  # TODO
-
+  remote_waiting_timeout=config.get("REMOTE_WAITING_TIMEOUT",900)
+  jobs=Cigri::Jobset.new({:where => "jobs.state='remote_waiting' and extract('epoch' from now()) - extract('epoch' from jobs.submission_time) > #{remote_waiting_timeout}"})
+  jobs.each do |job|
+    job_event=Cigri::Event.new({:class => "job",
+                    :job_id => job.id,
+                    :code => "REMOTE_WAITING_FRAG",
+                    :message => "Killed because it was remote_waiting for too long. Resubmitting job."})
+    job.update({:state => "event"})
+    job_event.close
+    begin
+      job.kill
+      job.resubmit
+    rescue => e
+      logger.warn("Could not kill job #{job.id}")
+      logger.debug("Error while killing #{job.id}: #{e}")
+    end
+  end
 
   logger.debug('Exiting')
 end
