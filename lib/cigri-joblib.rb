@@ -312,10 +312,7 @@ module Cigri
               submitted_jobs << submit_single_job(cluster,tagged_job[0],campaign,{
                                "resources" => "resource_id=1",
                                "command" => campaign.clusters[cluster_id][tag] } )
-              myjobs.delete(tagged_job) # <- does not work??
-                                        # TODO: check here, because, we have a
-                                        # ghost job created on the next step with 
-                                        # param_id=0
+              myjobs.delete(tagged_job[0])
             end
           end
           # Group the jobs by runner_options
