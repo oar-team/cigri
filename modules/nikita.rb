@@ -96,6 +96,8 @@ begin
   end
 
   # Check for queued jobs for too long
+  # Maybe TODO: we maybe have to increment an indice for those jobs not to be scheduled again on the same cluster, 
+  # as it is the main idea of this forced removal 
   remote_waiting_timeout=config.get("REMOTE_WAITING_TIMEOUT",900)
   jobs=Cigri::JobtolaunchSet.new({:where => "extract('epoch' from now()) - extract('epoch' from queuing_date) > #{remote_waiting_timeout}",
                                   :what => "jobs_to_launch.id as id"
