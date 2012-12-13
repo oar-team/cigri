@@ -509,7 +509,7 @@ module Cigri
 
     # Creates the new jobset
     def initialize(props={})
-      props[:where] += " AND task_id = bag_of_tasks.id" if props[:where]
+      props[:where] += " AND bag_of_tasks.id = jobs_to_launch.task_id" if props[:where]
       super("jobs_to_launch, bag_of_tasks", props)
     end
 

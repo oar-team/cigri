@@ -43,6 +43,7 @@ begin
         job_event=Cigri::Event.new({:class => "job", 
                           :job_id => job.id, 
                           :code => "USER_FRAG",
+                          :state => "closed",
                           :message => "Nikita requested to kill the job because of a USER_FRAG event on campaign #{event.props[:campaign_id]}"})
         job.update({:state => "event"})
         job_event.close
@@ -78,6 +79,7 @@ begin
     job_event=Cigri::Event.new({:class => "job",
                     :job_id => job.id,
                     :code => "REMOTE_WAITING_FRAG",
+                    :state => "closed",
                     :message => "Killed because it was remote_waiting for too long. Resubmitting job."})
     job.update({:state => "event"})
     job_event.close
@@ -92,6 +94,21 @@ begin
       logger.debug("Error while killing #{job.id}: #{e}")
     end
   end
+
+  # Check for queued jobs for too long
+  remote_waiting_timeout=config.get("REMOTE_WAITING_TIMEOUT",900)
+  jobs=Cigri::JobtolaunchSet.new({:where => "extract('epoch' from now()) - extract('epoch' from queuing_date) > #{remote_waiting_timeout}",
+                                  :what => "jobs_to_launch.id as id"
+                                 })
+  if jobs.length > 0
+    event=Cigri::Event.new({:class => "log",
+                            :code => "QUEUED_FOR_TOO_LONG",
+                            :state => "closed",
+                            :message => "Removing #{jobs.length} jobs from the queue because they were queued for too long"})
+    jobs.delete!("jobs_to_launch")
+    event.close
+  end
+
 
   logger.debug('Exiting')
 end

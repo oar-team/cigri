@@ -928,8 +928,8 @@ def add_jobs_to_launch(dbh, tasks, cluster_id, tag, runner_options)
   dbh['AutoCommit'] = false
   begin
     query = 'INSERT into jobs_to_launch
-             (task_id,cluster_id,tag,runner_options)
-             VALUES (?,?,?,?)'
+             (task_id,cluster_id,tag,runner_options,queuing_date)
+             VALUES (?,?,?,?,now())'
     tasks.each do |task_id|
       dbh.do(query, task_id, cluster_id, tag, runner_options)
     end

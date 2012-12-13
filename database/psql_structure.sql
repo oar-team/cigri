@@ -95,6 +95,7 @@ CREATE TABLE  jobs_to_launch (
   task_id BIGINT NOT NULL,
   cluster_id INTEGER NOT NULL,
   tag VARCHAR(255),
+  queuing_date TIMESTAMP,
   runner_options TEXT,
   PRIMARY KEY (id)
 );
@@ -133,7 +134,7 @@ DROP TABLE IF EXISTS events;
 DROP TYPE IF EXISTS event_class;
 DROP TYPE IF EXISTS event_state;
 DROP TYPE IF EXISTS checkbox;
-CREATE TYPE event_class as ENUM('cluster','job','campaign','notify');
+CREATE TYPE event_class as ENUM('cluster','job','campaign','notify','log');
 CREATE TYPE event_state as ENUM('open','closed');
 CREATE TYPE checkbox as ENUM('yes','no');
 CREATE TABLE  events (
