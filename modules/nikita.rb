@@ -83,7 +83,10 @@ begin
     job_event.close
     begin
       job.kill
-      job.resubmit
+      # Resubmit (except for pro/epilogue as the metascheduler does it)
+      if not (job.props[:tag] == "prologue" || job.props[:tag] == "epilogue")
+        job.resubmit
+      end
     rescue => e
       logger.warn("Could not kill job #{job.id}")
       logger.debug("Error while killing #{job.id}: #{e}")
