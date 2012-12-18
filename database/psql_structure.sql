@@ -201,6 +201,27 @@ CREATE TABLE grid_usage (
 );
 CREATE INDEX grid_usage_idx_date ON grid_usage (date);
 
+DROP TABLE IF EXISTS users_priority;
+CREATE TABLE users_priority (
+  id SERIAL NOT NULL,
+  grid_user VARCHAR(255) NOT NULL,
+  cluster_id INTEGER NOT NULL,
+  priority INTEGER NOT NULL
+);
+CREATE INDEX users_priority_idx_grid_user ON users_priority(grid_user);
+CREATE INDEX users_priority_idx_cluster_id ON users_priority(cluster_id);
+
+DROP TABLE IF EXISTS tasks_affinity;
+CREATE TABLE tasks_affinity (
+  id BIGSERIAL NOT NULL,
+  task_id VARCHAR(255) NOT NULL,
+  cluster_id INTEGER NOT NULL,
+  priority INTEGER NOT NULL
+);
+CREATE INDEX tasks_affinity_idx_task_id ON tasks_affinity(task_id);
+CREATE INDEX tasks_affinity_idx_cluster_id ON tasks_affinity(cluster_id);
+
+
 INSERT INTO admission_rules VALUES (1, '# Title : Filtering users for normal mode on clusters 
 # Description : This rule rejects campaigns for which the user requests non best-effort (normal) mode on non-authorized cluster. The list of users is maintained into the /etc/cigri/user_lists file.
 

@@ -3,6 +3,7 @@
 $LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
 
 require 'cigri'
+require 'cigri-iolib'
 require 'cigri-joblib'
 require 'cigri-eventlib'
 require 'cigri-colombolib'
@@ -88,6 +89,7 @@ begin
       # Resubmit (except for pro/epilogue as the metascheduler does it)
       if not (job.props[:tag] == "prologue" || job.props[:tag] == "epilogue")
         job.resubmit
+        job.decrease_affinity
       end
     rescue => e
       logger.warn("Could not kill job #{job.id}")
@@ -96,17 +98,20 @@ begin
   end
 
   # Check for queued jobs for too long
-  # Maybe TODO: we maybe have to increment an indice for those jobs not to be scheduled again on the same cluster, 
-  # as it is the main idea of this forced removal 
   remote_waiting_timeout=config.get("REMOTE_WAITING_TIMEOUT",900)
   jobs=Cigri::JobtolaunchSet.new({:where => "extract('epoch' from now()) - extract('epoch' from queuing_date) > #{remote_waiting_timeout}",
-                                  :what => "jobs_to_launch.id as id"
+                                  :what => "jobs_to_launch.id as id,jobs_to_launch.task_id as task_id,cluster_id"
                                  })
   if jobs.length > 0
     event=Cigri::Event.new({:class => "log",
                             :code => "QUEUED_FOR_TOO_LONG",
                             :state => "closed",
                             :message => "Removing #{jobs.length} jobs from the queue because they were queued for too long"})
+    # Update task affinity
+    jobs.each do |job|
+      decrease_affinity(job.props[:task_id],job.props[:cluster_id])
+    end
+    # Remove jobs from the queue
     jobs.delete!("jobs_to_launch")
     event.close
   end

@@ -1196,7 +1196,11 @@ class Datarecord
 
   # Quick access to the id of the datarecord
   def id
-    @props[:id].to_i
+    if @props.nil?
+      return nil
+     else
+      return @props[:id].to_i
+     end
   end
 
   # Update a datarecord into the database

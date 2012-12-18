@@ -564,6 +564,7 @@ module Cigri
     end
 
     # Fills the @cluster hash with the properties (JDL) of this campaign
+    # Warning: these are not Cluster objects!
     # This hash looks like:
     #  {1=>
     #    [{"resources"=>"core=1"},
@@ -777,6 +778,56 @@ module Cigri
     # Returns a hash campaign_id => grid_user
     def get_users
       Hash[@records.map {|record| [record.id,record.props[:grid_user]]}]
+    end
+
+    # Return all the clusters (objects) that are not blacklisted and used by at least
+    # one campaign of this Campaignset
+    # This is mainly to create a cache of cluster objects, for optimization
+    def get_clusters
+      clusters={}
+      @records.each do |campaign|
+        campaign.get_clusters
+        campaign.clusters.each_key do |cluster_id|
+          if not clusters[cluster_id]
+            cluster=Cigri::Cluster.new(:id => cluster_id)
+            if cluster.blacklisted?
+              clusters[cluster_id]=nil
+            else
+              clusters[cluster_id]=cluster
+            end
+          end
+        end
+      end
+      return clusters.values.compact
+    end
+  
+    # Get a cluster from a cluster array (a clusters cache) by its id
+    def get_cluster(cache,id)
+      cache[cache.index {|c| c.id == id}]
+    end
+
+    # Compute an ordered list of (campaign_id,cluster_id) on which we can schedule jobs
+    # The order defines the priority for scheduling.
+    # The presence of a couple is conditionned by blacklists, prologue and stress_factor.
+    # The order depends on users_priority.
+    def compute_orders
+      couples=[]
+      clusters_cache=get_clusters
+      # First pass: get the couples
+      @records.each do |campaign|
+        campaign.get_clusters
+        campaign.clusters.each_key do |cluster_id|
+          cluster=get_cluster(clusters_cache,cluster_id)
+          if campaign.prologue_ok?(cluster_id) and 
+               not cluster.blacklisted and 
+               not cluster.stressed
+             couples << [campaign.id,cluster_id]
+          end
+        end
+      end
+      # Second pass: order the couples
+      # TODO
+      couples
     end
  
   end # Class Campaignset

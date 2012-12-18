@@ -43,13 +43,16 @@ describe 'cigri-joblib' do
 
   describe 'Jobset' do
     before(:all) do
-      param = Datarecord.new('parameters', :campaign_id => 9999998)
-      j1 = Cigri::Job.new(:campaign_id => 9999998, :state => "to_launch", :node_name => "obiwan1", :param_id => param.props[:id])
-      j2 = Cigri::Job.new(:campaign_id => 9999998, :state => "to_launch", :node_name => "obiwan2", :param_id => param.props[:id])
-      @jobs=Cigri::Jobset.new(:where => "node_name like 'obiwan%'")
+      campaign = Datarecord.new('campaigns', :grid_user => "obiwan", :state => "terminated", :type => "none")
+      param = Datarecord.new('parameters', :campaign_id => campaign.id)
+      j1 = Cigri::Job.new(:campaign_id => campaign.id, :state => "to_launch", :node_name => "obiwan1", :param_id => param.props[:id])
+      j2 = Cigri::Job.new(:campaign_id => campaign.id, :state => "to_launch", :node_name => "obiwan2", :param_id => param.props[:id])
+      @jobs=Cigri::Jobset.new(:where => "jobs.node_name like 'obiwan%'")
       j1.delete
       j2.delete
       param.delete
+      @campaign_id=campaign.id
+      campaign.delete
     end
     it 'should have a length of 2' do
       @jobs.length.should == 2
@@ -57,7 +60,7 @@ describe 'cigri-joblib' do
     it 'should return 2 jobs' do
       count=0
       @jobs.each do |job|
-        count += 1 if job.props[:campaign_id].to_i == 9999998
+        count += 1 if job.props[:campaign_id].to_i == @campaign_id
       end
       count.should == 2
     end
