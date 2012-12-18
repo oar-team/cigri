@@ -814,14 +814,14 @@ module Cigri
     def compute_orders
       couples=[]
       clusters_cache=get_clusters
-      # First pass: get the active couples (remove blacklisted and stressed clusters)
+      # First pass: get the active couples (remove blacklisted and under stress clusters)
       @records.each do |campaign|
         campaign.get_clusters
         campaign.clusters.each_key do |cluster_id|
           cluster=get_cluster(clusters_cache,cluster_id)
           if campaign.prologue_ok?(cluster_id) and 
                not cluster.blacklisted? and 
-               not cluster.stressed?
+               not cluster.under_stress?
              couples << [campaign.id,cluster_id]
           end
         end

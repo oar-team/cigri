@@ -255,7 +255,7 @@ module Cigri
     end
 
     # Return true if the stress_factor is above 1
-    def stressed?
+    def under_stress?
       props[:stress_factor].to_f >= 1
     end
 
