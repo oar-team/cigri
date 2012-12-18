@@ -835,7 +835,7 @@ module Cigri
         campaigns=couples.select{|c| c[1]==cluster.id}
         campaigns.map!{|c| c[0].to_i }
         # Fifo sort (sort by campaign_id)
-        campaigns.sort 
+        campaigns.sort!
         # Users priority
         users_priority=Dataset.new('users_priority',:where => "cluster_id = #{cluster.id}")
         priorities={}
@@ -847,9 +847,7 @@ module Cigri
             priorities[campaign_id]=0
           end
         end
-        #campaigns.stable_sort{|a,b| priorities[b] <=> priorities[a]}
-        campaigns.sort{|a,b| priorities[b] <=> priorities[a]} # TODO: debug! Does not work :-(
-                                                              # see rspec tests for joblib
+        campaigns.sort!{|a,b| priorities[b] <=> priorities[a]}
         campaigns.each do |c|
           ordered_couples << [cluster.id,c]
         end
