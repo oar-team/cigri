@@ -819,8 +819,8 @@ module Cigri
         campaign.clusters.each_key do |cluster_id|
           cluster=get_cluster(clusters_cache,cluster_id)
           if campaign.prologue_ok?(cluster_id) and 
-               not cluster.blacklisted and 
-               not cluster.stressed
+               not cluster.blacklisted? and 
+               not cluster.stressed?
              couples << [campaign.id,cluster_id]
           end
         end

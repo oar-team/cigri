@@ -24,6 +24,7 @@ CREATE TABLE clusters (
   resource_unit VARCHAR(255) DEFAULT 'resource_id',
   power INT,
   properties VARCHAR(255),
+  stress_factor FLOAT DEFAULT 0,
   PRIMARY KEY (id)
 );
 

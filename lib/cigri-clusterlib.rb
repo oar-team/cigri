@@ -254,6 +254,11 @@ module Cigri
       mapped_user.length > 0 ? mapped_user.records[0].props[:cluster_login] : user
     end
 
+    # Return true if the stress_factor is above 1
+    def stressed?
+      props[:stress_factor].to_f >= 1
+    end
+
     # Get the resources
     def get_resources
       raise "Method must be overridden"

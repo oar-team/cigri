@@ -125,6 +125,11 @@ begin
       logger.warn("Could not update the grid_usage table! #{e.message} #{e.backtrace}") 
     end
   end
-  
+ 
+  ## 
+  # Update clusters stress factors
+  ## 
+  #TODO
+ 
   logger.debug('Exiting')
 end

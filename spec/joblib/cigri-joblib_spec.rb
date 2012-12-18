@@ -71,5 +71,68 @@ describe 'cigri-joblib' do
       @jobs.ids[0].should be_an(Integer)
     end
   end 
+ 
+  describe 'Campaignset' do
+    before(:all) do
+      @campaign1 = Datarecord.new('campaigns', :grid_user => "obiwan", :state => "in_treatment", :type => "none")
+      @property11 = Datarecord.new('campaign_properties', :cluster_id => 1, 
+                                                :campaign_id => @campaign1.id,
+                                                :name => "obiwan",
+                                                :value => "kenobi")
+      @property12 = Datarecord.new('campaign_properties', :cluster_id => 2, 
+                                                :campaign_id => @campaign1.id,
+                                                :name => "obiwan",
+                                                :value => "kenobi")
+      @campaign2 = Datarecord.new('campaigns', :grid_user => "obiwan", :state => "in_treatment", :type => "none")
+      @property21 = Datarecord.new('campaign_properties', :cluster_id => 2, 
+                                                :campaign_id => @campaign2.id,
+                                                :name => "obiwan",
+                                                :value => "kenobi")
+      @property22 = Datarecord.new('campaign_properties', :cluster_id => 3, 
+                                                :campaign_id => @campaign2.id,
+                                                :name => "obiwan",
+                                                :value => "kenobi")
+      @campaign_set=Cigri::Campaignset.new()
+      @campaign_set.get_running
+    end
+
+    after(:all) do 
+      @campaign1.delete
+      @campaign2.delete
+      @property11.delete
+      @property12.delete
+      @property21.delete
+      @property22.delete
+     end
+
+     it 'should contain 2 running campaigns' do
+       @campaign_set.length.should == 2
+     end
+
+     it 'should contain 3 clusters' do
+       cluster_cache=@campaign_set.get_clusters
+       cluster_cache.length.should == 3
+     end
+  
+     it 'should compute couples orders' do
+       lambda { couples=@campaign_set.compute_orders }.should_not raise_error Exception
+     end
+
+     it 'should return 4 couples' do
+       @campaign_set.compute_orders.length.should == 4
+     end
+
+     context 'when a cluster is stressed' do
+       it 'should return 2 couples' do
+         cluster=Datarecord.new('clusters',:id => 2)
+         cluster.props[:stress_factor]=1.2
+         cluster.update(cluster.props)
+         @campaign_set.compute_orders.length.should == 2
+         cluster.props[:stress_factor]=0
+         cluster.update(cluster.props)
+       end
+     end
+
+  end
   
 end # cigri-joblib
