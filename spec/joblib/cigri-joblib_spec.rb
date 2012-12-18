@@ -83,7 +83,7 @@ describe 'cigri-joblib' do
                                                 :campaign_id => @campaign1.id,
                                                 :name => "obiwan",
                                                 :value => "kenobi")
-      @campaign2 = Datarecord.new('campaigns', :grid_user => "obiwan", :state => "in_treatment", :type => "none")
+      @campaign2 = Datarecord.new('campaigns', :grid_user => "yoda", :state => "in_treatment", :type => "none")
       @property21 = Datarecord.new('campaign_properties', :cluster_id => 2, 
                                                 :campaign_id => @campaign2.id,
                                                 :name => "obiwan",
@@ -131,6 +131,19 @@ describe 'cigri-joblib' do
          cluster.props[:stress_factor]=0
          cluster.update(cluster.props)
        end
+     end
+
+     it 'should be fifo by default' do
+       @campaign_set.compute_orders.should == 
+          [[1,@campaign1.id],[2,@campaign1.id],[2,@campaign2.id],[3,@campaign2.id]]
+     end
+
+     it 'should place yoda before obiwan if yoda is the best' do
+       prio=Datarecord.new('users_priority',
+                            :grid_user => "yoda", :cluster_id => 2, :priority => 10)
+       @campaign_set.compute_orders.should ==
+          [[1,@campaign1.id],[2,@campaign2.id],[2,@campaign1.id],[3,@campaign2.id]]
+       prio.delete
      end
 
   end

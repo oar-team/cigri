@@ -5,6 +5,7 @@
 # it still makes SQL queries, but more in a "meta" way
 #
 
+require 'cigri'
 require 'cigri-logger'
 require 'cigri-conflib'
 require 'cigri-iolib'
@@ -813,7 +814,7 @@ module Cigri
     def compute_orders
       couples=[]
       clusters_cache=get_clusters
-      # First pass: get the couples
+      # First pass: get the active couples (remove blacklisted and stressed clusters)
       @records.each do |campaign|
         campaign.get_clusters
         campaign.clusters.each_key do |cluster_id|
@@ -825,9 +826,35 @@ module Cigri
           end
         end
       end
-      # Second pass: order the couples
-      # TODO
-      couples
+      # Second pass: order the couples by users affinity and fifo
+      users=get_users
+      ordered_couples=[]
+      clusters_cache.sort{|a,b| a.props[:power] <=> b.props[:power]}
+      clusters_cache.each do |cluster|
+        # TODO: Any way to do the following two lines in one shot?
+        campaigns=couples.select{|c| c[1]==cluster.id}
+        campaigns.map!{|c| c[0].to_i }
+        # Fifo sort (sort by campaign_id)
+        campaigns.sort 
+        # Users priority
+        users_priority=Dataset.new('users_priority',:where => "cluster_id = #{cluster.id}")
+        priorities={}
+        campaigns.each do |campaign_id|
+          u=users_priority.records.select{|u| u.props[:grid_user] == users[campaign_id]}[0]
+          if u
+            priorities[campaign_id]=u.props[:priority].to_i
+          else
+            priorities[campaign_id]=0
+          end
+        end
+        #campaigns.stable_sort{|a,b| priorities[b] <=> priorities[a]}
+        campaigns.sort{|a,b| priorities[b] <=> priorities[a]} # TODO: debug! Does not work :-(
+                                                              # see rspec tests for joblib
+        campaigns.each do |c|
+          ordered_couples << [cluster.id,c]
+        end
+      end
+      return ordered_couples
     end
  
   end # Class Campaignset
