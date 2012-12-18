@@ -834,9 +834,7 @@ module Cigri
         # TODO: Any way to do the following two lines in one shot?
         campaigns=couples.select{|c| c[1]==cluster.id}
         campaigns.map!{|c| c[0].to_i }
-        # Fifo sort (sort by campaign_id)
-        campaigns.sort!
-        # Users priority
+        # Get users priority
         users_priority=Dataset.new('users_priority',:where => "cluster_id = #{cluster.id}")
         priorities={}
         campaigns.each do |campaign_id|
@@ -847,7 +845,8 @@ module Cigri
             priorities[campaign_id]=0
           end
         end
-        campaigns.sort!{|a,b| priorities[b] <=> priorities[a]}
+        # Do a stable sort on priorities (stable for ids)
+        campaigns=campaigns.sort_by{|x| [priorities[x]*-1,x]}
         campaigns.each do |c|
           ordered_couples << [cluster.id,c]
         end

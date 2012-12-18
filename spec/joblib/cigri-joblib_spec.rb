@@ -139,11 +139,16 @@ describe 'cigri-joblib' do
      end
 
      it 'should place yoda before obiwan if yoda is the best' do
-       prio=Datarecord.new('users_priority',
+       @prio=Datarecord.new('users_priority',
                             :grid_user => "yoda", :cluster_id => 2, :priority => 10)
-       @campaign_set.compute_orders.should ==
-          [[1,@campaign1.id],[2,@campaign2.id],[2,@campaign1.id],[3,@campaign2.id]]
-       prio.delete
+       begin
+         @campaign_set.compute_orders.should ==
+            [[1,@campaign1.id],[2,@campaign2.id],[2,@campaign1.id],[3,@campaign2.id]]
+       rescue
+         raise
+       ensure
+         @prio.delete
+       end
      end
 
   end
