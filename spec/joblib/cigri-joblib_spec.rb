@@ -1,9 +1,8 @@
-require 'spec_helper'
+#require 'spec_helper'
 require 'cigri-joblib'
 require 'dbi'
 
 describe 'cigri-joblib' do
-
   describe 'Job without database fetching' do
     before(:all) do
       @job = Cigri::Job.new(:id => 9999999999999, 

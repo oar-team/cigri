@@ -1,4 +1,4 @@
-require 'spec_helper'
+#require 'spec_helper'
 require 'cigri-logger'
 
 describe 'cigri-logger' do

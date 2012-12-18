@@ -1,4 +1,4 @@
-require 'spec_helper'
+#require 'spec_helper'
 require 'cigri-exception'
 require 'cigri-logger'
 
