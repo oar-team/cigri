@@ -214,22 +214,22 @@ describe 'cigri-iolib' do
   describe 'decrease_affinity' do
     it 'should initiate to -1' do
       db_connect() do |dbh| 
-        decrease_affinity(dbh,999,999)
-        affinity=get_affinity(dbh,999,999)
+        decrease_task_affinity(dbh,999,999)
+        affinity=get_task_affinity(dbh,999,999)
         affinity[3].should be -1
       end
     end
     it 'should decrease by -1' do
       db_connect() do |dbh|
-        decrease_affinity(dbh,999,999)
-        affinity=get_affinity(dbh,999,999)
+        decrease_task_affinity(dbh,999,999)
+        affinity=get_task_affinity(dbh,999,999)
         affinity[3].should be -2
       end
     end
     it 'should reset' do
       db_connect() do |dbh|
-        reset_affinity(dbh,999,999)
-        get_affinity(dbh,999,999).should be nil
+        reset_task_affinity(dbh,999,999)
+        get_task_affinity(dbh,999,999).should be nil
       end
     end
   end #end decrease_affinity

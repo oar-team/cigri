@@ -1111,8 +1111,8 @@ end
 # If affinity is found, decrease by one. If not, initiate it to "-1".
 # By default, we consider affinity to be "0".
 #
-def decrease_affinity(dbh,param_id,cluster_id)
-  affinity=get_affinity(dbh,param_id,cluster_id)
+def decrease_task_affinity(dbh,param_id,cluster_id)
+  affinity=get_task_affinity(dbh,param_id,cluster_id)
   if affinity.nil?
     query="insert into tasks_affinity (param_id,cluster_id,priority)
            values (#{param_id},#{cluster_id},-1)"
@@ -1125,15 +1125,18 @@ def decrease_affinity(dbh,param_id,cluster_id)
   dbh.do(query)
 end
 
+##
 # Get a specific affinity
-def get_affinity(dbh,param_id,cluster_id)
+#
+def get_task_affinity(dbh,param_id,cluster_id)
   query="select id,param_id,cluster_id,priority from tasks_affinity 
          where param_id=#{param_id} and cluster_id=#{cluster_id}"
   dbh.select_one(query)
 end
-
+##
 # Delete an affinity (ie reset it to 0)
-def reset_affinity(dbh,param_id,cluster_id)
+#
+def reset_task_affinity(dbh,param_id,cluster_id)
   query="delete from tasks_affinity where param_id=#{param_id} and cluster_id=#{cluster_id}"
   dbh.do(query)
 end

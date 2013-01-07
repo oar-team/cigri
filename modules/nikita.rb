@@ -109,7 +109,7 @@ begin
                             :message => "Removing #{jobs.length} jobs from the queue because they were queued for too long"})
     # Update task affinity
     jobs.each do |job|
-      decrease_affinity(job.props[:task_id],job.props[:cluster_id])
+      job.decrease_affinity
     end
     # Remove jobs from the queue
     jobs.delete!("jobs_to_launch")

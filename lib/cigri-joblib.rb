@@ -101,6 +101,32 @@ module Cigri
       return output
     end
 
+    # Decrease the affinity of this job's parameter on its cluster
+    def decrease_affinity
+      db_connect() do |dbh|
+        decrease_task_affinity(dbh,@props[:param_id],@props[:cluster_id])
+      end
+    end
+     
+    # Get current affinity
+    def get_affinity
+      db_connect() do |dbh|
+        affinity=get_task_affinity(dbh,@props[:param_id],@props[:cluster_id])
+        if affinity.nil?
+          return 0
+        else
+          return affinity[3]
+        end
+      end
+    end
+
+    # Reset affinity to 0
+    def reset_affinity
+      db_connect() do |dbh|
+        reset_task_affinity(dbh,@props[:param_id],@props[:cluster_id])
+      end
+    end
+
   end # class Job
 
   # Jobset class
@@ -499,6 +525,14 @@ module Cigri
     # Creates a new job to launch entry or get it from the database
     def initialize(props={})
       super("jobs_to_launch",props)
+    end
+
+    # Decrease the affinity of a task
+    def decrease_affinity
+      task=Datarecord.new(:id => @props[:task_id])
+      db_connect() do |dbh|
+        decrease_affinity(dbh,task.props[:param_id],@props[:cluster_id])
+      end 
     end
 
   end # class Jobtolaunch

@@ -7,6 +7,7 @@ describe 'cigri-joblib' do
     before(:all) do
       @job = Cigri::Job.new(:id => 9999999999999, 
                             :campaign_id => 9999999 , 
+                            :cluster_id => 999 , 
                             :state => "terminated", 
                             :nodb => true,
                             :param_id => 0)
@@ -22,7 +23,7 @@ describe 'cigri-joblib' do
   describe 'Job from database' do
     before(:all) do
       db_connect() do |dbh|
-        @job = Cigri::Job.new(:campaign_id => 100 , :state => "terminated", :param_id => 0)
+        @job = Cigri::Job.new(:campaign_id => 100 , :state => "terminated", :param_id => 0, :cluster_id => 999)
       end
     end
     it 'should create a new job and return an id' do
@@ -34,6 +35,21 @@ describe 'cigri-joblib' do
     end
     it 'should be able to delete itself from the database' do
       lambda { @job.delete }.should_not raise_error Exception
+    end
+    it 'should have affinity to 0' do
+      @job.get_affinity.should == 0
+    end
+    it 'should decrease affinity' do
+      @job.decrease_affinity
+      @job.get_affinity.should == -1
+    end
+    it 'should decrease affinity' do
+      @job.decrease_affinity
+      @job.get_affinity.should == -2
+    end
+    it 'should reset affinity' do
+      @job.reset_affinity
+      @job.get_affinity.should == 0
     end
     it 'should have deleted the job' do
       job = Cigri::Job.new(:id => @job.id)
