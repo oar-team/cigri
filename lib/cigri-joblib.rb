@@ -844,11 +844,13 @@ module Cigri
     # Compute an ordered list of (campaign_id,cluster_id) on which we can schedule jobs
     # The order defines the priority for scheduling.
     # The presence of a couple is conditionned by blacklists, prologue and stress_factor.
-    # The order depends on users_priority.
-    def compute_orders
+    # The order depends on users_priority and test_mode.
+    def compute_campaigns_orders
       couples=[]
       clusters_cache=get_clusters
+      test_campaigns={}
       # First pass: get the active couples (remove blacklisted and under stress clusters)
+      # Also record the test campaigns for future prioritisation
       @records.each do |campaign|
         campaign.get_clusters
         campaign.clusters.each_key do |cluster_id|
@@ -856,18 +858,25 @@ module Cigri
           if campaign.prologue_ok?(cluster_id) and 
                not cluster.blacklisted? and 
                not cluster.under_stress?
-             couples << [campaign.id,cluster_id]
+             couple = [cluster_id.to_i,campaign.id.to_i]
+             couples << couple
+             if campaign.clusters[cluster_id]["test_mode"] == "true"
+               test_campaigns[couple]=true
+             else 
+               test_campaigns[couple]=false
+             end
           end
+          
         end
       end
       # Second pass: order the couples by users affinity and fifo
       users=get_users
-      ordered_couples=[]
+      sorted_couples=[]
       clusters_cache.sort{|a,b| a.props[:power] <=> b.props[:power]}
       clusters_cache.each do |cluster|
         # TODO: Any way to do the following two lines in one shot?
-        campaigns=couples.select{|c| c[1]==cluster.id}
-        campaigns.map!{|c| c[0].to_i }
+        campaigns=couples.select{|c| c[0]==cluster.id}
+        campaigns.map!{|c| c[1].to_i }
         # Get users priority
         users_priority=Dataset.new('users_priority',:where => "cluster_id = #{cluster.id}")
         priorities={}
@@ -881,13 +890,33 @@ module Cigri
         end
         # Do a stable sort on priorities (stable for ids)
         campaigns=campaigns.sort_by{|x| [priorities[x]*-1,x]}
-        campaigns.each do |c|
-          ordered_couples << [cluster.id,c]
+        # Create the couples, test campaigns first (yes, this is again a sort pass, for test mode this time)
+        campaigns.each do |campaign_id|
+          couple=[cluster.id.to_i,campaign_id]
+          if test_campaigns[couple] == true
+            sorted_couples << couple
+            campaigns.delete(campaign_id)
+          end
+        end
+        campaigns.each do |campaign_id|
+          sorted_couples << [cluster.id.to_i,campaign_id]
         end
       end
-      return ordered_couples
+
+      return sorted_couples
     end
  
+  # Computes an ordered list of tasks for a given campaign on a given cluster
+  # and stop when max tasks are stacked.
+  # This takes into account: 
+  #  - tasks_affinity : for sorting 
+  #  - max_jobs : for limiting the number of jobs on a given cluster (JDL parameter)
+  #  - test mode: for limiting to one task per cluster
+  # This should also take into account duplication (TODO)
+  def compute_stack(cluster_id,campaign_id,max)
+    #TODO
+  end
+
   end # Class Campaignset
   
 end # module Cigri

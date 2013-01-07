@@ -131,11 +131,11 @@ describe 'cigri-joblib' do
      end
   
      it 'should compute couples orders' do
-       lambda { couples=@campaign_set.compute_orders }.should_not raise_error Exception
+       lambda { couples=@campaign_set.compute_campaigns_orders }.should_not raise_error Exception
      end
 
      it 'should return 4 couples' do
-       @campaign_set.compute_orders.length.should == 4
+       @campaign_set.compute_campaigns_orders.length.should == 4
      end
 
      context 'when a cluster is stressed' do
@@ -143,14 +143,14 @@ describe 'cigri-joblib' do
          cluster=Datarecord.new('clusters',:id => 2)
          cluster.props[:stress_factor]=1.2
          cluster.update(cluster.props)
-         @campaign_set.compute_orders.length.should == 2
+         @campaign_set.compute_campaigns_orders.length.should == 2
          cluster.props[:stress_factor]=0
          cluster.update(cluster.props)
        end
      end
 
      it 'should be fifo by default' do
-       @campaign_set.compute_orders.should == 
+       @campaign_set.compute_campaigns_orders.should == 
           [[1,@campaign1.id],[2,@campaign1.id],[2,@campaign2.id],[3,@campaign2.id]]
      end
 
@@ -158,13 +158,30 @@ describe 'cigri-joblib' do
        @prio=Datarecord.new('users_priority',
                             :grid_user => "yoda", :cluster_id => 2, :priority => 10)
        begin
-         @campaign_set.compute_orders.should ==
+         @campaign_set.compute_campaigns_orders.should ==
             [[1,@campaign1.id],[2,@campaign2.id],[2,@campaign1.id],[3,@campaign2.id]]
        rescue
          raise
        ensure
          @prio.delete
        end
+     end
+
+     it 'should place back yoda' do
+            @campaign_set.compute_campaigns_orders.should ==
+          [[1,@campaign1.id],[2,@campaign1.id],[2,@campaign2.id],[3,@campaign2.id]]
+     end
+
+     it 'should place yoda before obiwan if yoda is in test mode' do
+       property = Datarecord.new('campaign_properties', :cluster_id => 2,
+                                                :campaign_id => @campaign2.id,
+                                                :name => "test_mode",
+                                                :value => "true")
+       campaign_set=Cigri::Campaignset.new()
+       campaign_set.get_running
+       campaign_set.compute_campaigns_orders.should ==
+            [[1,@campaign1.id],[2,@campaign2.id],[2,@campaign1.id],[3,@campaign2.id]]
+       property.delete
      end
 
   end
