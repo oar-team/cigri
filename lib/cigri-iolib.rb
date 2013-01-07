@@ -190,7 +190,7 @@ def cigri_submit(dbh, jdl, user)
         at_least_one_cluster = true
         %w{checkpointing_type dimensional_grouping epilogue exec_file 
           output_destination output_file output_gathering_method prologue 
-          properties resources temporal_grouping walltime type test_mode}.each do |prop|
+          properties resources temporal_grouping walltime type test_mode max_jobs}.each do |prop|
             if jdl['clusters'][cluster][prop]
               if prop == "prologue" || prop == "epilogue"
                 jdl['clusters'][cluster][prop]=jdl['clusters'][cluster][prop].join("\n")
@@ -1104,6 +1104,38 @@ def get_average_job_duration(dbh,campaign_id)
   res=dbh.select_all(query)
   return [0,0] if res.length == 0
   return res[0]
+end
+
+##
+# Decrease task affinity.
+# If affinity is found, decrease by one. If not, initiate it to "-1".
+# By default, we consider affinity to be "0".
+#
+def decrease_affinity(dbh,param_id,cluster_id)
+  affinity=get_affinity(dbh,param_id,cluster_id)
+  if affinity.nil?
+    query="insert into tasks_affinity (param_id,cluster_id,priority)
+           values (#{param_id},#{cluster_id},-1)"
+  else
+    priority=affinity[3].to_i
+    id=affinity[0].to_i
+    query="update tasks_affinity set priority=#{priority-1}
+           where id=#{id}"
+  end
+  dbh.do(query)
+end
+
+# Get a specific affinity
+def get_affinity(dbh,param_id,cluster_id)
+  query="select id,param_id,cluster_id,priority from tasks_affinity 
+         where param_id=#{param_id} and cluster_id=#{cluster_id}"
+  dbh.select_one(query)
+end
+
+# Delete an affinity (ie reset it to 0)
+def reset_affinity(dbh,param_id,cluster_id)
+  query="delete from tasks_affinity where param_id=#{param_id} and cluster_id=#{cluster_id}"
+  dbh.do(query)
 end
 
 #######################################################################

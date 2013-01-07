@@ -211,6 +211,29 @@ describe 'cigri-iolib' do
     end
   end # get_running_campaigns
 
+  describe 'decrease_affinity' do
+    it 'should initiate to -1' do
+      db_connect() do |dbh| 
+        decrease_affinity(dbh,999,999)
+        affinity=get_affinity(dbh,999,999)
+        affinity[3].should be -1
+      end
+    end
+    it 'should decrease by -1' do
+      db_connect() do |dbh|
+        decrease_affinity(dbh,999,999)
+        affinity=get_affinity(dbh,999,999)
+        affinity[3].should be -2
+      end
+    end
+    it 'should reset' do
+      db_connect() do |dbh|
+        reset_affinity(dbh,999,999)
+        get_affinity(dbh,999,999).should be nil
+      end
+    end
+  end #end decrease_affinity
+
   describe 'Datarecord' do
     before(:all) do
       db_connect() do |dbh|

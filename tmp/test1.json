@@ -18,7 +18,8 @@
       ]
     },
     "fukushima": {
-      "walltime": "3600"
+      "walltime": "3600",
+      "max_jobs": "3"
     }
   },
   "prologue": [

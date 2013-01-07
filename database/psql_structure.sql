@@ -215,11 +215,11 @@ CREATE INDEX users_priority_idx_cluster_id ON users_priority(cluster_id);
 DROP TABLE IF EXISTS tasks_affinity;
 CREATE TABLE tasks_affinity (
   id BIGSERIAL NOT NULL,
-  task_id VARCHAR(255) NOT NULL,
+  param_id INTEGER NOT NULL,
   cluster_id INTEGER NOT NULL,
   priority INTEGER NOT NULL
 );
-CREATE INDEX tasks_affinity_idx_task_id ON tasks_affinity(task_id);
+CREATE INDEX tasks_affinity_idx_param_id ON tasks_affinity(param_id);
 CREATE INDEX tasks_affinity_idx_cluster_id ON tasks_affinity(cluster_id);
 
 
