@@ -895,6 +895,31 @@ def get_tasks_ids_for_campaign(dbh, id, number = nil)
 end
 
 ##
+# Returns ids of tasks for a given campaign ordered for a given cluster 
+# (using tasks_affinity table for sorting)
+#
+# == Parameters
+# - dbh: dababase handle
+# - id: campaign id
+# - max: number of tasks to return (infinite if nil)
+#
+# == Returns
+# Array of ids
+#
+##
+def get_tasks_ids_for_campaign_on_cluster(dbh, campaign_id, cluster_id, max = nil)
+  limit = max ? "LIMIT #{max}" : ""
+  dbh.select_all("SELECT bag_of_tasks.id,
+                         COALESCE(tasks_affinity.priority,0) as p 
+                  FROM bag_of_tasks 
+                  LEFT JOIN tasks_affinity 
+                            ON bag_of_tasks.param_id = tasks_affinity.param_id and tasks_affinity.cluster_id=#{cluster_id} 
+                  WHERE bag_of_tasks.campaign_id=#{campaign_id} 
+                  ORDER by bag_of_tasks.priority,p desc
+                  #{limit}").flatten!
+end
+
+##
 # Get a new batch id
 #
 # == Parameters

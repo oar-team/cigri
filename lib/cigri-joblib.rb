@@ -841,6 +841,14 @@ module Cigri
       cache[cache.index {|c| c.id == id}]
     end
 
+    # Get campaign by its id
+    def get_campaign(id)
+      @records.each do |campaign|
+        return campaign if campaign.id==id
+      end
+      JOBLIBLOGGER.error("Campaign #{id} not found in current campaignset!")    
+    end
+
     # Compute an ordered list of (campaign_id,cluster_id) on which we can schedule jobs
     # The order defines the priority for scheduling.
     # The presence of a couple is conditionned by blacklists, prologue and stress_factor.
@@ -912,9 +920,33 @@ module Cigri
   #  - tasks_affinity : for sorting 
   #  - max_jobs : for limiting the number of jobs on a given cluster (JDL parameter)
   #  - test mode: for limiting to one task per cluster
-  # This should also take into account duplication (TODO)
-  def compute_stack(cluster_id,campaign_id,max)
-    #TODO
+  # Returns an array of bag_of_tasks ids
+  # Warning: this is not a list of tasks to execute! This is just for ordering. This
+  # is a list of tasks that may potentially be run on the cluster. It does not
+  # guaranty unicity: same tasks may be given for another cluster, but in a
+  # different order (or not!)
+  def compute_tasks_list(cluster_id,campaign_id,max=nil)
+
+=begin
+    max_jobs=nil
+    # Get infos about the campaign
+    campaign=get_campaign(campaign_id)
+    campaign.get_clusters
+    if campaign.clusters[cluster_id]["test_mode"] == "true"
+      max=1
+    elsif not campaign.clusters[cluster_id]["max_jobs"].nil?
+      max_jobs=campaign.clusters[cluster_id]["max_jobs"].to_i
+    end
+    # First, we have to check how many tasks are already into the queue
+    # Then, we also need to know how many tasks are currently running
+    if 
+      max=1
+    elsif
+      max=
+    end
+=end
+    check_connection!
+    get_tasks_ids_for_campaign_on_cluster(@dbh,campaign_id,cluster_id,max)
   end
 
   end # Class Campaignset
