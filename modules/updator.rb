@@ -129,7 +129,27 @@ begin
   ## 
   # Update clusters stress factors
   ## 
-  #TODO
+  logger.debug("updating stress_factors")
+  Cigri::ClusterSet.new.each do |cluster|
+    if not cluster.blacklisted?
+      stress_factor=cluster.get_global_stress_factor
+      if stress_factor != cluster.props[:stress_factor]
+        # update stress factor value
+        c=Datarecord.new("clusters",:id => cluster.id)
+        c.update!({"stress_factor" => stress_factor})
+        # log an event if now under stress (and wasn't before)
+        if stress_factor >= 1 and not cluster.under_stress?
+          Cigri::Event.new(:class => 'cluster', :state => 'open', :cluster_id => cluster.id,
+                       :code => "UNDER_STRESS", :message => "Cluster #{cluster.name} is under stress!")
+        end
+        # close event if no more under stress
+        if stress_factor < 1
+          e=Cigri::Eventset.new(:where => "cluster_id = #{cluster.id} and code='UNDER_STRESS'")
+          e.records[0].close if e.records[0]
+        end
+      end
+    end
+  end 
  
   logger.debug('Exiting')
 end

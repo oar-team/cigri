@@ -284,6 +284,11 @@ module Cigri
       raise "Method must be overridden"
     end
 
+    # Get global stress factor
+    def get_global_stress_factor
+      raise "Method must be overridden"
+    end
+
   end # RestCluster
 
 
@@ -357,6 +362,18 @@ module Cigri
       def get_file(path, user=nil,tail=0)
         secure_run proc{ @api.get("media"+path+"?tail="+tail.to_s,{@description["api_auth_header"] => map_user(user)},:raw => true) }, "GET_MEDIA"
       end
+
+      # Get global stress factor
+      def get_global_stress_factor
+        stress_factor=0.0
+        begin
+          result=secure_run proc{ @api.get("stress_factor") }, "GET_STRESS_FACTOR"
+          stress_factor=result["GLOBAL_STRESS"].to_f
+        rescue
+          CLUSTERLIBLOGGER.warning("Could not get the stress_factor of #{name}!")
+        end
+        return stress_factor
+      end
  
     end # OARCluster
   
@@ -405,6 +422,12 @@ module Cigri
       def get_resources
         raise "not yet implemented"      
       end 
+
+      def get_global_stress_factor
+        CLUSTERLIBLOGGER.debug("Stress factor not implemented for g5k clusters")
+        return 0.0
+      end
+
     end # G5kCluster
 
 
