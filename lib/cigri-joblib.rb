@@ -529,9 +529,9 @@ module Cigri
 
     # Decrease the affinity of a task
     def decrease_affinity
-      task=Datarecord.new(:id => @props[:task_id])
+      task=Datarecord.new("bag_of_tasks",:id => @props[:task_id])
       db_connect() do |dbh|
-        decrease_affinity(dbh,task.props[:param_id],@props[:cluster_id])
+        decrease_task_affinity(dbh,task.props[:param_id],@props[:cluster_id])
       end 
     end
 
@@ -546,6 +546,19 @@ module Cigri
     def initialize(props={})
       props[:where] += " AND bag_of_tasks.id = jobs_to_launch.task_id" if props[:where]
       super("jobs_to_launch, bag_of_tasks", props)
+      to_jobs_tolaunch
+    end
+
+    # This method converts the Datarecord objects into Jobtolaunch objects
+    def to_jobs_tolaunch
+      jobs=[]
+      @records.each do |record|
+        props = record.props
+        props[:nodb] = true
+        job = Jobtolaunch.new(props)
+        jobs << job
+      end
+      @records = jobs
     end
 
     # Alias to the dataset records
