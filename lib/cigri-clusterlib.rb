@@ -20,11 +20,9 @@ CLUSTERLIBLOGGER = Cigri::Logger.new('CLUSTERLIB', CONF.get('LOG_FILE'))
 
 config = Cigri.conf
 
-if config.exists?('RUNNER_DEFAULT_INITIAL_NUMBER_OF_JOBS')
-  DEFAULT_TAP = config.get('RUNNER_DEFAULT_INITIAL_NUMBER_OF_JOBS').to_i
-else
-  DEFAULT_TAP = 5
-end
+DEFAULT_TAP = config.get('RUNNER_DEFAULT_INITIAL_NUMBER_OF_JOBS',5).to_i
+STRESS_FACTOR = config.get('STRESS_FACTOR',0.8).to_f
+
 
 # TODO: this is maybe something not to be fixed, but computed, and maybe 
 # dependent on the campaign, not only the cluster
@@ -256,7 +254,7 @@ module Cigri
 
     # Return true if the stress_factor is above 1
     def under_stress?
-      props[:stress_factor].to_f >= 1
+      props[:stress_factor].to_f >= STRESS_FACTOR
     end
 
     # Get the resources

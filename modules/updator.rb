@@ -138,13 +138,17 @@ begin
         c=Datarecord.new("clusters",:id => cluster.id)
         c.update!({"stress_factor" => stress_factor})
         # log an event if now under stress (and wasn't before)
-        if stress_factor >= 1 and not cluster.under_stress?
-          Cigri::Event.new(:class => 'cluster', :state => 'open', :cluster_id => cluster.id,
-                       :code => "UNDER_STRESS", :message => "Cluster #{cluster.name} is under stress!")
+        if stress_factor >= STRESS_FACTOR
+          e=Cigri::Eventset.new(:where => "cluster_id = #{cluster.id} and code='UNDER_STRESS' and state='open'")
+          if not e.records[0]
+            Cigri::Event.new(:class => 'cluster', :state => 'open', :cluster_id => cluster.id,
+                         :code => "UNDER_STRESS", :message => "Cluster #{cluster.name} is under stress!")
+          end
         end
         # close event if no more under stress
-        if stress_factor < 1
-          e=Cigri::Eventset.new(:where => "cluster_id = #{cluster.id} and code='UNDER_STRESS'")
+        logger.debug("Stress factor for #{cluster.name}: #{stress_factor}/#{STRESS_FACTOR}")
+        if stress_factor < STRESS_FACTOR
+          e=Cigri::Eventset.new(:where => "cluster_id = #{cluster.id} and code='UNDER_STRESS' and state='open'")
           e.records[0].close if e.records[0]
         end
       end
