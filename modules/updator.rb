@@ -143,7 +143,7 @@ begin
           e=Cigri::Eventset.new(:where => "cluster_id = #{cluster.id} and code='UNDER_STRESS' and state='open'")
           if not e.records[0]
             Cigri::Event.new(:class => 'cluster', :state => 'open', :cluster_id => cluster.id,
-                         :code => "UNDER_STRESS", :message => "Cluster #{cluster.name} is under stress (#{stress_factor}/#{STRESS_FACTOR}!")
+                         :code => "UNDER_STRESS", :message => "Cluster #{cluster.name} is under stress (#{stress_factor}/#{STRESS_FACTOR})!")
             have_to_notify=true
           end
         end
