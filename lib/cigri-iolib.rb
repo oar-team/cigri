@@ -915,7 +915,7 @@ def get_tasks_ids_for_campaign_on_cluster(dbh, campaign_id, cluster_id, max = ni
                   LEFT JOIN tasks_affinity 
                             ON bag_of_tasks.param_id = tasks_affinity.param_id and tasks_affinity.cluster_id=#{cluster_id} 
                   WHERE bag_of_tasks.campaign_id=#{campaign_id} 
-                  ORDER by bag_of_tasks.priority,p desc
+                  ORDER by bag_of_tasks.priority desc,p desc,id
                   #{limit}")
    res.collect! {|a| a[0]}
    return res.flatten
