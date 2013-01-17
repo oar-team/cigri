@@ -4,6 +4,7 @@ $LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
 
 require 'cigri'
 require 'cigri-joblib'
+require 'cigri-iolib'
 require 'cigri-scheduler-fifo'
 require 'cigri-eventlib'
 
@@ -19,7 +20,7 @@ def pop_campaign(cluster_id)
   campaign=nil
   $stacks[cluster_id].each do |campaign_id,campaign|
     if campaign.length > 0
-      task=campaign.pop
+      task=[campaign.pop,campaign_id]
       campaign=campaign_id
       break
     end
@@ -27,7 +28,7 @@ def pop_campaign(cluster_id)
   # Now, remove the popped task from other clusters
   if not task.nil?
     $stacks.each_key do |cluster_id|
-      $stacks[cluster_id][campaign].delete(task)
+      $stacks[cluster_id][campaign].delete(task[0])
     end
     return task
   else
@@ -116,18 +117,18 @@ begin
   cluster_campaigns=campaigns.compute_campaigns_orders
 
   # Compute the tasks to put into queues for each (cluster,campaign) pair
-  # Make a set of stasks from which we will pop the jobs.
+  # Make a set of stacks from which we will pop the jobs.
   # Also get current state of each campaign to know how many jobs to queue
   max={}
   cluster_campaigns.each do |pair|
     cluster_id=pair[0]
     campaign_id=pair[1]
     campaign=campaigns.get_campaign(campaign_id)
-    # Potential ordered tasks
+    # Potential tasks, ordered
     if $stacks[cluster_id].nil?
       $stacks[cluster_id]={}
     end
-    $stacks[cluster_id][campaign_id]=campaigns.compute_tasks_list(cluster_id,campaign_id,10).reverse
+    $stacks[cluster_id][campaign_id]=campaigns.compute_tasks_list(cluster_id,campaign_id,20).reverse
     # Number of currently running tasks
  #   running_tasks=campaign.get_number_running_on_cluster(cluster_id)
     # Currently queued tasks
@@ -135,24 +136,71 @@ begin
     # Max to queue
  #   max[pair]=#TODO
   end
-  
-  # Schedule jobs
+ 
+  # Schedule jobs (construct a queue per cluster)
+  # A cluster queue is an ordered list of [task_id,campaign_id] pair
+  # (The campaign_id is a quick reminder to prevent useless quering
+  # of the database)
+  # This step is not exactly scheduling as it is really done earlier 
+  # by the compute_tasks_list method. But it manages with the number
+  # of jobs that should be in queues (especially the max_jobs and test_mode
+  # options)
   queues={}
   not_finished=true
   while not_finished
     not_finished=false
     $stacks.each_key do |cluster_id|
+      #TODO: manage sums, max_jobs and test_mode
       if queues[cluster_id].nil?
         queues[cluster_id]=[]
       end
       task=pop_campaign(cluster_id)
-      not_finished=true if task
-      queues[cluster_id] << task if task
+      if task
+        not_finished=true
+        queues[cluster_id] << task
+      end
     end
   end
 
-puts queues.inspect
+  # Batch the tasks by campaigns
+  # This last step takes care of grouping and passing runner options
+  #
+  queues.each do |cluster_id,tasks|
+    batches=[]
+    batch=nil
+    campaign_id=nil
+    campaign=nil
+    tasks.each do |task_array|
+      task=task_array[0]
+      # New batch
+      if task_array[1] != campaign_id
+        # The current batch is finished, add it to the list of batches
+        batches << batch if batch
+        # Get campaign properties
+        campaign_id=task_array[1]
+        campaign=campaigns.get_campaign(campaign_id)
+        # Construct options depending on campaign types
+        #TODO
+        opts = { :besteffort => 1 } # just for testing
+        # Initiate the new batch
+        batch={ "tasks" => [], "tag" => nil, "opts" => opts }
+      end
+      # Add the task into the current batch
+      batch["tasks"] << task    
+    end
+    # Put the last batch into the list of batches
+    batches << batch if batch
 
+    # Actual queuing!
+    db_connect() do |dbh|
+      batches.each do |batch|
+        add_jobs_to_launch(dbh,batch["tasks"],cluster_id,batch["tag"],batch["opts"])
+      end
+    end 
+    puts "#{cluster_id}: #{batches.inspect}"
+  end
+ 
+ 
 =begin
 
     test=false

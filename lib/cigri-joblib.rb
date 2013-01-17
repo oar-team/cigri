@@ -929,10 +929,7 @@ module Cigri
  
   # Computes an ordered list of tasks for a given campaign on a given cluster
   # and stop when max tasks are stacked.
-  # This takes into account: 
-  #  - tasks_affinity : for sorting 
-  #  - max_jobs : for limiting the number of jobs on a given cluster (JDL parameter)
-  #  - test mode: for limiting to one task per cluster
+  # This takes tasks_affinity into account for sorting. 
   # Returns an array of bag_of_tasks ids
   # Warning: this is not a list of tasks to execute! This is just for ordering. This
   # is a list of tasks that may potentially be run on the cluster. It does not
