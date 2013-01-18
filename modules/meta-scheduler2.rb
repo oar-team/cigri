@@ -90,7 +90,7 @@ begin
   logger.debug('Campaigns sorting')
   cluster_campaigns=campaigns.compute_campaigns_orders
 
-  # Start the scheduler
+  # Pass the ordered list to the scheduler
   scheduler=Cigri::SchedulerAffinity.new(campaigns,cluster_campaigns) 
   scheduler.do
  

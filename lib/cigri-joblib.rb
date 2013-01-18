@@ -900,9 +900,12 @@ module Cigri
     end
 
     # Compute an ordered list of (campaign_id,cluster_id) on which we can schedule jobs
+    # This is the main metascheduler method.
     # The order defines the priority for scheduling.
     # The presence of a couple is conditionned by blacklists, prologue and stress_factor.
     # The order depends on users_priority and test_mode.
+    # TODO: add a third element "max" to tell how many jobs to schedule (a function
+    # of max_jobs, test_mode, running and queued jobs)
     def compute_campaigns_orders
       couples=[]
       clusters_cache=get_clusters
@@ -966,6 +969,7 @@ module Cigri
  
   # Computes an ordered list of tasks for a given campaign on a given cluster
   # and stop when max tasks are stacked.
+  # This is the main method for the scheduler-affinity.
   # This takes tasks_affinity into account for sorting. 
   # Returns an array of bag_of_tasks ids
   # Warning: this is not a list of tasks to execute! This is just for ordering. This
@@ -973,25 +977,6 @@ module Cigri
   # guaranty unicity: same tasks may be given for another cluster, but in a
   # different order (or not!)
   def compute_tasks_list(cluster_id,campaign_id,max=nil)
-
-=begin
-    max_jobs=nil
-    # Get infos about the campaign
-    campaign=get_campaign(campaign_id)
-    campaign.get_clusters
-    if campaign.clusters[cluster_id]["test_mode"] == "true"
-      max=1
-    elsif not campaign.clusters[cluster_id]["max_jobs"].nil?
-      max_jobs=campaign.clusters[cluster_id]["max_jobs"].to_i
-    end
-    # First, we have to check how many tasks are already into the queue
-    # Then, we also need to know how many tasks are currently running
-    if 
-      max=1
-    elsif
-      max=
-    end
-=end
     check_connection!
     get_tasks_ids_for_campaign_on_cluster(@dbh,campaign_id,cluster_id,max)
   end

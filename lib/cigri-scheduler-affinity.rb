@@ -27,11 +27,14 @@ module Cigri
       @queues={}
       @dbh=db_connect()
     end
-    
+   
+    # Take the next task for given cluster from the stacks 
     def pop_campaign(cluster_id)
       task=nil
       campaign=nil
       @stacks[cluster_id].each do |campaign_id,campaign|
+      # TODO: Maybe we should check here if the queue has its
+      # max_jobs, and then empty the corresponding stack 
         if campaign.length > 0
           task=[campaign.pop,campaign_id]
           campaign=campaign_id
@@ -66,12 +69,6 @@ module Cigri
           @stacks[cluster_id]={}
         end
         @stacks[cluster_id][campaign_id]=@campaigns.compute_tasks_list(cluster_id,campaign_id,max_tasks).reverse
-        # Number of currently running tasks
-     #   running_tasks=campaign.get_number_running_on_cluster(cluster_id)
-        # Currently queued tasks
-     #   queued_tasks=campaign.get_number_queued_on_cluster(cluster_id)   
-        # Max to queue
-     #   max[pair]=#TODO
       end     
     end
 
@@ -80,13 +77,14 @@ module Cigri
     # (The campaign_id is a quick reminder to prevent useless quering
     # of the database)
     # Here, we pop tasks from the stacks, one by one, to distribute them
-    # on the clusters in the right order.
+    # on the clusters in the right order
+    # TODO: should take into account the max_jobs to queue (third element
+    # from the metascheduler).
     def setup_queues
       not_finished=true
       while not_finished
         not_finished=false
         @stacks.each_key do |cluster_id|
-          #TODO: manage sums, max_jobs and test_mode
           if @queues[cluster_id].nil?
             @queues[cluster_id]=[]
           end
