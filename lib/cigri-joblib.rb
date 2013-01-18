@@ -211,7 +211,7 @@ module Cigri
     def add_jdl_properties(submission_string,campaign,cluster_id)
        submission_string["walltime"]=campaign.clusters[cluster_id]["walltime"] if campaign.clusters[cluster_id]["walltime"]
        submission_string["directory"]=campaign.clusters[cluster_id]["exec_directory"] if campaign.clusters[cluster_id]["exec_directory"]
-       submission_string["properties"]=campaign.clusters[cluster_id]["properties"] if campaign.clusters[cluster_id]["properties"]
+       submission_string["property"]=campaign.clusters[cluster_id]["properties"] if campaign.clusters[cluster_id]["properties"]
        submission_string
     end
 
@@ -280,6 +280,7 @@ module Cigri
         submission_string={ "resources" => campaign.clusters[cluster.id]["resources"],
                             "command" => script
                           }
+        #TODO: treat walltime!
         if runner_options["besteffort"]
            submission_string["type"]="besteffort"
         end
@@ -336,6 +337,7 @@ module Cigri
           ["prologue","epilogue"].each do |tag|
             tagged_job=myjobs.select {|job| job.props[:tag] == tag}
             if tagged_job.length > 0
+              #TODO: treat walltime!
               submitted_jobs << submit_single_job(cluster,tagged_job[0],campaign,{
                                "resources" => "resource_id=1",
                                "command" => campaign.clusters[cluster_id][tag] } )
@@ -363,6 +365,7 @@ module Cigri
             else
               # Array grouping
               params=jobs.collect {|job| job.props[:param]}
+              #TODO: treat walltime!
               submission = {
                             "param_file" => params.join("\n"),
                             "resources" => campaign.clusters[cluster_id]["resources"],
@@ -773,6 +776,33 @@ module Cigri
     # Get the job throughput (in jobs/seconds) in the last time_window
     def throughput(time_window)
       #TODO
+    end
+
+    # Construct runner options hash for the given cluster
+    def get_runner_options(cluster_id)
+      opts={}
+      # Test mode is non-besteffort
+      if @clusters[cluster_id]["test_mode"] == "true"
+        opts[:besteffort] = false 
+      # Campaign types
+      else
+        case @clusters[cluster_id]["type"]
+        when "best-effort"
+          opts[:besteffort] = true
+        when "normal"
+          opts[:besteffort] = false 
+        else
+          logger.warn("Unknown campaign type: "+@clusters[cluster_id]["type"].to_s+"; using best-effort")
+          opts[:besteffort] = true
+        end
+      end
+      # Grouping
+      if @clusters[cluster_id]["temporal_grouping"] == "true"
+         opts["temporal_grouping"] = true
+      elsif @clusters[cluster_id]["dimensional_grouping"] == "true"
+         opts["dimensional_grouping"] = true
+      end
+      return opts
     end
 
   end # class Campaign

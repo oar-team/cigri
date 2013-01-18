@@ -7,6 +7,7 @@
     "tchernobyl": {
       "type": "best-effort",
       "walltime": "300",
+      "properties" : "cluster='tchernobyl'",
       "prologue": [
         "mkdir -p $HOME/workdir",
         "cd $HOME/workdir",
