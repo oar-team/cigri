@@ -811,6 +811,13 @@ module Cigri
       @records = campaigns
     end
 
+    # Update the finished_jobs property of each campaign
+    def compute_finished_jobs
+      @records.each do |campaign|
+        campaign.props[:finished_jobs] = campaign.nb_completed_tasks
+      end
+    end
+
     # Fill the campaignset with the currently running campaigns
     def get_running
       fill(get("campaigns","*","state = 'in_treatment'"))

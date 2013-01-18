@@ -111,7 +111,7 @@ begin
   #Main almighty loop
   while true do
     logger.debug('New iteration')
-    system("#{File.dirname(__FILE__)}/meta-scheduler.rb")
+    system("#{File.dirname(__FILE__)}/meta-scheduler2.rb")
     system("#{File.dirname(__FILE__)}/updator.rb")
     system("#{File.dirname(__FILE__)}/nikita.rb")
     sleep 10

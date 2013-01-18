@@ -45,7 +45,10 @@ class API < Sinatra::Base
     response['Allow'] = 'GET,POST'
     
     items = []
-    Cigri::Campaignset.new.get_unfinished.each do |campaign|
+    campaigns=Cigri::Campaignset.new
+    campaigns.get_unfinished
+    campaigns.compute_finished_jobs
+    campaigns.each do |campaign|
       items << format_campaign(campaign)
     end
     output = {

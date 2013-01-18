@@ -826,7 +826,8 @@ end
 ##
 def get_campaign_nb_finished_jobs(dbh, id)
 dbh.select_one("SELECT COUNT(*) FROM jobs
-                                WHERE campaign_id = ? 
+                                WHERE campaign_id = ?
+                                  AND param_id != 0 
                                   AND state = 'terminated'", id)[0]
 end
 
@@ -897,6 +898,8 @@ end
 ##
 # Returns ids of tasks for a given campaign ordered for a given cluster 
 # (using tasks_affinity table for sorting)
+# Takes care of not giving tasks that have already been scheduled (ie
+# already into the jobs_to_launch table)
 #
 # == Parameters
 # - dbh: dababase handle
@@ -914,7 +917,10 @@ def get_tasks_ids_for_campaign_on_cluster(dbh, campaign_id, cluster_id, max = ni
                   FROM bag_of_tasks 
                   LEFT JOIN tasks_affinity 
                             ON bag_of_tasks.param_id = tasks_affinity.param_id and tasks_affinity.cluster_id=#{cluster_id} 
+                  LEFT JOIN jobs_to_launch
+                            ON bag_of_tasks.id = jobs_to_launch.task_id
                   WHERE bag_of_tasks.campaign_id=#{campaign_id} 
+                        AND jobs_to_launch.task_id is null
                   ORDER by bag_of_tasks.priority desc,p desc,id
                   #{limit}")
    res.collect! {|a| a[0]}

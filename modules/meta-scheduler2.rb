@@ -123,6 +123,7 @@ begin
   cluster_campaigns.each do |pair|
     cluster_id=pair[0]
     campaign_id=pair[1]
+    logger.debug{"Scheduling campaign #{campaign_id} on cluster #{cluster_id}"}
     campaign=campaigns.get_campaign(campaign_id)
     # Potential tasks, ordered
     if $stacks[cluster_id].nil?
@@ -194,6 +195,7 @@ begin
     # Actual queuing!
     db_connect() do |dbh|
       batches.each do |batch|
+        logger.debug("Queing #{batch['tasks'].length} jobs for cluster #{cluster_id}")
         add_jobs_to_launch(dbh,batch["tasks"],cluster_id,batch["tag"],batch["opts"])
       end
     end 
