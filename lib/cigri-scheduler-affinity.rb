@@ -31,20 +31,20 @@ module Cigri
     # Take the next task for given cluster from the stacks 
     def pop_campaign(cluster_id)
       task=nil
-      campaign=nil
+      cur_campaign=nil
       @stacks[cluster_id].each do |campaign_id,campaign|
       # TODO: Maybe we should check here if the queue has its
       # max_jobs, and then empty the corresponding stack 
         if campaign.length > 0
           task=[campaign.pop,campaign_id]
-          campaign=campaign_id
+          cur_campaign=campaign_id
           break
         end
       end
       # Now, remove the popped task from other clusters
       if not task.nil?
         @stacks.each_key do |cluster_id|
-          @stacks[cluster_id][campaign].delete(task[0])
+          @stacks[cluster_id][cur_campaign].delete(task[0])
         end
         return task
       else
