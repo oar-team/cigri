@@ -1,7 +1,9 @@
 require 'cigri-conflib'
 require 'cigri-exception'
 require 'cigri-logger'
+$VERBOSE=false
 require 'dbi'
+$VERBOSE=true
 require 'pp'
 require 'json'
 
@@ -38,9 +40,11 @@ IOLIBLOGGER = Cigri::Logger.new('IOLIB', CONF.get('LOG_FILE'))
 def db_connect()
   begin
     str = "DBI:#{CONF.get('DATABASE_TYPE')}:#{CONF.get('DATABASE_NAME')}:#{CONF.get('DATABASE_HOST')}"
+    $VERBOSE=false
     dbh = DBI.connect(str, 
                       "#{CONF.get('DATABASE_USER_NAME')}", 
                       "#{CONF.get('DATABASE_USER_PASSWORD')}")
+    $VERBOSE=true
     return dbh unless block_given?
     yield dbh
     dbh.disconnect() if dbh
@@ -527,7 +531,7 @@ def close_event(dbh, user, id)
   if user != 'root'
     check_rights!(dbh, user, event.props[:campaign_id])
   end
-  nb = dbh.do("UPDATE events 
+  dbh.do("UPDATE events 
                 SET state='closed' 
                 WHERE id = ?", id)
   IOLIBLOGGER.debug("Closed event ##{id}")
@@ -961,7 +965,6 @@ end
 #   all the given tasks are grouped into a unique batch_id
 ##
 def add_jobs_to_launch(dbh, tasks, cluster_id, tag, runner_options)
-  batch_id="NULL"
   if defined?(runner_options["temporal_grouping"]) or defined?(runner_options["dimensional_grouping"]) 
     runner_options["batch_id"]=new_batch_id(dbh)
   end
@@ -1274,9 +1277,9 @@ class Datarecord
   def id
     if @props.nil?
       return nil
-     else
+    else
       return @props[:id].to_i
-     end
+    end
   end
 
   # Update a datarecord into the database

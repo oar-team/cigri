@@ -1,4 +1,4 @@
-#!/usr/bin/ruby
+#!/usr/bin/ruby -w
 $LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
 
 require 'cigri'
@@ -114,6 +114,7 @@ begin
     system("#{File.dirname(__FILE__)}/meta-scheduler2.rb")
     system("#{File.dirname(__FILE__)}/updator.rb")
     system("#{File.dirname(__FILE__)}/nikita.rb")
+    logger.debug('End of iteration')
     sleep 10
   end
 end

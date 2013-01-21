@@ -1,3 +1,3 @@
 #!/bin/bash
 echo $2 > $1
-sleep 300
+sleep 5

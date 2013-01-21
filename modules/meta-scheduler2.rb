@@ -1,4 +1,4 @@
-#!/usr/bin/ruby
+#!/usr/bin/ruby -w
 
 $LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
 
@@ -64,9 +64,9 @@ begin
          not campaign.has_launching_jobs? and
          not campaign.has_active_jobs? and
          not campaign.epilogue_ok?(cluster_id)
-         if ( not cluster.blacklisted? and not
-                 cluster.blacklisted?(:campaign_id => campaign.id) )
-           logger.debug("Epilogue not executed for #{campaign.id} on #{cluster.name}")
+        if ( not cluster.blacklisted? and not
+                cluster.blacklisted?(:campaign_id => campaign.id) )
+          logger.debug("Epilogue not executed for #{campaign.id} on #{cluster.name}")
           if not campaign.epilogue_running?(cluster_id)
             logger.debug("Launching epilogue for #{campaign.id} on #{cluster.name}")
             # launch the epilogue job

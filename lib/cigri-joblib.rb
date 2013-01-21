@@ -92,7 +92,7 @@ module Cigri
             output["state"]="finished"
           end
         end
-      rescue Cigri::ClusterAPINotFound => e
+      rescue Cigri::ClusterAPINotFound
         output["state"]="notstarted"
       rescue
         raise
@@ -495,7 +495,6 @@ module Cigri
       end
       # For each job of the array on the cluster
       cluster_jobs.each do |cluster_job|
-        matched = false
         # we try to match the parameters of each job of the jobset
         index = jobs.index {|cigri_job| 
                     cluster_job["command"].split(/ /,2)[1].to_s.include?("#{cigri_job.props[:param]}")}
@@ -942,9 +941,9 @@ module Cigri
         users_priority=Dataset.new('users_priority',:where => "cluster_id = #{cluster.id}")
         priorities={}
         campaigns.each do |campaign_id|
-          u=users_priority.records.select{|u| u.props[:grid_user] == users[campaign_id]}[0]
-          if u
-            priorities[campaign_id]=u.props[:priority].to_i
+          p=users_priority.records.select{|u| u.props[:grid_user] == users[campaign_id]}[0]
+          if p
+            priorities[campaign_id]=p.props[:priority].to_i
           else
             priorities[campaign_id]=0
           end

@@ -22,7 +22,9 @@ rescue LoadError
   SMTPLIB=false
 end
 begin
+  $VERBOSE=false
   require 'xmpp4r/client'
+  $VERBOSE=true
   XMPPLIB=true
 rescue LoadError
   XMPPLIB=false
@@ -163,8 +165,8 @@ module Cigri
           # Should not enter here
           else
             NOTIFICATIONLIBLOGGER.error("#{notification.props[:type]} notification method unknown!")
-          end
         end
+      end
       if @campaign_id
         #TODO
         NOTIFICATIONLIBLOGGER.warn("Notification to a campaign_id channel not yet implemented!")

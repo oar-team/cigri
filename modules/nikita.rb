@@ -1,4 +1,4 @@
-#!/usr/bin/ruby
+#!/usr/bin/ruby -w
 
 $LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
 
@@ -87,7 +87,7 @@ begin
     begin
       job.kill
       # Resubmit (except for pro/epilogue as the metascheduler does it)
-      if not (job.props[:tag] == "prologue" || job.props[:tag] == "epilogue")
+      if not job.props[:tag] == "prologue" and not job.props[:tag] == "epilogue"
         job.resubmit
         job.decrease_affinity
       end
