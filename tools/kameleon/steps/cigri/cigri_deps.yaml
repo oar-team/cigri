@@ -3,15 +3,11 @@ cigri_deps:
    - exec_chroot: bash -c "HOME=/tmp gem install rspec"
  - sinatra:
    - exec_chroot: bash -c "HOME=/tmp gem install sinatra --no-rdoc --no-ri"
- - restfully:
-   - exec_chroot: bash -c "HOME=/tmp gem install restfully --source http://gemcutter.org -- --without-readline"
  - shotgun:
    - exec_chroot: bash -c "HOME=/tmp gem install shotgun"
  - xmpp4r:
    - exec_chroot: bash -c "HOME=/tmp gem install xmpp4r"
  - racktest:
    - exec_chroot: bash -c "HOME=/tmp gem install rack-test"
- - rubydebug:
-   - exec_chroot: bash -c "HOME=/tmp gem install ruby-debug"
  - gem_path:
-   - exec_chroot: bash -c "echo export PATH=/var/lib/gems/1.8/bin/:$PATH >> /home/kameleon/.bashrc"
+   - exec_chroot: bash -c "echo export PATH=/var/lib/gems/1.9/bin/:$PATH >> /home/kameleon/.bashrc"
