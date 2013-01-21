@@ -44,7 +44,7 @@ begin
   #Child processes monitoring
   trap("CHLD") {
     pid, status = Process.wait2
-    logger.error("Child pid #{pid}: terminated with status #{status.exitstatus}")
+    logger.error("Child pid #{pid}: terminated with status #{status.exitstatus}") if status != 0
     childs.delete(pid)
     if not runner_childs[pid].nil?
       sleep 5
@@ -108,13 +108,33 @@ begin
     judas_pid = pid
   end
 
-  #Main almighty loop
+  # Load the modules
+  cigri_modules={
+         'metascheduler' => "#{File.dirname(__FILE__)}/meta-scheduler2.rb",
+         'updator' => "#{File.dirname(__FILE__)}/updator.rb",
+         'nikita' => "#{File.dirname(__FILE__)}/nikita.rb",
+  }
+
+  #Main almighty loop executing modules sequentially
   while true do
     logger.debug('New iteration')
-    system("#{File.dirname(__FILE__)}/meta-scheduler2.rb")
-    system("#{File.dirname(__FILE__)}/updator.rb")
-    system("#{File.dirname(__FILE__)}/nikita.rb")
-    logger.debug('End of iteration')
+    ["metascheduler","updator","nikita"].each do |mod|
+      pid=fork { exec(cigri_modules[mod]) }
+      logger.debug("Spawned #{mod} process #{pid}")
+      # Here, we cannot make a simple Process.waitpid as it seems to conflict
+      # with the traps defined earlier. So, we loop on a WNOHANG wait to
+      # chack is the process is ended or not.
+      wait=true
+      while wait
+        begin
+          Process.waitpid(pid,Process::WNOHANG)
+          sleep 1
+        rescue
+          wait=false
+        end
+      end
+      logger.debug("#{mod} process terminated")
+    end
     sleep 10
   end
 end
