@@ -275,7 +275,7 @@ def cigri_submit_jobs(dbh, params, campaign_id, user)
       inserted_ids = sth.fetch_all
       sth.finish
 
-      inserted_ids.map!{ |param| "(#{param.to_s.to_i}, #{campaign_id}, 10)"}
+      inserted_ids.map!{ |param| "(#{param[0]}, #{campaign_id}, 10)"}
       dbh.do('INSERT INTO bag_of_tasks (param_id, campaign_id, priority) VALUES ' + inserted_ids.join(','))
     end
     dbh.commit() unless old_autocommit == false
