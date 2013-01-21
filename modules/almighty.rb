@@ -123,7 +123,7 @@ begin
       logger.debug("Spawned #{mod} process #{pid}")
       # Here, we cannot make a simple Process.waitpid as it seems to conflict
       # with the traps defined earlier. So, we loop on a WNOHANG wait to
-      # chack is the process is ended or not.
+      # check if the process is ended or not.
       wait=true
       while wait
         begin
@@ -133,7 +133,7 @@ begin
           wait=false
         end
       end
-      logger.debug("#{mod} process terminated")
+      #logger.debug("#{mod} process terminated")
     end
     sleep 10
   end
