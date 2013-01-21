@@ -352,8 +352,10 @@ class API < Sinatra::Base
   get '/notifications/?' do
     protected!
     response['Allow'] = 'GET'
+    user=request.env[settings.username_variable]
+    user="%%admin%%" if user=="root"
     begin
-      notifications = Dataset.new("user_notifications",:where => "grid_user = '#{request.env[settings.username_variable]}'")
+      notifications = Dataset.new("user_notifications",:where => "grid_user = '#{user}'")
       items=[]
       notifications.each do |notification|
         items << notification.props

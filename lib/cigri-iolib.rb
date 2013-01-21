@@ -1080,6 +1080,7 @@ end
 # Add a notification entry (subscription)
 #
 def add_notification_subscription(dbh,sub,user)
+  user="%%admin%%" if user == "root"
   dbh.do("INSERT INTO user_notifications (grid_user,type,identity,severity)
                       VALUES (?,?,?,?)",
          user,sub['type'],sub['identity'],sub['severity'])
@@ -1089,6 +1090,7 @@ end
 # Del a notification entry (unsubscription)
 #
 def del_notification_subscription(dbh,type,identity,user)
+  user="%%admin%%" if user == "root"
   dbh.do("DELETE FROM user_notifications WHERE grid_user=? and type=? and identity=?",
          user,type,identity)
 end
