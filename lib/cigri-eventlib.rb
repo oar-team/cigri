@@ -45,7 +45,7 @@ module Cigri
 
     # Close the event
     def close
-      update({:date_closed => Time::now(), :state => 'closed'})    
+      update({:date_closed => to_sql_timestamp(Time::now().to_i), :state => 'closed'})    
     end
 
     # Mark the event as checked (check='yes')

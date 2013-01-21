@@ -1,4 +1,4 @@
-#!/usr/bin/ruby -w
+#!/usr/bin/ruby
 
 $LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
 
@@ -112,14 +112,14 @@ while true do
                 Cigri::Colombo.new(events).check_jobs
                 have_to_notify = true
               else
-                job.update({'state' => 'terminated','stop_time' => stop_time})
+                job.update({'state' => 'terminated','stop_time' => to_sql_timestamp(stop_time)})
               end
             when /Error/i
               logger.info("Job #{job.id} is in Error state.")
               Cigri::Colombo::analyze_remote_job_events(job,cluster_job)
               events=Cigri::Eventset.new({ :where => "class = 'job' and cluster_id = #{cluster.id} and state='open'"})
               Cigri::Colombo.new(events).check_jobs
-              job.update({'stop_time' => Time.at(cluster_job["stop_time"].to_i)})
+              job.update({'stop_time' => to_sql_timestamp(Time.at(cluster_job["stop_time"].to_i))})
               have_to_notify = true
             when /Running/i , /Finishing/i
               if job.props[:tag] == "batch"
@@ -144,7 +144,7 @@ while true do
                     end
                 end
               else
-                job.update({'state' => 'running','start_time' => Time.at(cluster_job["start_time"].to_i)})
+                job.update({'state' => 'running','start_time' => to_sql_timestamp(Time.at(cluster_job["start_time"].to_i))})
               end
             when /Waiting/i
               job.update({'state' => 'remote_waiting'})

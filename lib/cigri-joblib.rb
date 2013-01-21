@@ -228,7 +228,7 @@ module Cigri
          # Update job info
          job.update(
                      { 'state' => 'submitted', 
-                       'submission_time' => Time::now(),
+                       'submission_time' => to_sql_timestamp(Time::now()),
                        'cluster_id' => cluster.id,
                        'remote_id' => j["id"]
                      },'jobs' )

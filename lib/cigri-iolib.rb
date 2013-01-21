@@ -116,8 +116,16 @@ end
 # - escaped string
 ##
 def quote(value)
+  return value if value.kind_of?(String) and value[0..8]=="TIMESTAMP"
   return "E'#{ value.gsub(/\\/){ '\\\\' }.gsub(/'/){ '\\\'' } }'" if value.kind_of?(String)
   "'#{value}'"
+end
+
+##
+# Returns the SQL form of a unix timestamp (integer or Time object)
+#
+def to_sql_timestamp(timestamp)
+  return "TIMESTAMP 'epoch' + #{timestamp.to_i} * INTERVAL '1 second'"
 end
 
 ## 
@@ -263,7 +271,7 @@ def cigri_submit_jobs(dbh, params, campaign_id, user)
       inserted_ids = sth.fetch_all
       sth.finish
 
-      inserted_ids.map!{ |param| "(#{param}, #{campaign_id}, 10)"}
+      inserted_ids.map!{ |param| "(#{param.to_s.to_i}, #{campaign_id}, 10)"}
       dbh.do('INSERT INTO bag_of_tasks (param_id, campaign_id, priority) VALUES ' + inserted_ids.join(','))
     end
     dbh.commit() unless old_autocommit == false
@@ -1276,8 +1284,15 @@ class Datarecord
     table=table.split(/,/)[0]
     db_connect() do |dbh|
       values.each do |field,value|
-        query = "UPDATE #{table} SET #{field} = ? WHERE #{@index} = ?"
-        dbh.do(query, value, id)
+        # Special case of timestamps, should not be automatically quoted by the placeholder syntax
+        if value.kind_of?(String) and value[0..8]=="TIMESTAMP"
+          query = "UPDATE #{table} SET #{field} = #{value} WHERE #{@index} = ?"
+          dbh.do(query, id)
+        # Default case
+        else
+          query = "UPDATE #{table} SET #{field} = ? WHERE #{@index} = ?"
+          dbh.do(query, value, id)
+        end
       end
     end
   end

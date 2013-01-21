@@ -1,4 +1,4 @@
-#!/usr/bin/ruby -w
+#!/usr/bin/ruby
 #
 # This library handles the REST client calls
 #
@@ -7,7 +7,7 @@ require 'cigri-logger'
 require 'cigri-conflib'
 $VERBOSE=false
   require 'rest_client'
-$VERBOSE=true
+#$VERBOSE=true
 require 'json'
 require 'yaml'
 require 'uri'
