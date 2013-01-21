@@ -48,11 +48,11 @@ if XMPPLIB
     begin
       jid = Jabber::JID.new(config.get("NOTIFICATIONS_XMPP_IDENTITY"))
       im_handlers[:xmpp] = Jabber::Client.new(jid)
-      im_handlers[:xmpp].connect(config.get("NOTIFICATIONS_XMPP_SERVER"),config.get("NOTIFICATIONS_XMPP_PORT",5222))
+      im_handlers[:xmpp].connect(config.get("NOTIFICATIONS_XMPP_SERVER"),config.get("NOTIFICATIONS_XMPP_PORT",5222).to_i)
       im_handlers[:xmpp].auth(config.get("NOTIFICATIONS_XMPP_PASSWORD"))
       im_handlers[:xmpp].send(Jabber::Presence.new.set_show(nil).set_status('I am the grid!'))
     rescue => e
-      logger.error("Could not connect to XMPP server, notifications disabled: #{e.inspect}")
+      logger.error("Could not connect to XMPP server, notifications disabled: #{e.inspect}\n#{e.backtrace}")
       im_handlers[:xmpp]=nil
     end
   end
