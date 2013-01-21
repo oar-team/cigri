@@ -1030,8 +1030,8 @@ def take_tasks(dbh, tasks)
     # Update the queue counts that are used for throughputs calculations
     counts.each do |pair,count|
       dbh.do("INSERT INTO queue_counts (date,campaign_id,cluster_id,jobs_count)
-              VALUES (?, ?, ?, ?)",
-              Time.now, pair[0],pair[1],count
+              VALUES (#{to_sql_timestamp(Time.now)}, ?, ?, ?)",
+              pair[0],pair[1],count
             )
     end
     return jobids
@@ -1402,7 +1402,13 @@ class Dataset
     table=table.split(/,/)[0]
     check_connection!
     values.each_key do |field|
-      @dbh.do("UPDATE #{table} SET #{field} = ? WHERE #{id_column} in (#{self.ids.join(',')})", values[field])
+      if values[field].kind_of?(String) and values[field][0..8]=="TIMESTAMP"
+        # No quoting for timestamp function
+        @dbh.do("UPDATE #{table} SET #{field} = #{values[field]} WHERE #{id_column} in (#{self.ids.join(',')})")
+      else
+        # Normal quoting
+        @dbh.do("UPDATE #{table} SET #{field} = ? WHERE #{id_column} in (#{self.ids.join(',')})", values[field])
+      end
     end
   end
 

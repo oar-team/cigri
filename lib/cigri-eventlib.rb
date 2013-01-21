@@ -32,7 +32,7 @@ module Cigri
         if props[:notified].nil?
           props[:notified]=false
         end
-        props[:date_open]=Time::now()
+        props[:date_open]=to_sql_timestamp(Time::now())
         props[:date_update]=props[:date_open]
         msg=""
         props.each_key do |prop| 
@@ -45,14 +45,14 @@ module Cigri
 
     # Close the event
     def close
-      update({:date_closed => to_sql_timestamp(Time::now().to_i), :state => 'closed'})    
+      update({:date_closed => to_sql_timestamp(Time::now()), :state => 'closed'})    
     end
 
     # Mark the event as checked (check='yes')
     # An event maybe checked by colombo, but still open, for example
     # when colombo generates another event depending on this one
     def checked
-      update({:date_update => Time::now(), :checked => 'yes'}) 
+      update({:date_update => to_sql_timestamp(Time::now()), :checked => 'yes'}) 
     end
 
     # Mark the event as notified into the database (notified=true)

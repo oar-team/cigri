@@ -253,7 +253,7 @@ module Cigri
         # Update jobs infos
         launching_jobs.update!(
                                { 'state' => 'submitted', 
-                                 'submission_time' => Time::now(),
+                                 'submission_time' => to_sql_timestamp(Time::now()),
                                  'cluster_id' => cluster.id,
                                },'jobs' )
         launching_jobs.match_remote_ids(cluster.id, campaign.clusters[cluster.id]["exec_file"], j["id"])
@@ -301,7 +301,7 @@ module Cigri
         # Update jobs infos
         launching_jobs.update!(
                                { 'state' => 'submitted', 
-                                 'submission_time' => Time::now(),
+                                 'submission_time' => to_sql_timestamp(Time::now()),
                                  'cluster_id' => cluster.id,
                                  'remote_id' => j['id']
                                },'jobs' )
@@ -451,7 +451,7 @@ module Cigri
                 # Update jobs infos
                 launching_jobs.update!(
                                    { 'state' => 'submitted', 
-                                     'submission_time' => Time::now(),
+                                     'submission_time' => to_sql_timestamp(Time::now()),
                                      'cluster_id' => cluster_id,
                                    },'jobs' )
                 launching_jobs.match_remote_ids(cluster_id, campaign.clusters[cluster_id]["exec_file"], j["id"])
@@ -467,7 +467,7 @@ module Cigri
                 # Update job info
                 jobs[0].update(
                                  { 'state' => 'submitted', 
-                                   'submission_time' => Time::now(),
+                                   'submission_time' => to_sql_timestamp(Time::now()),
                                    'cluster_id' => cluster_id,
                                    'remote_id' => j["id"]
                                  },'jobs' )
