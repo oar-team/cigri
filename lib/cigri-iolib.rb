@@ -792,6 +792,50 @@ def get_campaign_active_jobs_number(dbh, id)
 end
 
 ##
+# Returns the number of active jobs (running, waiting, event open, remotewaiting) for a given campaign on a given cluster
+#
+# == Parameters
+# - dbh: dababase handle
+# - id: campaign id
+# - cluster_id: cluster id
+#
+# == Returns
+# Number of tasks (integer)
+#
+##
+def get_campaign_active_jobs_number_on_cluster(dbh, id, cluster_id)
+  dbh.select_one("SELECT COUNT(*) FROM jobs
+                                  LEFT JOIN events ON jobs.id=events.job_id
+                                  WHERE (jobs.state='running'
+                                     OR jobs.state='submitted'
+                                     OR jobs.state='to_launch'
+                                     OR jobs.state='remote_waiting'
+                                     OR (jobs.state='event' and events.state='open'))
+                                    AND jobs.cluster_id=?
+                                    AND jobs.campaign_id=?", cluster_id, id)[0]
+end
+
+
+##
+# Returns the number of queued jobs  for a given campaign on a given cluster
+#
+# == Parameters
+# - dbh: dababase handle
+# - id: campaign id
+# - cluster_id: cluster id
+#
+# == Returns
+# Number of tasks (integer)
+#
+##
+def get_campaign_queued_jobs_number_on_cluster(dbh, id, cluster_id)
+  dbh.select_one("SELECT COUNT(*) FROM jobs_to_launch, bag_of_tasks
+                  WHERE jobs_to_launch.task_id = bag_of_tasks.id
+                    AND jobs_to_launch.cluster_id = ?
+                    AND bag_of_tasks.campaign_id = ?", cluster_id, id)[0]
+end
+
+##
 # Returns the number of to_launch jobs for a given campaign
 #
 # == Parameters

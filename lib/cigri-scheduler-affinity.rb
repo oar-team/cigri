@@ -59,9 +59,11 @@ module Cigri
     # Also get current state of each campaign to know how many jobs to queue
     def compute_stacks(max_tasks)
       max={}
-      @cluster_campaigns.each do |pair|
-        cluster_id=pair[0]
-        campaign_id=pair[1]
+      @cluster_campaigns.each do |triplet|
+        cluster_id=triplet[0]
+        campaign_id=triplet[1]
+        max=triplet[2]
+        max_tasks = max if max and max_tasks and max < max_tasks
         SCHEDULERLOGGER.debug{"Scheduling campaign #{campaign_id} on cluster #{cluster_id}"}
         campaign=@campaigns.get_campaign(campaign_id)
         # Potential tasks, ordered

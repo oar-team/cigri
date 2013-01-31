@@ -642,8 +642,27 @@ module Cigri
 
     # Check if a campaign has active jobs
     def has_active_jobs?
+      return active_jobs_number > 0
+    end
+
+    # Return the number of active jobs
+    def active_jobs_number
       db_connect() do |dbh|
-        return get_campaign_active_jobs_number(dbh, id) > 0
+        return get_campaign_active_jobs_number(dbh, id)
+      end
+    end
+
+    # Return the number of active jobs on given cluster
+    def active_jobs_number_on_cluster(cluster_id)
+      db_connect() do |dbh|
+        return get_campaign_active_jobs_number_on_cluster(dbh, id, cluster_id)
+      end
+    end
+
+    # Get the number of queued jobs (jobs into jobs_to_launch table)
+    def queued_jobs_number_on_cluster(cluster_id)
+      db_connect() do |dbh|
+        return get_campaign_queued_jobs_number_on_cluster(dbh, id,cluster_id)
       end
     end
 
@@ -903,12 +922,11 @@ module Cigri
     # The order defines the priority for scheduling.
     # The presence of a couple is conditionned by blacklists, prologue and stress_factor.
     # The order depends on users_priority and test_mode.
-    # TODO: add a third element "max" to tell how many jobs to schedule (a function
-    # of max_jobs, test_mode, running and queued jobs)
     def compute_campaigns_orders
       couples=[]
       clusters_cache=get_clusters
       test_campaigns={}
+      max={}
       # First pass: get the active couples (remove blacklisted and under stress clusters)
       # Also record the test campaigns for future prioritisation
       @records.each do |campaign|
@@ -922,8 +940,16 @@ module Cigri
              couples << couple
              if campaign.clusters[cluster_id]["test_mode"] == "true"
                test_campaigns[couple]=true
+               campaign.clusters[cluster_id]["max_jobs"]=1
              else 
                test_campaigns[couple]=false
+             end
+             #Compute the max number of jobs to queue (a function of running, queued and test)
+             n_jobs=campaign.active_jobs_number_on_cluster(cluster_id) + campaign.queued_jobs_number_on_cluster(cluster_id)
+             if campaign.clusters[cluster_id]["max_jobs"]
+               max[couple]=campaign.clusters[cluster_id]["max_jobs"].to_i - n_jobs
+             else
+               max[couple]=nil
              end
           end
           
@@ -963,7 +989,8 @@ module Cigri
         end
       end
 
-      return sorted_couples
+      # return the couples plus the third "max" element
+      return sorted_couples.map{|c| [c[0],c[1],max[c]]}
     end
  
   # Computes an ordered list of tasks for a given campaign on a given cluster
