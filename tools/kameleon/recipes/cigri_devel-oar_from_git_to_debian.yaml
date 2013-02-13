@@ -48,7 +48,8 @@ global:
  oar_git_directory: /home/kameleon/oar_install
  oar_prefix_install: /usr/local
 
- cigri_svn: "https://scm.gforge.inria.fr/svn/cigri/branches/cigri-3"
+ cigri_git: "git://scm.gforge.inria.fr/cigri/cigri.git master"
+ cigri_install_dir: "/home/kameleon/cigri-3"
  
 steps:
  - debian_check_deps

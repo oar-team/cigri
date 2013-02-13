@@ -1,5 +1,7 @@
 cigri_checkout:
- - svn_checkout:
-   - exec_chroot: bash -c "cd /home/kameleon && svn checkout --username anonsvn --password anonsvn --trust-server-cert --non-interactive $$cigri_svn"
-   - exec_chroot: bash -c "chown -R kameleon /home/kameleon"
+ - git_checkout:
+   - exec_chroot: mkdir -p $$cigri_install_dir
+   - exec_chroot: git init $$cigri_install_dir
+   - exec_appliance: git --git-dir $$chroot/$$cigri_install_dir/.git --work-tree $$chroot/$$cigri_install_dir fetch --depth 0 $$cigri_git
+   - exec_appliance: git --git-dir $$chroot/$$cigri_install_dir/.git --work-tree $$chroot/$$cigri_install_dir checkout FETCH_HEAD
 
