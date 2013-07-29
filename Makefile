@@ -112,7 +112,7 @@ install-cigri-api:
 install-cigri-server-config:
 	install -d -m 0755 $(DESTDIR)$(CIGRICONFDIR)
 	if [ -f $(DESTDIR)$(CIGRICONFDIR)/cigri.conf ]; then echo "$(DESTDIR)$(CIGRICONFDIR)/cigri.conf found, not erasing."; \
-		else install -m 0600 etc/cigri.conf $(DESTDIR)$(CIGRICONFDIR)/cigri.conf; fi
+		else install -m 0600 etc/cigri.conf.in $(DESTDIR)$(CIGRICONFDIR)/cigri.conf; fi
 	chown $(CIGRIUSER) $(DESTDIR)$(CIGRICONFDIR)/cigri.conf
 	if [ -f $(DESTDIR)$(CIGRICONFDIR)/api-apache.conf ]; then echo "$(DESTDIR)$(CIGRICONFDIR)/api-apache.conf found, not erasing."; \
 		else install -m 0644 etc/api-apache.conf.in $(DESTDIR)$(CIGRICONFDIR)/api-apache.conf; \
