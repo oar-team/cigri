@@ -212,7 +212,7 @@ module Cigri
        submission_string["walltime"]=campaign.clusters[cluster_id]["walltime"] if campaign.clusters[cluster_id]["walltime"]
        submission_string["directory"]=campaign.clusters[cluster_id]["exec_directory"] if campaign.clusters[cluster_id]["exec_directory"]
        submission_string["property"]=campaign.clusters[cluster_id]["properties"] if campaign.clusters[cluster_id]["properties"]
-       submission_string
+       submission_string["project"]=campaign.clusters[cluster_id]["project"] if campaign.clusters[cluster_id]["project"]
     end
 
     # Submit a single job on the given cluster
@@ -428,6 +428,7 @@ module Cigri
             submission["walltime"]=campaign.clusters[cluster_id]["walltime"] unless campaign.clusters[cluster_id]["walltime"]
             submission["directory"]=campaign.clusters[cluster_id]["exec_directory"] unless campaign.clusters[cluster_id]["exec_directory"]
             submission["properties"]=campaign.clusters[cluster_id]["properties"] unless campaign.clusters[cluster_id]["properties"]
+            submission["project"]=campaign.clusters[cluster_id]["project"] unless campaign.clusters[cluster_id]["project"]
             # MAYBE TODO: specific walltime,directory,... from JDL for pro/epilogue scripts
 
             # Runner options
