@@ -231,6 +231,7 @@ while true do
         end
         logger.warn(message)
       end
+      sleep_more = SLEEP_MORE # Added as we may have to wait a bit for jobs to be starting, or the tap is closed and reopened at the next cycle
     else
       sleep_more = SLEEP_MORE
     end
