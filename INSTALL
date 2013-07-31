@@ -19,6 +19,9 @@ Cigri v3 quick installation guide
     - gem install rspec
     - gem install rack-test
 
+*Gems for Xmpp notifications*:
+    - gem install xmpp4r
+
 *Create a cigri user*:
 
     useradd -m -d /var/lib/cigri -c "Cigri server" cigri
