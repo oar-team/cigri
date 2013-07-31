@@ -63,14 +63,15 @@ module Cigri
         cluster_id=triplet[0]
         campaign_id=triplet[1]
         max=triplet[2]
-        max_tasks = max if max and max_tasks and max < max_tasks
+        my_max_tasks = max if max and max_tasks and max < max_tasks
         SCHEDULERLOGGER.debug{"Scheduling campaign #{campaign_id} on cluster #{cluster_id}"}
         campaign=@campaigns.get_campaign(campaign_id)
         # Potential tasks, ordered
         if @stacks[cluster_id].nil?
           @stacks[cluster_id]={}
         end
-        @stacks[cluster_id][campaign_id]=@campaigns.compute_tasks_list(cluster_id,campaign_id,max_tasks).reverse
+        @stacks[cluster_id][campaign_id]=@campaigns.compute_tasks_list(cluster_id,campaign_id,my_max_tasks).reverse
+        SCHEDULERLOGGER.debug{"  #{@stacks[cluster_id][campaign_id].length} tasks into ordering stack (max=#{my_max_tasks})"}
       end     
     end
 

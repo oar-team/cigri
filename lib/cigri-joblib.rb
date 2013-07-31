@@ -953,6 +953,7 @@ module Cigri
              else
                max[couple]=nil
              end
+             JOBLIBLOGGER.debug("CA=#{campaign.id} CL=#{cluster_id} N=#{n_jobs} max=#{max[couple]}")
           end
           
         end
