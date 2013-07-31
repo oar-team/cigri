@@ -39,18 +39,25 @@ def notify_judas
   Process.kill("USR1",Process.ppid)
 end
 
+# The "tap" variable is like a tap. It represents the number of jobs
+# we can start at a time (as a oar array job)
+# We close the tap (ie set tap to 0) if the cluster is not running
+# our jobs, and we open it if all the jobs are running or terminated
+# There's a tap per campaign (represented into a hash with campaign_id 
+# as the key)
+DEFAULT_TAP = config.get('RUNNER_DEFAULT_INITIAL_NUMBER_OF_JOBS',5).to_i
+cluster.reset_taps
+
 #Main runner loop
 logger.info("Starting runner on #{ARGV[0]}")
 while true do
+
   logger.debug('New iteration')
 
-  # The "tap" variable is like a tap. It represents the number of jobs
-  # we can start at a time (as a oar array job)
-  # We close the tap (ie set tap to 0) if the cluster is not running
-  # our jobs, and we open it if all the jobs are running or terminated
-  # There's a tap per campaign (represented into a hash with campaign_id 
-  # as the key)
-  cluster.reset_taps
+  # reset taps that have been closed
+  cluster.running_campaigns.each do |campaign_id|
+    cluster.set_tap(campaign_id,DEFAULT_TAP) if cluster.taps[campaign_id] == 0
+  end
 
   start_time = Time::now.to_i
   sleep_more = 0
@@ -174,6 +181,15 @@ while true do
         logger.debug("Not checking job #{job.id} because of campaign blacklist")
       end
     end 
+
+    ##########################################################################
+    # Increase taps for campaigns running well
+    ##########################################################################
+    cluster.taps.each_key do |campaign_id|
+      if cluster.taps[campaign_id] != 0 and cluster.taps[campaign_id] < 100
+          cluster.set_tap(campaign_id,(cluster.taps[campaign_id]*1.5).to_i)
+      end
+    end
 
     ##########################################################################
     # Jobs submission

@@ -133,13 +133,13 @@ begin
         end
         e=' '
         e='e' if campaign['has_events']
-        printf("%-11d %-19s %-16s %-19s %s %7.2f%\n", 
+        printf("%-11d %-19s %-16s %-19s %s %d/%d (%d\%%)\n", 
                 campaign['id'], 
                 campaign['name'][0..18], 
                 campaign['user'][0..15], 
                 Time.at(campaign['submission_time']).strftime('%Y-%m-%d %H-%M-%S'), 
                 STATES[campaign['state']]+e, 
-                progress);
+                campaign['finished_jobs'],campaign['total_jobs'],progress);
       end
     rescue Errno::EPIPE
       exit

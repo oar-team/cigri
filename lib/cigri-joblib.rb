@@ -947,13 +947,15 @@ module Cigri
                test_campaigns[couple]=false
              end
              #Compute the max number of jobs to queue (a function of running, queued and test)
-             n_jobs=campaign.active_jobs_number_on_cluster(cluster_id) + campaign.queued_jobs_number_on_cluster(cluster_id)
+             active_jobs=campaign.active_jobs_number_on_cluster(cluster_id)
+             queued_jobs=campaign.queued_jobs_number_on_cluster(cluster_id)
+             n_jobs=active_jobs + queued_jobs
              if campaign.clusters[cluster_id]["max_jobs"]
                max[couple]=campaign.clusters[cluster_id]["max_jobs"].to_i - n_jobs
              else
                max[couple]=nil
              end
-             JOBLIBLOGGER.debug("CA=#{campaign.id} CL=#{cluster_id} N=#{n_jobs} max=#{max[couple]}")
+             JOBLIBLOGGER.debug("CA=#{campaign.id} CL=#{cluster_id} N=#{n_jobs} (#{active_jobs} active, #{queued_jobs} queued) max=#{max[couple]}")
           end
           
         end
