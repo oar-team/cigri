@@ -473,7 +473,10 @@ class API < Sinatra::Base
           :id => task['id'],
           :name => task['name'],
           :parameters => task['param'],
-          :state => task['state'] || :waiting,
+          :cluster => task['cluster_id'],
+          :cigri_job_id => task['cigri_job_id'],
+          :remote_id => task['remote_id'],
+          :state => task['state'] || :pending,
           :href => to_url("campaigns/#{id}/jobs/#{task['id']}")
         }
       end

@@ -651,7 +651,7 @@ end
 #
 ##
 def get_campaign_tasks(dbh, id, limit, offset)
-  query = "SELECT p.id as id, p.name as name, p.param as param, j.state as state
+  query = "SELECT p.id as id, p.name as name, p.param as param, j.state as state, j.cluster_id as cluster_id, j.id as cigri_job_id, j.remote_id as remote_id
            FROM parameters as p
            LEFT JOIN jobs as j 
             ON p.id = j.param_id

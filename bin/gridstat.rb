@@ -164,9 +164,12 @@ begin
               items=items+jobs["items"] if jobs["items"]
             end
            items.each do |job|
-              printf("  %d: %s,%s,%s\n",
+              printf("  %d: %s,%s,%s,%s,%s,%s\n",
                        job["id"],
+                       job["cigri_job_id"] || "*",
+                       job["remote_id"] || "*",
                        job["state"],
+                       job["cluster"] || "*",
                        job["name"],
                        job["parameters"])
             end
