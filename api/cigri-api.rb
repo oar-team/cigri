@@ -478,15 +478,20 @@ class API < Sinatra::Base
         }
       end
 
-      {
+      res={
         :items => items,
         :total => campaign.props[:nb_jobs].to_i,
         :offset => offset,
+        :limit => limit,
         :links => [
                     {:rel => :self, :href => to_url("campaigns/#{id}/jobs")},
                     {:rel => :parent, :href => to_url("campaigns/#{id}")}
                   ]
       }
+      if :items.length < campaign.props[:nb_jobs].to_i
+        res[:links] << {:rel => :next, :href => to_url("campaigns/#{id}/jobs?limit=#{limit}&offset=#{(offset.to_i+limit.to_i+1).to_s}")}
+      end
+      res
     end
 
     # Gets events on a campaign

@@ -137,8 +137,16 @@ begin
                   STATES[campaign['state']]+e, 
                   campaign['finished_jobs'],campaign['total_jobs'],progress);
         else
+          items=[]
           response = client.get("/campaigns/#{campaign['id']}/jobs")
           jobs=JSON.parse(response.body)
+          items=jobs["items"]
+          while jobs and jobs["links"] and jobs["links"].detect{|l| l["rel"]=="next"}
+            url=jobs["links"].select{|l| l["rel"]=="next"}[0]["href"]
+            response = client.get(url)
+            jobs=JSON.parse(response.body)
+            items=items+jobs["items"] if jobs["items"]
+          end
           e="(events)" if e=='e'
           printf("Campaign: %d\n Name: %s\n User: %s\n Date: %s\n State: %s %s\n Progress: %d/%d (%d\%%)\n Jobs:\n",
                   campaign['id'], 
@@ -147,7 +155,7 @@ begin
                   Time.at(campaign['submission_time']).strftime('%Y-%m-%d %H-%M-%S'), 
                   campaign['state'],e, 
                   campaign['finished_jobs'],campaign['total_jobs'],progress);
-          jobs["items"].each do |job|
+          items.each do |job|
             printf("  %d: %s,%s,%s\n",
                      job["id"],
                      job["state"],
