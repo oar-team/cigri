@@ -31,7 +31,6 @@ optparse = OptionParser.new do |opts|
     dump = true
   end
   
-  #TODO manage full description
   opts.on( '-f', '--full', 'Display all info on a campaign' ) do
     full = true
   end
@@ -87,15 +86,12 @@ end
 url = '/campaigns'
 url << "/#{campaign_id}" if campaign_id
 url << "/events" if events
+url << "/jobs" if full and dump
 url << '?pretty' if dump and pretty
-
-#TODO -H et -d incompatibles
 
 begin 
   client = Cigri::Client.new()
   response = client.get(url)
-
-#TODO: manage empty results
   
   if dump
     puts response.body
@@ -118,14 +114,13 @@ begin
       campaigns.reject!{|h| h['user'].nil? || h['user'] != username}
     end
 
-    if header
+    if header and !full and !dump
       puts "Campaign id Name                User             Submission time     S  Progress"
       puts '----------- ------------------- ---------------- ------------------- -- --------'
     end 
     
-    #TODO sort by campaign ID
     begin 
-      campaigns.each do |campaign|
+      campaigns.sort_by{|c| c['id']}.each do |campaign|
         begin 
           progress = campaign['finished_jobs'] * 100.0 / campaign['total_jobs']
         rescue ZeroDivisionError => e
@@ -133,13 +128,33 @@ begin
         end
         e=' '
         e='e' if campaign['has_events']
-        printf("%-11d %-19s %-16s %-19s %s %d/%d (%d\%%)\n", 
-                campaign['id'], 
-                campaign['name'][0..18], 
-                campaign['user'][0..15], 
-                Time.at(campaign['submission_time']).strftime('%Y-%m-%d %H-%M-%S'), 
-                STATES[campaign['state']]+e, 
-                campaign['finished_jobs'],campaign['total_jobs'],progress);
+        if !full
+          printf("%-11d %-19s %-16s %-19s %s %d/%d (%d\%%)\n", 
+                  campaign['id'], 
+                  campaign['name'][0..18], 
+                  campaign['user'][0..15], 
+                  Time.at(campaign['submission_time']).strftime('%Y-%m-%d %H-%M-%S'), 
+                  STATES[campaign['state']]+e, 
+                  campaign['finished_jobs'],campaign['total_jobs'],progress);
+        else
+          response = client.get("/campaigns/#{campaign['id']}/jobs")
+          jobs=JSON.parse(response.body)
+          e="(events)" if e=='e'
+          printf("Campaign: %d\n Name: %s\n User: %s\n Date: %s\n State: %s %s\n Progress: %d/%d (%d\%%)\n Jobs:\n",
+                  campaign['id'], 
+                  campaign['name'], 
+                  campaign['user'], 
+                  Time.at(campaign['submission_time']).strftime('%Y-%m-%d %H-%M-%S'), 
+                  campaign['state'],e, 
+                  campaign['finished_jobs'],campaign['total_jobs'],progress);
+          jobs["items"].each do |job|
+            printf("  %d: %s,%s,%s\n",
+                     job["id"],
+                     job["state"],
+                     job["name"],
+                     job["parameters"])
+          end
+        end
       end
     rescue Errno::EPIPE
       exit
