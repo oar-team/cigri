@@ -31,7 +31,7 @@ optparse = OptionParser.new do |opts|
     dump = true
   end
   
-  opts.on( '-f', '--full', 'Display all info on a campaign' ) do
+  opts.on( '-f', '--full', 'Display all info of a campaign (used with -c)' ) do
     full = true
   end
   
@@ -78,9 +78,15 @@ end
 # Events printing needs a campaign ID
 if events
   if not campaign_id
-    puts "You must give a campaign id to print the events!"
+    $stderr.puts "You must give a campaign id to print the events!"
     exit 1
   end
+end
+
+# Prevent full output of all campaigns!
+if full and not campaign_id
+  $stderr.puts "You must provide a campaign id with --full!"
+  exit 1
 end
 
 url = '/campaigns'
@@ -114,7 +120,7 @@ begin
       campaigns.reject!{|h| h['user'].nil? || h['user'] != username}
     end
 
-    if header and !full and !dump
+    if header and !full and !dump and !campaign_id
       puts "Campaign id Name                User             Submission time     S  Progress"
       puts '----------- ------------------- ---------------- ------------------- -- --------'
     end 
@@ -128,7 +134,7 @@ begin
         end
         e=' '
         e='e' if campaign['has_events']
-        if !full
+        if !campaign_id
           printf("%-11d %-19s %-16s %-19s %s %d/%d (%d\%%)\n", 
                   campaign['id'], 
                   campaign['name'][0..18], 
@@ -137,30 +143,33 @@ begin
                   STATES[campaign['state']]+e, 
                   campaign['finished_jobs'],campaign['total_jobs'],progress);
         else
-          items=[]
-          response = client.get("/campaigns/#{campaign['id']}/jobs")
-          jobs=JSON.parse(response.body)
-          items=jobs["items"]
-          while jobs and jobs["links"] and jobs["links"].detect{|l| l["rel"]=="next"}
-            url=jobs["links"].select{|l| l["rel"]=="next"}[0]["href"]
-            response = client.get(url)
-            jobs=JSON.parse(response.body)
-            items=items+jobs["items"] if jobs["items"]
-          end
           e="(events)" if e=='e'
-          printf("Campaign: %d\n Name: %s\n User: %s\n Date: %s\n State: %s %s\n Progress: %d/%d (%d\%%)\n Jobs:\n",
+          printf("Campaign: %d\n Name: %s\n User: %s\n Date: %s\n State: %s %s\n Progress: %d/%d (%d\%%)\n",
                   campaign['id'], 
                   campaign['name'], 
                   campaign['user'], 
                   Time.at(campaign['submission_time']).strftime('%Y-%m-%d %H-%M-%S'), 
                   campaign['state'],e, 
                   campaign['finished_jobs'],campaign['total_jobs'],progress);
-          items.each do |job|
-            printf("  %d: %s,%s,%s\n",
-                     job["id"],
-                     job["state"],
-                     job["name"],
-                     job["parameters"])
+          if full
+            puts " Jobs:"
+            items=[]
+            response = client.get("/campaigns/#{campaign['id']}/jobs")
+            jobs=JSON.parse(response.body)
+            items=jobs["items"]
+            while jobs and jobs["links"] and jobs["links"].detect{|l| l["rel"]=="next"}
+              url=jobs["links"].select{|l| l["rel"]=="next"}[0]["href"]
+              response = client.get(url)
+              jobs=JSON.parse(response.body)
+              items=items+jobs["items"] if jobs["items"]
+            end
+           items.each do |job|
+              printf("  %d: %s,%s,%s\n",
+                       job["id"],
+                       job["state"],
+                       job["name"],
+                       job["parameters"])
+            end
           end
         end
       end
