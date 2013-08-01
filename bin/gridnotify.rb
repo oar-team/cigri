@@ -75,7 +75,13 @@ elsif jabber_identity
   identity=jabber_identity
 end
 
-severity="medium" # TODO: manage severity
+
+if !unsubscribe and identity
+  if severity != "low" and severity != "medium" and severity != "high"
+     $stderr.puts "ERROR: Severity should be 'low', 'medium' or 'high'!"
+    exit 2
+  end
+end
 
 begin 
   client = Cigri::Client.new 
