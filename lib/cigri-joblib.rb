@@ -341,6 +341,7 @@ module Cigri
               #TODO: treat walltime!
               submitted_jobs << submit_single_job(cluster,tagged_job[0],campaign,{
                                "resources" => "resource_id=1",
+                               "name" => "cigri.#{campaign_id}",
                                "command" => campaign.clusters[cluster_id][tag] } )
               myjobs.delete(tagged_job[0])
             end
@@ -370,7 +371,8 @@ module Cigri
               submission = {
                             "param_file" => params.join("\n"),
                             "resources" => campaign.clusters[cluster_id]["resources"],
-                            "command" => campaign.clusters[cluster_id]["exec_file"]
+                            "command" => campaign.clusters[cluster_id]["exec_file"],
+                            "name" => "cigri.#{campaign_id}"
                            }
               if runner_options["besteffort"]
                 submission["type"]="besteffort"
