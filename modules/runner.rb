@@ -34,6 +34,9 @@ else
   MIN_CYCLE_DURATION = 5
 end
 
+RUNNER_TAP_INCREASE_FACTOR = config.get('RUNNER_TAP_INCREASE_FACTOR',1.5).to_f
+RUNNER_TAP_INCREASE_MAX = config.get('RUNNER_TAP_INCREASE_MAX',100).to_f
+
 def notify_judas
   Process.kill("USR1",Process.ppid)
 end
@@ -185,8 +188,8 @@ while true do
     # Increase taps for campaigns running well
     ##########################################################################
     cluster.taps.each_key do |campaign_id|
-      if cluster.taps[campaign_id] != 0 and cluster.taps[campaign_id] < 100
-          cluster.set_tap(campaign_id,(cluster.taps[campaign_id]*1.5).to_i)
+      if cluster.taps[campaign_id] != 0 and cluster.taps[campaign_id] < RUNNER_TAP_INCREASE_MAX
+          cluster.set_tap(campaign_id,(cluster.taps[campaign_id]*RUNNER_TAP_INCREASE_FACTOR).to_i)
       end
     end
 
