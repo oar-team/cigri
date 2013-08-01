@@ -15,6 +15,12 @@ require 'cigri-eventlib'
 require 'jdl-parser'
 require 'rack_debugger'
 
+CLUSTER_NAMES = {}
+clusters=Cigri::ClusterSet.new
+clusters.each do |cluster|
+   CLUSTER_NAMES[cluster.id]=cluster.name
+end
+
 class API < Sinatra::Base
   configure do
     use RackDebugger, Cigri::Logger.new('API', Cigri.conf.get('LOG_FILE')) # better print of the requests in the logfile
@@ -466,14 +472,18 @@ class API < Sinatra::Base
         halt 400, print({:status => 400, :title => "Error", :message => "#{e}"})
       end
       not_found if tasks.size == 0
-      
+     
       items = []
       tasks.each do |task|
+        if task['queued_cluster'] and not task['state']
+          task['state']="queued" 
+          task['cluster_id']=task['queued_cluster']
+        end
         items << {
           :id => task['id'],
           :name => task['name'],
           :parameters => task['param'],
-          :cluster => task['cluster_id'],
+          :cluster => CLUSTER_NAMES[task['cluster_id']],
           :cigri_job_id => task['cigri_job_id'],
           :remote_id => task['remote_id'],
           :state => task['state'] || :pending,
@@ -506,12 +516,6 @@ class API < Sinatra::Base
     def get_formated_campaign_events(id, limit, offset)      
       campaign = get_campaign(id)
       events = nil
-      # Cluster id <-> name matching
-      cluster_names = {}
-      clusters=Cigri::ClusterSet.new
-      clusters.each do |cluster|
-        cluster_names[cluster.id]=cluster.name
-      end
       begin
         events = campaign.events(limit, offset)
       rescue DBI::ProgrammingError => e
@@ -527,7 +531,7 @@ class API < Sinatra::Base
           :code => event[2],
           :job_id => event[3],
           :cluster_id => event[4],
-          :cluster_name => cluster_names[event[4]],
+          :cluster_name => CLUSTER_NAMES[event[4]],
           :date_open => event[6],
           :message => event[5],
           :parent => event[7],

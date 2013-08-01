@@ -651,10 +651,12 @@ end
 #
 ##
 def get_campaign_tasks(dbh, id, limit, offset)
-  query = "SELECT p.id as id, p.name as name, p.param as param, j.state as state, j.cluster_id as cluster_id, j.id as cigri_job_id, j.remote_id as remote_id
+  query = "SELECT p.id as id, p.name as name, p.param as param, j.state as state, j.cluster_id as cluster_id, j.id as cigri_job_id, j.remote_id as remote_id, l.cluster_id as queued_cluster
            FROM parameters as p
            LEFT JOIN jobs as j 
             ON p.id = j.param_id
+           LEFT JOIN jobs_to_launch as l
+            ON l.task_id=p.id
            WHERE p.campaign_id = ? 
            ORDER BY id
            LIMIT ? 
