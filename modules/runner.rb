@@ -33,7 +33,6 @@ if config.exists?('RUNNER_MIN_CYCLE_DURATION')
 else
   MIN_CYCLE_DURATION = 5
 end
-SLEEP_MORE = 10 # used as a sleep value when no job is submitted
 
 def notify_judas
   Process.kill("USR1",Process.ppid)
@@ -128,7 +127,7 @@ while true do
               Cigri::Colombo.new(events).check_jobs
               job.update({'stop_time' => to_sql_timestamp(Time.at(cluster_job["stop_time"].to_i))})
               have_to_notify = true
-            when /Running/i , /Finishing/i
+            when /Running/i , /Finishing/i, /Launching/i
               if job.props[:tag] == "batch"
                 subjob_state=job.get_subjob_state(cluster)
                 case subjob_state[:state]
@@ -231,9 +230,6 @@ while true do
         end
         logger.warn(message)
       end
-      sleep_more = SLEEP_MORE # Added as we may have to wait a bit for jobs to be starting, or the tap is closed and reopened at the next cycle
-    else
-      sleep_more = SLEEP_MORE
     end
   end 
 
