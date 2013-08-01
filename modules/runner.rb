@@ -49,6 +49,12 @@ end
 # as the key)
 DEFAULT_TAP = config.get('RUNNER_DEFAULT_INITIAL_NUMBER_OF_JOBS',5).to_i
 cluster.reset_taps
+# We define here a set of hashes to keep in memory the last level of a tap
+# and dates when taps are closed, so that we can repoen a tap to its
+# previous value if it has not been closed for too long
+tap_was_closed={}
+tap_closed_time={}
+last_tap_value={}
 
 #Main runner loop
 logger.info("Starting runner on #{ARGV[0]}")
@@ -58,11 +64,25 @@ while true do
 
   # reset taps that have been closed
   cluster.running_campaigns.each do |campaign_id|
-    cluster.set_tap(campaign_id,DEFAULT_TAP) if cluster.taps[campaign_id] == 0
+    logger.debug("CA: #{campaign_id} last_tap_value: #{last_tap_value[campaign_id]} tap_closed_time:#{tap_closed_time[campaign_id]}")
+    if cluster.taps[campaign_id] == 0
+      if !tap_was_closed[campaign_id]
+        tap_closed_time[campaign_id]=Time.now()
+      end
+      tap_was_closed[campaign_id]=true
+      # to initial tap value if it has been closed for too long (90 seconds)
+      if tap_closed_time[campaign_id] + 90 < Time.now()
+        cluster.set_tap(campaign_id,DEFAULT_TAP) 
+      # to previous value else
+      else 
+        cluster.set_tap(campaign_id,last_tap_value[campaign_id])
+      end
+    else
+      tap_was_closed[campaign_id]=false
+    end
   end
 
   start_time = Time::now.to_i
-  sleep_more = 0
   have_to_notify = false
 
   ##########################################################################
@@ -85,7 +105,6 @@ while true do
   if cluster.blacklisted? 
     cluster.reset_taps(0)
     logger.warn("Cluster is blacklisted") 
-    sleep_more = SLEEP_MORE
   else  
     # Update the jobs state and close the tap if necessary
     current_jobs = Cigri::Jobset.new
@@ -184,16 +203,7 @@ while true do
       end
     end 
 
-    ##########################################################################
-    # Increase taps for campaigns running well
-    ##########################################################################
-    cluster.taps.each_key do |campaign_id|
-      if cluster.taps[campaign_id] != 0 and cluster.taps[campaign_id] < RUNNER_TAP_INCREASE_MAX
-          cluster.set_tap(campaign_id,(cluster.taps[campaign_id]*RUNNER_TAP_INCREASE_FACTOR).to_i)
-      end
-    end
-
-    ##########################################################################
+   ##########################################################################
     # Jobs submission
     ##########################################################################
     #
@@ -213,7 +223,6 @@ while true do
       # Submit the new jobs
       begin
         submitted_jobs=jobs.submit2(cluster.id)
-        sleep_more = SLEEP_MORE if submitted_jobs.length < 1
       rescue Cigri::ClusterAPIConnectionError => e
         message = "Could not submit jobs #{jobs.ids.inspect} on #{cluster.name} because of an API error. Automatically resubmitting."
         jobs.each do |job|
@@ -233,6 +242,15 @@ while true do
         end
         logger.warn(message)
       end
+      sleep 3 # wait a little bit as we just submitted some jobs
+      # Increase taps for campaigns running well
+      cluster.taps.each_key do |campaign_id|
+        if cluster.taps[campaign_id] != 0 and cluster.taps[campaign_id] < RUNNER_TAP_INCREASE_MAX
+            cluster.set_tap(campaign_id,(cluster.taps[campaign_id]*RUNNER_TAP_INCREASE_FACTOR).to_i)
+            cluster.taps[campaign_id] = RUNNER_TAP_INCREASE_MAX if cluster.taps[campaign_id] > RUNNER_TAP_INCREASE_MAX
+            last_tap_value[campaign_id]=cluster.taps[campaign_id]
+        end
+      end
     end
   end 
 
@@ -242,5 +260,4 @@ while true do
   # Sleep if necessary
   cycle_duration = Time::now.to_i - start_time
   sleep MIN_CYCLE_DURATION - cycle_duration if cycle_duration < MIN_CYCLE_DURATION
-  sleep sleep_more
 end
