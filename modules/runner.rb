@@ -146,8 +146,12 @@ while true do
               logger.info("Job #{job.id} is in Error state.")
               Cigri::Colombo::analyze_remote_job_events(job,cluster_job)
               events=Cigri::Eventset.new({ :where => "class = 'job' and cluster_id = #{cluster.id} and state='open'"})
-              Cigri::Colombo.new(events).check_jobs
+              blacklisting=Cigri::Colombo.new(events).check_jobs
               job.update({'stop_time' => to_sql_timestamp(Time.at(cluster_job["stop_time"].to_i))})
+              # Close the tap if it results in a blacklisting
+              if blacklisting
+                cluster.set_tap(job.props[:campaign_id].to_i,0)
+              end
               have_to_notify = true
             when /Running/i , /Finishing/i, /Launching/i
               if job.props[:tag] == "batch"

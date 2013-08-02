@@ -171,16 +171,21 @@ module Cigri
       elsif (!cluster_job["exit_code"].nil? && cluster_job["exit_code"].to_i >> 8) == 67
         resubmit=true
         type="Special_exit_status_67"
-      # Automatic resubmit when the job was killed
+      # Get the type of oar error
       else
         cluster_job["events"].each do |remote_event|
           type=remote_event["type"] 
+          # Automatic resubmit when the job was killed
           if type == "EXTERMINATE" or type == "WALLTIME" or type == "FRAG_JOB_REQUEST" or type == "BESTEFFORT_KILL"
             resubmit=true
+            break
+          # Catch this type
+          elsif type == "WORKING_DIRECTORY"
             break
           end
         end
       end
+
       # Treat resubmission
       if resubmit
         if type == "Special_exit_status_67"
@@ -195,7 +200,8 @@ module Cigri
                          :campaign_id => job.props[:campaign_id],
                          :cluster_id => job.props[:cluster_id], 
                          :message => "Resubmit cause: #{type}")
-      # Other errors (exit status)
+
+      # Exit status errors
       elsif (!cluster_job["exit_code"].nil? && cluster_job["exit_code"].to_i >> 8 > 0 )
         case job.props[:tag]
           when "prologue"
@@ -224,7 +230,21 @@ module Cigri
                          :campaign_id => job.props[:campaign_id],
                          :cluster_id => job.props[:cluster_id], 
                          :message => message)
+
+      # Working directory errors
+      elsif type == "WORKING_DIRECTORY"
+        message = "The job exited because of a working directory error. NFS problem on the cluster?;"
+        Cigri::Event.new(:class => "job",
+                         :code => "WORKING_DIRECTORY_ERROR",
+                         :job_id => job.id,
+                         :campaign_id => job.props[:campaign_id],
+                         :cluster_id => job.props[:cluster_id], 
+                         :message => message)
+ 
       # Unknown errors
+      # Those errors stop immediately the runner from checking jobs!
+      # If you just want to prevent new submissions, but not the checking, set a code
+      # in a new test in the above lines and add it into Cluster.blacklisted_because_of_exit_errors
       else 
         COLOMBOLIBLOGGER.debug("Creating a UNKNOWN_ERROR event for job #{job.id}")
         Cigri::Event.new(:class => "job",
@@ -237,8 +257,9 @@ module Cigri
       job.update({:state => 'event'})
     end
 
-    # Check the jobs
+    # Check the jobs and return true when there's a blacklisting
     def check_jobs
+      blacklist=false
       COLOMBOLIBLOGGER.debug("Checking jobs") 
       @events.each do |event|
 
@@ -262,8 +283,10 @@ module Cigri
           event.checked
           job=Job.new(:id => event.props[:job_id])
           blacklist_cluster(event.id,job.props[:cluster_id],job.props[:campaign_id])
+          blacklist=true
         end
       end
+      blacklist
     end
 
     # Do some default checking

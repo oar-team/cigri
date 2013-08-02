@@ -117,6 +117,8 @@ module Cigri
     # Check if the cluster is blacklisted for a campaign, only because it has EXIT_ERROR events
     # This case is special, because the runner doesn't have to stop checking active jobs on such errors
     def blacklisted_because_of_exit_errors?(opt={})
+      # Array containing known exit codes:
+      exit_errors=["EXIT_ERROR","WORKING_DIRECTORY_ERROR"]
       raise Cigri::Error, "Missing :campaign_id!" if not opt[:campaign_id]
       events=Cigri::Eventset.new(:where => "state='open' and cluster_id=#{@id} 
                                    and campaign_id=#{opt[:campaign_id]} 
@@ -124,7 +126,7 @@ module Cigri
                                    and code='BLACKLIST'")
       events.each do |event|
         parent_event=Cigri::Event.new(:id => event.props[:parent].to_i)
-        return false if parent_event.props[:code] != "EXIT_ERROR"
+        return false if not exit_errors.include?(parent_event.props[:code])
       end
       true
     end
