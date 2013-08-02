@@ -372,9 +372,8 @@ module Cigri
           rescue => e
             COLOMBOLIBLOGGER.error("Error sending notification: #{e.message} #{e.backtrace}")
           end
-        else
-          campaigns << campaign_id
         end
+        campaigns << campaign_id
         event.notified!
       end
       # Cluster blacklists (for admin)
