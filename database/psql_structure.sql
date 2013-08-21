@@ -62,7 +62,7 @@ CREATE TABLE campaign_properties (
   cluster_id INTEGER, -- if NULL, then it's a global --
   campaign_id INTEGER NOT NULL,
   name VARCHAR(255) NOT NULL,
-  value VARCHAR(255) NOT NULL,
+  value text NOT NULL,
   PRIMARY KEY (id)
 );
 CREATE INDEX campaign_properties_idx ON campaign_properties (name,campaign_id);
