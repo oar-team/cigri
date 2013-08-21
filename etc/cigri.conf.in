@@ -35,6 +35,9 @@ STRESS_FACTOR="0.8"
 LOG_FILE = "/var/log/cigri.log"
 # loglevel as supported by the ruby logger (FATAL, ERROR, WARN, INFO, DEBUG)
 LOG_LEVEL = "INFO"
+# Job debugging. Set to 1 if you want to dump all submitted jobs
+LOG_JOBS = "0"
+LOG_JOBS_DIRECTORY = "/var/log/cigri_jobs"
 # Number of lines to get from the end of the stderr file of a cluster job
 # This is passed as a "tail=<STDERR_TAIL>" argument to get_file query.
 STDERR_TAIL = 5

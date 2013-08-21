@@ -22,6 +22,8 @@ config = Cigri.conf
 
 DEFAULT_TAP = config.get('RUNNER_DEFAULT_INITIAL_NUMBER_OF_JOBS',5).to_i
 STRESS_FACTOR = config.get('STRESS_FACTOR',0.8).to_f
+LOG_JOBS = config.get('LOG_JOBS',0).to_i == 1 ? true : false
+LOG_JOBS_DIRECTORY = config.get('LOG_JOBS_DIRECTORY',"/var/log/cigri_jobs") 
 
 
 # TODO: this is maybe something not to be fixed, but computed, and maybe 
@@ -339,6 +341,16 @@ module Cigri
           job.delete("param_file")         
         end
         #
+        if LOG_JOBS
+          file=File.new(LOG_JOBS_DIRECTORY+"/#{name}_#{user}", "a")
+          file.puts Time.now()
+          file.puts job.inspect
+          job.each_key do |k|
+            file.puts "  #{k}:"
+            file.puts job[k]
+          end
+          file.puts   
+        end
         secure_run proc{ @api.post("jobs",job, {@description["api_auth_header"] => map_user(user)}) }, "SUBMIT_JOB"
       end
  
