@@ -209,7 +209,7 @@ module Cigri
 
     # Add properties from the JDL to a submission string
     def add_jdl_properties(submission_string,campaign,cluster_id)
-       submission_string["walltime"]=campaign.clusters[cluster_id]["walltime"] if campaign.clusters[cluster_id]["walltime"]
+       submission_string["resources"]=submission_string["resources"]+",walltime="+campaign.clusters[cluster_id]["walltime"] if campaign.clusters[cluster_id]["walltime"]
        submission_string["directory"]=campaign.clusters[cluster_id]["exec_directory"] if campaign.clusters[cluster_id]["exec_directory"]
        submission_string["property"]=campaign.clusters[cluster_id]["properties"] if campaign.clusters[cluster_id]["properties"]
        submission_string["project"]=campaign.clusters[cluster_id]["project"] if campaign.clusters[cluster_id]["project"]
@@ -428,7 +428,7 @@ module Cigri
                            }
             end
             # Properties from the JDL
-            submission["walltime"]=campaign.clusters[cluster_id]["walltime"] unless campaign.clusters[cluster_id]["walltime"]
+            submission["resources"]=submission["resources"]+",walltime="+campaign.clusters[cluster_id]["walltime"] unless campaign.clusters[cluster_id]["walltime"]
             submission["directory"]=campaign.clusters[cluster_id]["exec_directory"] unless campaign.clusters[cluster_id]["exec_directory"]
             submission["properties"]=campaign.clusters[cluster_id]["properties"] unless campaign.clusters[cluster_id]["properties"]
             submission["project"]=campaign.clusters[cluster_id]["project"] unless campaign.clusters[cluster_id]["project"]
