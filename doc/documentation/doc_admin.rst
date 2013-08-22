@@ -45,6 +45,22 @@ TODO
 TODO
 - Start cigri
 
+Troubleshooting
+===============
+
+You can test job submission as root with the command line tool "grid_test_cluster".
+
+For example, create a file containing a ruby hash definition of a job:::
+
+  root@cigri3-test:~# cat testjob 
+  {"resources"=>"resource_id=1,walltime=3600", "command"=>"sleep 300", "property"=>"", "project"=>"admin"}
+
+Then, submit it with the test tool:::
+
+  root@cigri3-test:~# grid_test_cluster -c gofree -u bzizou -f testjob 
+  Id: 1517940
+  State: Waiting
+
 .. Local Variables:
 .. ispell-local-dictionary: "american"
 .. mode: flyspell
