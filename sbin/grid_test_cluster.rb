@@ -14,6 +14,7 @@ $LOAD_PATH.unshift("#{ENV["CIGRIDIR"]}/lib")
 
 require 'cigri'
 require 'cigri-clusterlib'
+require 'cigri-colombolib'
 
 clustername=nil
 jobfile=nil
@@ -58,9 +59,9 @@ cluster=Cigri::Cluster.new(:name => clustername)
 
 job=eval(File.read(jobfile))
 
-j=cluster.submit_job(j,user)
-puts "Id: #{job['id']}"
+j=cluster.submit_job(job,user)
+puts "Id: #{j['id']}"
 
-state=cluster.get_job(job["id"])["state"]
+state=cluster.get_job(j["id"],user)["state"]
 
 puts "State: #{state}"
