@@ -19,6 +19,7 @@ CREATE TABLE clusters (
   api_username VARCHAR(255),
   api_password VARCHAR(255),
   api_auth_header VARCHAR(255),
+  api_chunk_size INTEGER NOT NULL DEFAULT 0,
   ssh_host VARCHAR(255),
   batch api NOT NULL,
   resource_unit VARCHAR(255) DEFAULT 'resource_id',
