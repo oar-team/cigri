@@ -21,6 +21,8 @@ clusters.each do |cluster|
    CLUSTER_NAMES[cluster.id]=cluster.name
 end
 
+logger=Cigri::Logger.new('API', Cigri.conf.get('LOG_FILE'))
+
 class API < Sinatra::Base
   configure do
     use RackDebugger, Cigri::Logger.new('API', Cigri.conf.get('LOG_FILE')) # better print of the requests in the logfile
@@ -280,6 +282,7 @@ class API < Sinatra::Base
 
       begin
         event=close_event(dbh, request.env[settings.username_variable], id)
+        logger.debug("Closing event #{id}, #{params['resubmit']}")
         if params['resubmit'] && event.props[:job_id]
           job=Cigri::Job.new(:id=>event.props[:job_id])
           job.resubmit
@@ -314,6 +317,7 @@ class API < Sinatra::Base
           jobs.to_jobs
         end
         # Fix the campaign
+        logger.debug("Closing all events if #{id}, #{params['resubmit']}")
         close_campaign_events(dbh, request.env[settings.username_variable], id)
         # Resubmit the jobs if needed
         jobs.each{|job| job.resubmit} if params['resubmit']
