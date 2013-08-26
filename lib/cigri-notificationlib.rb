@@ -108,7 +108,7 @@ module Cigri
         if severities[notification.props[:severity]] <= severities[@severity]
           notifications << notification
         else
-          NOTIFICATIONLIBLOGGER.debug("Not notifiying #{notification.props[:severity]} message to #{notification.props[:identity]}")
+          NOTIFICATIONLIBLOGGER.debug("Not notifiying #{@severity} message to #{notification.props[:identity]}")
         end
       end
       return notifications
