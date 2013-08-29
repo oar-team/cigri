@@ -141,12 +141,12 @@ module Cigri
 
     # Get a collection
     # A collection is an "items" array, and may be paginated
-    def get_collection(uri)
-      res=get(uri)
+    def get_collection(uri,header={})
+      res=get(uri,header)
       collection=res["items"]
       next_link=get_link_by_rel(res,"next")
       while next_link do
-        res=get(next_link)
+        res=get(next_link,header)
         collection.concat(res["items"])
         next_link=get_link_by_rel(res,"next")
       end

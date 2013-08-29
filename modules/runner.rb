@@ -105,12 +105,21 @@ while true do
   if cluster.blacklisted? 
     cluster.reset_taps(0)
     logger.warn("Cluster is blacklisted") 
+  # Update the jobs state and close the tap if necessary
   else  
-    # Update the jobs state and close the tap if necessary
     current_jobs = Cigri::Jobset.new
     current_jobs.get_submitted(cluster.id)
     current_jobs.get_running(cluster.id)
     current_jobs.to_jobs
+    # Fill job cache if cluster supports it (optimization that limits the number of queries to the cluster's api)
+    if cluster.props[:api_chunk_size] and cluster.props[:api_chunk_size].to_i > 0
+      joblist=[]
+      current_jobs.each {|j| joblist << j.props[:remote_id] }
+      joblist.each_slice(cluster.props[:api_chunk_size].to_i) do |chunk|
+        cluster.fill_jobs_cache(:ids => chunk)
+      end
+    end
+    # For each job, get the status
     current_jobs.each do |job|
       if job.props[:remote_id].nil? || job.props[:remote_id] == ""
         job.update({'state' => 'event'})
@@ -206,6 +215,7 @@ while true do
         logger.debug("Not checking job #{job.id} because of campaign blacklist")
       end
     end 
+    cluster.clean_jobs_cache
 
    ##########################################################################
     # Jobs submission

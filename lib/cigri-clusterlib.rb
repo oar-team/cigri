@@ -65,6 +65,7 @@ module Cigri
         end
         @id = id
         @taps={}
+        @jobs_cache={}
       end
 
       # Create a rest_client api instance
@@ -261,16 +262,31 @@ module Cigri
       props[:stress_factor].to_f >= STRESS_FACTOR
     end
 
+    # Clean the cache
+    def clean_jobs_cache
+      @jobs_cache={}
+    end
+
     # Get the resources
     def get_resources
       raise "Method must be overridden"
     end
 
-    # Get the running jobs
+    # Get the a job
+    def get_job
+      raise "Method must be overridden"
+    end
+
+    # Get the running jobs by array id
     def get_jobs
       raise "Method must be overridden"
     end
     
+    # Get a joblist and put it into a cache
+    def fill_jobs_cache
+      raise "Method must be overridden"
+    end
+
     # Submit the given job for the given user
     def submit_job(job,user)
       raise "Method must be overridden"
@@ -333,6 +349,16 @@ module Cigri
         array="?array=#{props[:array]}" if props[:array]
         secure_run proc{ @api.get_collection("jobs/details#{array}") },"GET_JOBS"
       end 
+
+      def fill_jobs_cache(props={})
+        if not props[:ids]
+          CLUSTERLIBLOGGER.error("You must pass an 'ids' array to fill the jobs cache!")
+        else
+          ids=props[:ids].join(':')
+          jobs=secure_run proc{ @api.get_collection("jobs/details?ids=#{ids}",{@description["api_auth_header"] => map_user("oar")}) },"FILL_JOBS_CACHE"
+          jobs.each { |j| @jobs_cache[j["id"]]=j }
+        end
+      end
  
       def submit_job(job, user="")
         # Workaround for OAR not taking 1 parameters array jobs
@@ -356,12 +382,16 @@ module Cigri
  
       def get_job(job_id, user=nil)
         if (job_id.is_a?(Integer))
-          if (user.nil?)
-            secure_run proc{ @api.get("jobs/#{job_id}") }, "GET_JOB"
+          if not @jobs_cache[job_id].nil?
+            return @jobs_cache[job_id]
           else
-            secure_run proc{ @api.get("jobs/#{job_id}",{@description["api_auth_header"] => map_user(user)}) }, "GET_JOB"
+            if (user.nil?)
+              secure_run proc{ @api.get("jobs/#{job_id}") }, "GET_JOB"
+            else
+              secure_run proc{ @api.get("jobs/#{job_id}",{@description["api_auth_header"] => map_user(user)}) }, "GET_JOB"
+            end
           end
-         else
+        else
           CLUSTERLIBLOGGER.error("No valid id passed to get_job on #{name}!")
           nil
         end
