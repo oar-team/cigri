@@ -10,6 +10,7 @@ require 'cigri-logger'
 require 'cigri-conflib'
 require 'cigri-iolib'
 require 'cigri-clusterlib'
+require 'cigri-runnerlib'
 require 'json'
 
 CONF = Cigri.conf unless defined? CONF
@@ -588,7 +589,7 @@ module Cigri
         if not taps[campaign_id].nil?
           tap=taps[campaign_id].props[:rate].to_i
         end
-        if tap >=  counts[campaign_id]
+        if taps[campaign_id].open? and tap >=  counts[campaign_id]
           job[:nodb]=true
           @records << Datarecord.new(@table,job) 
         end
@@ -961,6 +962,13 @@ module Cigri
                max[couple]=campaign.clusters[cluster_id]["max_jobs"].to_i - n_jobs
              else
                max[couple]=nil
+             end
+             #Limit max depending on taps
+             tap=Cigri::Tap.new(:cluster_id => cluster_id.to_i, :campaign_id => campaign.id.to_i)
+             max_to_queue=tap.props[:rate].to_i*2 - queued_jobs
+             max_to_queue=0 if max_to_queue < 0
+             if max[couple].nil? or max[couple] == nil or max_to_queue < max[couple]
+               max[couple]=max_to_queue
              end
              JOBLIBLOGGER.debug("CA=#{campaign.id} CL=#{cluster_id} N=#{n_jobs} (#{active_jobs} active, #{queued_jobs} queued) max=#{max[couple]}")
           end

@@ -53,6 +53,7 @@ while true do
     if tap_can_be_opened[tap.id]
       tap.open
     else
+      tap.decrease
       tap_can_be_opened[tap.id]=true
     end
     cluster.taps[campaign_id.to_i]=tap
@@ -139,7 +140,7 @@ while true do
               # Close the tap if it results in a blacklisting
               if blacklisting
                 cluster.taps[campaign_id].close
-                tap_can_be_opened[cluster.taps[campaign_id]]=false
+                tap_can_be_opened[cluster.taps[campaign_id].id]=false
               end
               have_to_notify = true
             when /Running/i , /Finishing/i, /Launching/i
@@ -171,22 +172,22 @@ while true do
               job.update({'state' => 'remote_waiting'})
               # close the tap
               cluster.taps[campaign_id].close
-              tap_can_be_opened[cluster.taps[campaign_id]]=false
+              tap_can_be_opened[cluster.taps[campaign_id].id]=false
             else
               # close the tap
               cluster.taps[campaign_id].close
-              tap_can_be_opened[cluster.taps[campaign_id]]=false
+              tap_can_be_opened[cluster.taps[campaign_id].id]=false
           end
         rescue Cigri::ClusterAPIConnectionError => e
           message="Could not get remote job #{job.id}!\n#{e.to_s} because of a connexion problem to the cluster API"
           logger.warn(message)
           cluster.taps[campaign_id].close # There's a problem, so we close the tap
-          tap_can_be_opened[cluster.taps[campaign_id]]=false
+          tap_can_be_opened[cluster.taps[campaign_id].id]=false
         rescue => e
           message="Could not get remote job #{job.id}!\n#{e.to_s}\n#{e.backtrace.to_s}"
           logger.warn(message)
           cluster.taps[campaign_id].close # There's a problem, so we close the tap
-          tap_can_be_opened[cluster.taps[campaign_id]]=false
+          tap_can_be_opened[cluster.taps[campaign_id].id]=false
           event=Cigri::Event.new(:class => "job", :code => "RUNNER_GET_JOB_ERROR", 
                                  :cluster_id => cluster.id, :job_id => job.id, 
                                  :message => message, :campaign_id => job.props[:campaign_id].to_i)

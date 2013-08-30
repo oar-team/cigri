@@ -69,19 +69,21 @@ module Cigri
       end
     end
 
-    # Return tru if the tap is open
+    # Return true if the tap is open
     def open?
       @props[:state]=='open'
     end
 
     # Open a tap
     def open
-      update!({:state => 'open'}) 
+      if not open?
+        RUNNERLIBLOGGER.debug("Opening tap of campaign #{@props[:campaign_id]} on cluster #{@props[:cluster_id]}")
+        update!({:state => 'open'}) 
+      end
     end
 
     # Close a tap
     def close
-      decrease
       if open?
         RUNNERLIBLOGGER.debug("Closing tap of campaign #{@props[:campaign_id]} on cluster #{@props[:cluster_id]}")
         update!({:state => 'closed', :close_date => to_sql_timestamp(Time::now())})
@@ -110,6 +112,7 @@ module Cigri
       if curr_rate > RUNNER_DEFAULT_INITIAL_NUMBER_OF_JOBS
         curr_rate=(curr_rate/RUNNER_TAP_INCREASE_FACTOR).to_i
         curr_rate=RUNNER_DEFAULT_INITIAL_NUMBER_OF_JOBS if curr_rate < RUNNER_DEFAULT_INITIAL_NUMBER_OF_JOBS
+        RUNNERLIBLOGGER.debug("Decreasing tap of campaign #{@props[:campaign_id]} on cluster #{@props[:cluster_id]} to #{curr_rate}")
         update!({:rate => curr_rate})
       end
     end
