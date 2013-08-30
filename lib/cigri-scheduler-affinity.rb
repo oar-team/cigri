@@ -135,7 +135,7 @@ module Cigri
             add_jobs_to_launch(dbh,batch["tasks"],cluster_id,batch["tag"],batch["opts"])
           end
         end
-        puts "#{cluster_id}: #{batches.inspect}"
+        #puts "#{cluster_id}: #{batches.inspect}"
       end
     end
 

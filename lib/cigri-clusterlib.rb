@@ -20,7 +20,6 @@ CLUSTERLIBLOGGER = Cigri::Logger.new('CLUSTERLIB', CONF.get('LOG_FILE'))
 
 config = Cigri.conf
 
-DEFAULT_TAP = config.get('RUNNER_DEFAULT_INITIAL_NUMBER_OF_JOBS',5).to_i
 STRESS_FACTOR = config.get('STRESS_FACTOR',0.8).to_f
 LOG_JOBS = config.get('LOG_JOBS',0).to_i == 1 ? true : false
 LOG_JOBS_DIRECTORY = config.get('LOG_JOBS_DIRECTORY',"/var/log/cigri_jobs") 
@@ -179,20 +178,6 @@ module Cigri
       end
     end     
 
-    # Set a tap
-    def set_tap(campaign_id,tap_value)
-      @taps[campaign_id]=tap_value
-    end
-
-    # Reset/init all the taps
-    def reset_taps(value=DEFAULT_TAP)
-      campaigns=running_campaigns
-      return if campaigns.nil?
-      campaigns.each do |campaign_id|
-        set_tap(campaign_id,value)
-      end
-    end
-
     # Runs a procedure with common exception checks
     # Every rest query call has to be send via this method
     # We raise a Cigri::ClusterAPIConnectionError for errors
@@ -265,6 +250,19 @@ module Cigri
     # Clean the cache
     def clean_jobs_cache
       @jobs_cache={}
+    end
+
+    # Close all taps
+    def close_taps
+      @taps.each_key do |campaign_id|
+        @taps[campaign_id].reset
+        @taps[campaign_id].close
+      end
+    end
+
+    # Reset the taps hash
+    def reset_taps
+      @taps={}
     end
 
     # Get the resources

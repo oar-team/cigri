@@ -223,6 +223,18 @@ CREATE TABLE tasks_affinity (
 CREATE INDEX tasks_affinity_idx_param_id ON tasks_affinity(param_id);
 CREATE INDEX tasks_affinity_idx_cluster_id ON tasks_affinity(cluster_id);
 
+DROP TABLE IF EXISTS taps;
+CREATE TYPE tap_state as ENUM('open','closed');
+CREATE TABLE taps (
+  id BIGSERIAL NOT NULL,
+  cluster_id INTEGER NOT NULL,
+  campaign_id INTEGER NOT NULL,
+  state tap_state NOT NULL DEFAULT 'open',
+  rate INTEGER NOT NULL,
+  close_date TIMESTAMP
+);
+CREATE INDEX taps_idx ON taps(cluster_id,campaign_id);
+CREATE INDEX taps_idx_id ON taps (id);
 
 INSERT INTO admission_rules VALUES (1, '# Title : Filtering users for normal mode on clusters 
 # Description : This rule rejects campaigns for which the user requests non best-effort (normal) mode on non-authorized cluster. The list of users is maintained into the /etc/cigri/user_lists file.

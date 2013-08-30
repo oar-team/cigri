@@ -7,6 +7,7 @@ require 'cigri-clusterlib'
 require 'cigri-joblib'
 require 'cigri-eventlib'
 require 'cigri-colombolib'
+require 'cigri-runnerlib'
 
 config = Cigri.conf
 logger = Cigri::Logger.new("RUNNER #{ARGV[0]}", config.get('LOG_FILE'))
@@ -34,52 +35,28 @@ else
   MIN_CYCLE_DURATION = 5
 end
 
-RUNNER_TAP_INCREASE_FACTOR = config.get('RUNNER_TAP_INCREASE_FACTOR',1.5).to_f
-RUNNER_TAP_INCREASE_MAX = config.get('RUNNER_TAP_INCREASE_MAX',100).to_f
-
 def notify_judas
   Process.kill("USR1",Process.ppid)
 end
 
-# The "tap" variable is like a tap. It represents the number of jobs
-# we can start at a time (as a oar array job)
-# We close the tap (ie set tap to 0) if the cluster is not running
-# our jobs, and we open it if all the jobs are running or terminated
-# There's a tap per campaign (represented into a hash with campaign_id 
-# as the key)
-DEFAULT_TAP = config.get('RUNNER_DEFAULT_INITIAL_NUMBER_OF_JOBS',5).to_i
-cluster.reset_taps
-# We define here a set of hashes to keep in memory the last level of a tap
-# and dates when taps are closed, so that we can repoen a tap to its
-# previous value if it has not been closed for too long
-tap_was_closed={}
-tap_closed_time={}
-last_tap_value={}
-
 #Main runner loop
 logger.info("Starting runner on #{ARGV[0]}")
+tap_can_be_opened={}
 while true do
 
   logger.debug('New iteration')
 
-  # reset taps that have been closed
+  # init taps
+  cluster.reset_taps
   cluster.running_campaigns.each do |campaign_id|
-    logger.debug("CA: #{campaign_id} last_tap_value: #{last_tap_value[campaign_id]} tap_closed_time:#{tap_closed_time[campaign_id]}")
-    if cluster.taps[campaign_id] == 0
-      if !tap_was_closed[campaign_id]
-        tap_closed_time[campaign_id]=Time.now()
-      end
-      tap_was_closed[campaign_id]=true
-      # to initial tap value if it has been closed for too long (90 seconds)
-      if tap_closed_time[campaign_id] + 90 < Time.now()
-        cluster.set_tap(campaign_id,DEFAULT_TAP) 
-      # to previous value else
-      else 
-        cluster.set_tap(campaign_id,last_tap_value[campaign_id])
-      end
+    tap=Cigri::Tap.new(:cluster_id => cluster.id, :campaign_id => campaign_id)
+    if tap_can_be_opened[tap.id]
+      tap.open
     else
-      tap_was_closed[campaign_id]=false
+      tap_can_be_opened[tap.id]=true
     end
+    cluster.taps[campaign_id.to_i]=tap
+    logger.debug("Campaign #{campaign_id} tap #{tap.props[:state]}, rate #{tap.props[:rate]}")
   end
 
   start_time = Time::now.to_i
@@ -103,7 +80,8 @@ while true do
 
   # Check if the cluster is blacklisted
   if cluster.blacklisted? 
-    cluster.reset_taps(0)
+    cluster.close_taps
+    tap_can_be_opened={}
     logger.warn("Cluster is blacklisted") 
   # Update the jobs state and close the tap if necessary
   else  
@@ -121,6 +99,7 @@ while true do
     end
     # For each job, get the status
     current_jobs.each do |job|
+      campaign_id=job.props[:campaign_id].to_i
       if job.props[:remote_id].nil? || job.props[:remote_id] == ""
         job.update({'state' => 'event'})
         message="Job #{job.id} is lost, it has no remote_id!"
@@ -159,7 +138,8 @@ while true do
               job.update({'stop_time' => to_sql_timestamp(Time.at(cluster_job["stop_time"].to_i))})
               # Close the tap if it results in a blacklisting
               if blacklisting
-                cluster.set_tap(job.props[:campaign_id].to_i,0)
+                cluster.taps[campaign_id].close
+                tap_can_be_opened[cluster.taps[campaign_id]]=false
               end
               have_to_notify = true
             when /Running/i , /Finishing/i, /Launching/i
@@ -190,19 +170,23 @@ while true do
             when /Waiting/i
               job.update({'state' => 'remote_waiting'})
               # close the tap
-              cluster.set_tap(job.props[:campaign_id].to_i,0)
+              cluster.taps[campaign_id].close
+              tap_can_be_opened[cluster.taps[campaign_id]]=false
             else
               # close the tap
-              cluster.set_tap(job.props[:campaign_id].to_i,0)
+              cluster.taps[campaign_id].close
+              tap_can_be_opened[cluster.taps[campaign_id]]=false
           end
         rescue Cigri::ClusterAPIConnectionError => e
           message="Could not get remote job #{job.id}!\n#{e.to_s} because of a connexion problem to the cluster API"
           logger.warn(message)
-          cluster.set_tap(job.props[:campaign_id].to_i,0) # There's a problem, so we close the tap
+          cluster.taps[campaign_id].close # There's a problem, so we close the tap
+          tap_can_be_opened[cluster.taps[campaign_id]]=false
         rescue => e
           message="Could not get remote job #{job.id}!\n#{e.to_s}\n#{e.backtrace.to_s}"
           logger.warn(message)
-          cluster.set_tap(job.props[:campaign_id].to_i,0) # There's a problem, so we close the tap
+          cluster.taps[campaign_id].close # There's a problem, so we close the tap
+          tap_can_be_opened[cluster.taps[campaign_id]]=false
           event=Cigri::Event.new(:class => "job", :code => "RUNNER_GET_JOB_ERROR", 
                                  :cluster_id => cluster.id, :job_id => job.id, 
                                  :message => message, :campaign_id => job.props[:campaign_id].to_i)
@@ -259,10 +243,8 @@ while true do
       sleep 3 # wait a little bit as we just submitted some jobs
       # Increase taps for campaigns running well
       cluster.taps.each_key do |campaign_id|
-        if cluster.taps[campaign_id] != 0 and cluster.taps[campaign_id] < RUNNER_TAP_INCREASE_MAX
-            cluster.set_tap(campaign_id,(cluster.taps[campaign_id]*RUNNER_TAP_INCREASE_FACTOR).to_i)
-            cluster.taps[campaign_id] = RUNNER_TAP_INCREASE_MAX if cluster.taps[campaign_id] > RUNNER_TAP_INCREASE_MAX
-            last_tap_value[campaign_id]=cluster.taps[campaign_id]
+        if cluster.taps[campaign_id].open?
+          cluster.taps[campaign_id].increase
         end
       end
     end
