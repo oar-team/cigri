@@ -242,10 +242,18 @@ while true do
         logger.warn(message)
       end
       sleep 3 # wait a little bit as we just submitted some jobs
-      # Increase taps for campaigns running well
-      cluster.taps.each_key do |campaign_id|
+      # Increase tap of the first campaign that runs well
+      # ...and only the first: that's important to respect priorities!
+      submitted_campaigns=[]
+      jobs.each do |j| 
+        if not submitted_campaigns.include?(j.props[:campaign_id].to_i)
+          submitted_campaigns << j.props[:campaign_id].to_i
+        end
+       end
+      submitted_campaigns.each do |campaign_id|
         if cluster.taps[campaign_id].open?
           cluster.taps[campaign_id].increase
+          break # or campaigns will evolve in parallell!
         end
       end
     end

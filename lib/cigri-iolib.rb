@@ -1010,7 +1010,7 @@ end
 #   converted into json for database storage). If grouping is requested
 #   all the given tasks are grouped into a unique batch_id
 ##
-def add_jobs_to_launch(dbh, tasks, cluster_id, tag, runner_options)
+def add_jobs_to_launch(dbh, tasks, cluster_id, tag, runner_options, order_num)
   if defined?(runner_options["temporal_grouping"]) or defined?(runner_options["dimensional_grouping"]) 
     runner_options["batch_id"]=new_batch_id(dbh)
   end
@@ -1018,10 +1018,10 @@ def add_jobs_to_launch(dbh, tasks, cluster_id, tag, runner_options)
   dbh['AutoCommit'] = false
   begin
     query = 'INSERT into jobs_to_launch
-             (task_id,cluster_id,tag,runner_options,queuing_date)
-             VALUES (?,?,?,?,now())'
+             (task_id,cluster_id,tag,runner_options,queuing_date,order_num)
+             VALUES (?,?,?,?,now(),?)'
     tasks.each do |task_id|
-      dbh.do(query, task_id, cluster_id, tag, runner_options)
+      dbh.do(query, task_id, cluster_id, tag, runner_options, order_num)
     end
     dbh.commit()
   rescue Exception => e
@@ -1232,6 +1232,18 @@ def reset_task_affinity(dbh,param_id,cluster_id)
   query="delete from tasks_affinity where param_id=#{param_id} and cluster_id=#{cluster_id}"
   dbh.do(query)
 end
+
+##
+# Reset cluster queues
+#
+def reset_cluster_queues(dbh)
+  dbh['AutoCommit'] = false
+  query="delete from jobs_to_launch"
+  dbh.do(query)
+  dbh.commit()
+  dbh['AutoCommit'] = true 
+end
+
 
 #######################################################################
 ######################### iolib classes ###############################

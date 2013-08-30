@@ -135,10 +135,12 @@ module Cigri
         batches << batch if batch
     
         # Actual queuing!
+        order_num=1
         db_connect() do |dbh|
           batches.each do |batch|
             SCHEDULERLOGGER.debug("Queing #{batch['tasks'].length} jobs for cluster #{cluster_id}")
-            add_jobs_to_launch(dbh,batch["tasks"],cluster_id,batch["tag"],batch["opts"])
+            add_jobs_to_launch(dbh,batch["tasks"],cluster_id,batch["tag"],batch["opts"],order_num)
+            order_num += 1
           end
         end
         #puts "#{cluster_id}: #{batches.inspect}"

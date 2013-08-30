@@ -580,7 +580,7 @@ module Cigri
     def get_next(cluster_id,taps={})
       jobs=get("jobs_to_launch,bag_of_tasks","*","cluster_id=#{cluster_id} 
                                                     AND task_id=bag_of_tasks.id
-                                                    ORDER BY bag_of_tasks.priority DESC, jobs_to_launch.id")
+                                                    ORDER BY bag_of_tasks.priority DESC, order_num, jobs_to_launch.id")
       counts={}
       jobs.each do |job|
         tap=0
@@ -965,7 +965,7 @@ module Cigri
              end
              #Limit max depending on taps
              tap=Cigri::Tap.new(:cluster_id => cluster_id.to_i, :campaign_id => campaign.id.to_i)
-             max_to_queue=tap.props[:rate].to_i*2 - queued_jobs
+             max_to_queue=tap.props[:rate].to_i*3 - queued_jobs
              max_to_queue=0 if max_to_queue < 0
              if max[couple].nil? or max[couple] == nil or max_to_queue < max[couple]
                max[couple]=max_to_queue

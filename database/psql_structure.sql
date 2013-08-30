@@ -99,6 +99,7 @@ CREATE TABLE  jobs_to_launch (
   tag VARCHAR(255),
   queuing_date TIMESTAMP,
   runner_options TEXT,
+  order_num INTEGER NOT NULL DEFAULT 1,
   PRIMARY KEY (id)
 );
 CREATE INDEX jobs_to_launch_idx_cluster_id ON jobs_to_launch (cluster_id);
