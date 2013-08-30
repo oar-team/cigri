@@ -110,7 +110,7 @@ begin
 
   # Load the modules
   cigri_modules={
-         'metascheduler' => "#{File.dirname(__FILE__)}/meta-scheduler2.rb",
+         'metascheduler' => "#{File.dirname(__FILE__)}/meta-scheduler.rb",
          'updator' => "#{File.dirname(__FILE__)}/updator.rb",
          'nikita' => "#{File.dirname(__FILE__)}/nikita.rb",
   }
