@@ -88,6 +88,15 @@ def last_inserted_id(dbh, seqname = '')
 end
 
 ##
+# Return the date from the SQL server
+##
+def db_date(dbh)
+  query = "SELECT now()"
+  row = dbh.select_one(query)
+  row[0]
+end
+
+##
 # Method defined to get available types for clusters APIs
 #
 # == Parameters
@@ -121,6 +130,8 @@ end
 ##
 def quote(value)
   return value if value.kind_of?(String) and value[0..8]=="TIMESTAMP"
+  return value if value.kind_of?(String) and value[0..16]=="CURRENT_TIMESTAMP"
+  return value if value.kind_of?(String) and value[0..4]=="now()"
   return "E'#{ value.gsub(/\\/){ '\\\\' }.gsub(/'/){ '\\\'' } }'" if value.kind_of?(String)
   "'#{value}'"
 end

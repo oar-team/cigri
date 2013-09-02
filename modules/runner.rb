@@ -198,6 +198,8 @@ while true do
         end
       else
         logger.debug("Not checking job #{job.id} because of campaign blacklist")
+        cluster.taps[campaign_id].close
+        tap_can_be_opened[cluster.taps[campaign_id].id]=false
       end
     end 
     cluster.clean_jobs_cache

@@ -49,8 +49,8 @@ CREATE TABLE campaigns (
   state campaign_state NOT NULL,
   type VARCHAR(255) NOT NULL,
   name VARCHAR(255),
-  submission_time TIMESTAMP,
-  completion_time TIMESTAMP,
+  submission_time TIMESTAMP WITH TIME ZONE,
+  completion_time TIMESTAMP WITH TIME ZONE,
   nb_jobs INT,
   jdl text,
   PRIMARY KEY (id)
@@ -97,7 +97,7 @@ CREATE TABLE  jobs_to_launch (
   task_id BIGINT NOT NULL,
   cluster_id INTEGER NOT NULL,
   tag VARCHAR(255),
-  queuing_date TIMESTAMP,
+  queuing_date TIMESTAMP WITH TIME ZONE,
   runner_options TEXT,
   order_num INTEGER NOT NULL DEFAULT 1,
   PRIMARY KEY (id)
@@ -116,9 +116,9 @@ CREATE TABLE  jobs (
   collect_id INTEGER,
   state job_state NOT NULL,
   return_code INTEGER,
-  submission_time TIMESTAMP,
-  start_time TIMESTAMP,
-  stop_time TIMESTAMP,
+  submission_time TIMESTAMP WITH TIME ZONE,
+  start_time TIMESTAMP WITH TIME ZONE,
+  stop_time TIMESTAMP WITH TIME ZONE,
   node_name varchar(255),
   resources_used INTEGER,
   remote_id BIGINT,
@@ -151,9 +151,9 @@ CREATE TABLE  events (
   parent INTEGER,
   checked checkbox,
   notified boolean NOT NULL DEFAULT false,
-  date_open TIMESTAMP,
-  date_closed TIMESTAMP,
-  date_update TIMESTAMP,
+  date_open TIMESTAMP WITH TIME ZONE,
+  date_closed TIMESTAMP WITH TIME ZONE,
+  date_update TIMESTAMP WITH TIME ZONE,
   message TEXT,
   PRIMARY KEY (id)
 );
@@ -166,7 +166,7 @@ CREATE INDEX events_idx_campaign_id ON events (campaign_id);
 
 DROP TABLE IF EXISTS queue_counts;
 CREATE TABLE queue_counts (
-  date TIMESTAMP,
+  date TIMESTAMP WITH TIME ZONE,
   campaign_id INTEGER,
   cluster_id INTEGER,
   jobs_count INTEGER
@@ -195,7 +195,7 @@ CREATE INDEX user_notifications_idx_grid_user ON user_notifications (grid_user);
 DROP TABLE IF EXISTS grid_usage;
 CREATE TABLE grid_usage (
   id BIGSERIAL NOT NULL,
-  date TIMESTAMP NOT NULL,
+  date TIMESTAMP WITH TIME ZONE NOT NULL,
   cluster_id INTEGER,
   max_resources INTEGER,
   used_resources INTEGER,
@@ -232,7 +232,7 @@ CREATE TABLE taps (
   campaign_id INTEGER NOT NULL,
   state tap_state NOT NULL DEFAULT 'open',
   rate INTEGER NOT NULL,
-  close_date TIMESTAMP
+  close_date TIMESTAMP WITH TIME ZONE
 );
 CREATE INDEX taps_idx ON taps(cluster_id,campaign_id);
 CREATE INDEX taps_idx_id ON taps (id);

@@ -72,12 +72,17 @@ RUNNER_MIN_CYCLE_DURATION = "15"
 # This number specifies the initial number of jobs to submit. Then,
 # the runner may decide to increase or decreseases this number.
 RUNNER_DEFAULT_INITIAL_NUMBER_OF_JOBS = "3" 
-# Increase the number of jobs submitted at each succesful cycle
+# Increase (or decrease) the number of jobs submitted at each succesful cycle
 # by this value 
 RUNNER_TAP_INCREASE_FACTOR = "1.5"
 # Maximum number of jobs submitted by a runner cycle (maximum
 # array job size)
 RUNNER_TAP_INCREASE_MAX = "100"
+# Grace period for a closed tap: when a tap is closed, it is maybe just
+# beacuse the cluster needs some time to pass the jobs to the running state.
+# So, we don't directly try the next campaign, but wait a bit.
+# The value is a number of seconds.
+RUNNER_TAP_GRACE_PERIOD = "60"
 
 #############################################################################
 ## API OPTIONS

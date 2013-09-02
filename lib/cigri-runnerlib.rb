@@ -86,7 +86,7 @@ module Cigri
     def close
       if open?
         RUNNERLIBLOGGER.debug("Closing tap of campaign #{@props[:campaign_id]} on cluster #{@props[:cluster_id]}")
-        update!({:state => 'closed', :close_date => to_sql_timestamp(Time::now())})
+        update!({:state => 'closed', :close_date => Time::now.to_s})
       end
     end 
 

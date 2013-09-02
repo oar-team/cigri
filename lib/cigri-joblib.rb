@@ -15,6 +15,7 @@ require 'json'
 
 CONF = Cigri.conf unless defined? CONF
 JOBLIBLOGGER = Cigri::Logger.new('JOBLIB', CONF.get('LOG_FILE'))
+RUNNER_TAP_GRACE_PERIOD = CONF.get('RUNNER_TAP_GRACE_PERIOD',"60").to_i
 
 module Cigri
 
@@ -232,7 +233,7 @@ module Cigri
          # Update job info
          job.update(
                      { 'state' => 'submitted', 
-                       'submission_time' => to_sql_timestamp(Time::now()),
+                       'submission_time' => Time::now().to_s,
                        'cluster_id' => cluster.id,
                        'remote_id' => j["id"]
                      },'jobs' )
@@ -257,7 +258,7 @@ module Cigri
         # Update jobs infos
         launching_jobs.update!(
                                { 'state' => 'submitted', 
-                                 'submission_time' => to_sql_timestamp(Time::now()),
+                                 'submission_time' => Time::now().to_s,
                                  'cluster_id' => cluster.id,
                                },'jobs' )
         launching_jobs.match_remote_ids(cluster.id, campaign.clusters[cluster.id]["exec_file"], j["id"])
@@ -305,7 +306,7 @@ module Cigri
         # Update jobs infos
         launching_jobs.update!(
                                { 'state' => 'submitted', 
-                                 'submission_time' => to_sql_timestamp(Time::now()),
+                                 'submission_time' => Time::now().to_s,
                                  'cluster_id' => cluster.id,
                                  'remote_id' => j['id']
                                },'jobs' )
@@ -458,7 +459,7 @@ module Cigri
                 # Update jobs infos
                 launching_jobs.update!(
                                    { 'state' => 'submitted', 
-                                     'submission_time' => to_sql_timestamp(Time::now()),
+                                     'submission_time' => Time::now().to_s,
                                      'cluster_id' => cluster_id,
                                    },'jobs' )
                 launching_jobs.match_remote_ids(cluster_id, campaign.clusters[cluster_id]["exec_file"], j["id"])
@@ -474,7 +475,7 @@ module Cigri
                 # Update job info
                 jobs[0].update(
                                  { 'state' => 'submitted', 
-                                   'submission_time' => to_sql_timestamp(Time::now()),
+                                   'submission_time' => Time::now().to_s,
                                    'cluster_id' => cluster_id,
                                    'remote_id' => j["id"]
                                  },'jobs' )
@@ -576,22 +577,40 @@ module Cigri
     end
 
     # Get jobs to launch on cluster cluster_id, with a limit per campaign
-    # The tap hash contains the maximum jobs to get per campaign_id 
+    # The tap hash contains the tap objects: open/closed and value of the 
+    # max number of jobs to get (rate)
     def get_next(cluster_id,taps={})
+      # Get the jobs order by priority
       jobs=get("jobs_to_launch,bag_of_tasks","*","cluster_id=#{cluster_id} 
                                                     AND task_id=bag_of_tasks.id
                                                     ORDER BY bag_of_tasks.priority DESC, order_num, jobs_to_launch.id")
       counts={}
+      old_campaign_id=0
+      # We have to loop over each job, to check campaigns and taps
       jobs.each do |job|
-        tap=0
+        rate=0
         campaign_id=job[:campaign_id].to_i
         counts[campaign_id] ? counts[campaign_id]+=1 : counts[campaign_id]=1
         if not taps[campaign_id].nil?
-          tap=taps[campaign_id].props[:rate].to_i
+          rate=taps[campaign_id].props[:rate].to_i
         end
-        if taps[campaign_id].open? and tap >=  counts[campaign_id]
+        # If the tap is closed since a short time, dont' send jobs
+        # to the runner. It causes the runner to wait a bit for jobs to start.
+        if not taps[campaign_id].open? and 
+             (Time::now().to_i - Time.parse(taps[campaign_id].props[:close_date]).to_i) < RUNNER_TAP_GRACE_PERIOD
+           JOBLIBLOGGER.debug("Waiting for tap grace period on campaign #{campaign_id}")
+           break
+        end
+        # Only get jobs from a campaign having the tap open
+        # TODO: remove jobs from blacklisted campaigns!
+        if taps[campaign_id].open? and counts[campaign_id] <= rate
+          # Get jobs from the first campaign only.
+          # By this way, the runner does not send too much jobs from campaigns
+          # having less priority
+          break if old_campaign_id != 0  and campaign_id != old_campaign_id
           job[:nodb]=true
           @records << Datarecord.new(@table,job) 
+          old_campaign_id=campaign_id
         end
       end
       return self.length

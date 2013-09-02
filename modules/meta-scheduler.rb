@@ -91,9 +91,9 @@ begin
   cluster_campaigns=campaigns.compute_campaigns_orders
 
   # Reset the queues
-  db_connect do |dbh|
-    reset_cluster_queues(dbh)
-  end
+  #db_connect do |dbh|
+  #  reset_cluster_queues(dbh)
+  #end
 
   # Pass the ordered list to the scheduler
   scheduler=Cigri::SchedulerAffinity.new(campaigns,cluster_campaigns) 
