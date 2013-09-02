@@ -164,6 +164,7 @@ module Cigri
     def self.analyze_remote_job_events(job,cluster_job)
       resubmit=false
       type=''
+      auto_resubmit_id=nil
       # Automatic resubmit with the special exit status 66
       if (!cluster_job["exit_code"].nil? && cluster_job["exit_code"].to_i >> 8) == 66
         resubmit=true
@@ -180,8 +181,11 @@ module Cigri
           if type == "EXTERMINATE" or type == "WALLTIME" or type == "FRAG_JOB_REQUEST" or type == "BESTEFFORT_KILL"
             resubmit=true
             break
-          # Catch this type
-          elsif type == "WORKING_DIRECTORY"
+          # Catch this types for special treatment
+          elsif type == "WORKING_DIRECTORY" 
+            break
+          elsif type == "RESUBMIT_JOB_AUTOMATICALLY"
+            auto_resubmit_id=remote_event["description"].scan(/\(new id = (\d*)\)/)[0][0]
             break
           end
         end
@@ -240,6 +244,18 @@ module Cigri
                          :job_id => job.id,
                          :campaign_id => job.props[:campaign_id],
                          :cluster_id => job.props[:cluster_id], 
+                         :message => message)
+      
+      # OAR automatic resubmission errors
+      elsif type == "RESUBMIT_JOB_AUTOMATICALLY" 
+        message = "OAR did an automatic resubmission so we change the remote_id from #{job.props[:remote_id]} to #{auto_resubmit_id};"
+        job.update!(:remote_id => auto_resubmit_id)
+        Cigri::Event.new(:class => "job",
+                         :code => "OAR_AUTO_RESUBMIT",
+                         :job_id => job.id,
+                         :campaign_id => job.props[:campaign_id],
+                         :cluster_id => job.props[:cluster_id],
+                         :state => 'closed',
                          :message => message)
  
       # Unknown errors
