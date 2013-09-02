@@ -15,7 +15,6 @@ require 'json'
 
 CONF = Cigri.conf unless defined? CONF
 JOBLIBLOGGER = Cigri::Logger.new('JOBLIB', CONF.get('LOG_FILE'))
-RUNNER_TAP_GRACE_PERIOD = CONF.get('RUNNER_TAP_GRACE_PERIOD',"60").to_i
 
 module Cigri
 

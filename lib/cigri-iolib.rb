@@ -1379,6 +1379,11 @@ class Datarecord
     end
   end
 
+  # Refresh (re-get from DB)
+  def refresh!
+    @props=get_record(@table,@props[:id],@props[:what])
+  end
+
 end
 
 ##

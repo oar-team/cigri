@@ -13,6 +13,7 @@ RUNNERLIBLOGGER = Cigri::Logger.new('RUNNERLIB', CONF.get('LOG_FILE'))
 RUNNER_TAP_INCREASE_FACTOR=CONF.get('RUNNER_TAP_INCREASE_FACTOR',"1.5").to_f
 RUNNER_TAP_INCREASE_MAX=CONF.get('RUNNER_TAP_INCREASE_MAX',"100").to_i
 RUNNER_DEFAULT_INITIAL_NUMBER_OF_JOBS=CONF.get('RUNNER_DEFAULT_INITIAL_NUMBER_OF_JOBS',"2").to_i
+RUNNER_TAP_GRACE_PERIOD=CONF.get('RUNNER_TAP_GRACE_PERIOD',"60").to_i
 
 module Cigri
 
@@ -108,6 +109,9 @@ module Cigri
 
     # Decrease the rate of a tap
     def decrease
+      # Dont decrease during grace period
+      refresh!
+      return if @props[:close_date] and (Time::now().to_i - Time.parse(@props[:close_date]).to_i) < RUNNER_TAP_GRACE_PERIOD
       curr_rate=@props[:rate].to_i
       if curr_rate > RUNNER_DEFAULT_INITIAL_NUMBER_OF_JOBS
         curr_rate=(curr_rate/RUNNER_TAP_INCREASE_FACTOR).to_i
