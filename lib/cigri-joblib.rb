@@ -202,13 +202,27 @@ module Cigri
                       and cluster_id=#{cluster_id}"))
     end
 
-    # Get the ids (array) of all campaigns from this jobset
+   # Get the ids (array) of all campaigns from this jobset
     def campaigns
       campaigns={}
       @records.each do |job|
         campaigns[job.props[:campaign_id]]=1
       end
       return campaigns.keys
+    end
+
+    # Remove jobs from blacklisted campaigns
+    def remove_blacklisted(cluster_id)
+      new_records=[]
+      blacklist={}
+      cluster=Cluster.new(:id => cluster_id)
+      campaigns.each do |campaign_id|
+        blacklist[campaign_id]=true if cluster.blacklisted?(:campaign_id=>campaign_id) 
+      end
+      @records.each do |record|
+        new_records << record if not blacklist[record.props[:campaign_id]]
+      end
+      @records=new_records
     end
 
     # Add properties from the JDL to a submission string
@@ -576,6 +590,20 @@ module Cigri
       @records
     end
 
+    # Remove jobs from blacklisted campaigns
+    def remove_blacklisted(cluster_id)
+      new_records=[]
+      blacklist={}
+      cluster=Cluster.new(:id => cluster_id)
+      campaigns.each do |campaign_id|
+        blacklist[campaign_id]=true if cluster.blacklisted?(:campaign_id=>campaign_id) 
+      end
+      @records.each do |record|
+        new_records << record if not blacklist[record.props[:campaign_id]]
+      end
+      @records=new_records
+    end
+
     # Get jobs to launch on cluster cluster_id, with a limit per campaign
     # The tap hash contains the tap objects: open/closed and value of the 
     # max number of jobs to get (rate)
@@ -586,6 +614,13 @@ module Cigri
                                                     ORDER BY bag_of_tasks.priority DESC, order_num, jobs_to_launch.id")
       counts={}
       old_campaign_id=0
+      cluster=Cluster.new(:id => cluster_id)
+      # Check for blacklisted campaigns
+      campaigns_blacklist={}
+      jobs.each {|j| campaigns_blacklist[j[:campaign_id].to_i]=false}
+      campaigns_blacklist.each_key do |c|
+        campaigns_blacklist[c]=true if cluster.blacklisted?(:campaign_id => c)
+      end
       # We have to loop over each job, to check campaigns and taps
       jobs.each do |job|
         rate=0
@@ -601,9 +636,8 @@ module Cigri
            JOBLIBLOGGER.debug("Waiting for tap grace period on campaign #{campaign_id}")
            break
         end
-        # Only get jobs from a campaign having the tap open
-        # TODO: remove jobs from blacklisted campaigns!
-        if taps[campaign_id].open? and counts[campaign_id] <= rate
+        # Only get jobs from a campaign having the tap open and not blacklisted
+        if taps[campaign_id].open? and counts[campaign_id] <= rate and not campaigns_blacklist[campaign_id]
           # Get jobs from the first campaign only.
           # By this way, the runner does not send too much jobs from campaigns
           # having less priority
