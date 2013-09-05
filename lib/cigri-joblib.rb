@@ -363,7 +363,7 @@ module Cigri
         else
           campaign.get_clusters
           # Select the jobs belonging to the current campaign
-          myjobs=@records.select {|job| job.props[:campaign_id] == campaign_id}
+          myjobs=@records.select {|job| job.props[:campaign_id].to_i == campaign_id}
           # Treat prologue and epilogue jobs
           ["prologue","epilogue"].each do |tag|
             tagged_job=myjobs.select {|job| job.props[:tag] == tag}

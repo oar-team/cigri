@@ -208,11 +208,9 @@ while true do
     ##########################################################################
     # Taps re-opening
     ##########################################################################
-    (current_jobs.campaigns + cluster.running_campaigns).uniq.each do |campaign_id|
-      tap=Cigri::Tap.new(:cluster_id => cluster.id, :campaign_id => campaign_id)
-      if tap_can_be_opened[tap.id]
-        tap.open
-        cluster.taps[campaign_id.to_i]=tap
+    cluster.taps.each_key do |campaign_id|
+      if tap_can_be_opened[cluster.taps[campaign_id].id]
+        cluster.taps[campaign_id].open
       end
     end
 
