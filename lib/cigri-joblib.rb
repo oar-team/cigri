@@ -218,7 +218,7 @@ module Cigri
     def campaigns
       campaigns={}
       @records.each do |job|
-        campaigns[job.props[:campaign_id]]=1
+        campaigns[job.props[:campaign_id].to_i]=1
       end
       return campaigns.keys
     end

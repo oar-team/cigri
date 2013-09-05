@@ -56,9 +56,7 @@ while true do
   cluster.reset_taps
   (current_jobs.campaigns + cluster.running_campaigns).uniq.each do |campaign_id|
     tap=Cigri::Tap.new(:cluster_id => cluster.id, :campaign_id => campaign_id)
-    if tap_can_be_opened[tap.id]
-      tap.open
-    else
+    if not tap_can_be_opened[tap.id]
       tap.decrease
       tap_can_be_opened[tap.id]=true
     end
@@ -73,6 +71,7 @@ while true do
   # Jobs control
   ##########################################################################
   # Check if there are some jobs in the transitionnal "launching" jobs
+  logger.debug("Jobs control")
   if cluster.has_launching_jobs?
     logger.warn("There are some 'launching' jobs!")
     launching_jobs = Cigri::Jobset.new
@@ -206,13 +205,24 @@ while true do
     end 
     cluster.clean_jobs_cache
 
-   ##########################################################################
+    ##########################################################################
+    # Taps re-opening
+    ##########################################################################
+    (current_jobs.campaigns + cluster.running_campaigns).uniq.each do |campaign_id|
+      tap=Cigri::Tap.new(:cluster_id => cluster.id, :campaign_id => campaign_id)
+      if tap_can_be_opened[tap.id]
+        tap.open
+        cluster.taps[campaign_id.to_i]=tap
+      end
+    end
+
+    ##########################################################################
     # Jobs submission
     ##########################################################################
     #
     # Get the jobs to launch and submit them
     #
-
+    logger.debug("Jobs submissions")
     tolaunch_jobs = Cigri::JobtolaunchSet.new
     # Get the jobs in state to_launch (should only happen for prologue/epilogue or after  a crash)
     jobs=Cigri::Jobset.new(:where => "jobs.state='to_launch' and jobs.cluster_id=#{cluster.id}")
