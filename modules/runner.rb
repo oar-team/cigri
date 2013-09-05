@@ -46,9 +46,15 @@ while true do
 
   logger.debug('New iteration')
 
+  # Get current jobs
+  current_jobs = Cigri::Jobset.new
+  current_jobs.get_submitted(cluster.id)
+  current_jobs.get_running(cluster.id)
+  current_jobs.to_jobs
+
   # init taps
   cluster.reset_taps
-  cluster.running_campaigns.each do |campaign_id|
+  (current_jobs.campaigns + cluster.running_campaigns).uniq.each do |campaign_id|
     tap=Cigri::Tap.new(:cluster_id => cluster.id, :campaign_id => campaign_id)
     if tap_can_be_opened[tap.id]
       tap.open
@@ -86,11 +92,7 @@ while true do
     logger.warn("Cluster is blacklisted") 
   # Update the jobs state and close the tap if necessary
   else  
-    current_jobs = Cigri::Jobset.new
-    current_jobs.get_submitted(cluster.id)
-    current_jobs.get_running(cluster.id)
-    current_jobs.to_jobs
-    # Fill job cache if cluster supports it (optimization that limits the number of queries to the cluster's api)
+   # Fill job cache if cluster supports it (optimization that limits the number of queries to the cluster's api)
     if cluster.props[:api_chunk_size] and cluster.props[:api_chunk_size].to_i > 0
       joblist=[]
       current_jobs.each {|j| joblist << j.props[:remote_id] }

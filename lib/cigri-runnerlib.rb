@@ -78,7 +78,7 @@ module Cigri
     # Open a tap
     def open
       if not open?
-        RUNNERLIBLOGGER.debug("Opening tap of campaign #{@props[:campaign_id]} on cluster #{@props[:cluster_id]}")
+        RUNNERLIBLOGGER.info("Opening tap of campaign #{@props[:campaign_id]} on cluster #{@props[:cluster_id]}")
         update!({:state => 'open'}) 
       end
     end
@@ -86,7 +86,7 @@ module Cigri
     # Close a tap
     def close
       if open?
-        RUNNERLIBLOGGER.debug("Closing tap of campaign #{@props[:campaign_id]} on cluster #{@props[:cluster_id]}")
+        RUNNERLIBLOGGER.info("Closing tap of campaign #{@props[:campaign_id]} on cluster #{@props[:cluster_id]}")
         update!({:state => 'closed', :close_date => Time::now.to_s})
       end
     end 
@@ -97,7 +97,7 @@ module Cigri
       if curr_rate < RUNNER_TAP_INCREASE_MAX
         curr_rate=(curr_rate*RUNNER_TAP_INCREASE_FACTOR).to_i
         curr_rate=RUNNER_TAP_INCREASE_MAX if curr_rate > RUNNER_TAP_INCREASE_MAX
-        RUNNERLIBLOGGER.debug("Increasing tap of campaign #{@props[:campaign_id]} on cluster #{@props[:cluster_id]} to #{curr_rate}")
+        RUNNERLIBLOGGER.info("Increasing tap of campaign #{@props[:campaign_id]} on cluster #{@props[:cluster_id]} to #{curr_rate}")
         update!({:rate => curr_rate})
       end
     end
@@ -116,7 +116,7 @@ module Cigri
       if curr_rate > RUNNER_DEFAULT_INITIAL_NUMBER_OF_JOBS
         curr_rate=(curr_rate/RUNNER_TAP_INCREASE_FACTOR).to_i
         curr_rate=RUNNER_DEFAULT_INITIAL_NUMBER_OF_JOBS if curr_rate < RUNNER_DEFAULT_INITIAL_NUMBER_OF_JOBS
-        RUNNERLIBLOGGER.debug("Decreasing tap of campaign #{@props[:campaign_id]} on cluster #{@props[:cluster_id]} to #{curr_rate}")
+        RUNNERLIBLOGGER.info("Decreasing tap of campaign #{@props[:campaign_id]} on cluster #{@props[:cluster_id]} to #{curr_rate}")
         update!({:rate => curr_rate})
       end
     end
