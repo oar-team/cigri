@@ -43,7 +43,7 @@ module Cigri
     # A re-submitted job has a priority of 20 (higher than default which is 10)
     def resubmit
       if not campaign_running?
-        JOBLIBLOGGER.debug("Not resubmiting job #{id} of non-running campaign")
+        JOBLIBLOGGER.info("Not resubmiting job #{id} of non-running campaign")
         return false
       end
       JOBLIBLOGGER.debug("Resubmiting parameter #{@props[:param_id]}")   
@@ -53,7 +53,7 @@ module Cigri
     # Same as resubmit, but with a 0 priority, so that the job is at the end of the queue
     def resubmit_end
       if not campaign_running?
-        JOBLIBLOGGER.debug("Not resubmiting job #{id} of non-running campaign")
+        JOBLIBLOGGER.info("Not resubmiting job #{id} of non-running campaign")
         return false
       end
       JOBLIBLOGGER.debug("Resubmiting parameter #{@props[:param_id]} at end of queue")   
