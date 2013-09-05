@@ -34,15 +34,28 @@ module Cigri
       end
     end
 
+    def campaign_running?
+      campaign=Campaign.new(:id => @props[:campaign_id])
+      campaign.props[:state] == 'in_treatment' 
+    end
+
     # Clone the job into the bag of tasks for resubmission of the same job
     # A re-submitted job has a priority of 20 (higher than default which is 10)
     def resubmit
+      if not campaign_running?
+        JOBLIBLOGGER.debug("Not resubmiting job #{id} of non-running campaign")
+        return false
+      end
       JOBLIBLOGGER.debug("Resubmiting parameter #{@props[:param_id]}")   
       Datarecord.new("bag_of_tasks",{:param_id => @props[:param_id], :campaign_id => @props[:campaign_id], :priority => '20'})
     end
 
     # Same as resubmit, but with a 0 priority, so that the job is at the end of the queue
     def resubmit_end
+      if not campaign_running?
+        JOBLIBLOGGER.debug("Not resubmiting job #{id} of non-running campaign")
+        return false
+      end
       JOBLIBLOGGER.debug("Resubmiting parameter #{@props[:param_id]} at end of queue")   
       Datarecord.new("bag_of_tasks",{:param_id => @props[:param_id], :campaign_id => @props[:campaign_id], :priority => '0'})
     end
