@@ -38,7 +38,7 @@ begin
     campaign.clusters.each_key do |cluster_id|
       cluster = Cigri::Cluster.new(:id => cluster_id)
       # Prologue
-      if not campaign.prologue_ok?(cluster_id)
+      if not campaign.prologue_ok?(cluster_id) and campaign.has_remaining_tasks?
         if ( not cluster.blacklisted? and not 
                  cluster.blacklisted?(:campaign_id => campaign.id) )
           logger.debug("Prologue not executed for #{campaign.id} on #{cluster.name}")
