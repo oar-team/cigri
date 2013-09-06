@@ -16,7 +16,13 @@ end
 
 begin
   config = Cigri.conf
-  logger = Cigri::Logger.new('UPDATOR', config.get('LOG_FILE'))
+  logfile=config.get('LOG_FILE',"STDOUT")
+  logger = Cigri::Logger.new('UPDATOR', logfile)
+
+  if logfile != "STDOUT" && logfile != "STDERR"
+    $stdout.reopen(logfile, "a")
+    $stderr.reopen(logfile, "a")
+  end
  
   GRID_USAGE_UPDATE_PERIOD=config.get('GRID_USAGE_UPDATE_PERIOD',60)
  

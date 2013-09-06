@@ -10,7 +10,13 @@ require 'cigri-colombolib'
 require 'cigri-runnerlib'
 
 config = Cigri.conf
-logger = Cigri::Logger.new("RUNNER #{ARGV[0]}", config.get('LOG_FILE'))
+logfile=config.get('LOG_FILE',"STDOUT")
+logger = Cigri::Logger.new("RUNNER #{ARGV[0]}", logfile)
+
+if logfile != "STDOUT" && logfile != "STDERR"
+  $stdout.reopen(logfile, "a")
+  $stderr.reopen(logfile, "a")
+end
 
 if ARGV[0].nil?
   raise Cigri::Error, "runner should be passed the name of a cluster as an argument"

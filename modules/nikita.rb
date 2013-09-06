@@ -12,7 +12,13 @@ $0='cigri: nikita'
 
 begin
   config = Cigri.conf
-  logger = Cigri::Logger.new('NIKITA', config.get('LOG_FILE'))
+  logfile = config.get('LOG_FILE',"STDOUT")
+  logger = Cigri::Logger.new('NIKITA', logfile)
+
+  if logfile != "STDOUT" && logfile != "STDERR"
+    $stdout.reopen(logfile, "a")
+    $stderr.reopen(logfile, "a")
+  end
   
   %w{INT TERM}.each do |signal|
     Signal.trap(signal){ 
