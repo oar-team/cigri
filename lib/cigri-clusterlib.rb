@@ -244,7 +244,11 @@ module Cigri
 
     # Return true if the stress_factor is above 1
     def under_stress?
-      props[:stress_factor].to_f >= STRESS_FACTOR
+      if props[:stress_factor].to_f >= STRESS_FACTOR
+        CLUSTERLIBLOGGER.info("Cluster #{@id} is under stress")
+        return true
+      end
+      false
     end
 
     # Clean the cache

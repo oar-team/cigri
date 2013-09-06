@@ -9,7 +9,13 @@ $0='cigri: almighty'
 
 begin
   config = Cigri.conf
-  logger = Cigri::Logger.new('ALMIGHTY', config.get('LOG_FILE'))
+  logfile=config.get('LOG_FILE',"STDOUT")
+  logger = Cigri::Logger.new('ALMIGHTY', logfile)
+
+  if logfile != "STDOUT" && logfile != "STDERR"
+    $stdout.reopen(logfile, "a")
+    $stderr.reopen(logfile, "a")
+  end
 
   #Childs array
   childs=[]
