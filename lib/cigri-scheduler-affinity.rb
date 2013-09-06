@@ -44,7 +44,8 @@ module Cigri
       # Now, remove the popped task from other clusters
       if not task.nil?
         @stacks.each_key do |cluster_id|
-          @stacks[cluster_id][cur_campaign].delete(task[0])
+SCHEDULERLOGGER.debug(@stacks.inspect)
+          @stacks[cluster_id][cur_campaign].delete(task[0]) if @stacks[cluster_id][cur_campaign]
         end
         return task
       else
