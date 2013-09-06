@@ -410,7 +410,7 @@ module Cigri
           result=secure_run proc{ @api.get("stress_factor") }, "GET_STRESS_FACTOR"
           stress_factor=result["GLOBAL_STRESS"].to_f
         rescue
-          CLUSTERLIBLOGGER.warning("Could not get the stress_factor of #{name}!")
+          CLUSTERLIBLOGGER.warn("Could not get the stress_factor of #{name}!")
         end
         return stress_factor
       end
