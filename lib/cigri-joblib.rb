@@ -960,7 +960,8 @@ module Cigri
       Hash[@records.map {|record| [record.id,record.props[:grid_user]]}]
     end
 
-    # Return all the clusters (objects) that are not blacklisted and used by at least
+    # Return all the clusters (objects) that are used by at least
+    ## Return all the clusters (objects) that are not blacklisted and used by at least
     # one campaign of this Campaignset
     # This is mainly to create a cache of cluster objects, for optimization
     def get_clusters
@@ -970,11 +971,11 @@ module Cigri
         campaign.clusters.each_key do |cluster_id|
           if not clusters[cluster_id]
             cluster=Cigri::Cluster.new(:id => cluster_id)
-            if cluster.blacklisted?
-              clusters[cluster_id]=nil
-            else
+        #    if cluster.blacklisted?
+        #      clusters[cluster_id]=nil
+        #    else
               clusters[cluster_id]=cluster
-            end
+        #    end
           end
         end
       end
