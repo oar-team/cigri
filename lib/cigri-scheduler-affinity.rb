@@ -58,16 +58,16 @@ module Cigri
     # different from the queues as this structure is only used for sorting.
     # Also get current state of each campaign to know how many jobs to queue
     def compute_stacks(max_tasks)
-      max={}
       @cluster_campaigns.each do |triplet|
+        my_max_tasks=max_tasks
         cluster_id=triplet[0]
         campaign_id=triplet[1]
         max=triplet[2]
         if max
-          if max_tasks
-            max_tasks = max if max < max_tasks
+          if my_max_tasks
+            my_max_tasks = max if max < my_max_tasks
           else
-            max_tasks = max
+            my_max_tasks = max
           end
         end
         SCHEDULERLOGGER.debug{"Scheduling campaign #{campaign_id} on cluster #{cluster_id}"}
@@ -76,8 +76,8 @@ module Cigri
         if @stacks[cluster_id].nil?
           @stacks[cluster_id]={}
         end
-        @stacks[cluster_id][campaign_id]=@campaigns.compute_tasks_list(cluster_id,campaign_id,max_tasks).reverse
-        SCHEDULERLOGGER.debug{"  #{@stacks[cluster_id][campaign_id].length} tasks into ordering stack (max=#{max_tasks})"}
+        @stacks[cluster_id][campaign_id]=@campaigns.compute_tasks_list(cluster_id,campaign_id,my_max_tasks).reverse
+        SCHEDULERLOGGER.debug{"  #{@stacks[cluster_id][campaign_id].length} tasks into ordering stack (max=#{my_max_tasks})"}
       end     
     end
 
