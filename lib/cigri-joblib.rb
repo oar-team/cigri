@@ -359,6 +359,8 @@ module Cigri
         # Don't treat campaigns for which the cluster is blacklisted
         if cluster.blacklisted?(:campaign_id => campaign.id)
           JOBLIBLOGGER.info("Not submitting jobs on #{cluster.name} for campaign #{campaign.id} because of blacklist.")
+          tap=Cigri::Tap.new(:cluster_id => cluster_id, :campaign_id => campaign.id)
+          tap.close
         # Cluster ok for this campaign
         else
           campaign.get_clusters

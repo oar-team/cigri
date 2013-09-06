@@ -258,17 +258,20 @@ while true do
       end
       sleep 3 # wait a little bit as we just submitted some jobs
       # Increase tap of the first campaign that runs well
-      # ...and only the first: that's important to respect priorities!
+      # (in case we submitted for several campaigns, but this should
+      # not happen with the Jobset::submit2 method)
       submitted_campaigns=[]
-      jobs.each do |j| 
-        if not submitted_campaigns.include?(j.props[:campaign_id].to_i)
-          submitted_campaigns << j.props[:campaign_id].to_i
-        end
-       end
-      submitted_campaigns.each do |campaign_id|
-        if cluster.taps[campaign_id].open?
-          cluster.taps[campaign_id].increase
-          break # or campaigns will evolve in parallell!
+      if submitted_jobs.length > 0
+        jobs.each do |j| 
+          if not submitted_campaigns.include?(j.props[:campaign_id].to_i)
+            submitted_campaigns << j.props[:campaign_id].to_i
+          end
+         end
+        submitted_campaigns.each do |campaign_id|
+          if cluster.taps[campaign_id].open?
+            cluster.taps[campaign_id].increase
+            break # or campaigns may evolve in parallell
+          end
         end
       end
     end
