@@ -647,7 +647,7 @@ module Cigri
         # to the runner. It causes the runner to wait a bit for jobs to start.
         if not taps[campaign_id].open? and 
              (Time::now().to_i - Time.parse(taps[campaign_id].props[:close_date]).to_i) < RUNNER_TAP_GRACE_PERIOD
-           JOBLIBLOGGER.info("Waiting for tap grace period on campaign #{campaign_id}")
+           JOBLIBLOGGER.info("Waiting for tap grace period on cluster #{cluster_id} for campaign #{campaign_id}")
            break
         end
         # Only get jobs from a campaign having the tap open and not blacklisted
