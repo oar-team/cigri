@@ -328,38 +328,6 @@ module Cigri
     end
 
     ##
-    # Notify EXIT_ERROR events
-    # Such events are grouped into one aggregated notification message
-    #
-    # == Parameters:
-    # - im: instant message handlers hash
-    #
-    def notify_exit_errors!(im_handlers)
-      events=@events.records.select{|event| event.props[:code]=="EXIT_ERROR" and event.props[:notified] == "f"}
-      COLOMBOLIBLOGGER.debug("Notifying #{events.length} exit_error events") if events.length > 0
-      count_events_per_campaign(events).each do |campaign_id,number| 
-        message_props={
-                        :subject => "#{number} exit errors on campaign ##{campaign_id}" ,
-                        :message => "You have exit errors on campaign ##{campaign_id}. Please, check cigri events.",
-                        :severity => 'high'
-                      }
-        message_props[:message]+="The first event says:\n"
-        message_props[:message]+=events[0].props[:message]
-        message_props[:user]=@campaign_users[campaign_id] unless @campaign_users[campaign_id].nil?
-        message=Cigri::Message.new(message_props,im_handlers)
-        # Actual sending of a grouped message
-        begin
-          message.send
-        rescue => e
-          COLOMBOLIBLOGGER.error("Error sending notification: #{e.message} #{e.backtrace}")
-        end
-      end
-      events.each do |event| 
-        event.notified!
-      end
-    end
-
-    ##
     # Notify events that should be aggregated, surch as EXIT_ERRORS, RUNNER_SUBMIT_ERRORS
     # Such events are grouped into one aggregated notification message
     #
