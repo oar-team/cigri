@@ -196,6 +196,10 @@ module Cigri
         event=Cigri::Event.new(:class => "cluster", :cluster_id => @id, :code => "TIMEOUT", :message => e)
         Cigri::Colombo.new(event).check
         raise Cigri::ClusterAPIConnectionError, e.message
+      rescue Errno::ETIMEDOUT => e
+        event=Cigri::Event.new(:class => "cluster", :cluster_id => @id, :code => "TIMEOUT", :message => e)
+        Cigri::Colombo.new(event).check
+        raise Cigri::ClusterAPIConnectionError, e.message
       rescue Errno::ECONNREFUSED => e
         event=Cigri::Event.new(:class => "cluster", :cluster_id => @id, :code => "CONNECTION_REFUSED", :message => e)
         Cigri::Colombo.new(event).check
