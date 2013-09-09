@@ -100,7 +100,7 @@ while true do
    # Fill job cache if cluster supports it (optimization that limits the number of queries to the cluster's api)
     if cluster.props[:api_chunk_size] and cluster.props[:api_chunk_size].to_i > 0
       joblist=[]
-      current_jobs.each {|j| joblist << j.props[:remote_id] }
+      current_jobs.each {|j| joblist << j.props[:remote_id] if j.props[:remote_id] }
       joblist.each_slice(cluster.props[:api_chunk_size].to_i) do |chunk|
         cluster.fill_jobs_cache(:ids => chunk)
       end
@@ -198,7 +198,6 @@ while true do
           event=Cigri::Event.new(:class => "job", :code => "RUNNER_GET_JOB_ERROR", 
                                  :cluster_id => cluster.id, :job_id => job.id, 
                                  :message => message, :campaign_id => job.props[:campaign_id].to_i)
-
           Cigri::Colombo.new(event).check_jobs
           have_to_notify = true
           break
@@ -267,14 +266,14 @@ while true do
       # (in case we submitted for several campaigns, but this should
       # not happen with the Jobset::submit2 method)
       submitted_campaigns=[]
-      if submitted_jobs.length > 0
+      if submitted_jobs and submitted_jobs.length > 0
         jobs.each do |j| 
           if not submitted_campaigns.include?(j.props[:campaign_id].to_i)
             submitted_campaigns << j.props[:campaign_id].to_i
           end
          end
         submitted_campaigns.each do |campaign_id|
-          if cluster.taps[campaign_id].open?
+          if cluster.taps[campaign_id] and cluster.taps[campaign_id].open?
             cluster.taps[campaign_id].increase
             break # or campaigns may evolve in parallell
           end

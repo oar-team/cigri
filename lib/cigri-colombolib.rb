@@ -87,7 +87,7 @@ module Cigri
         if event.props[:class]=="cluster"
           COLOMBOLIBLOGGER.debug("Checking event #{event.props[:code]}")
           case event.props[:code]
-          when "TIMEOUT", "CONNECTION_RESET", "CONNECTION_REFUSED", "SSL_ERROR", "SUBMIT_JOB", "GET_JOBS", "GET_JOB", "GET_MEDIA","GET_STRESS_FACTOR"
+          when "TIMEOUT", "CONNECTION_RESET", "CONNECTION_REFUSED", "SSL_ERROR", "SUBMIT_JOB", "GET_JOBS", "GET_JOB", "GET_MEDIA","GET_STRESS_FACTOR", "FILL_JOBS_CACHE", "RUNNER_GET_JOB_CHUNK_ERROR"
             blacklist_cluster(event.id,event.props[:cluster_id],event.props[:campaign_id])
             event.checked
           when "PERMISSION_DENIED", "FORBIDDEN"
@@ -360,6 +360,43 @@ module Cigri
     end
 
     ##
+    # Notify events that should be aggregated, surch as EXIT_ERRORS, RUNNER_SUBMIT_ERRORS
+    # Such events are grouped into one aggregated notification message
+    #
+    # == Parameters:
+    # - im: instant message handlers hash
+    #
+    def notify_aggregated_errors!(im_handlers)
+      codes_of_errors_to_aggregate=["RUNNER_SUBMIT_ERROR","EXIT_ERROR"]
+      codes_of_errors_to_aggregate.each do |code|
+        events=@events.records.select{|event| event.props[:code]==code and event.props[:notified] == "f"}
+        COLOMBOLIBLOGGER.debug("Notifying #{events.length} #{code} events") if events.length > 0
+        count_events_per_campaign(events).each do |campaign_id,number| 
+          message_props={
+                          :subject => "#{number} #{code} event(s) on campaign ##{campaign_id}" ,
+                          :message => "You have #{code} event(s) on campaign ##{campaign_id}. Please, check cigri events.",
+                          :severity => 'high'
+                        }
+          message_props[:message]+="The first event says:\n"
+          message_props[:message]+=events[0].props[:message]
+          message_props[:user]=@campaign_users[campaign_id] unless @campaign_users[campaign_id].nil?
+          message=Cigri::Message.new(message_props,im_handlers)
+          # Actual sending of a grouped message
+          begin
+            message.send
+          rescue => e
+            COLOMBOLIBLOGGER.error("Error sending notification: #{e.message} #{e.backtrace}")
+          end
+        end
+        events.each do |event| 
+          event.notified!
+        end
+      end
+    end
+
+
+
+    ##
     # Notify BLACKLIST events
     # Many blacklist events may occur, but only one per campaign and cluster has to be notified
     #
@@ -373,9 +410,9 @@ module Cigri
       campaigns=[]
       events.each do |event|
         campaign_id=event.props[:campaign_id].to_i
-        # Notify only once per campaign
-        ##TODO: should be "Notify only once per {campaign,cluster} couple" ?
-        if not campaigns.include?(campaign_id)
+        cluster_id=event.props[:cluster_id].to_i
+        # Notify only once per campaign,cluster
+        if not campaigns.include?([campaign_id,cluster_id])
            message_props={
                         :subject => "Cluster ##{event.props[:cluster_id]} blacklisted for campaign ##{event.props[:campaign_id]} ",
                         :severity => "high",
@@ -390,7 +427,7 @@ module Cigri
             COLOMBOLIBLOGGER.error("Error sending notification: #{e.message} #{e.backtrace}")
           end
         end
-        campaigns << campaign_id
+        campaigns << [campaign_id,cluster_id]
         event.notified!
       end
       # Cluster blacklists (for admin)
@@ -484,7 +521,7 @@ module Cigri
     def notify(im_handlers)
       COLOMBOLIBLOGGER.debug("Notifying #{@events.length} events") if @events.length > 0
       remove_not_to_be_notified_events!
-      notify_exit_errors!(im_handlers)
+      notify_aggregated_errors!(im_handlers)
       notify_blacklists!(im_handlers)
       notify_generic_events!(im_handlers)
     end
