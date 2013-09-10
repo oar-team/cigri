@@ -32,8 +32,8 @@ module Cigri
         if props[:notified].nil?
           props[:notified]=false
         end
-        props[:date_open]=Time::now().to_s
-        props[:date_update]=props[:date_open]
+        props[:date_open]=Time::now().to_s if not props[:date_open]
+        props[:date_update]=props[:date_open] if not props[:date_update]
         msg=""
         props.each_key do |prop| 
           msg += "#{prop}=\"#{props[prop]}\" "
