@@ -238,8 +238,17 @@ module Cigri
     end
 
     # Add properties from the JDL to a submission string
-    def add_jdl_properties(submission_string,campaign,cluster_id)
-       submission_string["resources"]=submission_string["resources"]+",walltime="+campaign.clusters[cluster_id]["walltime"] if campaign.clusters[cluster_id]["walltime"]
+    def add_jdl_properties(submission_string,campaign,cluster_id,tag=nil)
+       walltime=nil
+       if tag and tag=="prologue"
+         walltime=campaign.clusters[cluster_id]["prologue_walltime"] if campaign.clusters[cluster_id]["prologue_walltime"]
+       elsif tag and tag=="epilogue"
+         walltime=campaign.clusters[cluster_id]["epilogue_walltime"] if campaign.clusters[cluster_id]["epilogue_walltime"]
+       end
+       if walltime.nil? && campaign.clusters[cluster_id]["walltime"]
+         walltime=campaign.clusters[cluster_id]["walltime"]
+       end
+       submission_string["resources"]=submission_string["resources"]+",walltime="+walltime if walltime
        submission_string["directory"]=campaign.clusters[cluster_id]["exec_directory"] if campaign.clusters[cluster_id]["exec_directory"]
        submission_string["property"]=campaign.clusters[cluster_id]["properties"] if campaign.clusters[cluster_id]["properties"]
        submission_string["project"]=campaign.clusters[cluster_id]["project"] if campaign.clusters[cluster_id]["project"]
@@ -247,9 +256,9 @@ module Cigri
     end
 
     # Submit a single job on the given cluster
-    def submit_single_job(cluster,job,campaign,submission_string)
+    def submit_single_job(cluster,job,campaign,submission_string,tag=nil)
        # Add properties from the JDL
-      submission_string=add_jdl_properties(submission_string,campaign,cluster.id)
+      submission_string=add_jdl_properties(submission_string,campaign,cluster.id,tag)
       JOBLIBLOGGER.debug("Submitting new job on #{cluster.description["name"]}.")
       # Actual submission
       j=cluster.submit_job(submission_string,campaign.props[:grid_user])
@@ -374,7 +383,7 @@ module Cigri
               submitted_jobs << submit_single_job(cluster,tagged_job[0],campaign,{
                                "resources" => "resource_id=1",
                                "name" => "cigri.#{campaign_id}",
-                               "command" => campaign.clusters[cluster_id][tag] } )
+                               "command" => campaign.clusters[cluster_id][tag] },tag )
               myjobs.delete(tagged_job[0])
             end
           end

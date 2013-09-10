@@ -79,6 +79,8 @@ as value on all clusters.
 - properties: properties passed to OAR to select resources
 - prologue: commands that are executed before the first job on each cluster 
 - epilogue: commands that are executed at the end of a campaign
+- prologue_walltime: specific walltime for the prologue 
+- epilogue_walltime: specific walltime for the epilogue
 - output_gathering_method: method to use to gather results in a single
   place
 
@@ -119,6 +121,9 @@ as value on all clusters.
 
   - true
   - **false**
+
+- max_jobs: when this value (integer) is set, it limits the number of running jobs on a cluster. It may be set for every clusters or a specific one.
+
 
 .. NOTE::
 

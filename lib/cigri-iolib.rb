@@ -213,7 +213,8 @@ def cigri_submit(dbh, jdl, user)
         at_least_one_cluster = true
         %w{checkpointing_type dimensional_grouping epilogue exec_file 
           output_destination output_file output_gathering_method prologue 
-          properties resources temporal_grouping walltime type test_mode max_jobs project}.each do |prop|
+          properties resources temporal_grouping walltime type test_mode max_jobs 
+          prologue_walltime epilogue_walltime project}.each do |prop|
             if jdl['clusters'][cluster][prop]
               if prop == "prologue" || prop == "epilogue"
                 jdl['clusters'][cluster][prop]=jdl['clusters'][cluster][prop].join("\n")
