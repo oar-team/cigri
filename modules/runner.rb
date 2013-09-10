@@ -13,6 +13,8 @@ config = Cigri.conf
 logfile=config.get('LOG_FILE',"STDOUT")
 logger = Cigri::Logger.new("RUNNER #{ARGV[0]}", logfile)
 
+RUNNER_TAP_INCREASE_FACTOR=CONF.get('RUNNER_TAP_INCREASE_FACTOR',"1.5").to_f
+
 if logfile != "STDOUT" && logfile != "STDERR"
   $stdout.reopen(logfile, "a")
   $stderr.reopen(logfile, "a")
@@ -273,7 +275,9 @@ while true do
           end
          end
         submitted_campaigns.each do |campaign_id|
-          if cluster.taps[campaign_id] and cluster.taps[campaign_id].open?
+# This doesn't work as long as submit2 returns an array_id, and not an array of ids:
+#          if cluster.taps[campaign_id] and cluster.taps[campaign_id].open? and cluster.taps[campaign_id].props[:rate].to_i < (submitted_jobs.length*RUNNER_TAP_INCREASE_FACTOR+1)
+          if cluster.taps[campaign_id] and cluster.taps[campaign_id].open? and cluster.taps[campaign_id].props[:rate].to_i
             cluster.taps[campaign_id].increase
             break # or campaigns may evolve in parallell
           end
