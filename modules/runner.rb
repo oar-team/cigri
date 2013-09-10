@@ -275,9 +275,7 @@ while true do
           end
          end
         submitted_campaigns.each do |campaign_id|
-# This doesn't work as long as submit2 returns an array_id, and not an array of ids:
-#          if cluster.taps[campaign_id] and cluster.taps[campaign_id].open? and cluster.taps[campaign_id].props[:rate].to_i < (submitted_jobs.length*RUNNER_TAP_INCREASE_FACTOR+1)
-          if cluster.taps[campaign_id] and cluster.taps[campaign_id].open? and cluster.taps[campaign_id].props[:rate].to_i
+          if cluster.taps[campaign_id] and cluster.taps[campaign_id].open? and cluster.taps[campaign_id].props[:rate].to_i < (submitted_jobs.length*RUNNER_TAP_INCREASE_FACTOR+1)
             cluster.taps[campaign_id].increase
             break # or campaigns may evolve in parallell
           end

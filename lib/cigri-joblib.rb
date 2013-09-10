@@ -287,9 +287,9 @@ module Cigri
                                  'submission_time' => Time::now().to_s,
                                  'cluster_id' => cluster.id,
                                },'jobs' )
-        launching_jobs.match_remote_ids(cluster.id, campaign.clusters[cluster.id]["exec_file"], j["id"])
+        ids=launching_jobs.match_remote_ids(cluster.id, campaign.clusters[cluster.id]["exec_file"], j["id"])
         JOBLIBLOGGER.debug("Remote id of array job just submitted on #{cluster.description['name']}: #{j['id']}")
-        return j['id']
+        return ids
       end
     end 
 
@@ -409,7 +409,7 @@ module Cigri
               if runner_options["besteffort"]
                 submission["type"]="besteffort"
               end
-              submitted_jobs << submit_array_job(cluster,jobs,campaign,submission)
+              submitted_jobs = submitted_jobs + submit_array_job(cluster,jobs,campaign,submission)
             end
           end # Each runner option
         end # Blacklisted cluster
@@ -521,6 +521,7 @@ module Cigri
     # For this, we ensure that the parameters part of the oar command is the same
     # of the param value in the cigri database.
     def match_remote_ids(cluster_id, command, array_id)
+      ids=[]
       cluster  = Cluster.new(:id => cluster_id)
       begin
         cluster_jobs = cluster.get_jobs(:array => array_id)
@@ -537,10 +538,12 @@ module Cigri
         if index
           cigri_job = jobs.delete_at(index)
           cigri_job.update({'remote_id' => cluster_job["id"]}, "jobs")
+          ids << cluster_job["id"]
         else
           JOBLIBLOGGER.error("Could not find the CIGRI job corresponding to the OAR job #{cluster_job["id"]} !")
         end
       end
+      return ids
     end
     
     def ids
