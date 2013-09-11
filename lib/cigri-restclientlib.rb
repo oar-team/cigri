@@ -124,7 +124,7 @@ module Cigri
         elsif  e.http_code == 404
           raise Cigri::ClusterAPINotFound, "#{e.http_code} error in GET for #{uri}:\n #{e.response.body}"
         else
-          raise Cigri::Error, "#{e.http_code} error in GET for #{uri}:\n #{e.response.body}"
+          raise Cigri::Error, "#{e.http_code} error in GET for #{uri}:\n #{e.response.body if e.response}"
         end
       end
     end
