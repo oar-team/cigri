@@ -193,37 +193,37 @@ module Cigri
 
       # Exceptions that trig fatal events
       rescue RestClient::RequestTimeout => e
-        event=Cigri::Event.new(:class => "cluster", :cluster_id => @id, :code => "TIMEOUT", :message => e)
+        event=Cigri::Event.new(:class => "cluster", :cluster_id => @id, :code => "TIMEOUT", :message => e.to_s)
         Cigri::Colombo.new(event).check
         raise Cigri::ClusterAPIConnectionError, e.message
       rescue Errno::ETIMEDOUT => e
-        event=Cigri::Event.new(:class => "cluster", :cluster_id => @id, :code => "TIMEOUT", :message => e)
+        event=Cigri::Event.new(:class => "cluster", :cluster_id => @id, :code => "TIMEOUT", :message => e.to_s)
         Cigri::Colombo.new(event).check
         raise Cigri::ClusterAPIConnectionError, e.message
       rescue Errno::ECONNREFUSED => e
-        event=Cigri::Event.new(:class => "cluster", :cluster_id => @id, :code => "CONNECTION_REFUSED", :message => e)
+        event=Cigri::Event.new(:class => "cluster", :cluster_id => @id, :code => "CONNECTION_REFUSED", :message => e.to_s)
         Cigri::Colombo.new(event).check
         raise Cigri::ClusterAPIConnectionError, e.message
       rescue Errno::ECONNRESET => e
-        event=Cigri::Event.new(:class => "cluster", :cluster_id => @id, :code => "CONNECTION_RESET", :message => e)
+        event=Cigri::Event.new(:class => "cluster", :cluster_id => @id, :code => "CONNECTION_RESET", :message => e.to_s)
         Cigri::Colombo.new(event).check
         raise Cigri::ClusterAPIConnectionError, e.message
       rescue OpenSSL::SSL::SSLError => e
-        event=Cigri::Event.new(:class => "cluster", :cluster_id => @id, :code => "SSL_ERROR", :message => e)
+        event=Cigri::Event.new(:class => "cluster", :cluster_id => @id, :code => "SSL_ERROR", :message => e.to_s)
         Cigri::Colombo.new(event).check
         raise Cigri::ClusterAPIConnectionError, e.message
 
       # Exceptions that trig logging only events (created in the closed state)
       rescue Cigri::ClusterAPIPermissionDenied => e
-        event=Cigri::Event.new(:state => 'closed', :class => "cluster", :cluster_id => @id, :code => "PERMISSION_DENIED", :message => e)
+        event=Cigri::Event.new(:state => 'closed', :class => "cluster", :cluster_id => @id, :code => "PERMISSION_DENIED", :message => e.to_s)
         Cigri::Colombo.new(event).check
         raise
       rescue Cigri::ClusterAPIForbidden => e
-        event=Cigri::Event.new(:state => 'closed', :class => "cluster", :cluster_id => @id, :code => "FORBIDDEN", :message => e)
+        event=Cigri::Event.new(:state => 'closed', :class => "cluster", :cluster_id => @id, :code => "FORBIDDEN", :message => e.to_s)
         Cigri::Colombo.new(event).check
         raise
       rescue Cigri::ClusterAPIServerError => e
-        event=Cigri::Event.new(:state => 'closed', :class => "cluster", :cluster_id => @id, :code => "CLUSTER_API_SERVER_ERROR", :message => e)
+        event=Cigri::Event.new(:state => 'closed', :class => "cluster", :cluster_id => @id, :code => "CLUSTER_API_SERVER_ERROR", :message => e.to_s)
         Cigri::Colombo.new(event).check
         raise
 
@@ -233,7 +233,7 @@ module Cigri
 
       # All other exceptions trig a fatal default event
       rescue => e
-        event=Cigri::Event.new(:class => "cluster", :cluster_id => @id, :code => default_error_code, :message => "#{e.class}: #{e}")
+        event=Cigri::Event.new(:class => "cluster", :cluster_id => @id, :code => default_error_code, :message => "#{e.class}: #{e.to_s}")
         Cigri::Colombo.new(event).check
         raise
       end
