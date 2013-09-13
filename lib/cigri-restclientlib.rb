@@ -123,6 +123,8 @@ module Cigri
           raise Cigri::ClusterAPIServerError, "#{e.http_code} error in GET for #{uri}:\n #{e.response.body}"
         elsif  e.http_code == 404
           raise Cigri::ClusterAPINotFound, "#{e.http_code} error in GET for #{uri}:\n #{e.response.body}"
+        elsif not e.http_code
+          raise Cigri::Error, "Unknown error in GET for #{uri}:\n #{e.inspect}"
         else
           raise Cigri::Error, "#{e.http_code} error in GET for #{uri}:\n #{e.response.body if e.response}"
         end
