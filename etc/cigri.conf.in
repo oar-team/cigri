@@ -46,7 +46,7 @@ STDERR_TAIL = 5
 ## REST CLIENT OPTIONS
 #############################################################################
 # Timeout in seconds, for all rest queries to the clusters
-REST_QUERIES_TIMEOUT="30"
+REST_QUERIES_TIMEOUT="25"
 # Certificate file used for rest queries to the clusters
 # The certificate must be signed by a CA that is trusted by the OAR API of
 # the clusters.

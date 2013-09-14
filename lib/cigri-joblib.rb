@@ -249,16 +249,25 @@ module Cigri
          walltime=campaign.clusters[cluster_id]["walltime"]
        end
        submission_string["resources"]=submission_string["resources"]+",walltime="+walltime if walltime
-       submission_string["directory"]=campaign.clusters[cluster_id]["exec_directory"] if campaign.clusters[cluster_id]["exec_directory"]
+       submission_string["directory"]=campaign.clusters[cluster_id]["exec_directory"] if campaign.clusters[cluster_id]["exec_directory"] and tag != "prologue" 
        submission_string["property"]=campaign.clusters[cluster_id]["properties"] if campaign.clusters[cluster_id]["properties"]
        submission_string["project"]=campaign.clusters[cluster_id]["project"] if campaign.clusters[cluster_id]["project"]
        submission_string
+    end
+
+    # Add cigri environement variables to a submission string
+    def add_cigri_variables(submission_string,campaign_id)
+      cmd=submission_string["command"]
+      vars= "export CIGRI_CAMPAIGN_ID=#{campaign_id};"
+      submission_string["command"]=vars+cmd
+      submission_string
     end
 
     # Submit a single job on the given cluster
     def submit_single_job(cluster,job,campaign,submission_string,tag=nil)
        # Add properties from the JDL
       submission_string=add_jdl_properties(submission_string,campaign,cluster.id,tag)
+      submission_string=add_cigri_variables(submission_string,campaign.id)
       JOBLIBLOGGER.debug("Submitting new job on #{cluster.description["name"]}.")
       # Actual submission
       j=cluster.submit_job(submission_string,campaign.props[:grid_user])
@@ -281,6 +290,7 @@ module Cigri
     def submit_array_job(cluster,jobs,campaign,submission_string)
        # Add properties from the JDL
       submission_string=add_jdl_properties(submission_string,campaign,cluster.id)
+      submission_string=add_cigri_variables(submission_string,campaign.id)
       JOBLIBLOGGER.debug("Submitting new array job on #{cluster.description["name"]}.")
       # Actual submission
       launching_jobs=Jobset.new
@@ -329,6 +339,7 @@ module Cigri
       end
        # Add properties from the JDL
       submission_string=add_jdl_properties(submission_string,campaign,cluster.id)
+      submission_string=add_cigri_variables(submission_string,campaign.id)
       JOBLIBLOGGER.debug("Submitting new batch job on #{cluster.description["name"]}.")
       # Actual submission
       launching_jobs=Jobset.new
