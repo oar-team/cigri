@@ -4,6 +4,7 @@ DAEMON="%%CIGRIDIR%%/modules/almighty.rb" #ligne de commande du programme
 DEAMON_OPT=""  #argument à utiliser par le programme
 DAEMONUSER="cigri" #utilisateur du programme
 DEAMON_NAME="almighty.rb" #Nom du programme (doit être identique à l'exécutable)
+LAUNCH_DIR="/var/lib/cigri"
 
 # chkconfig: 2345 99 01
 # description: Cigri server
@@ -24,7 +25,7 @@ test -x $DAEMON || exit 5
 
 d_start () {
   log_daemon_msg "Starting system $DEAMON_NAME Daemon"
-  start-stop-daemon --background --name $DEAMON_NAME --start --quiet --user $DAEMONUSER --chuid $DAEMONUSER --exec $DAEMON -- $DEAMON_OPT
+  start-stop-daemon --background --chdir $LAUNCH_DIR --name $DEAMON_NAME --start --quiet --user $DAEMONUSER --chuid $DAEMONUSER --exec $DAEMON -- $DEAMON_OPT
   log_end_msg $?
 }
 
