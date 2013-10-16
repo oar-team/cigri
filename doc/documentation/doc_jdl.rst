@@ -122,8 +122,12 @@ as value on all clusters.
   - true
   - **false**
 
-- max_jobs: when this value (integer) is set, it limits the number of running jobs on a cluster. It may be set for every clusters or a specific one.
+- max_jobs: limit the number of jobs submitted for the current campaign on the 
+  cluster. This is useful when for example, your jobs are doing a lot of i/o 
+  and they may crash distributed filesystems if too many occurences are running.
 
+  - **None**
+  - <integer>
 
 .. NOTE::
 
