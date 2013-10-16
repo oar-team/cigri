@@ -1,8 +1,8 @@
 .. -*- rst-mode -*-
 
-====================
- User Documentation
-====================
+========================
+CiGri User Documentation
+========================
 
 .. include:: doc_header.rst
 
@@ -81,6 +81,8 @@ Cigri distinguishes 4 different types of campaigns:
   to the other users of the platform during the day. 
 
 .. include:: doc_jdl.rst
+
+.. include:: doc_clients.rst
 
 .. include:: doc_api.rst
 
