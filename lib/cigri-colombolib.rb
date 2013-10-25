@@ -136,7 +136,7 @@ module Cigri
         if event.props[:code] == "BLACKLIST"
           parent_event=Event.new({:id => event.props[:parent]})
           if parent_event.props[:state] == "closed"
-            COLOMBOLIBLOGGER.debug("Removing blacklist for cluster #{event.props[:cluster_id]} on event #{parent_event.props[:code]}")
+            COLOMBOLIBLOGGER.debug("Removing blacklist for cluster #{@cluster_names[event.props[:cluster_id].to_i]} on event #{parent_event.props[:code]}")
             event.checked
             event.close
           end
@@ -382,10 +382,10 @@ module Cigri
         # Notify only once per campaign,cluster
         if not campaigns.include?([campaign_id,cluster_id])
            message_props={
-                        :subject => "Cluster ##{event.props[:cluster_id]} blacklisted for campaign ##{event.props[:campaign_id]} ",
+                        :subject => "Cluster #{@cluster_names[cluster_id]} blacklisted for campaign ##{event.props[:campaign_id]} ",
                         :severity => "high",
                         :admin => true,
-                        :message => "Cluster #{event.props[:cluster_id]} is blacklisted for campaign ##{event.props[:campaign_id]}, please check grid events for details"
+                        :message => "Cluster #{@cluster_names[cluster_id]} is blacklisted for campaign ##{event.props[:campaign_id]}, please check grid events for details"
                       }
           message_props[:user]=@campaign_users[campaign_id] unless @campaign_users[campaign_id].nil?
           message=Cigri::Message.new(message_props,im_handlers)
@@ -402,10 +402,10 @@ module Cigri
       events=@events.records.select{|event| event.props[:code]=="BLACKLIST" and event.props[:notified] == "f" and !event.props[:campaign_id]}
       events.each do |event|
         message_props={
-                        :subject => "Cluster #{event.props[:cluster_id]} blacklisted!",
+                        :subject => "Cluster #{@cluster_names[event.props[:cluster_id].to_i]} blacklisted!",
                         :severity => "high",
                         :admin => true,
-                        :message => "Cluster #{event.props[:cluster_id]} is blacklisted because of event #{event.props[:parent]}"
+                        :message => "Cluster #{@cluster_names[event.props[:cluster_id].to_i]} is blacklisted because of event #{event.props[:parent]}"
                       }
         message=Cigri::Message.new(message_props,im_handlers)
         begin
