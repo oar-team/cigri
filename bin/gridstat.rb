@@ -21,6 +21,7 @@ header = true
 dump = false
 pretty = false
 events = false
+offset = nil
 optparse = OptionParser.new do |opts|
   opts.banner = "Usage: #{File.basename(__FILE__)} [options] [<campaign ID>]"
   
@@ -34,6 +35,10 @@ optparse = OptionParser.new do |opts|
   
   opts.on( '-f', '--full', 'Display all info of a campaign (used with -c)' ) do
     full = true
+  end
+
+  opts.on( '-o', '--offset OFFSET', 'Print jobs starting at this offset (used with -f)' ) do |o|
+    offset = o
   end
   
   opts.on( '-e', '--events', 'Print open events on a campaign' ) do
@@ -164,25 +169,37 @@ begin
           if full
             puts " Jobs:"
             items=[]
-            response = client.get("/campaigns/#{campaign['id']}/jobs")
+            offset_string="?offset=#{offset}" if offset
+            response = client.get("/campaigns/#{campaign['id']}/jobs#{offset_string}")
             jobs=JSON.parse(response.body)
             items=jobs["items"]
-            while jobs and jobs["links"] and jobs["links"].detect{|l| l["rel"]=="next"}
+            c=0
+            max=10
+            while jobs and jobs["links"] and jobs["links"].detect{|l| l["rel"]=="next"} and c < max
+              c+=1
               url=jobs["links"].select{|l| l["rel"]=="next"}[0]["href"]
               response = client.get(url)
               jobs=JSON.parse(response.body)
               items=items+jobs["items"] if jobs["items"]
             end
-           items.each do |job|
-              printf("  %d: %s,%s,%s,%s,%s,%s\n",
-                       job["id"],
-                       job["cigri_job_id"] || "*",
-                       job["remote_id"] || "*",
-                       job["state"],
-                       job["cluster"] || "*",
-                       job["name"],
-                       job["parameters"])
-            end
+           if items.nil?
+             puts "No jobs to print"
+           else
+             items.each do |job|
+                printf("  %d: %s,%s,%s,%s,%s,%s\n",
+                         job["id"],
+                         job["cigri_job_id"] || "*",
+                         job["remote_id"] || "*",
+                         job["state"],
+                         job["cluster"] || "*",
+                         job["name"],
+                         job["parameters"])
+             end
+           end
+           if jobs and jobs["links"] and jobs["links"].detect{|l| l["rel"]=="next"} and jobs["offset"]
+             puts "WARNING: more jobs left. Next jobs with --offset=#{jobs['offset'].to_i+jobs['limit'].to_i}"
+           end
+            
           end
         end
       end
