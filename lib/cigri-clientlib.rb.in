@@ -61,6 +61,19 @@ module Cigri
       end
     end
 
+    # Print a formated job to console
+    def self.print_job(job)
+      if job.nil?
+        puts "No such job!"
+      else
+        job.each do |key,value|
+          puts key+": "+value.to_s if key != "links"
+        end
+      end
+    end
+
+
+
   end # class Client    
 
 end # module Cigri

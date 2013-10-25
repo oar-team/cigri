@@ -14,6 +14,7 @@ STATES.default = '?'
 
 # Options passed to the command
 campaign_id = nil
+job_id=nil
 username = nil
 full = false
 header = true
@@ -37,6 +38,10 @@ optparse = OptionParser.new do |opts|
   
   opts.on( '-e', '--events', 'Print open events on a campaign' ) do
     events = true
+  end
+
+  opts.on( '-j', '--job ID', String,  'Print infos about a job' ) do |j|
+    job_id=j
   end
 
   opts.on( '-H', '--headerless', 'Remove the columns title' ) do
@@ -71,7 +76,7 @@ rescue OptionParser::ParseError => e
 end
 
 # Campaign id can be passed as an argument (same as -c option)
-if campaign_id.nil? && ARGV[0]
+if campaign_id.nil? && job_id.nil? && ARGV[0]
   campaign_id=ARGV[0]
 end
 
@@ -95,6 +100,8 @@ url << "/events" if events
 url << "/jobs" if full and dump
 url << '?pretty' if dump and pretty
 
+url = "/jobs/#{job_id}" if job_id
+
 begin 
   client = Cigri::Client.new()
   response = client.get(url)
@@ -104,6 +111,9 @@ begin
   elsif events
     events = JSON.parse(response.body)['items']
     Cigri::Client.print_events(events)
+  elsif job_id
+    j = JSON.parse(response.body)
+    Cigri::Client.print_job(j)
   else
     if campaign_id  
       campaigns = [JSON.parse(response.body)]

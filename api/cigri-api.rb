@@ -90,6 +90,14 @@ class API < Sinatra::Base
     print(output)
   end
 
+  # Get infos about a unitary job
+  get '/jobs/:id' do |id|
+    response['Allow'] = 'GET'
+    output = get_formated_job(id)
+    status 200
+    print(output)
+  end
+
   # Get the jdl as saved in the database
   get '/campaigns/:id/jdl/?' do |id|
     response['Allow'] = 'GET'
@@ -603,6 +611,16 @@ class API < Sinatra::Base
       not_found unless event.props
       event
     end
+
+    # Gets a job from the database
+    #
+    # == Parameters: 
+    #  - id: id of the job to get
+    def get_job(id)
+      job = Cigri::Job.new({:id => id})
+      not_found unless job.props
+      job
+    end
     
     # Gets an event from the database and format it
     #
@@ -616,6 +634,21 @@ class API < Sinatra::Base
          {:rel => :parent, :href => to_url('events')}
       ]
       event.props
+    end
+
+    # Gets a job from the database and format it
+    #
+    # == Parameters: 
+    #  - id: id if the job to get
+    def get_formated_job(id)
+      j=get_job(id)
+      j.props[:id]=id.to_i
+      j.props[:links]=[
+         {:rel => :self, :href => to_url("jobs/#{id}")},
+         {:rel => :parent, :href => to_url('jobs')}
+      ]
+      j.props[:cluster_name]=CLUSTER_NAMES[j.props[:cluster_id].to_i] if j.props[:cluster_id]
+      j.props
     end
     
     def params_to_update
