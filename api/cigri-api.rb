@@ -98,6 +98,22 @@ class API < Sinatra::Base
     print(output)
   end
 
+  # Get the stdout file of a job
+  get '/jobs/:id/stdout' do |id|
+    response['Allow'] = 'GET'
+    output = get_job_output(id,"stdout")
+    status 200
+    print(output)
+  end
+
+  # Get the stderr file of a job
+  get '/jobs/:id/stderr' do |id|
+    response['Allow'] = 'GET'
+    output = get_job_output(id,"stderr")
+    status 200
+    print(output)
+  end
+
   # Get the jdl as saved in the database
   get '/campaigns/:id/jdl/?' do |id|
     response['Allow'] = 'GET'
@@ -651,7 +667,17 @@ class API < Sinatra::Base
       j.props[:cluster_name]=CLUSTER_NAMES[j.props[:cluster_id].to_i] if j.props[:cluster_id]
       j.props
     end
-    
+  
+    # Get stderr or stdout of a given job 
+    def get_job_output(id,type)
+      tail=100000 # TODO: set as a parameter of the query
+      job=get_job(id)
+      cluster=Cigri::Cluster.new(:id => job.props[:cluster_id])
+      cluster_job=cluster.get_job(job.props[:remote_id].to_i, job.props[:grid_user])
+      file=cluster_job["launching_directory"]+"/"+cluster_job["#{type}_file"]
+      return {:output => cluster.get_file(file,job.props[:grid_user],tail) }
+    end
+ 
     def params_to_update
       res = {}
       res['name'] = params['name'].to_s if params['name']
