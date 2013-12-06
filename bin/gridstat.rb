@@ -104,6 +104,8 @@ url << "/#{campaign_id}" if campaign_id
 url << "/events" if events
 url << "/jobs" if full and dump
 url << '?pretty' if dump and pretty
+url << "&offset=#{offset}" if offset and dump and pretty
+url << "?offset=#{offset}" if offset and dump and not pretty
 
 url = "/jobs/#{job_id}" if job_id
 
