@@ -617,11 +617,11 @@ class API < Sinatra::Base
     # == Parameters: 
     #  - id: id of the job to get
     def get_job(id)
-      job = Cigri::Job.new({:id => id})
-      not_found unless job.props
-      job
+      jobset = Cigri::Jobset.new({:where => "jobs.id=#{id}"})
+      not_found if jobset.records.empty?
+      jobset.records[0]
     end
-    
+
     # Gets an event from the database and format it
     #
     # == Parameters: 
