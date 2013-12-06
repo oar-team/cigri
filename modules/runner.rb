@@ -112,7 +112,7 @@ while true do
       campaign_id=job.props[:campaign_id].to_i
       if job.props[:remote_id].nil? || job.props[:remote_id] == ""
         job.update({'state' => 'event'})
-        message="Job #{job.id} is lost, it has no remote_id!"
+        message="Job #{job.id} is lost, it has no remote_id! This may occur when cigri is restarted. You should resubmit this job if you care about the parameters."
         Cigri::Event.new(:class => "job", :code => "RUNNER_GET_REMOTE_ID_ERROR", :cluster_id => cluster.id, :job_id => job.id, :message => message, :campaign_id => job.props[:campaign_id])
         have_to_notify = true
       elsif not cluster.blacklisted?(:campaign_id => job.props[:campaign_id].to_i) or

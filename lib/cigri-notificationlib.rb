@@ -52,7 +52,7 @@ module Cigri
       @campaign_id=opts[:campaign_id] || nil # Not implemented yet
       @severity=opts[:severity] || "low"
       @subject=opts[:subject] || "info"
-      @message=opts[:message] || "<empty message>"
+      @message=opts[:message] || ""
       @handlers=handlers      
       @user_notifications=Dataset.new("user_notifications")
       @admin_notifications=Dataset.new("user_notifications")
@@ -83,7 +83,8 @@ module Cigri
     def formatted_mail(to)
       msgstr = "From: #{from}\nTo: #{to}\n"
       msgstr += "Subject: #{CONF.get('NOTIFICATIONS_SMTP_SUBJECT_TAG','[CIGRI]')} (#{@severity}): #{@subject}" 
-      msgstr += "\n"
+      msgstr += "\n\n"
+      msgstr += @subject if @message.nil? or @message == ""
       msgstr += @message
       msgstr
     end

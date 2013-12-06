@@ -360,7 +360,7 @@ class API < Sinatra::Base
     end
 
     # Add a frag event to kill/clean the jobs   
-    Cigri::Event.new({:code => "USER_FRAG", :campaign_id => id, :class => "campaign"})
+    Cigri::Event.new({:code => "USER_FRAG", :campaign_id => id, :class => "campaign", :message => "User request to cancel the campaign #{id}"})
  
     status 202
     print({:status => 202, :title => :Accepted, :message => "Campaign #{id} cancelled"})

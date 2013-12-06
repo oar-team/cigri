@@ -51,7 +51,7 @@ begin
       campaign.update({'state' => 'terminated'})
       logger.info("Campaign #{campaign.id} is finished")
       Cigri::Event.new(:class => 'notify', :state => 'closed', :campaign_id => campaign.id,
-                       :code => "FINISHED_CAMPAIGN", :message => "Campaign is finished")
+                       :code => "FINISHED_CAMPAIGN", :message => "Campaign #{campaign.id} is finished")
       notify_judas
     end
     if config.get("LOG_LEVEL")=="DEBUG"
