@@ -108,15 +108,25 @@ while true do
       end
     end
     # For each job, get the status
+    cluster_blacklisted_because_of_exit_errors={}
+    cluster_blacklisted={}
     current_jobs.each do |job|
       campaign_id=job.props[:campaign_id].to_i
+      # Get cluster blacklist status (check only once to limit the number of queries)
+      if cluster_blacklisted_because_of_exit_errors[campaign_id].nil?
+        cluster_blacklisted_because_of_exit_errors[campaign_id]=cluster.blacklisted_because_of_exit_errors?(:campaign_id => campaign_id)   
+      end
+      if cluster_blacklisted[campaign_id].nil?
+        cluster_blacklisted[campaign_id]=cluster.blacklisted?(:campaign_id => campaign_id)
+      end
+      # Check for lost jobs
       if job.props[:remote_id].nil? || job.props[:remote_id] == ""
         job.update({'state' => 'event'})
         message="Job #{job.id} is lost, it has no remote_id! This may occur when cigri is restarted. You should resubmit this job if you care about the parameters."
         Cigri::Event.new(:class => "job", :code => "RUNNER_GET_REMOTE_ID_ERROR", :cluster_id => cluster.id, :job_id => job.id, :message => message, :campaign_id => job.props[:campaign_id])
         have_to_notify = true
-      elsif not cluster.blacklisted?(:campaign_id => job.props[:campaign_id].to_i) or
-                cluster.blacklisted_because_of_exit_errors?(:campaign_id => job.props[:campaign_id].to_i)
+      # Check jobs if the cluster is not blacklisted for this campaign
+      elsif not cluster_blacklisted or cluster_blacklisted_because_of_exit_errors[campaign_id]
         begin
           cluster_job = cluster.get_job(job.props[:remote_id].to_i, job.props[:grid_user])
           case cluster_job["state"] 
@@ -205,7 +215,7 @@ while true do
           break
         end
       else
-        logger.debug("Not checking job #{job.id} because of campaign blacklist")
+        #logger.debug("Not checking job #{job.id} because of campaign blacklist")
         cluster.taps[campaign_id].close
         tap_can_be_opened[cluster.taps[campaign_id].id]=false
       end
