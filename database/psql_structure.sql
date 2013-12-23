@@ -56,6 +56,7 @@ CREATE TABLE campaigns (
   PRIMARY KEY (id)
 );
 CREATE INDEX campaigns_idx_id ON campaigns (id);
+CREATE INDEX campaigns_idx_state ON campaigns (state);
 
 DROP TABLE IF EXISTS campaign_properties;
 CREATE TABLE campaign_properties (
@@ -132,6 +133,7 @@ CREATE INDEX jobs_idx_batch_id ON jobs (batch_id);
 CREATE INDEX jobs_idx_state ON jobs (state);
 CREATE INDEX jobs_idx_cluster_id ON jobs (cluster_id);
 CREATE INDEX jobs_idx_tag ON jobs (tag);
+CREATE INDEX jobs_idx_param_id ON jobs (param_id);
 
 DROP TABLE IF EXISTS events;
 DROP TYPE IF EXISTS event_class;
@@ -163,6 +165,7 @@ CREATE INDEX events_idx_code ON events (code);
 CREATE INDEX events_idx_job_id ON events (job_id);
 CREATE INDEX events_idx_cluster_id ON events (cluster_id);
 CREATE INDEX events_idx_campaign_id ON events (campaign_id);
+CREATE INDEX events_idx_state ON events (state);
 
 DROP TABLE IF EXISTS queue_counts;
 CREATE TABLE queue_counts (

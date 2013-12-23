@@ -897,7 +897,7 @@ end
 def get_campaign_nb_finished_jobs(dbh, id)
 dbh.select_one("SELECT COUNT(*) FROM jobs
                                 WHERE campaign_id = ?
-                                  AND param_id != 0 
+                                  AND param_id > 0 
                                   AND state = 'terminated'", id)[0]
 end
 

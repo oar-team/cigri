@@ -883,7 +883,7 @@ module Cigri
     
     # Fill the campaign set with unfinished campaigns (paused or running)
     def get_unfinished
-      fill(get("campaigns","*","state IN ('in_treatment', 'paused')"))
+      fill(get("campaigns","id,grid_user,state,type,name,submission_time,completion_time,nb_jobs","state IN ('in_treatment', 'paused')"))
       to_campaigns
     end
 
