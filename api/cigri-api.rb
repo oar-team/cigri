@@ -137,7 +137,16 @@ class API < Sinatra::Base
     status 200
     print(output)
   end
-  
+ 
+  # List all finished jobs of a campaign (used for cleaning)
+  get '/campaigns/:id/jobs/finished/?' do |id|
+    response['Allow'] = 'GET,POST'
+    jobs=Cigri::Jobset.new(:where => "jobs.state in ('terminated','event') and jobs.campaign_id=#{id}")
+    status 200
+    items=jobs.records.map{|j| j.props}
+    print({:items => items})
+  end
+ 
   # Details of a job
   get '/campaigns/:id/jobs/:jobid/?' do |id, jobid|
     response['Allow'] = 'GET'
