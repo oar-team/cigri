@@ -551,16 +551,25 @@ module Cigri
       counts={}
       old_campaign_id=0
       cluster=Cluster.new(:id => cluster_id)
-      # Check for blacklisted campaigns
+      # Check for blacklisted and paused campaigns
       campaigns_blacklist={}
       jobs.each {|j| campaigns_blacklist[j[:campaign_id].to_i]=false}
       campaigns_blacklist.each_key do |c|
         campaigns_blacklist[c]=true if cluster.blacklisted?(:campaign_id => c)
       end
+      running_campaigns={}
+      campaigns=Campaignset.new
+      campaigns.get_running
+      campaigns.each {|c| running_campaigns[c.id]=true }
       # We have to loop over each job, to check campaigns and taps
       jobs.each do |job|
         rate=0
         campaign_id=job[:campaign_id].to_i
+        # Skip paused campaigns
+        if running_campaigns[campaign_id].nil? or running_campaigns[campaign_id]!=true
+          break
+        end
+        # Get the rate
         counts[campaign_id] ? counts[campaign_id]+=1 : counts[campaign_id]=1
         if not taps[campaign_id].nil?
           rate=taps[campaign_id].props[:rate].to_i
