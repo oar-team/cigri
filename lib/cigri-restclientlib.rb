@@ -192,6 +192,8 @@ module Cigri
           raise Cigri::ClusterAPIPermissionDenied, "#{e.http_code} error in DELETE for #{uri}:\n #{e.response.body}"  
         elsif  e.http_code == 403
           raise Cigri::ClusterAPIForbidden, "#{e.http_code} error in DELETE for #{uri}:\n #{e.response.body}"
+        elsif  e.http_code == 404
+          raise Cigri::ClusterAPINotFound, "#{e.http_code} error in DELETE for #{uri}:\n #{e.response.body}"
         elsif  e.http_code == 500
           raise Cigri::ClusterAPIServerError, "#{e.http_code} error in DELETE for #{uri}:\n #{e.response.body}"
         else

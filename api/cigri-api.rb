@@ -12,6 +12,7 @@ require 'cigri-iolib'
 require 'cigri-clusterlib'
 require 'cigri-joblib'
 require 'cigri-eventlib'
+require 'cigri-colombolib'
 require 'jdl-parser'
 require 'rack_debugger'
 
@@ -233,6 +234,19 @@ class API < Sinatra::Base
     
     status 200
     print(cluster)
+  end
+
+  # Delete a file on a cluster
+  delete %r{/clusters/([0-9]+)/(.+)} do |id,file|
+     output={:msg => "Deleting #{file} on #{id}"}
+     cluster = Cigri::Cluster.new(:id => id)
+     begin
+       cluster.delete_file(file,request.env[settings.username_variable])
+     rescue Exception => e
+       halt 400, print({:status => 400, :title => "Media deletion error", :message => e.to_s})
+     end
+     status 202
+     print(output)
   end
   
   # Submit a new campaign

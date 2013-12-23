@@ -411,6 +411,10 @@ module Cigri
         secure_run proc{ @api.get("media"+path+"?tail="+tail.to_s,{@description["api_auth_header"] => map_user(user)},:raw => true) }, "GET_MEDIA"
       end
 
+      def delete_file(path, user=nil)
+        secure_run proc{ @api.delete("media/"+path,{@description["api_auth_header"] => map_user(user)}) }, "DELETE_MEDIA"
+      end
+
       # Get global stress factor
       def get_global_stress_factor
         stress_factor=0.0
