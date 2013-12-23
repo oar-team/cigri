@@ -36,7 +36,7 @@ module Cigri
 
     def campaign_running?
       campaign=Campaign.new(:id => @props[:campaign_id])
-      campaign.props[:state] == 'in_treatment' 
+      campaign.props[:state] == 'in_treatment' or campaign.props[:state] == 'paused'
     end
 
     # Clone the job into the bag of tasks for resubmission of the same job
@@ -567,6 +567,7 @@ module Cigri
         campaign_id=job[:campaign_id].to_i
         # Skip paused campaigns
         if running_campaigns[campaign_id].nil? or running_campaigns[campaign_id]!=true
+          JOBLIBLOGGER.debug("Campaign #{campaign_id} is not running (paused?)")
           break
         end
         # Get the rate
