@@ -35,7 +35,7 @@ module Cigri
     end
 
     def campaign_running?
-      campaign=Campaign.new(:id => @props[:campaign_id])
+      campaign=Campaign.new(:id => @props[:campaign_id],:bypass_finished_jobs => true)
       campaign.props[:state] == 'in_treatment' or campaign.props[:state] == 'paused'
     end
 
@@ -617,7 +617,12 @@ module Cigri
 
     # Creates a new campaign entry or get it from the database
     def initialize(props={})
-      super("campaigns",props)
+      if not props[:jdl] and not props[:what]
+        props[:what]="id,grid_user,state,type,name,submission_time,completion_time,nb_jobs"
+        super("campaigns",props)
+      else
+        super("campaigns",props)
+      end  
       @clusters = {}
       @props[:finished_jobs] = nb_completed_tasks if @props and !props[:bypass_finished_jobs]
     end

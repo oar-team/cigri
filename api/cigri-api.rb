@@ -119,7 +119,7 @@ class API < Sinatra::Base
   get '/campaigns/:id/jdl/?' do |id|
     response['Allow'] = 'GET'
 
-    campaign = get_campaign(id)
+    campaign = get_campaign(id,true)
 
     status 200
     print(JSON.parse(campaign.props[:jdl]))
@@ -593,8 +593,8 @@ class API < Sinatra::Base
     #
     # == Parameters: 
     #  - id: id of the campaign to get
-    def get_campaign(id)
-      campaign = Cigri::Campaign.new({:id => id})
+    def get_campaign(id,jdl=false)
+      campaign = Cigri::Campaign.new({:id => id, :jdl=>jdl})
       not_found unless campaign.props
 
       campaign
