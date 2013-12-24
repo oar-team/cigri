@@ -151,6 +151,7 @@ begin
         end
         e=' '
         e='e' if campaign['has_events']
+        progress = 0 if campaign['total_jobs'] == 0
         if !campaign_id
           printf("%-11d %-19s %-16s %-19s %s %d/%d (%d\%%)\n", 
                   campaign['id'], 
