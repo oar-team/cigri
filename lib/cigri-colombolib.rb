@@ -183,8 +183,8 @@ module Cigri
             break
           # Automatic resubmit when the job is FRAGGED except if the frag was made by Nikita
           # as it should be already re-submitted
-          elsif type == "FRAG_JOB_REQUEST" and Eventset.new(:where => "job_id=#{job.id} and code='REMOTE_WAITING_FRAG'").empty?
-            resubmit=true
+          elsif type == "FRAG_JOB_REQUEST"
+            resubmit=true if Eventset.new(:where => "job_id=#{job.id} and code='REMOTE_WAITING_FRAG'").empty?
             break
           # Catch this types for special treatment
           elsif type == "WORKING_DIRECTORY" 
@@ -262,7 +262,18 @@ module Cigri
                          :cluster_id => job.props[:cluster_id],
                          :state => 'closed',
                          :message => message)
- 
+
+      # Fragged by nikita
+      elsif type == "FRAG_JOB_REQUEST"
+        message = "Fragged and resubmitted by Nikita"
+        Cigri::Event.new(:class => "job",
+                         :code => "FRAG_RESUBMIT_BY_NIKITA",
+                         :job_id => job.id,
+                         :campaign_id => job.props[:campaign_id],
+                         :cluster_id => job.props[:cluster_id],
+                         :state => 'closed',
+                         :message => message)
+
       # Unknown errors
       # Those errors stop immediately the runner from checking jobs!
       # If you just want to prevent new submissions, but not the checking, set a code
