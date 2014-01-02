@@ -178,7 +178,12 @@ module Cigri
         cluster_job["events"].each do |remote_event|
           type=remote_event["type"] 
           # Automatic resubmit when the job was killed
-          if type == "EXTERMINATE" or type == "WALLTIME" or type == "FRAG_JOB_REQUEST" or type == "BESTEFFORT_KILL"
+          if type == "EXTERMINATE" or type == "WALLTIME" or type == "BESTEFFORT_KILL"
+            resubmit=true
+            break
+          # Automatic resubmit when the job is FRAGGED except if the frag was made by Nikita
+          # as it should be already re-submitted
+          elsif type == "FRAG_JOB_REQUEST" and Eventset.new(:where => "job_id=#{job.id} and code='REMOTE_WAITING_FRAG'").empty?
             resubmit=true
             break
           # Catch this types for special treatment

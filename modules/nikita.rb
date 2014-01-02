@@ -86,6 +86,7 @@ begin
     job_event=Cigri::Event.new({:class => "job",
                     :job_id => job.id,
                     :code => "REMOTE_WAITING_FRAG",
+                    :campaign_id => job.props[:campaign_id],
                     :state => "closed",
                     :message => "Killed because it was remote_waiting for too long. Resubmitting job."})
     job.update({:state => "event"})

@@ -1507,10 +1507,16 @@ class Dataset
     @records << record
   end
 
+  # Fancy print of the Dataset
   def to_s
     self.each do |data|
       puts data.to_s
     end
+  end
+
+  # Returns true if the Dataset is empty
+  def empty?
+    @records.empty?
   end
 
   private
