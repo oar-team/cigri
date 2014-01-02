@@ -74,9 +74,12 @@ begin
 
   ## 
   # Check jobs to resubmit
-  ## 
-  events=Cigri::Eventset.new({:where => "state='open' and code='RESUBMIT' and class='job'"})
-  Cigri::Colombo.new(events).check_jobs
+  ##
+  # !!!!
+  # Commented because it can cause a job to be resubmited twice as the runners do the same!
+  # !!!!
+  #events=Cigri::Eventset.new({:where => "state='open' and code='RESUBMIT' and class='job'"})
+  #Cigri::Colombo.new(events).check_jobs
 
   ## 
   # Update grid_usage table

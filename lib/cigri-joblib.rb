@@ -491,7 +491,11 @@ module Cigri
     def decrease_affinity
       task=Datarecord.new("bag_of_tasks",:id => @props[:task_id])
       db_connect() do |dbh|
-        decrease_task_affinity(dbh,task.props[:param_id],@props[:cluster_id])
+        if task.props.nil?
+          # Too late... the task has probably been kept just before
+        else
+          decrease_task_affinity(dbh,task.props[:param_id],@props[:cluster_id])
+        end
       end 
     end
 
