@@ -981,6 +981,7 @@ end
 #
 ##
 def get_tasks_ids_for_campaign_on_cluster(dbh, campaign_id, cluster_id, max = nil)
+  return [] if max <= 0
   limit = max ? "LIMIT #{max}" : ""
   res=dbh.select_all("SELECT bag_of_tasks.id,
                          COALESCE(tasks_affinity.priority,0) as p 
