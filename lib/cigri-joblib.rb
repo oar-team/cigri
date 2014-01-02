@@ -586,7 +586,8 @@ module Cigri
         if taps[campaign_id].open? and counts[campaign_id] <= rate and not campaigns_blacklist[campaign_id]
           # Get jobs from the first campaign only.
           # By this way, the runner does not send too much jobs from campaigns
-          # having less priority
+          # having less priority: it only treats a campaign when there's no more
+          # activity from the previous campaign.
           break if old_campaign_id != 0  and campaign_id != old_campaign_id
           job[:nodb]=true
           @records << Datarecord.new(@table,job) 
