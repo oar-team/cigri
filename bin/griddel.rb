@@ -8,6 +8,8 @@ require 'optparse'
 require 'version.rb'
 
 verbose = false
+hold = false
+resume = false
 optparse = OptionParser.new do |opts|
   opts.banner = "Usage:  #{File.basename(__FILE__)} <CAMPAIGN_ID> [CAMPAIGN_IDS...] [options]"
   
@@ -15,6 +17,14 @@ optparse = OptionParser.new do |opts|
     verbose = true
   end
   
+  opts.on('-p', '--pause', 'Holds the campaign') do
+    hold = true
+  end
+
+  opts.on('-r', '--resume', 'Resumes the campaign (only if it is paused)') do
+    resume = true
+  end
+
   opts.on( '--version', 'Display Cigri version' ) do
     puts "#{File.basename(__FILE__)} v#{Cigri::VERSION}"
     exit
@@ -36,11 +46,15 @@ end
 
 abort("Missing CAMPAIGN_ID\n" + optparse.to_s) unless ARGV.length > 0
 
+status=""
+status="?hold=1" if hold
+status="?resume=1" if resume
+
 begin 
   client = Cigri::Client.new 
  
   ARGV.each do |campaign_id|
-    response = client.delete("/campaigns/#{campaign_id}")
+    response = client.delete("/campaigns/#{campaign_id}#{status}")
     parsed_response = JSON.parse(response.body)
     if response.code != "202"
       STDERR.puts("Failed to cancel campaign #{campaign_id}: #{parsed_response['message']}.")

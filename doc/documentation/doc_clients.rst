@@ -17,6 +17,9 @@ gridnotify
 gridevents
 ----------
 
+griddel
+-------
+
 .. Local Variables:
 .. ispell-local-dictionary: "american"
 .. mode: flyspell

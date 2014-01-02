@@ -386,23 +386,34 @@ class API < Sinatra::Base
   delete '/campaigns/:id/?' do |id|
     protected!
 
+    msg=""
     db_connect() do |dbh|
       begin
-        cancel_campaign(dbh, request.env[settings.username_variable], id)
+        if params['hold']
+          msg="paused"
+          hold_campaign(dbh, request.env[settings.username_variable], id)
+          Cigri::Event.new({:code => "PAUSED", :campaign_id => id, :class => "campaign", :message => "User request to pause the campaign #{id}", :state => 'closed'})
+        elsif params['resume']
+          msg="resumed"
+          resume_campaign(dbh, request.env[settings.username_variable], id)
+          Cigri::Event.new({:code => "RESUMED", :campaign_id => id, :class => "campaign", :message => "User request to resume the campaign #{id}", :state => 'closed'})
+        else
+          msg="cancelled"
+          cancel_campaign(dbh, request.env[settings.username_variable], id)
+          # Add a frag event to kill/clean the jobs
+          Cigri::Event.new({:code => "USER_FRAG", :campaign_id => id, :class => "campaign", :message => "User request to cancel the campaign #{id}"})
+        end
       rescue Cigri::NotFound => e
         not_found
       rescue Cigri::Unauthorized => e
         halt 403, print({:status => 403, :title => "Forbidden", :message => "Campaign #{id} does not belong to you: #{e.message}"})
       rescue Exception => e
-        halt 400, print({:status => 400, :title => "Error", :message => "Error cancelling campaign #{id}: #{e}"})
+        halt 400, print({:status => 400, :title => "Error", :message => "Error cancel/pause/resuming campaign #{id}: #{e}"})
       end
     end
-
-    # Add a frag event to kill/clean the jobs   
-    Cigri::Event.new({:code => "USER_FRAG", :campaign_id => id, :class => "campaign", :message => "User request to cancel the campaign #{id}"})
  
     status 202
-    print({:status => 202, :title => :Accepted, :message => "Campaign #{id} cancelled"})
+    print({:status => 202, :title => :Accepted, :message => "Campaign #{id} #{msg}"})
   end
 
   # List subscribed notifications

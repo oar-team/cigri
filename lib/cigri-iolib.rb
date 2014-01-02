@@ -456,6 +456,62 @@ def cancel_campaign(dbh, user, id)
 end
 
 ##
+# Holds (pauses) a campaign
+#
+# == Parameters
+# - dbh: database handle
+# - user: user requesting campaign holding
+# - id: campaign id to cancel
+#
+# == Exceptions
+# - Cigri::Unauthorized if the user does not have the rights to cancel the campaign
+# - Cigri::NotFound if the campaign "id" does not exist
+#
+##
+def hold_campaign(dbh, user, id)
+  IOLIBLOGGER.debug("Received request to pause campaign '#{id}'")
+  
+  check_rights!(dbh, user, id)
+
+  begin
+    query = "UPDATE campaigns SET state='paused' WHERE id=? and state='in_treatment'"
+    dbh.do(query, id)
+  rescue Exception => e
+    IOLIBLOGGER.error('Error during campaign holding' + e.inspect)
+    raise e
+  end
+  IOLIBLOGGER.info("Campaign #{id} paused")
+end
+
+##
+# Resumes a holded campaign
+#
+# == Parameters
+# - dbh: database handle
+# - user: user requesting campaign resuming
+# - id: campaign id to resume
+#
+# == Exceptions
+# - Cigri::Unauthorized if the user does not have the rights to cancel the campaign
+# - Cigri::NotFound if the campaign "id" does not exist
+#
+##
+def resume_campaign(dbh, user, id)
+  IOLIBLOGGER.debug("Received request to resume campaign '#{id}'")
+  
+  check_rights!(dbh, user, id)
+
+  begin
+    query = "UPDATE campaigns SET state='in_treatment' WHERE id=? and state='paused'"
+    dbh.do(query, id)
+  rescue Exception => e
+    IOLIBLOGGER.error('Error during campaign resuming' + e.inspect)
+    raise e
+  end
+  IOLIBLOGGER.info("Campaign #{id} resumed")
+end
+
+##
 # Deletes a campaign and all the data linked to it in the database
 #
 # == Parameters
