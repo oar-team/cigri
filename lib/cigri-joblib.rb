@@ -572,7 +572,7 @@ module Cigri
         # Skip paused campaigns
         if running_campaigns[campaign_id].nil? or running_campaigns[campaign_id]!=true
           JOBLIBLOGGER.debug("Campaign #{campaign_id} is not running (paused?)")
-          break
+          next
         end
         # Get the rate
         counts[campaign_id] ? counts[campaign_id]+=1 : counts[campaign_id]=1
