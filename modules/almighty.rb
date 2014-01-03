@@ -8,7 +8,7 @@ require 'cigri-colombolib'
 $0='cigri: almighty'
 
 sleeptime=10
-child_timeout=60
+child_timeout=300
 
 begin
   config = Cigri.conf
@@ -50,10 +50,19 @@ begin
     Process.kill("USR1",judas_pid)
   }
 
+  #Catch STOP
+  trap("STOP") {
+    #Do nothing
+  }
+
   #Child processes monitoring
   trap("CHLD") {
-    pid, status = Process.wait2
-    logger.error("Child pid #{pid}: terminated with status #{status.exitstatus}") if status != 0
+    pid, status = Process.waitpid2(-1,Process::WNOHANG)
+    if status != 0
+      logger.error("Child pid #{pid}: terminated with status #{status.inspect}")
+    else
+      logger.debug("Child pid #{pid}: CHLD received with status 0")
+    end
     childs.delete(pid)
     if not runner_childs[pid].nil?
       Cigri::Event.new(:class => "log", :code => "RUNNER_FAILED", :state => "closed", :message => "Runner of #{runner_childs[pid]} terminated! Restarting.")
@@ -132,28 +141,30 @@ begin
     logger.debug('New iteration')
     t=Time.now
     ["metascheduler","updator","nikita"].each do |mod|
-      pid=fork { exec(cigri_modules[mod]) }
-      logger.debug("Spawned #{mod} process #{pid}")
-      # Here, we cannot make a simple Process.waitpid as it seems to conflict
-      # Furthermore, we check like this so we can set up a timeout recovery.
+      modpid=spawn(cigri_modules[mod])
+      logger.debug("Spawned #{mod} process #{modpid}")
       wait=true
       count=0
       while wait and count < child_timeout
         begin
-          Process.kill(0,pid)
-          sleep 1
-          logger.debug("Waiting for #{mod}... #{count}")
+          Process.getpgid( modpid )
           count+=1
-        rescue
+          #logger.debug("Waiting for #{mod} process to terminate...#{count}")
+          sleep 1
+        rescue Errno::ESRCH
+          logger.debug("#{mod} process terminated")
           wait=false
         end
       end
       if wait==true
         Cigri::Event.new(:class => "log", :code => "CHILD_TIMEOUT", :state => "closed", :message => "#{mod} timeout! Canceling!")
         logger.error("#{mod} timeout! Canceling!")
-        Process.kill("TERM",pid) 
+        begin
+          Process.kill("TERM",modpid) 
+        rescue
+          # Do nothing
+        end
       end
-      logger.debug("#{mod} process terminated")
     end
     # Sleep if necessary
     duration=Time.now - t
@@ -161,4 +172,6 @@ begin
       sleep sleeptime - duration
     end
   end
+
 end
+
