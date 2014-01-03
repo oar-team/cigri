@@ -8,6 +8,7 @@ require 'cigri-colombolib'
 $0='cigri: almighty'
 
 sleeptime=10
+child_timeout=60
 
 begin
   config = Cigri.conf
@@ -55,6 +56,7 @@ begin
     logger.error("Child pid #{pid}: terminated with status #{status.exitstatus}") if status != 0
     childs.delete(pid)
     if not runner_childs[pid].nil?
+      Cigri::Event.new(:class => "log", :code => "RUNNER_FAILED", :state => "closed", :message => "Runner of #{runner_childs[pid]} terminated! Restarting.")
       sleep 5
       logger.warn("Restarting runner for #{runner_childs[pid]}")
       npid=fork
@@ -67,6 +69,7 @@ begin
       end
     end
     if pid == judas_pid
+      Cigri::Event.new(:class => "log", :code => "JUDAS_FAILED", :state => "closed", :message => "Judas terminated! Restarting.")
       sleep 5
       logger.warn("Restarting judas")
       npid=fork
@@ -132,16 +135,23 @@ begin
       pid=fork { exec(cigri_modules[mod]) }
       logger.debug("Spawned #{mod} process #{pid}")
       # Here, we cannot make a simple Process.waitpid as it seems to conflict
-      # with the traps defined earlier. So, we loop on a WNOHANG wait to
-      # check if the process is ended or not.
+      # Furthermore, we check like this so we can set up a timeout recovery.
       wait=true
-      while wait
+      count=0
+      while wait and count < child_timeout
         begin
-          Process.waitpid(pid,Process::WNOHANG)
+          Process.kill(0,pid)
           sleep 1
+          logger.debug("Waiting for #{mod}... #{count}")
+          count+=1
         rescue
           wait=false
         end
+      end
+      if wait==true
+        Cigri::Event.new(:class => "log", :code => "CHILD_TIMEOUT", :state => "closed", :message => "#{mod} timeout! Canceling!")
+        logger.error("#{mod} timeout! Canceling!")
+        Process.kill("TERM",pid) 
       end
       logger.debug("#{mod} process terminated")
     end
