@@ -82,6 +82,7 @@ begin
 
   #Do an initial check of events
   Cigri::Colombo.new().check
+  Cigri::Colombo.new().check_jobs
 
   # Make some initial checks of the database
   Cigri::Colombo::check_database
@@ -139,7 +140,7 @@ begin
           wait=false
         end
       end
-      #logger.debug("#{mod} process terminated")
+      logger.debug("#{mod} process terminated")
     end
     sleep 10
   end

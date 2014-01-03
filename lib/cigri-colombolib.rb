@@ -31,6 +31,7 @@ module Cigri
   # Colombo class
   class Colombo
     attr_reader :events
+    @@cluster_names = nil
 
     # Creates a new colombo instance over an Eventset
     def initialize(events=nil)
@@ -49,12 +50,15 @@ module Cigri
       campaigns=Cigri::Campaignset.new
       campaigns.get_unfinished
       @campaign_users=campaigns.get_users
-      # Fill a hash with the cluster names
-      @cluster_names = {}
-      clusters=Cigri::ClusterSet.new
-      clusters.each do |cluster|
-       @cluster_names[cluster.id]=cluster.name
+      # Fill a hash with the cluster names into a class variable
+      if @@cluster_names.nil?
+        @@cluster_names = {}
+        clusters=Cigri::ClusterSet.new
+        clusters.each do |cluster|
+          @@cluster_names[cluster.id]=cluster.name
+        end
       end
+      @cluster_names=@@cluster_names
     end
 
     def get_all_open_events
@@ -334,7 +338,7 @@ module Cigri
     def count_events_per_campaign(events)
       count_per_campaign={}
       events.each do |event|
-      if count_per_campaign[event.props[:campaign_id].to_i].nil?
+        if count_per_campaign[event.props[:campaign_id].to_i].nil?
           count_per_campaign[event.props[:campaign_id].to_i]=1
         else
           count_per_campaign[event.props[:campaign_id].to_i]+=1
