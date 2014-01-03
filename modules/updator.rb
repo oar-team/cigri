@@ -96,40 +96,46 @@ begin
       cigri_jobs.records.map! {|j| j.props[:remote_id].to_i }        
       date=Time.now
       Cigri::ClusterSet.new.each do |cluster|
-        # Get the resource_units
-        cluster_resources=cluster.get_resources
-        cigri_resources=0
-        unavailable_resources=[]
-        resource_units={}
-        cluster_resources.each do |r|
-          resource_units[r["id"]]=r[cluster.props[:resource_unit]]
-          unavailable_resources << r[cluster.props[:resource_unit]] if r["state"] != "Alive"
+        pid=fork
+        if pid.nil?
+          # Get the resource_units
+          logger.debug("Getting resources of #{cluster.name}")
+          cluster_resources=cluster.get_resources
+          cigri_resources=0
+          unavailable_resources=[]
+          resource_units={}
+          cluster_resources.each do |r|
+            resource_units[r["id"]]=r[cluster.props[:resource_unit]]
+            unavailable_resources << r[cluster.props[:resource_unit]] if r["state"] != "Alive"
                                                    #TODO: manage standby resources
-        end
-        max_resource_units=resource_units.values.uniq.length 
+          end
+          max_resource_units=resource_units.values.uniq.length 
   
-        # Get the cluster jobs
-        cluster_jobs=cluster.get_jobs
-        # Jobs consume resources units
-        cluster_jobs.each do |cluster_job|
-          cluster_job["resources"].each do |job_resource|
-            count=resource_units.length
-            resource_units.delete_if {|k,v| v==resource_units[job_resource["id"]] }
-            if cigri_jobs.records.include?(cluster_job["id"].to_i )
-              cigri_resources+=count-resource_units.length
+          # Get the cluster jobs
+          cluster_jobs=cluster.get_jobs
+          # Jobs consume resources units
+          cluster_jobs.each do |cluster_job|
+            cluster_job["resources"].each do |job_resource|
+              count=resource_units.length
+              resource_units.delete_if {|k,v| v==resource_units[job_resource["id"]] }
+              if cigri_jobs.records.include?(cluster_job["id"].to_i )
+                cigri_resources+=count-resource_units.length
+              end
             end
           end
-        end
   
-        # Create the entry
-        Datarecord.new("grid_usage",{:date => date,
-                                   :cluster_id => cluster.id,
-                                   :max_resources => max_resource_units,
-                                   :used_resources => max_resource_units - resource_units.values.uniq.length,
-                                   :used_by_cigri => cigri_resources,
-                                   :unavailable_resources => unavailable_resources.uniq.length
-                                  })
+          # Create the entry
+          Datarecord.new("grid_usage",{:date => date,
+                                     :cluster_id => cluster.id,
+                                     :max_resources => max_resource_units,
+                                     :used_resources => max_resource_units - resource_units.values.uniq.length,
+                                     :used_by_cigri => cigri_resources,
+                                     :unavailable_resources => unavailable_resources.uniq.length
+                                    })
+          exit(0)
+        end
       end 
+      Process.waitall
     rescue => e
       logger.warn("Could not update the grid_usage table! #{e.message} #{e.backtrace}") 
     end
