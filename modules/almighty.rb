@@ -7,6 +7,8 @@ require 'cigri-colombolib'
 
 $0='cigri: almighty'
 
+sleeptime=10
+
 begin
   config = Cigri.conf
   logfile=config.get('LOG_FILE',"STDOUT")
@@ -125,6 +127,7 @@ begin
   #Main almighty loop executing modules sequentially
   while true do
     logger.debug('New iteration')
+    t=Time.now
     ["metascheduler","updator","nikita"].each do |mod|
       pid=fork { exec(cigri_modules[mod]) }
       logger.debug("Spawned #{mod} process #{pid}")
@@ -142,6 +145,10 @@ begin
       end
       logger.debug("#{mod} process terminated")
     end
-    sleep 10
+    # Sleep if necessary
+    duration=Time.now - t
+    if duration < sleeptime
+      sleep sleeptime - duration
+    end
   end
 end

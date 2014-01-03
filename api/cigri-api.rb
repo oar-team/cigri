@@ -13,6 +13,7 @@ require 'cigri-clusterlib'
 require 'cigri-joblib'
 require 'cigri-eventlib'
 require 'cigri-colombolib'
+#require 'ruby-prof'
 require 'jdl-parser'
 require 'rack_debugger'
 
@@ -51,6 +52,7 @@ class API < Sinatra::Base
   
   # List all running campaigns (in_treatment or paused)
   get '/campaigns/?' do
+    #RubyProf.start
     response['Allow'] = 'GET,POST'
     
     items = []
@@ -68,7 +70,11 @@ class API < Sinatra::Base
           {:rel => :parent, :href => to_url('')}
         ]
     }
-    
+
+    #result = RubyProf.stop
+    #printer = RubyProf::GraphHtmlPrinter.new(result)
+    #printer.print(File.new("/tmp/cigri_api_prof.html",  "w"))
+
     status 200
     print(output)
   end
