@@ -22,6 +22,7 @@ dump = false
 pretty = false
 events = false
 offset = nil
+output = nil
 optparse = OptionParser.new do |opts|
   opts.banner = "Usage: #{File.basename(__FILE__)} [options] [<campaign ID>]"
   
@@ -60,7 +61,16 @@ optparse = OptionParser.new do |opts|
   opts.on( '-u', '--username USERNAME', String, 'Only print campaigns from USERNAME' ) do |u|
     username = u
   end
-  
+ 
+  opts.on( '-O', '--stdout', 'Get the stdout file of a job' ) do
+    output="stdout"
+  end
+
+  opts.on( '-E', '--stderr', 'Get the stderr file of a job' ) do
+    output="stderr"
+  end
+ 
+ 
   opts.on( '--version', 'Display Cigri version' ) do
     puts "#{File.basename(__FILE__)} v#{Cigri::VERSION}"
     exit
@@ -99,6 +109,12 @@ if full and not campaign_id
   exit 1
 end
 
+# Output options need a job id
+if output and not job_id
+  $stderr.puts "You must provide a job id (-j <id>) with --#{output}!"
+  exit 1
+end
+
 url = '/campaigns'
 url << "/#{campaign_id}" if campaign_id
 url << "/events" if events
@@ -108,6 +124,7 @@ url << "&offset=#{offset}" if offset and dump and pretty
 url << "?offset=#{offset}" if offset and dump and not pretty
 
 url = "/jobs/#{job_id}" if job_id
+url << "/#{output}" if output
 
 begin 
   client = Cigri::Client.new()
@@ -120,7 +137,11 @@ begin
     Cigri::Client.print_events(events)
   elsif job_id
     j = JSON.parse(response.body)
-    Cigri::Client.print_job(j)
+    if output
+       puts j["output"]
+    else
+       Cigri::Client.print_job(j)
+    end
   else
     if campaign_id  
       campaigns = [JSON.parse(response.body)]
