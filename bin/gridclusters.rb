@@ -51,7 +51,8 @@ begin
   clusters = JSON.parse(response.body)
   string=""
   clusters['items'].sort_by{|c| c['id']}.each do |item|
-    string+=item['id']+": "+item["name"]
+    name=item['id']+": "+item["name"]
+    string+=name.ljust(20)
     if infos
       response = client.get(url+"/"+item['id'])
       cluster = JSON.parse(response.body)
@@ -60,8 +61,8 @@ begin
           string+= "\n    "+key+": "+cluster[key].to_s if key != "links" and not cluster[key].nil?
         end
       else
-        string+= " ("+cluster['ssh_host']+","+cluster['stress_factor']
-        string+=",BLACKLISTED" if cluster['blacklisted']
+        string+= " ("+cluster['ssh_host']+", "+cluster['stress_factor']
+        string+=", BLACKLISTED" if cluster['blacklisted']
         string+=")"
       end
     end
