@@ -1,0 +1,20 @@
+- rspec:
+  - exec_in: HOME=/tmp gem install rspec
+- sinatra:
+  - exec_in: HOME=/tmp gem install sinatra --no-rdoc --no-ri
+- shotgun:
+  - exec_in: HOME=/tmp gem install shotgun
+- xmpp4r:
+  - exec_in: HOME=/tmp gem install xmpp4r
+- racktest:
+  - exec_in: HOME=/tmp gem install rack-test
+- gem_path:
+  - append_in:
+    - /home/kameleon/.bashrc
+    - |
+      export PATH=/var/lib/gems/1.9/bin/:$PATH
+- local_path:
+  - append_in:
+    - /home/kameleon/.bashrc
+    - |
+      export PATH=/usr/local/bin:$PATH

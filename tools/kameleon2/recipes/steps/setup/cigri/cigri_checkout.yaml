@@ -1,0 +1,6 @@
+- git_checkout:
+  - exec_in: mkdir -p $$cigri_install_dir
+  - exec_in: git init $$cigri_install_dir
+  - exec_in: git --git-dir $$cigri_install_dir/.git --work-tree $$cigri_install_dir fetch --depth 0 $$cigri_git
+  - exec_in: git --git-dir $$cigri_install_dir/.git --work-tree $$cigri_install_dir checkout FETCH_HEAD
+
