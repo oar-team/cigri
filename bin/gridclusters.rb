@@ -115,6 +115,7 @@ begin
           end
         else
           string+="\n    Data temporarily unavailable"
+          string+="\n" if bars
         end
       end  
     end
