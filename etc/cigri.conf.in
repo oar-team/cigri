@@ -124,3 +124,5 @@ API_HEADER_USERNAME="HTTP_X_CIGRI_USER"
 # This table is maintained only for making statistics and informations to the 
 # users.
 GRID_USAGE_UPDATE_PERIOD="60"
+# Dirty wait for maximizing chances of gridusage processes synchro
+GRID_USAGE_SYNC_TIME="10"

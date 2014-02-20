@@ -25,6 +25,7 @@ begin
   end
  
   GRID_USAGE_UPDATE_PERIOD=config.get('GRID_USAGE_UPDATE_PERIOD',60).to_i
+  GRID_USAGE_SYNC_TIME=config.get('GRID_USAGE_SYNC_TIME',10).to_i
  
   %w{INT TERM}.each do |signal|
     Signal.trap(signal){ 
@@ -85,7 +86,7 @@ begin
   # Update grid_usage table
   ## 
   last_grid_usage_entry_date=0
-  sync_seconds=10 # Max seconds to wait for synchro of the updator processes
+  sync_seconds=GRID_USAGE_SYNC_TIME # Max seconds to wait for synchro of the updator processes
   db_connect do |dbh|
     last_grid_usage_entry_date=last_grid_usage_entry_date(dbh)
   end
