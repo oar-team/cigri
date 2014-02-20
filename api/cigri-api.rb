@@ -238,17 +238,20 @@ class API < Sinatra::Base
   # Details of a cluster
   get '/clusters/:id/?' do |id|
     response['Allow'] = 'GET'
+    cluster=nil
     begin
-      cluster = Cigri::Cluster.new(:id => id).description
-      cluster[:links] = [{:rel => :self, :href => to_url("clusters/#{id}")},
+      cluster = Cigri::Cluster.new(:id => id)
+      cluster_desc=cluster.description
+      cluster_desc[:links] = [{:rel => :self, :href => to_url("clusters/#{id}")},
                           {:rel => :parent, :href => to_url("clusters")}]
-      ['api_password', 'api_username'].each { |i| cluster.delete(i)}
+      ['api_password', 'api_username'].each { |i| cluster_desc.delete(i)}
     rescue Exception => e
       not_found
     end
     
+    cluster_desc[:blacklisted] = cluster.blacklisted?
     status 200
-    print(cluster)
+    print(cluster_desc)
   end
 
   # Delete a file on a cluster
