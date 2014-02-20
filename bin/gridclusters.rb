@@ -121,6 +121,7 @@ begin
     end
     string+="\n"
   end
+  string+="\033[41m \033[0m=unavailable \033[43m \033[0m=used \033[47m \033[0m=used_by_cigri \033[42m \033[0m=free\n" if bars
   puts string
    
 rescue Errno::ECONNREFUSED => e
