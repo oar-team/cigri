@@ -24,7 +24,7 @@ begin
     $stderr.reopen(logfile, "a")
   end
  
-  GRID_USAGE_UPDATE_PERIOD=config.get('GRID_USAGE_UPDATE_PERIOD',60)
+  GRID_USAGE_UPDATE_PERIOD=config.get('GRID_USAGE_UPDATE_PERIOD',60).to_i
  
   %w{INT TERM}.each do |signal|
     Signal.trap(signal){ 
@@ -106,8 +106,10 @@ begin
           resource_units={}
           cluster_resources.each do |r|
             resource_units[r["id"]]=r[cluster.props[:resource_unit]]
-            unavailable_resources << r[cluster.props[:resource_unit]] if r["state"] != "Alive"
-                                                   #TODO: manage standby resources
+            if r["state"] != "Alive" and
+               (r["state"] != "Absent" or (r["state"] == "Absent" and r["available_upto"].to_i < Time.now.to_i))
+              unavailable_resources << r[cluster.props[:resource_unit]]
+            end
           end
           max_resource_units=resource_units.values.uniq.length 
   
