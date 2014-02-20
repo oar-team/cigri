@@ -107,6 +107,7 @@ begin
             (free*size/max).round.to_i.times do
               string+="\033[42m \033[0m" # green
             end
+            string+="\n"
           else
             cluster_usage[0].each_key do |k|
               string+="\n    "+k+": "+cluster_usage[0][k].to_s if k != "cluster_id" and k != "cluster_name"
