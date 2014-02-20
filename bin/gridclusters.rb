@@ -9,6 +9,8 @@ require 'version.rb'
 
 infos = false
 more_infos = false
+usage = false
+bars = false
 
 optparse = OptionParser.new do |opts|
   opts.banner = "Usage:  #{File.basename(__FILE__)} [options]"
@@ -25,6 +27,17 @@ optparse = OptionParser.new do |opts|
   opts.on( '-I', '--more_infos', 'Show detailed infos about each cluster' ) do
     infos = true
     more_infos = true
+  end
+
+  opts.on( '-u', '--usage', 'Show usage infos about each cluster (implies -i)' ) do
+    infos = true
+    usage = true
+  end
+
+  opts.on( '-b', '--bars', 'Show usage infos with colored bars (implies -i -u)' ) do
+    infos = true
+    usage = true
+    bars = true
   end
   
   opts.on( '-h', '--help', 'Display this screen' ) do
@@ -49,10 +62,14 @@ begin
 
   response = client.get(url)
   clusters = JSON.parse(response.body)
+  if usage
+    response = client.get("/gridusage")
+    usage_values = JSON.parse(response.body)['items'][0]['clusters']
+  end 
   string=""
   clusters['items'].sort_by{|c| c['id']}.each do |item|
     name=item['id']+": "+item["name"]
-    string+=name.ljust(20)
+    string+=name
     if infos
       response = client.get(url+"/"+item['id'])
       cluster = JSON.parse(response.body)
@@ -61,10 +78,42 @@ begin
           string+= "\n    "+key+": "+cluster[key].to_s if key != "links" and not cluster[key].nil?
         end
       else
-        string+= " ("+cluster['ssh_host']+", "+cluster['stress_factor']
+        string+= " , "+cluster['ssh_host']+" (stress:"+cluster['stress_factor']
         string+=", BLACKLISTED" if cluster['blacklisted']
+        string+=", UNDER_STRESS" if cluster['under_stress']
         string+=")"
       end
+      if usage
+        cluster_usage=usage_values.select{|u| u["cluster_name"]==item["name"]}
+        if not cluster_usage[0].nil?
+          if bars
+            size=80
+            string+="\n"
+            unavailable=cluster_usage[0]["unavailable_resources"]
+            used=cluster_usage[0]["used_resources"]
+            cigri=cluster_usage[0]["used_by_cigri"]
+            used=used-cigri
+            max=cluster_usage[0]["max_resources"]
+            free=max - cigri - used - unavailable
+            (unavailable*size/max).round.to_i.times do
+              string+="\033[41m \033[0m" # red
+            end
+            (used*size/max).round.to_i.times do
+              string+="\033[43m \033[0m" # yellow
+            end
+            (cigri*size/max).round.to_i.times do
+              string+="\033[47m \033[0m" # white
+            end
+            (free*size/max).round.to_i.times do
+              string+="\033[42m \033[0m" # green
+            end
+          else
+            cluster_usage[0].each_key do |k|
+              string+="\n    "+k+": "+cluster_usage[0][k].to_s if k != "cluster_id" and k != "cluster_name"
+            end
+          end
+        end
+      end  
     end
     string+="\n"
   end

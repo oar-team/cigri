@@ -250,6 +250,7 @@ class API < Sinatra::Base
     end
     
     cluster_desc['blacklisted'] = cluster.blacklisted?
+    cluster_desc['under_stress'] = cluster.under_stress?
     cluster_desc['stress_factor'] = cluster_desc['stress_factor'].to_s + "/" + STRESS_FACTOR.to_s unless cluster_desc['stress_factor'].nil?
     status 200
     print(cluster_desc)
