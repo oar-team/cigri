@@ -242,14 +242,15 @@ class API < Sinatra::Base
     begin
       cluster = Cigri::Cluster.new(:id => id)
       cluster_desc=cluster.description
-      cluster_desc[:links] = [{:rel => :self, :href => to_url("clusters/#{id}")},
+      cluster_desc['links'] = [{:rel => :self, :href => to_url("clusters/#{id}")},
                           {:rel => :parent, :href => to_url("clusters")}]
       ['api_password', 'api_username'].each { |i| cluster_desc.delete(i)}
     rescue Exception => e
       not_found
     end
     
-    cluster_desc[:blacklisted] = cluster.blacklisted?
+    cluster_desc['blacklisted'] = cluster.blacklisted?
+    cluster_desc['stress_factor'] = cluster_desc['stress_factor'].to_s + "/" + STRESS_FACTOR.to_s unless cluster_desc['stress_factor'].nil?
     status 200
     print(cluster_desc)
   end

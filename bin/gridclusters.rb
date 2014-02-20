@@ -8,6 +8,7 @@ require 'optparse'
 require 'version.rb'
 
 infos = false
+more_infos = false
 
 optparse = OptionParser.new do |opts|
   opts.banner = "Usage:  #{File.basename(__FILE__)} [options]"
@@ -17,8 +18,13 @@ optparse = OptionParser.new do |opts|
     exit
   end
 
-  opts.on( '-I', '--infos', 'Show detailed infos about each cluster' ) do
+  opts.on( '-i', '--infos', 'Show infos about each cluster' ) do
     infos = true
+  end
+
+  opts.on( '-I', '--more_infos', 'Show detailed infos about each cluster' ) do
+    infos = true
+    more_infos = true
   end
   
   opts.on( '-h', '--help', 'Display this screen' ) do
@@ -43,16 +49,25 @@ begin
 
   response = client.get(url)
   clusters = JSON.parse(response.body)
+  string=""
   clusters['items'].sort_by{|c| c['id']}.each do |item|
-    puts item['id']+": "+item["name"]
+    string+=item['id']+": "+item["name"]
     if infos
       response = client.get(url+"/"+item['id'])
       cluster = JSON.parse(response.body)
-      cluster.each_key do |key|
-        puts "    "+key+": "+cluster[key].to_s if key != "links" and not cluster[key].nil?
+      if more_infos
+        cluster.each_key do |key|
+          string+= "\n    "+key+": "+cluster[key].to_s if key != "links" and not cluster[key].nil?
+        end
+      else
+        string+= " ("+cluster['ssh_host']+","+cluster['stress_factor']
+        string+=",BLACKLISTED" if cluster['blacklisted']
+        string+=")"
       end
     end
+    string+="\n"
   end
+  puts string
    
 rescue Errno::ECONNREFUSED => e
   STDERR.puts("API server not reachable: #{e.inspect}")
