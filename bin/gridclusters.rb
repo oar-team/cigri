@@ -88,13 +88,13 @@ begin
         if not cluster_usage[0].nil?
           if bars
             size=80
-            string+="\n"
             unavailable=cluster_usage[0]["unavailable_resources"]
             used=cluster_usage[0]["used_resources"]
             cigri=cluster_usage[0]["used_by_cigri"]
             used=used-cigri
             max=cluster_usage[0]["max_resources"]
             free=max - cigri - used - unavailable
+            string+=" (#{max} resources)\n"
             (unavailable*size/max).round.to_i.times do
               string+="\033[41m \033[0m" # red
             end
