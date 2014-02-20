@@ -119,6 +119,7 @@ begin
           # Get the cluster jobs
           cluster_jobs=cluster.get_jobs
           # Jobs consume resources units
+          #TODO: remove jobs running on suspected resources!
           cluster_jobs.each do |cluster_job|
             cluster_job["resources"].each do |job_resource|
               count=resource_units.length
