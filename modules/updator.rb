@@ -85,6 +85,7 @@ begin
   # Update grid_usage table
   ## 
   last_grid_usage_entry_date=0
+  sync_seconds=10 # Max seconds to wait for synchro of the updator processes
   db_connect do |dbh|
     last_grid_usage_entry_date=last_grid_usage_entry_date(dbh)
   end
@@ -98,8 +99,9 @@ begin
       Cigri::ClusterSet.new.each do |cluster|
         pid=fork
         if pid.nil?
+          sync_date=Time.now.to_i
           # Get the resource_units
-          logger.debug("Getting resources of #{cluster.name}")
+          logger.debug("Getting resources of #{cluster.name} (it takes at least #{sync_seconds} seconds)")
           cluster_resources=cluster.get_resources
           cigri_resources=0
           unavailable_resources=[]
@@ -125,7 +127,13 @@ begin
               end
             end
           end
-  
+            
+          # Dirty synchro to maximize the chances of having the new sql entries at the same time
+          seconds=Time.now.to_i-sync_date
+          if seconds < sync_seconds
+            sleep sync_seconds - seconds
+          end
+ 
           # Create the entry
           Datarecord.new("grid_usage",{:date => date,
                                      :cluster_id => cluster.id,
