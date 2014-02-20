@@ -85,7 +85,7 @@ begin
       end
       if usage
         cluster_usage=usage_values.select{|u| u["cluster_name"]==item["name"]}
-        if not cluster_usage[0].nil?
+        if not cluster_usage[0].nil? and not cluster['blacklisted']
           if bars
             size=80
             unavailable=cluster_usage[0]["unavailable_resources"]
@@ -113,6 +113,8 @@ begin
               string+="\n    "+k+": "+cluster_usage[0][k].to_s if k != "cluster_id" and k != "cluster_name"
             end
           end
+        else
+          string+="\n    Data temporarily unavailable"
         end
       end  
     end
