@@ -23,6 +23,7 @@ pretty = false
 events = false
 offset = nil
 output = nil
+jdl=false
 optparse = OptionParser.new do |opts|
   opts.banner = "Usage: #{File.basename(__FILE__)} [options] [<campaign ID>]"
   
@@ -70,6 +71,15 @@ optparse = OptionParser.new do |opts|
     output="stderr"
   end
  
+  opts.on( '-J', '--jdl', 'Get the JDL file (json) of the campaign' ) do
+    jdl=true
+  end
+
+  opts.on( '-E', '--stderr', 'Get the stderr file of a job' ) do
+    output="stderr"
+  end
+ 
+ 
  
   opts.on( '--version', 'Display Cigri version' ) do
     puts "#{File.basename(__FILE__)} v#{Cigri::VERSION}"
@@ -103,6 +113,14 @@ if events
   end
 end
 
+# JDL printing needs a campaign ID
+if jdl
+  if not campaign_id
+    $stderr.puts "You must give a campaign id to print the JDL!"
+    exit 1
+  end
+end
+
 # Prevent full output of all campaigns!
 if full and not campaign_id
   $stderr.puts "You must provide a campaign id with --full!"
@@ -117,6 +135,7 @@ end
 
 url = '/campaigns'
 url << "/#{campaign_id}" if campaign_id
+url << "/jdl?pretty" if jdl
 url << "/events" if events
 url << "/jobs" if full and dump
 url << '?pretty' if dump and pretty
@@ -142,6 +161,9 @@ begin
     else
        Cigri::Client.print_job(j)
     end
+  elsif jdl
+    jdl = response.body
+    puts jdl
   else
     if campaign_id  
       campaigns = [JSON.parse(response.body)]
