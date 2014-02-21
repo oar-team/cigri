@@ -205,13 +205,20 @@ begin
                   campaign['finished_jobs'],campaign['total_jobs'],progress);
         else
           e="(events)" if e=='e'
-          printf("Campaign: %d\n Name: %s\n User: %s\n Date: %s\n State: %s %s\n Progress: %d/%d (%d\%%)\n",
+          clusters_string=""
+          campaign['clusters'].each_key do |c|
+            clusters_string+="    "+campaign['clusters'][c]["cluster_name"]+":\n"
+            campaign['clusters'][c].each_key do |k|
+              clusters_string+="      "+k.to_s+": "+campaign['clusters'][c][k].to_s+"\n" if k!="cluster_name"
+            end
+          end
+          printf("Campaign: %d\n  Name: %s\n  User: %s\n  Date: %s\n  State: %s %s\n  Progress: %d/%d (%d\%%)\n  Clusters: \n%s\n  ",
                   campaign['id'], 
                   campaign['name'], 
                   campaign['user'], 
                   Time.at(campaign['submission_time']).strftime('%Y-%m-%d %H-%M-%S'), 
                   campaign['state'],e, 
-                  campaign['finished_jobs'],campaign['total_jobs'],progress);
+                  campaign['finished_jobs'],campaign['total_jobs'],progress,clusters_string);
           if full
             puts " Jobs:"
             items=[]

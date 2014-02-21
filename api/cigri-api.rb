@@ -82,7 +82,7 @@ class API < Sinatra::Base
   # Details of a campaign
   get '/campaigns/:id/?' do |id|
     response['Allow'] = 'DELETE,GET,POST,PUT'
-    output = get_formated_campaign(id)
+    output = get_formated_campaign(id,true)
 
     status 200
     print(output)
@@ -635,18 +635,31 @@ class API < Sinatra::Base
     #
     # == Parameters: 
     #  - id: id if the campaign to get
-    def get_formated_campaign(id)
-      format_campaign(get_campaign(id))
+    def get_formated_campaign(id,clusters_infos=false)
+      format_campaign(get_campaign(id),clusters_infos)
     end
     
     # Gets the useful information about a campaign
     #
     # == Parameters: 
     #  - campaign: Cigri::Campaign campaign to format
-    def format_campaign(campaign)
+    def format_campaign(campaign,clusters_infos=false)
       props = campaign.props
+      clusters={}
+      if clusters_infos
+        campaign.get_clusters
+        campaign.clusters.each_key do |c|
+          clusters[c]={}
+          clusters[c]["cluster_name"]=CLUSTER_NAMES[c]
+          clusters[c]["active_jobs"]=campaign.active_jobs_number_on_cluster(c)
+          clusters[c]["queued_jobs"]=campaign.queued_jobs_number_on_cluster(c)
+          clusters[c]["prologue_ok"]=campaign.prologue_ok?(c)
+          clusters[c]["epilogue_ok"]=campaign.epilogue_ok?(c)
+        end
+      end
       id = props[:id]
-      {:id => id.to_i, 
+      c={
+       :id => id.to_i, 
        :name => props[:name], 
        :user => props[:grid_user],
        :state => props[:state],
@@ -661,6 +674,8 @@ class API < Sinatra::Base
          {:rel => :collection, :href => to_url("campaigns/#{id}/events"), :title => 'events'},
          {:rel => :item, :href => to_url("campaigns/#{id}/jdl"), :title => 'jdl'}
        ]}
+       c["clusters"]=clusters if clusters_infos
+       return c
     end
 
     # Gets an event from the database
