@@ -66,7 +66,7 @@ if campaign_id.nil? && ARGV[0]
   campaign_id=ARGV[0]
 end
 
-abort("Missing CAMPAIGN (-c) or EVENT (-e) id\n" + optparse.to_s) unless campaign_id or event_id or global
+abort("Missing CAMPAIGN (-c), EVENT (-e) id or --global (-g)\n" + optparse.to_s) unless campaign_id or event_id or global
 
 url = "/campaigns/#{campaign_id}/events" if campaign_id
 url = "/events/#{event_id}" if event_id
