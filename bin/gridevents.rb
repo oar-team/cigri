@@ -13,6 +13,7 @@ username = nil
 fix = false
 resubmit = false
 event_id = nil
+global = false
 
 optparse = OptionParser.new do |opts|
   opts.banner = "Usage:  #{File.basename(__FILE__)} [options]"
@@ -23,6 +24,10 @@ optparse = OptionParser.new do |opts|
 
   opts.on( '-c', '--campaign ID', String, 'Show or close events for this campaign ID' ) do |c|
     campaign_id = c
+  end
+
+  opts.on( '-g', '--global', String, 'Show current global events (not specific to a campaign)' ) do
+    global = true
   end
 
   opts.on( '-e', '--event ID', String, 'Show or close only this event' ) do |e|
@@ -61,10 +66,11 @@ if campaign_id.nil? && ARGV[0]
   campaign_id=ARGV[0]
 end
 
-abort("Missing CAMPAIGN (-c) or EVENT (-e) id\n" + optparse.to_s) unless campaign_id or event_id
+abort("Missing CAMPAIGN (-c) or EVENT (-e) id\n" + optparse.to_s) unless campaign_id or event_id or global
 
 url = "/campaigns/#{campaign_id}/events" if campaign_id
 url = "/events/#{event_id}" if event_id
+url = "/events" if global
 
 begin 
   client = Cigri::Client.new 

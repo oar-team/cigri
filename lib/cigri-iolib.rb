@@ -797,6 +797,29 @@ def get_campaign_events(dbh, id, limit, offset)
 end
 
 ##
+# Returns the open events not specific to a campaign
+#
+# == Parameters
+# - dbh: dababase handle
+# - limit
+# - offset
+#
+# == Returns
+# Array: [id,class,code,job_id,cluster_id,message,date_open]
+#
+##
+def get_global_events(dbh, limit, offset)
+  query = "SELECT id,class,code,job_id,cluster_id,message,date_open,parent,state
+           FROM events
+           WHERE state='open' and class not in ('job','campaign')
+           ORDER BY id
+           LIMIT ? 
+           OFFSET ?"
+
+  dbh.select_all(query, limit, offset)
+end
+
+##
 # Returns the number of open events of a campaign
 #
 # == Parameters

@@ -97,6 +97,18 @@ class API < Sinatra::Base
     print(output)
   end
 
+  # List global events (not specific to a campaign)
+  get '/events/?' do
+    response['Allow'] = 'DELETE,GET,POST,PUT'
+    limit = params['limit'] || 100
+    offset = params['offset'] || 0
+
+    output = get_formated_global_events(limit, offset)
+
+    status 200
+    print(output)
+  end
+
   # Get infos about a unitary job
   get '/jobs/:id' do |id|
     response['Allow'] = 'GET'
@@ -580,6 +592,29 @@ class API < Sinatra::Base
       res
     end
 
+    # Gets global events
+    #
+    # == Parameters: 
+    #  - limit: number of events to get
+    #  - offset: start from event "offset"
+    def get_formated_global_events(limit, offset)      
+     events=[]
+      begin
+        db_connect() do |dbh|
+          events = get_global_events(dbh, limit, offset)
+        end
+      rescue DBI::ProgrammingError => e
+        halt 400, print({:status => 400, :title => "Error", :message => "#{e}"})
+      end
+      not_found if events.size == 0
+      
+      items=formated_events(events)
+      {:items => items,
+       :offset => offset
+      }
+      #TODO: compute total
+    end
+
     # Gets events on a campaign
     #
     # == Parameters: 
@@ -595,7 +630,16 @@ class API < Sinatra::Base
         halt 400, print({:status => 400, :title => "Error", :message => "#{e}"})
       end
       not_found if events.size == 0
+      
+      items=formated_events(events)
+      {:items => items,
+       :total => campaign.nb_events.to_i,
+       :offset => offset
+      }
+    end
 
+    # Format a list of events 
+    def formated_events(events)      
       items = []
       events.each do |event|
         items << {
@@ -611,13 +655,8 @@ class API < Sinatra::Base
           :state => event[8]
         }
       end
-
-      {:items => items,
-       :total => campaign.nb_events.to_i,
-       :offset => offset
-      }
+      return items
     end
-
 
 
     # Gets a campaign from the database
