@@ -1,7 +1,0 @@
-cigri_checkout:
- - git_checkout:
-   - exec_chroot: mkdir -p $$cigri_install_dir
-   - exec_chroot: git init $$cigri_install_dir
-   - exec_appliance: git --git-dir $$chroot/$$cigri_install_dir/.git --work-tree $$chroot/$$cigri_install_dir fetch --depth 0 $$cigri_git
-   - exec_appliance: git --git-dir $$chroot/$$cigri_install_dir/.git --work-tree $$chroot/$$cigri_install_dir checkout FETCH_HEAD
-

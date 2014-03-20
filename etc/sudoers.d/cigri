@@ -1,5 +1,0 @@
-Defaults	env_keep += "CIGRIDIR"
-
-Cmnd_Alias CIGRICMD = /usr/local/share/cigri/bin/gridsub, /usr/local/share/cigri/bin/gridstat, /usr/local/share/cigri/bin/griddel
-
-ALL ALL=(cigri) NOPASSWD: CIGRICMD

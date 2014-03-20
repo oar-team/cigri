@@ -1,7 +1,0 @@
-cigri_precheck:
- - psql:
-   - exec_current: ps awux |grep postgres:|grep -v grep >/dev/null && echo -e "\n*** YO SHOULD STOP YOUR POSTGRESQL SERVER! ***\n" && exit 1 || true
- - lang_variable:
-   - set_var:
-     - LANG
-     - C
