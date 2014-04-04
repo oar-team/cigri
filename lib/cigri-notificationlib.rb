@@ -51,6 +51,7 @@ module Cigri
       @admin=opts[:admin] || nil
       @campaign_id=opts[:campaign_id] || nil # Not implemented yet
       @severity=opts[:severity] || "low"
+      @severity_admin=opts[:severity_admin] || opts[:severity]
       @subject=opts[:subject] || "info"
       @message=opts[:message] || ""
       @handlers=handlers      
@@ -101,15 +102,21 @@ module Cigri
     ##
     # Filtering depending on severity
     # Returns an array of notifications methods after filtering
+    # Some message may not have the same severity for the admin (for example
+    # a cluster blacklist for a campaign is medium for the admin, but high 
+    # for the user)
     #
     def filtered_notifications
       severities={"low" => 1, "medium" => 2, "high" => 3}
       notifications=[]
-      (@user_notifications+@admin_notifications).each do |notification|
+      @user_notifications.each do |notification|
         if severities[notification.props[:severity]] <= severities[@severity]
           notifications << notification
-        else
-          NOTIFICATIONLIBLOGGER.debug("Not notifiying #{@severity} message to #{notification.props[:identity]}")
+        end
+      end
+      @admin_notifications.each do |notification|
+        if severities[notification.props[:severity]] <= severities[@severity_admin]
+          notifications << notification
         end
       end
       return notifications

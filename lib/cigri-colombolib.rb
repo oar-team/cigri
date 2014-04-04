@@ -404,6 +404,7 @@ module Cigri
            message_props={
                         :subject => "Cluster #{@cluster_names[cluster_id]} blacklisted for campaign ##{event.props[:campaign_id]} ",
                         :severity => "high",
+                        :severity_admin => "medium",
                         :admin => true,
                         :message => "Cluster #{@cluster_names[cluster_id]} is blacklisted for campaign ##{event.props[:campaign_id]}, please check grid events for details"
                       }
