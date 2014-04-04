@@ -66,6 +66,7 @@ begin
     childs.delete(pid)
     if not runner_childs[pid].nil?
       Cigri::Event.new(:class => "log", :code => "RUNNER_FAILED", :state => "closed", :message => "Runner of #{runner_childs[pid]} terminated! Restarting.")
+      Process.kill("USR1",judas_pid)
       sleep 5
       logger.warn("Restarting runner for #{runner_childs[pid]}")
       npid=fork
@@ -158,6 +159,7 @@ begin
       end
       if wait==true
         Cigri::Event.new(:class => "log", :code => "CHILD_TIMEOUT", :state => "closed", :message => "#{mod} timeout! Canceling!")
+        Process.kill("USR1",judas_pid)
         logger.error("#{mod} timeout! Canceling!")
         begin
           Process.kill("TERM",modpid) 

@@ -70,6 +70,10 @@ def notify(im_handlers)
   # Notify events of the class notify (events created closed, just for notification)
   events=Cigri::Eventset.new(:where => "class='notify' and notified=false")
   Cigri::Colombo.new(events).notify(im_handlers)
+
+  # Notify events of the class log (events created closed, just for logging and admin notification)
+  events=Cigri::Eventset.new(:where => "class='log' and notified=false")
+  Cigri::Colombo.new(events).notify(im_handlers)
 end
 
 # Setting up trap on USR1

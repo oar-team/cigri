@@ -490,6 +490,39 @@ module Cigri
       end # events
     end
 
+    ## Notify log events
+    # Sends a message per log event
+    # Log events are always sent to the grid admin
+    #
+    # == Parameters:
+    # - im: instant message handlers hash
+    #
+    def notify_log_events!(im_handlers)
+      events=@events.records.select{|event| event.props[:notified] == "f" and event.props[:class]=="log"}
+      COLOMBOLIBLOGGER.debug("Notifying #{events.length} log events") if events.length > 0
+      events.each do |event|
+        message_props={
+                        :subject => "New log event ##{event.id}: #{event.props[:code]}" ,
+                        :message => event.props[:message],
+                        :admin => true
+                      }
+        # Classifying severity
+        if ["RUNNER_FAILED"].include?(event.props[:code])
+          message_props[:severity]="high"
+        else
+          message_props[:severity]="low"
+        end
+        # Actual sending
+        message=Cigri::Message.new(message_props,im_handlers)
+        begin
+          message.send
+          event.notified!
+        rescue => e
+          COLOMBOLIBLOGGER.error("Error sending notification: #{e.message} #{e.backtrace}")
+        end
+      end
+    end
+
     # Some events should never be notified (internal events)
     # This methods removes such events from the @events array.
     def remove_not_to_be_notified_events!
@@ -511,6 +544,7 @@ module Cigri
       remove_not_to_be_notified_events!
       notify_aggregated_errors!(im_handlers)
       notify_blacklists!(im_handlers)
+      notify_log_events!(im_handlers)
       notify_generic_events!(im_handlers)
     end
 
