@@ -203,11 +203,11 @@ module Cigri
       rescue Cigri::ClusterAPITimeout => e
         event=Cigri::Event.new(:class => "cluster", :cluster_id => @id, :code => "TIMEOUT", :message => e.to_s)
         Cigri::Colombo.new(event).check
-        raise Cigri::ClusterAPITimeout, e.message
+        raise 
       rescue Cigri::ClusterAPITimeoutPOST => e
         event=Cigri::Event.new(:class => "cluster", :cluster_id => @id, :code => "POST_TIMEOUT", :message => e.to_s)
         Cigri::Colombo.new(event).check
-        raise Cigri::ClusterAPITimeoutPOST, e.message
+        raise
       rescue Errno::ECONNREFUSED => e
         event=Cigri::Event.new(:class => "cluster", :cluster_id => @id, :code => "CONNECTION_REFUSED", :message => e.to_s)
         Cigri::Colombo.new(event).check

@@ -91,7 +91,7 @@ module Cigri
         if event.props[:class]=="cluster"
           COLOMBOLIBLOGGER.debug("Checking event #{event.props[:code]}")
           case event.props[:code]
-          when "TIMEOUT", "CONNECTION_RESET", "CONNECTION_REFUSED", "SSL_ERROR", "SUBMIT_JOB", "GET_JOBS", "GET_JOB", "GET_MEDIA","GET_STRESS_FACTOR", "FILL_JOBS_CACHE", "RUNNER_GET_JOB_CHUNK_ERROR"
+          when "POST_TIMEOUT","TIMEOUT", "CONNECTION_RESET", "CONNECTION_REFUSED", "SSL_ERROR", "SUBMIT_JOB", "GET_JOBS", "GET_JOB", "GET_MEDIA","GET_STRESS_FACTOR", "FILL_JOBS_CACHE", "RUNNER_GET_JOB_CHUNK_ERROR"
             blacklist_cluster(event.id,event.props[:cluster_id],event.props[:campaign_id])
             event.checked
           when "PERMISSION_DENIED", "FORBIDDEN"
@@ -117,6 +117,7 @@ module Cigri
       @events.each do |event|
         if event.props[:class]=="cluster"
           if  ( event.props[:code] == "TIMEOUT" ||
+                event.props[:code] == "POST_TIMEOUT" ||
                 event.props[:code] == "CONNECTION_REFUSED" ||
                 event.props[:code] == "CONNECTION_RESET" ||
                 event.props[:code] == "GET_STRESS_FACTOR" ||
@@ -355,7 +356,7 @@ module Cigri
     # - im: instant message handlers hash
     #
     def notify_aggregated_errors!(im_handlers)
-      codes_of_errors_to_aggregate=["RUNNER_SUBMIT_ERROR","EXIT_ERROR"]
+      codes_of_errors_to_aggregate=["RUNNER_SUBMIT_ERROR","EXIT_ERROR","RUNNER_SUBMIT_TIMEOUT"]
       codes_of_errors_to_aggregate.each do |code|
         events=@events.records.select{|event| event.props[:code]==code and event.props[:notified] == "f"}
         COLOMBOLIBLOGGER.debug("Notifying #{events.length} #{code} events") if events.length > 0

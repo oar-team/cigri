@@ -265,6 +265,18 @@ while true do
           job.update({'state' => 'event'})
           job.resubmit
         end
+      rescue Cigri::ClusterAPITimeoutPOST => e
+        message = "Timeout during jobs submit #{jobs.ids.inspect} on #{cluster.name}. You can fix and re-submit, but be aware that some jobs may be already running with no more relation to cigri."
+        jobs.each do |job|
+          job.update({'state' => 'event'})
+          event=Cigri::Event.new(:class => "job", :code => "RUNNER_SUBMIT_TIMEOUT",
+                                 :cluster_id => cluster.id, :job_id => job.id,
+                                 :message => message, :campaign_id => job.props[:campaign_id])
+          Cigri::Colombo.new(event).check
+          Cigri::Colombo.new(event).check_jobs
+          have_to_notify = true
+        end
+        logger.warn(message)
       rescue => e
         message = "Could not submit jobs #{jobs.ids.inspect} on #{cluster.name}: #{e}\n#{e.backtrace}"
         jobs.each do |job|
