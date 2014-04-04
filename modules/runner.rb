@@ -202,6 +202,11 @@ while true do
           logger.warn(message)
           cluster.taps[campaign_id].close # There's a problem, so we close the tap
           tap_can_be_opened[cluster.taps[campaign_id].id]=false
+        rescue Cigri::ClusterAPITimeout => e
+          message="Could not get remote job #{job.id}!\n#{e.to_s} because of a timeout with the cluster API"
+          logger.warn(message)
+          cluster.taps[campaign_id].close # There's a problem, so we close the tap
+          tap_can_be_opened[cluster.taps[campaign_id].id]=false
         rescue => e
           message="Could not get remote job #{job.id}!\n#{e.to_s}\n#{e.backtrace.to_s}"
           logger.warn(message)

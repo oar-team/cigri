@@ -39,4 +39,14 @@ module Cigri
   # Raised when a cluster API does not find a resource
   ##
   class ClusterAPINotFound < Error; end
+  ##
+  # Raised when a cluster API timeouts
+  ##
+  class ClusterAPITimeout < Error; end
+  ##
+  # Raised when a cluster API timeouts at a POST query
+  ##
+  class ClusterAPITimeoutPOST < Error; end
+ 
+    
 end

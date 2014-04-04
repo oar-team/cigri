@@ -113,7 +113,7 @@ module Cigri
       rescue RestClient::RequestTimeout
         message = "GET #{base_uri}#{uri}: REST query timeouted!"
         RESTCLIENTLIBLOGGER.error(message)
-        raise RestClient::RequestTimeout, message
+        raise Cigri::ClusterAPITimeout, message
       rescue RestClient::Exception => e
         if  e.http_code == 401
           raise Cigri::ClusterAPIPermissionDenied, "#{e.http_code} error in GET for #{uri}:\n #{e.response.body}"
@@ -163,7 +163,7 @@ module Cigri
       rescue RestClient::RequestTimeout
         message = "POST #{base_uri}#{uri}: REST query timeouted!"
         RESTCLIENTLIBLOGGER.error(message)
-        raise RestClient::RequestTimeout, message
+        raise Cigri::ClusterAPITimeoutPOST, message
       rescue RestClient::Exception => e
         if  e.http_code == 401
           raise Cigri::ClusterAPIPermissionDenied, "#{e.http_code} error in POST for #{uri}:\n #{e.response.body}"
@@ -186,7 +186,7 @@ module Cigri
       rescue RestClient::RequestTimeout
         message = "DELETE #{base_uri}#{uri}: REST query timeouted!"
         RESTCLIENTLIBLOGGER.error(message)
-        raise RestClient::RequestTimeout, message
+        raise Cigri::ClusterAPITimeout, message
       rescue RestClient::Exception => e
         if  e.http_code == 401
           raise Cigri::ClusterAPIPermissionDenied, "#{e.http_code} error in DELETE for #{uri}:\n #{e.response.body}"  
