@@ -1161,12 +1161,13 @@ def take_tasks(dbh, tasks)
         batch_id=runner_options["batch_id"].to_i
       end
       # insert the new job into the jobs table
-      dbh.do("INSERT INTO jobs (campaign_id, state, cluster_id, param_id, tag, runner_options, batch_id)
-              VALUES (?, ?, ?, ?, ?, ?, ?)",
+      res=dbh.select_one("INSERT INTO jobs (campaign_id, state, cluster_id, param_id, tag, runner_options, batch_id)
+              VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id",
               job['campaign_id'], "to_launch", job['cluster_id'], job['param_id'], job['tag'], 
                 job['runner_options'], batch_id
             )
-      jobids << last_inserted_id(dbh, "jobs_id_seq")
+      jobids << res[0]
+      IOLIBLOGGER.debug("Took task: #{res[0]}")
     end
     # Update the queue counts that are used for throughputs calculations
     counts.each do |pair,count|

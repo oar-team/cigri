@@ -369,8 +369,12 @@ module Cigri
           CLUSTERLIBLOGGER.error("You must pass an 'ids' array to fill the jobs cache!")
         else
           ids=props[:ids].join(':')
-          jobs=secure_run proc{ @api.get_collection("jobs/details?ids=#{ids}",{@description["api_auth_header"] => map_user("oar")}) },"FILL_JOBS_CACHE"
-          jobs.each { |j| @jobs_cache[j["id"]]=j }
+          begin
+            jobs=secure_run proc{ @api.get_collection("jobs/details?ids=#{ids}",{@description["api_auth_header"] => map_user("oar")}) },"FILL_JOBS_CACHE"
+            jobs.each { |j| @jobs_cache[j["id"]]=j }
+          rescue
+            CLUSTERLIBLOGGER.error("Could not fill jobs cache!")
+          end
         end
       end
  

@@ -607,7 +607,12 @@ module Cigri
     def take
       check_connection!
       jobids=take_tasks(@dbh,self.ids)
-      Jobset.new(:where => "jobs.id in (#{jobids.join(',')})")
+      if jobids.length > 0
+        Jobset.new(:where => "jobs.id in (#{jobids.join(',')})")
+      else
+        JOBLIBLOGGER.debug("Failed to take tasks #{self.ids.inspect}. Maybe removed by nikita meantime?")
+        return false
+      end
     end
 
   end # Class JobtolaunchSet
