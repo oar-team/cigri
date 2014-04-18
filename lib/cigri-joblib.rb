@@ -41,7 +41,7 @@ module Cigri
 
     # Do some checks to know if the job can be re-submitted
     def check_resubmit
-       if not campaign_running?
+      if not campaign_running?
         JOBLIBLOGGER.info("Not resubmiting job #{id} of non-running campaign")
         return false
       end

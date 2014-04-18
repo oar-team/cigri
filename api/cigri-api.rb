@@ -378,7 +378,7 @@ class API < Sinatra::Base
         # Get the jobs to resubmit if needed
         if params['resubmit']
           dataset=Dataset.new("jobs,events",{:what => 
-               "jobs.id as id,jobs.param_id as param_id,jobs.campaign_id as campaign_id,jobs.tag as tag,jobs.runner_options as runner_options"
+               "jobs.id as id,jobs.param_id as param_id,jobs.campaign_id as campaign_id,jobs.tag as tag,jobs.runner_options as runner_options",
                                              :where => "events.campaign_id=#{id} and
                                               events.state='open' and 
                                               jobs.id=events.job_id"}) 
