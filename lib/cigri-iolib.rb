@@ -1316,10 +1316,10 @@ end
 def get_campaign_failures_rate(dbh,campaign_id)
   # count the jobs with events that are failures
   query="select count(*) from jobs,events where jobs.id=events.job_id and events.code != 'REMOTE_WAITING_FRAG' and jobs.campaign_id=#{campaign_id};"
-  failures=dbh.select_one(query)[0]
+  failures=dbh.select_one(query)[0].to_i
   # count the terminated jobs
-  query="select count(*) from jobs where state='terminated';"
-  terminated=dbh.select_one(query)[0]
+  query="select count(*) from jobs where state='terminated' and jobs.campaign_id=#{campaign_id};"
+  terminated=dbh.select_one(query)[0].to_i
   total=failures+terminated
   return 0 if total == 0
   return failures.to_f/total.to_f
