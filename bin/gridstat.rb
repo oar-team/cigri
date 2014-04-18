@@ -220,13 +220,19 @@ begin
               clusters_string+="      "+k.to_s+": "+campaign['clusters'][c][k].to_s+"\n" if k!="cluster_name"
             end
           end
-          printf("Campaign: %d\n  Name: %s\n  User: %s\n  Date: %s\n  State: %s %s\n  Progress: %d/%d (%d\%%)\n  Clusters: \n%s\n  ",
+          response=client.get("/campaigns/#{campaign['id']}/stats")
+          stats=JSON.parse(response.body)
+          stats_string=''
+          stats.each_key do |k|
+            stats_string+="    #{k}: #{stats[k]}\n"
+          end
+          printf("Campaign: %d\n  Name: %s\n  User: %s\n  Date: %s\n  State: %s %s\n  Progress: %d/%d (%d\%%)\n  Stats: \n%s  Clusters: \n%s\n",
                   campaign['id'], 
                   campaign['name'], 
                   campaign['user'], 
                   Time.at(campaign['submission_time']).strftime('%Y-%m-%d %H-%M-%S'), 
                   campaign['state'],e, 
-                  campaign['finished_jobs'],campaign['total_jobs'],progress,clusters_string);
+                  campaign['finished_jobs'],campaign['total_jobs'],progress,stats_string,clusters_string);
           if full
             puts " Jobs:"
             items=[]

@@ -25,6 +25,8 @@ end
 
 logger=Cigri::Logger.new('API', Cigri.conf.get('LOG_FILE'))
 
+CAMPAIGN_THROUGHPUT_WINDOW=Cigri.conf.get('CAMPAIGN_THROUGHPUT_WINDOW',"3600").to_i
+
 class API < Sinatra::Base
   configure do
     use RackDebugger, Cigri::Logger.new('API', Cigri.conf.get('LOG_FILE')) # better print of the requests in the logfile
@@ -83,6 +85,15 @@ class API < Sinatra::Base
   get '/campaigns/:id/?' do |id|
     response['Allow'] = 'DELETE,GET,POST,PUT'
     output = get_formated_campaign(id,true)
+
+    status 200
+    print(output)
+  end
+
+  # Stats of a campaign
+  get '/campaigns/:id/stats/?' do |id|
+    response['Allow'] = 'GET'
+    output = get_campaign_stats(id)
 
     status 200
     print(output)
@@ -677,7 +688,25 @@ class API < Sinatra::Base
     def get_formated_campaign(id,clusters_infos=false)
       format_campaign(get_campaign(id),clusters_infos)
     end
-    
+   
+    # Gets some statistics about a campaign
+    #
+    # == Parameters: 
+    #  - id: id of the campaign to get stats from
+    def get_campaign_stats(id)
+      campaign = Cigri::Campaign.new(:id => id)
+      props=campaign.props
+      avg=campaign.average_job_duration
+      throughput=campaign.throughput(CAMPAIGN_THROUGHPUT_WINDOW)
+      throughput=0.0000000000000001 if throughput==0
+      stats={ :average_jobs_duration => avg[0],
+              :stddev_jobs_duration => avg[1],
+              :jobs_throughput => throughput,
+              :remaining_time => (props[:nb_jobs].to_i-props[:finished_jobs].to_i)/throughput
+            }
+      return stats
+    end
+ 
     # Gets the useful information about a campaign
     #
     # == Parameters: 

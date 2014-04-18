@@ -1281,6 +1281,7 @@ def get_grid_usage(dbh,from,to)
   end
   output
 end
+
 ##
 # Get average and stddev of the jobs duration of a campaign
 #
@@ -1289,6 +1290,24 @@ def get_average_job_duration(dbh,campaign_id)
   res=dbh.select_all(query)
   return [0,0] if res.length == 0
   return res[0]
+end
+
+##
+# Get jobs throughput of a campaign
+#
+def get_campaign_throughput(dbh,campaign_id,time_window)
+  query="select max(extract(epoch from start_time)) from jobs where campaign_id=#{campaign_id} and state='terminated';"
+  res=dbh.select_one(query)
+  return 0 if res.nil?
+  last_job_start=res[0].to_i
+  query="select min(extract(epoch from start_time)) from jobs where extract(epoch from start_time) > #{last_job_start}-#{time_window} and campaign_id=#{campaign_id} and state='terminated';"
+  res=dbh.select_one(query)
+  return 0 if res.nil?
+  first_job_start=res[0].to_i
+  return 0 if (last_job_start - first_job_start) == 0
+  query="select count(*) from jobs where extract(epoch from start_time) > #{last_job_start}-#{time_window} and campaign_id=#{campaign_id} and state='terminated';"
+  res=dbh.select_one(query)
+  return res[0].to_f/(last_job_start - first_job_start).to_f
 end
 
 ##

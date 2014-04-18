@@ -826,7 +826,11 @@ module Cigri
 
     # Get the job throughput (in jobs/seconds) in the last time_window
     def throughput(time_window)
-      #TODO
+      res=0
+      db_connect do |dbh|
+        res=get_campaign_throughput(dbh,id,time_window)
+      end
+      return res
     end
 
     # Construct runner options hash for the given cluster
