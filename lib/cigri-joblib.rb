@@ -834,10 +834,25 @@ module Cigri
     end
 
     # Get the failures rate
+    # The failures rate is F/(F + T)
+    #    F: failures count (number of jobs in the event state)
+    #    T: number of terminated jobs
     def failures_rate
       res=0
       db_connect do |dbh|
         res=get_campaign_failures_rate(dbh,id)
+      end
+      return res
+    end
+
+    # Get the resubmit rate
+    # The resubmit rate is R/(R + T)
+    #    R: number of jobs automatically re-submitted by Cigri or Oar
+    #    T: number of terminated jobs
+    def resubmit_rate
+      res=0
+      db_connect do |dbh|
+        res=get_campaign_resubmit_rate(dbh,id)
       end
       return res
     end

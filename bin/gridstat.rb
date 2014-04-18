@@ -226,7 +226,7 @@ begin
           stats.each_key do |k|
             if k == 'remaining_time'
               stats_string+="    #{k}: #{(stats[k]/3600).round(1)} hours\n"
-            elsif k == 'failures_rate'
+            elsif k == 'failures_rate' or k == 'resubmit_rate'
               stats_string+="    #{k}: #{(stats[k]*100).round(1)} %\n"
             else
               stats_string+="    #{k}: #{stats[k]}\n"
