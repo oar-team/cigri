@@ -1311,6 +1311,21 @@ def get_campaign_throughput(dbh,campaign_id,time_window)
 end
 
 ##
+# Get failures rate
+#
+def get_campaign_failures_rate(dbh,campaign_id)
+  # count the jobs with events that are failures
+  query="select count(*) from jobs,events where jobs.id=events.job_id and events.code != 'REMOTE_WAITING_FRAG' and jobs.campaign_id=#{campaign_id};"
+  failures=dbh.select_one(query)[0]
+  # count the terminated jobs
+  query="select count(*) from jobs where state='terminated';"
+  terminated=dbh.select_one(query)[0]
+  total=failures+terminated
+  return 0 if total == 0
+  return failures.to_f/total.to_f
+end
+
+##
 # Decrease task affinity.
 # If affinity is found, decrease by one. If not, initiate it to "-1".
 # By default, we consider affinity to be "0".

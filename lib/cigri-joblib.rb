@@ -833,6 +833,15 @@ module Cigri
       return res
     end
 
+    # Get the failures rate
+    def failures_rate
+      res=0
+      db_connect do |dbh|
+        res=get_campaign_failures_rate(dbh,id)
+      end
+      return res
+    end
+
     # Construct runner options hash for the given cluster
     def get_runner_options(cluster_id)
       opts={}

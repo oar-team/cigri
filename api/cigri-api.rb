@@ -702,7 +702,8 @@ class API < Sinatra::Base
       stats={ :average_jobs_duration => avg[0],
               :stddev_jobs_duration => avg[1],
               :jobs_throughput => throughput,
-              :remaining_time => (props[:nb_jobs].to_i-props[:finished_jobs].to_i)/throughput
+              :remaining_time => (props[:nb_jobs].to_i-props[:finished_jobs].to_i)/throughput,
+              :failures_rate => campaign.failures_rate
             }
       return stats
     end
