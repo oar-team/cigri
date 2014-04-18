@@ -224,7 +224,11 @@ begin
           stats=JSON.parse(response.body)
           stats_string=''
           stats.each_key do |k|
-            stats_string+="    #{k}: #{stats[k]}\n"
+            if k == 'remaining_time'
+              stats_string+="    #{k}: #{(stats[k]/3600).round(1)} hours\n"
+            else
+              stats_string+="    #{k}: #{stats[k]}\n"
+            end
           end
           printf("Campaign: %d\n  Name: %s\n  User: %s\n  Date: %s\n  State: %s %s\n  Progress: %d/%d (%d\%%)\n  Stats: \n%s  Clusters: \n%s\n",
                   campaign['id'], 
