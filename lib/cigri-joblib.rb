@@ -39,25 +39,34 @@ module Cigri
       campaign.props[:state] == 'in_treatment' or campaign.props[:state] == 'paused'
     end
 
-    # Clone the job into the bag of tasks for resubmission of the same job
-    # A re-submitted job has a priority of 20 (higher than default which is 10)
-    def resubmit
-      if not campaign_running?
+    # Do some checks to know if the job can be re-submitted
+    def check_resubmit
+       if not campaign_running?
         JOBLIBLOGGER.info("Not resubmiting job #{id} of non-running campaign")
         return false
       end
-      JOBLIBLOGGER.debug("Resubmiting parameter #{@props[:param_id]}")   
-      Datarecord.new("bag_of_tasks",{:param_id => @props[:param_id], :campaign_id => @props[:campaign_id], :priority => '20'})
+      if @props[:tag] == "prologue" or @props[:tag] == "epilogue" 
+        JOBLIBLOGGER.info("Not resubmiting job #{id} as it is tagged as #{@props[:tag]}")
+        return false
+      end
+      true
+    end
+
+    # Clone the job into the bag of tasks for resubmission of the same job
+    # A re-submitted job has a priority of 20 (higher than default which is 10)
+    def resubmit
+      if check_resubmit
+        JOBLIBLOGGER.debug("Resubmiting parameter #{@props[:param_id]}")   
+        Datarecord.new("bag_of_tasks",{:param_id => @props[:param_id], :campaign_id => @props[:campaign_id], :priority => '20'})
+      end
     end
 
     # Same as resubmit, but with a 0 priority, so that the job is at the end of the queue
     def resubmit_end
-      if not campaign_running?
-        JOBLIBLOGGER.info("Not resubmiting job #{id} of non-running campaign")
-        return false
+      if check_resubmit
+        JOBLIBLOGGER.debug("Resubmiting parameter #{@props[:param_id]} at end of queue")   
+        Datarecord.new("bag_of_tasks",{:param_id => @props[:param_id], :campaign_id => @props[:campaign_id], :priority => '0'})
       end
-      JOBLIBLOGGER.debug("Resubmiting parameter #{@props[:param_id]} at end of queue")   
-      Datarecord.new("bag_of_tasks",{:param_id => @props[:param_id], :campaign_id => @props[:campaign_id], :priority => '0'})
     end
   
     # Kill a job running on a cluster

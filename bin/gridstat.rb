@@ -157,7 +157,15 @@ begin
   elsif job_id
     j = JSON.parse(response.body)
     if output
-       puts j["output"]
+       if j["status"]
+         if j["status"]==404
+           warn "File not found:\n#{j['message']}"
+         else
+           warn j.inspect
+         end
+       else
+         puts j["output"]
+       end
     else
        Cigri::Client.print_job(j)
     end

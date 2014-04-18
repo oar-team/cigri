@@ -378,7 +378,7 @@ class API < Sinatra::Base
         # Get the jobs to resubmit if needed
         if params['resubmit']
           dataset=Dataset.new("jobs,events",{:what => 
-               "jobs.id as id,jobs.param_id as param_id,jobs.campaign_id as campaign_id",
+               "jobs.id as id,jobs.param_id as param_id,jobs.campaign_id as campaign_id,jobs.tag as tag,jobs.runner_options as runner_options"
                                              :where => "events.campaign_id=#{id} and
                                               events.state='open' and 
                                               jobs.id=events.job_id"}) 
@@ -525,7 +525,7 @@ class API < Sinatra::Base
   end
 
   not_found do 
-    print( {:status => 404, :title => 'Not Found', :message => "#{request.request_method} #{request.url} not found on this server"} )
+    print( {:status => 404, :title => 'Not found', :message => "#{request.request_method} #{request.url} not found on this server"} )
   end
 
   private
@@ -774,7 +774,16 @@ class API < Sinatra::Base
       cluster=Cigri::Cluster.new(:id => job.props[:cluster_id])
       cluster_job=cluster.get_job(job.props[:remote_id].to_i, job.props[:grid_user])
       file=cluster_job["launching_directory"]+"/"+cluster_job["#{type}_file"]
-      return {:output => cluster.get_file(file,job.props[:grid_user],tail) }
+      begin
+        output=cluster.get_file(file,job.props[:grid_user],tail)
+      rescue Cigri::ClusterAPINotFound => e
+        # warning: there's no typo here: yes, we do a halt 400 and return a 404 status
+        # otherwise, the standard not_found route overrides this message
+        halt 400, print( {:status => 404, :title => 'Not Found', :message => e.to_s} )
+      rescue => e
+        halt 400, print({:status => 400, :title => "Get media error", :message => e.to_s})   
+      end
+      return {:output => output}
     end
  
     def params_to_update
