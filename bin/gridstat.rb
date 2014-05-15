@@ -229,8 +229,8 @@ begin
               remaining="~" if remaining > 10000
               stats_string+="    #{k}: #{remaining} hours\n"
             elsif k == "jobs_throughput"
-              throughtput=(stats[k]/3600).round(1)
-              throughtput="~" if throughtput < 0.001
+              throughtput=(stats[k]*3600).round(1)
+              throughtput="~" if throughtput < 0.01
               stats_string+="    #{k}: #{throughtput} jobs/h\n"
             elsif k == 'failures_rate' or k == 'resubmit_rate'
               stats_string+="    #{k}: #{(stats[k]*100).round(1)} %\n"
