@@ -1286,7 +1286,7 @@ end
 # Get average and stddev of the jobs duration of a campaign
 #
 def get_average_job_duration(dbh,campaign_id)
-  query="select avg(extract(epoch from stop_time - start_time)),stddev(extract(epoch from stop_time - start_time)) from jobs where campaign_id=#{campaign_id} and stop_time is not null and start_time is not null"
+  query="select avg(extract(epoch from stop_time - start_time)),stddev(extract(epoch from stop_time - start_time)) from jobs where campaign_id=#{campaign_id} and stop_time is not null and start_time is not null and state='terminated'"
   res=dbh.select_all(query)
   return [0,0] if res.length == 0
   return res[0]
