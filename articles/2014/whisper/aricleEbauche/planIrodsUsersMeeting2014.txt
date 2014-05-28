@@ -1,0 +1,44 @@
+Data Intensive processing with iRODS and the middleware CiGri 
+
+1- Introduction
+
+2- Background
+  2.1 - The Whisper project
+    2.1.1 - Enjeu scientifique
+    2.1.2 - Organisation, partenaires
+    2.1.3 - Computing aspects
+
+  2.2 - CiGri
+    2.2.1 - The middleware
+    2.2.2 - The CIMENT platform
+
+  2.3 - Irods
+    2.3.1 - What is iRODS
+    2.3.2 - Irods and CiGri in CIMENT
+
+3- Software and IT infrastucture
+  3.1 - Scientific workflow
+        -
+        -
+  3.2 - Architecture
+        - Schema general
+        - CIMENT platform (schema, liste des clusters, nombre de
+cores, /applis, etc...)
+        - Cigri (schema explicatif)
+        - Irods (schema des noeuds, caractéristiques, ...)
+        - Irods and Cigri: prologue (donner un exemple), jobs, meta-data
+
+4- Results
+  4.1 - Whisper results
+  4.2 - Problems and solutions
+    4.2.1 - Software
+      *
+      *
+    4.2.2 - Irods
+      * i-commands encapsulating to deal with timeouts and connection
+control (secure_iget)
+      * Irods server overload with a lot of small file tranfers
+         (schema client/irods server/icat)
+      * Network overload with automatic staging
+
+5- Conclusion
