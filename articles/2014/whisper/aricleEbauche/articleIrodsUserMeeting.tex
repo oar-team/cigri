@@ -196,9 +196,11 @@ adjustments have been made for the grid computing as we shall see later.
 
 
 
-\section{IT infrastrcuture for grid computing (6-12\S , 1-2 pages) }
+\section{IT infrastructure for grid computing (6-12\S , 1-2 pages) }
 ~\\
 
+
+\subsection{CiGri and iRODS synergy}
 
 The data-intensive processing
 needs obviously an IT infrastructure in order to couple storage and computation.
@@ -224,37 +226,29 @@ Furthermore, as the results of the grid jobs are stored into the distributed sto
 total observation and thus allows the user to monitor its calculation.
 ~\\
 
-
-The Integrated Rule-Oriented Data System (iRODS) is a data management software.
-It permits to manage data independently the ressource storage with the i-commands or the iRODS API. 
-It allows also the user to define metadata associated to the data (Collections) and make query on them
-(see \cite{key:CCQSC} for an illustration of use). 
-Moreover, it is a glass box, it is possible to define rules that call services (called microservices). One can define then automatic 
-replication between differents ressources or more generally a processing for a selected data. 
-iRODS works with a meta-catalogue server (iCat) and several servers connected to storage resources.
+\subsection{iRODS infrastructure}
 
 
-The iRODS storage infrastructure of Ciment consists of a unique zone with the iCat server and several nodes, of the order of several tens,
-see figure \ref{schemaCimentStorageNodesIcat}.
+The Integrated Rule-Oriented Data System (iRODS) is a Distributed File System (DFS) offering a single namespace for files that are stored on differents resources that may be on different locations. The administrator can set up rules (microservices) to perform some automatic actions, for example the storage of a checksum or an automatic replication to the nearest resource (staging).  The user can control himself replications and create user-defined metadata. iRODS exposes a Command Line Interface (the i-commands), an API useable from several programmation languages (C, python, PHP,...), a fuse interface, a web gui, and a webdav interface. The meta-catalog is an SQL database, which makes it very efficient for managing additionnal meta-data or making advanced queries (see \cite{key:CCQSC} for an illustration of use). It is not "block-oriented", and thus relies on underlying Posix filesystems. Performance is not the main goal, but when the files are distributed on different resources, the only bottleneck is the meta-catalog (which is centralized).
+\\
+The iRODS storage infrastructure of Ciment consists of a unique zone with the iCat server and a dozen of nodes as illustrated on figure \ref{schemaCimentStorageNodesIcat}. The nodes are groupped inside 3 different locations, called site A, site B and site C, having heterogeneous WAN connexions. Each site has it's own 10Gbe local network switch. Those 3 sites are located into the 3 main datacenters where the CIMENT supercomuters live, so there are always close storage resources with the computing nodes. Note that site C has only a 1Gbe WAN connexion while A and B have 10Gbe WAN connexions.
 
 \begin{center}%[h]
 \centering
-\captionof{figure}{\label{schemaCimentStorageNodesIcat} iCAT and nodes storage}
+\captionof{figure}{\label{schemaCimentStorageNodesIcat} iCAT and storage nodes}
 \includegraphics[width=6cm]{schemaCimentStorageNodesIcat.png}
 \end{center}
 
-Capacity has now reached 700 TB and is constantly evolving and increases with investment in new projects.
-Each node comprises an Irods server coupled with further ressources as illustrated at the figure \ref{schemaNodeStorageCiment}
+Capacity has now reached 700 TB and is constantly evolving and increases with investment in new projects, as iRODS offers a great scalability by simply adding new storage resources.
+Each node has currently 2 RAID arrays from 24 to 48 raw TB as illustrated at the figure \ref{schemaNodeStorageCiment}
 
 \begin{center}%[h]
 \centering
-\captionof{figure}{\label{schemaNodeStorageCiment} A node storage}
+\captionof{figure}{\label{schemaNodeStorageCiment} A storage node}
 \includegraphics[width=3cm]{schemaNodeStorageCiment.png}
 \end{center}
 
-There is also a web interface where the user can check the status of the ressources (figure \ref{schemaCimentStorageStatus}).
-The resources are grouped into three sites as near as possible of the supercomputers.
-Note that one of the sites is 4km from the other two.
+CIMENT has set up a web interface where the user can easily check the status of the ressources (figure \ref{schemaCimentStorageStatus}).
 
 \begin{center}%[h]
 \centering
@@ -262,24 +256,22 @@ Note that one of the sites is 4km from the other two.
 \includegraphics[width=8cm]{schemaCimentStorageStatus.png}
 \end{center}
 
+
+\subsection{CiGri infrastructure}
+
 The access to 6600 cores of the clusters of the Ciment platform is achieved through the middleware CiGri.
-Cigri launch jobs on idle processors of every computing clusters and then can optimize the resources usage.
+Cigri launches embarrassingly parallel jobs on idle processors of every computing clusters and then optimizes the resources usage which are used for parallel jobs otherwise.
 
 Each cluster of the University of Grenoble uses the resource manager OAR. Cigri acts, among other things, as a metascheduler of OAR.
-It retrieves the clusters states trough OAR and submits the jobs on free resources.
+It retrieves the clusters states trough OAR and submits the jobs on free resources without exhausting the local scheduling queues.
 
-While it may work in normal mode, CiGri is used in BestEffort mode, ie that its jobs are lower priority: they can 
-be killed by any other job. However, CiGri provides automatic resubmission. With this mecanism, the user can submit 
-a big amount of small jobs, called a campaign, and he didn't care anymore.
+While it may work in normal mode, CiGri is mostly used in best-effort mode and thus provides an automatic resubmission mecanism. CiGri offers a customizable notification system with a smart events management. With those mecanisms, the user can submit a big amount of small jobs, called a campaign, and forget about it until all the jobs of the campaign are terminated or CiGri notifies a serious problem.
 
-
-Roughly speaking, in order to run a campaign, the user describes through a file (in json format) the parameters of the campaign 
-such as the accepted cluters, the maximum duration, the location of the codes, and a prologue on each cluster in order to 
-retrieve data and codes on iRODS. Moreover, it define also a file where each line correponds to a value of the parameter for the user's code.
+Roughly speaking, in order to run a campaign, the user describes through a file (in the JSON format) the parameters of the campaign 
+such as the accepted cluters, the needed resources, the maximum duration, the location of the codes, a prologue or epilogue script,...  
+Codes and input data are retrieved from iRODS using i-commands into the prologue scripts and the jobs scripts (or using the iRODS API if the jobs are written into a supported language). So, there's no direct connexion between CiGri and iRODS, but the usage is totally complementary through the jobs scripts. 
+Moreover, the user defines also a file where each line represents a value of the parameter for the user's code.
 Thus, the number of line of these parameter file corresponds to the number of jobs of the campaign.
-
-Note that iRODS is accessible by all the nodes of all the clusters. By this way, for a given campaign, CiGri gets not only
-the data to be process but also the codes to be run on the node. CiGri is therefore very independent of the data management of iRODS.
 
 CiGri is now at the version 3, which represents a major evolution in terms of modeling and technology (Rest API, Ruby)
 
