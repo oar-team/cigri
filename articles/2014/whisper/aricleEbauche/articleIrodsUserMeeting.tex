@@ -231,13 +231,23 @@ total observation and thus allows the user to monitor its calculation.
 
 The Integrated Rule-Oriented Data System (iRODS) is a Distributed File System (DFS) offering a single namespace for files that are stored on differents resources that may be on different locations. The administrator can set up rules (microservices) to perform some automatic actions, for example the storage of a checksum or an automatic replication to the nearest resource (staging).  The user can control himself replications and create user-defined metadata. iRODS exposes a Command Line Interface (the i-commands), an API useable from several programmation languages (C, python, PHP,...), a fuse interface, a web gui, and a webdav interface. The meta-catalog is an SQL database, which makes it very efficient for managing additionnal meta-data or making advanced queries (see \cite{key:CCQSC} for an illustration of use). It is not "block-oriented", and thus relies on underlying Posix filesystems. Performance is not the main goal, but when the files are distributed on different resources, the only bottleneck is the meta-catalog (which is centralized).
 \\
-The iRODS storage infrastructure of Ciment consists of a unique zone with the iCat server and a dozen of nodes as illustrated on figure \ref{schemaCimentStorageNodesIcat}. The nodes are groupped inside 3 different locations, called site A, site B and site C, having heterogeneous WAN connexions. Each site has it's own 10Gbe local network switch. Those 3 sites are located into the 3 main datacenters where the CIMENT supercomuters live, so there are always close storage resources with the computing nodes. Note that site C has only a 1Gbe WAN connexion while A and B have 10Gbe WAN connexions.
 
 \begin{center}%[h]
 \centering
 \captionof{figure}{\label{schemaCimentStorageNodesIcat} iCAT and storage nodes}
-\includegraphics[width=6cm]{schemaCimentStorageNodesIcat.png}
+\includegraphics[width=8cm]{schemaCimentStorageNodesIcat.png}
 \end{center}
+
+
+The iRODS storage infrastructure of Ciment consists of a unique zone with the iCat server and a dozen of nodes as illustrated on figure \ref{schemaCimentStorageNodesIcat}. The nodes are groupped inside 3 different locations, called site A, site B and site C, having heterogeneous WAN connexions. Each site has it's own 10Gbe local network switch.
+
+\begin{center}%[h]
+\centering
+\captionof{figure}{\label{schemaCimentStorageSupercomputers} iRODS resources close to supercomputers}
+\includegraphics[width=8cm]{schemaCimentStorageSupercomputers.png}
+\end{center}
+Those 3 sites are located into the 3 main datacenters where the CIMENT supercomputers live, so there are always close storage resources with the computing nodes (Figure \ref{schemaCimentStorageSupercomputers}). All resources of a given site are groupped into an iRODS resourceGroup and a rule tells that if a data is to be written from a computer of this site, then the data is written by default on a resource randomly chosen inside this group. So, data are always written to a local iRODS resource, using the LAN and not the WAN.
+Note that site C has only 1Gbe WAN connexions while A and B have 10Gbe WAN connexions (Figure \ref{schemaCimentStorageNodesIcat}). So, to optimize, we've set up automatic staging for site C: when a data is get from site C and the meta-catalog tells that the file is located on a site A or site B resource, then the file is automatically replicated to a resource of site C so that if it is accessed again later, it is not more transfered through the 1Gbe WAN link. 
 
 Capacity has now reached 700 TB and is constantly evolving and increases with investment in new projects, as iRODS offers a great scalability by simply adding new storage resources.
 Each node has currently 2 RAID arrays from 24 to 48 raw TB as illustrated at the figure \ref{schemaNodeStorageCiment}
@@ -245,9 +255,9 @@ Each node has currently 2 RAID arrays from 24 to 48 raw TB as illustrated at the
 \begin{center}%[h]
 \centering
 \captionof{figure}{\label{schemaNodeStorageCiment} A storage node}
-\includegraphics[width=3cm]{schemaNodeStorageCiment.png}
+\includegraphics[width=5cm]{schemaNodeStorageCiment.png}
 \end{center}
-
+iRODS nodes are running Debian GNU/Linux with Kanif \footnote{see http://taktuk.gforge.inria.fr/kanif/} for easy synchronisation of the system administration.
 CIMENT has set up a web interface where the user can easily check the status of the ressources (figure \ref{schemaCimentStorageStatus}).
 
 \begin{center}%[h]
@@ -265,6 +275,8 @@ Cigri launches embarrassingly parallel jobs on idle processors of every computin
 Each cluster of the University of Grenoble uses the resource manager OAR. Cigri acts, among other things, as a metascheduler of OAR.
 It retrieves the clusters states trough OAR and submits the jobs on free resources without exhausting the local scheduling queues.
 
+%Figure serveur cigri et clusters, REST API
+
 While it may work in normal mode, CiGri is mostly used in best-effort mode and thus provides an automatic resubmission mecanism. CiGri offers a customizable notification system with a smart events management. With those mecanisms, the user can submit a big amount of small jobs, called a campaign, and forget about it until all the jobs of the campaign are terminated or CiGri notifies a serious problem.
 
 Roughly speaking, in order to run a campaign, the user describes through a file (in the JSON format) the parameters of the campaign 
@@ -273,9 +285,21 @@ Codes and input data are retrieved from iRODS using i-commands into the prologue
 Moreover, the user defines also a file where each line represents a value of the parameter for the user's code.
 Thus, the number of line of these parameter file corresponds to the number of jobs of the campaign.
 
-CiGri is now at the version 3, which represents a major evolution in terms of modeling and technology (Rest API, Ruby)
+%Figure JDL+Params-> campaign
+
+Users may monitor their campaigns and act on it whith a CLI or a REST API. Some statistics are provided, such as the completion percentage (in the term of number of terminated jobs), jobs execution rates, automatic re-submissions rate. When a job fails with a non-zero exit status, the user is notified by mail or jabber and requested for an action before submitting further jobs on the same supercomputer: simple aknowledge, aknowledge and re-submission or abort the campaign. Standard and error outputs of the jobs may be easily retrieved from the CiGri host without having to log on the underlying supercomputers. Users may even not be authorized to log-on to a specific supercomputer but allowed to start and manage best-effort jobs on it thanks to CiGri.
+\\
+CiGri is now at the version 3, which represents a major evolution in terms of modeling and technology (Rest API, Ruby). It is structured around a PostgreSQL database and high level components (Ruby scripting language, Apache with SSL authentication, Sinatra,...).
 
 \newpage
+
+\subsection{Authentication and security}
+
+CIMENT has a centralized LDAP infrastructure. Users have the same login on all supercomputers and on the CiGri frontend. As iRODS does not offers a simple and direct LDAP authentication mechanism, we use the simple password method with an automatic synchronisation from our LDAP server to the iRODS database. We also have a script that automatically initializes the iRODS unix environment directly into the users home directory (.irods/.irodsEnv and .irods/.irodsA files) on every supercomputer, so that iRODS authentication becomes completely transparent to the users.
+\\
+Each site has a filtering router acting as a firewall. As we want all communication schemes to be possible between each irods resource (a file might be transfered from a resource to another regardless of the site), we had to open some tcp and udp ports on those firewalls. The range of ports may be defined by the administrator into the iRODS servers configuration file, so that's not an issue.
+
+
 \section{Results (28-31\S, 6-7 pages)}
 
 
