@@ -204,25 +204,24 @@ The data-intensive processing
 needs obviously an IT infrastructure in order to couple storage and computation.
 In our cases, most of the processing are embarrassingly parallel.
 The amount of data and the location of compute nodes available suggests using a 
-distributed storage system with a grid manager.
+distributed storage system and a grid manager.
 
 
-The IT infrastructures used here are provided by the \emph{Ciment} \footnote{see ciment.ujf-grenoble.fr} 
-platform. Ciment is the Grenoble University High Performance Computing (HPC) center. It offers a partial pooling of computing 
-(6600 cores, plus GPU, 10 clusters) and many documentations for users. 
+The IT infrastructure used here is provided by the \emph{Ciment} \footnote{see ciment.ujf-grenoble.fr} 
+platform. Ciment is the High Performance Computing (HPC) center of the Grenoble University. It offers a partial pooling of computing 
+resources (10 computing clusters, 6600 cores and some GPUS) and many documentations for users. 
 %It also provides a data grid environement : a grid of supercomputers and a distributed storage.
-Moreover, the computational resources are integrated in a local grid, a grid of supercomputers. Associated with a distributed storage,
+Moreover, the computational resources are integrated in a local grid of supercomputers. Associated with a distributed storage,
 it provides a local data grid environement.
 
-The distributed storage accessible by all the clusters is established and it is managed by iRODS \footnote{see irods.org}.
-Nowadays it represents approximately 700 TB. Moreover, a grid management, the \emph{CiGri 
-\footnote{see ciment.ujf-grenoble.fr/cigri/dokuwiki} middleware}, allows both access to iRODS storage and access 
-to computing nodes of the clusters of the university (with the resource manager OAR \footnote{see oar.imag.fr}).
+The distributed storage accessible by all the computing nodes of all the clusters is managed by iRODS \footnote{see irods.org}.
+Nowadays it represents approximately 700 TB. The grid computing is managed by the \emph{CiGri 
+\footnote{see ciment.ujf-grenoble.fr/cigri/dokuwiki} middleware}, that is part of the OAR \footnote{see oar.imag.fr} project (the Resource and Job Management System on which CiGri relies). CiGri and iRODS together build a complementary solution for embarrassingly parallel computations with large input/output distributed data sets.
 
+Furthermore, whith unitary parametric jobs that are reasonnably short in time, CiGri can deal with the best-effort mode provided by OAR. In this mode, grid jobs are scheduled on free resources with a zero priority and may be killed at any time when the local demand of resources increases. This CIMENT organization (independant computing clusters glued together with a best-effort grid middleware and a distributed storage), in place for more than a decade, has proven to be very efficient, allowing near one hundred percent usage of computing resources thanks to small jobs being managed at the grid level.
 
-With Irods and CiGri, we can then access to the computational power of clusters of the University of Grenoble 
-in mode best effort (with grid or parametric jobs). It may be noted that iRODS also acts to the user as a centralized controller with a 
-total observation and thus allows the user to control its calculation.
+Furthermore, as the results of the grid jobs are stored into the distributed storage with a unique namespace, iRODS also acts to the user as a centralized controller with a 
+total observation and thus allows the user to monitor its calculation.
 ~\\
 
 
@@ -232,10 +231,10 @@ It allows also the user to define metadata associated to the data (Collections) 
 (see \cite{key:CCQSC} for an illustration of use). 
 Moreover, it is a glass box, it is possible to define rules that call services (called microservices). One can define then automatic 
 replication between differents ressources or more generally a processing for a selected data. 
+iRODS works with a meta-catalogue server (iCat) and several servers connected to storage resources.
 
 
-
-The iRODS storage infrastructure of Ciment consists of a zone with the iCat server and several nodes, of the order of several tens,
+The iRODS storage infrastructure of Ciment consists of a unique zone with the iCat server and several nodes, of the order of several tens,
 see figure \ref{schemaCimentStorageNodesIcat}.
 
 \begin{center}%[h]
