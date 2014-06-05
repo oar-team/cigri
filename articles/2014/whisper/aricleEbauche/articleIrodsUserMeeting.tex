@@ -170,6 +170,7 @@ The second package concerns correlations. Roughly speaking, a correlation is an 
 \end{center}
 %\begin{multicols}{2}
 
+Note that the space complexity is linear for seismograms processing but quadratic for the correlations. We have therefore to store the seismograms processing before compute the correlation in order to benefit of the good complexity.
 These quadratic space complexity can be critical and lot of effort was made in order to optimize the computation in two direction. First we improve the computation of the fast fourier transform by pre-calculating some "good" combinations of small primes numbers. 
 With this method, we improve of forty percent the time computation in the favorable cases.
 
@@ -301,6 +302,7 @@ Each site has a filtering router acting as a firewall. As we want all communicat
 
 
 \section{Results (28-31\S, 6-7 pages)}
+
 
 
 \begin{thebibliography}{9}
