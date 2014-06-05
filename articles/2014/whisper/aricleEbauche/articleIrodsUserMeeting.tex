@@ -160,7 +160,10 @@ We use here intensively the function 'read' of the library Obspy which allows to
 The user also define his own sequence of processings. He can use the functions predefined but also the Python libraries he needs. 
 Moreover he can add eventually his own processing.
 
-The second package concerns correlations. Roughly speaking, a correlation is an operation with two seismograms that provides the coherence between the both signal (for a given time windows). Moreover, it represents, in some favorables cases, a new virtual seismogram (it converges to the Green's function). Thus, the code computes all the correlations and provides an architecture of files that corresponds to all the couples of seismograms (for each date). 
+The second package concerns correlations. 
+Roughly speaking, a correlation is an operation with two seismograms (for a given time windows) that provides the coherent part of the two seismograms 
+(associated to the 2 stations) which is the seismic wave that propagates between the 2 stations.
+Moreover, it represents, in some favorables cases, a new virtual seismogram (it converges to the Green's function). Thus, the code computes all the correlations and provides an architecture of files that corresponds to all the couples of seismograms (for each date). 
 
 %\end{multicols}
 \begin{center}%[h]

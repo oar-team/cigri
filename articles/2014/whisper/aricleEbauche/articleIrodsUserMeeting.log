@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-1.40.10 (TeX Live 2009/Debian) (format=pdflatex 2011.11.4)  5 JUN 2014 14:26
+This is pdfTeX, Version 3.1415926-1.40.10 (TeX Live 2009/Debian) (format=pdflatex 2011.11.4)  5 JUN 2014 15:54
 entering extended mode
  %&-line parsing enabled.
 **articleIrodsUserMeeting.tex
@@ -218,58 +218,71 @@ File: schemaCorrelationStep.png Graphic file (type png)
 <briandPosterAGU2013GimpProcessing.png, id=15, 1683.891pt x 475.5366pt>
 File: briandPosterAGU2013GimpProcessing.png Graphic file (type png)
 
-<use briandPosterAGU2013GimpProcessing.png> [3 <./schemaCorrelationStep.png (PN
-G copy)> <./briandPosterAGU2013GimpProcessing.png (PNG copy)>]
-Underfull \hbox (badness 10000) in paragraph at lines 200--201
+<use briandPosterAGU2013GimpProcessing.png>
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+[3 <./schemaCorrelationStep.png (PNG copy)>]
+Underfull \hbox (badness 10000) in paragraph at lines 204--205
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 225--228
+Underfull \hbox (badness 10000) in paragraph at lines 229--232
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 232--234
+Underfull \hbox (badness 10000) in paragraph at lines 236--238
 
  []
 
 <schemaCimentStorageNodesIcat.png, id=19, 613.93365pt x 381.94695pt>
 File: schemaCimentStorageNodesIcat.png Graphic file (type png)
 
-<use schemaCimentStorageNodesIcat.png>
-<schemaCimentStorageSupercomputers.png, id=21, 575.63055pt x 385.9218pt>
+<use schemaCimentStorageNodesIcat.png> [4 <./briandPosterAGU2013GimpProcessing.
+png (PNG copy)>]
+<schemaCimentStorageSupercomputers.png, id=24, 575.63055pt x 385.9218pt>
 File: schemaCimentStorageSupercomputers.png Graphic file (type png)
 
-<use schemaCimentStorageSupercomputers.png> [4 <./schemaCimentStorageNodesIcat.
-png> <./schemaCimentStorageSupercomputers.png>]
-<schemaNodeStorageCiment.png, id=27, 378.6948pt x 151.767pt>
+<use schemaCimentStorageSupercomputers.png>
+<schemaNodeStorageCiment.png, id=25, 378.6948pt x 151.767pt>
 File: schemaNodeStorageCiment.png Graphic file (type png)
 
 <use schemaNodeStorageCiment.png>
-<schemaCimentStorageStatus.png, id=28, 358.4592pt x 132.2541pt>
+<schemaCimentStorageStatus.png, id=26, 358.4592pt x 132.2541pt>
 File: schemaCimentStorageStatus.png Graphic file (type png)
 
-<use schemaCimentStorageStatus.png> [5 <./schemaNodeStorageCiment.png> <./schem
-aCimentStorageStatus.png (PNG copy)>] [6] (./articleIrodsUserMeeting.aux) ) 
+<use schemaCimentStorageStatus.png>
+
+Package multicol Warning: I moved some lines to the next page.
+(multicol)                Footnotes on page 5 might be wrong on input line 297.
+
+
+[5 <./schemaCimentStorageNodesIcat.png> <./schemaCimentStorageSupercomputers.pn
+g> <./schemaNodeStorageCiment.png> <./schemaCimentStorageStatus.png (PNG copy)>
+] [6] [7] (./articleIrodsUserMeeting.aux)
+
+LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
+
+ ) 
 Here is how much of TeX's memory you used:
  2236 strings out of 493848
  32953 string characters out of 1152823
- 110116 words of memory out of 3000000
+ 111116 words of memory out of 3000000
  5523 multiletter control sequences out of 15000+50000
  30335 words of font info for 40 fonts, out of 3000000 for 9000
  714 hyphenation exceptions out of 8191
  36i,17n,38p,1101b,360s stack positions out of 5000i,500n,10000p,200000b,50000s
-{/us
-r/share/texmf-texlive/fonts/enc/dvips/base/8r.enc}</usr/share/texmf-texlive/fon
-ts/type1/public/amsfonts/cm/cmsy6.pfb></usr/share/texmf-texlive/fonts/type1/pub
-lic/amsfonts/cm/cmsy7.pfb></usr/share/texmf-texlive/fonts/type1/public/amsfonts
-/cm/cmsy8.pfb></usr/share/texmf-texlive/fonts/type1/urw/times/utmb8a.pfb></usr/
-share/texmf-texlive/fonts/type1/urw/times/utmr8a.pfb></usr/share/texmf-texlive/
-fonts/type1/urw/times/utmri8a.pfb>
-Output written on articleIrodsUserMeeting.pdf (6 pages, 542513 bytes).
+{/usr/share/texmf-texlive/fonts/enc/dvips/base/8r.enc}</usr/share/texmf-texli
+ve/fonts/type1/public/amsfonts/cm/cmsy6.pfb></usr/share/texmf-texlive/fonts/typ
+e1/public/amsfonts/cm/cmsy7.pfb></usr/share/texmf-texlive/fonts/type1/public/am
+sfonts/cm/cmsy8.pfb></usr/share/texmf-texlive/fonts/type1/urw/times/utmb8a.pfb>
+</usr/share/texmf-texlive/fonts/type1/urw/times/utmr8a.pfb></usr/share/texmf-te
+xlive/fonts/type1/urw/times/utmri8a.pfb>
+Output written on articleIrodsUserMeeting.pdf (7 pages, 543469 bytes).
 PDF statistics:
- 56 PDF objects out of 1000 (max. 8388607)
+ 61 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
  31 words of extra memory for PDF output out of 10000 (max. 10000000)
 
