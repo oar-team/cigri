@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-1.40.10 (TeX Live 2009/Debian) (format=pdflatex 2011.11.4)  5 JUN 2014 17:40
+This is pdfTeX, Version 3.1415926-1.40.10 (TeX Live 2009/Debian) (format=pdflatex 2011.11.4)  6 JUN 2014 09:39
 entering extended mode
  %&-line parsing enabled.
 **articleIrodsUserMeeting.tex
@@ -261,7 +261,12 @@ Package multicol Warning: I moved some lines to the next page.
 
 [5 <./schemaCimentStorageNodesIcat.png> <./schemaCimentStorageSupercomputers.pn
 g> <./schemaNodeStorageCiment.png> <./schemaCimentStorageStatus.png (PNG copy)>
-] [6] [7] (./articleIrodsUserMeeting.aux) ) 
+] [6] [7]
+Underfull \hbox (badness 8019) in paragraph at lines 315--316
+[]\T1/ptm/m/n/10 Organisation with a DataSet: Eval-u-a-tion lo-
+ []
+
+[8] (./articleIrodsUserMeeting.aux) ) 
 Here is how much of TeX's memory you used:
  2236 strings out of 493848
  32953 string characters out of 1152823
@@ -270,16 +275,15 @@ Here is how much of TeX's memory you used:
  30335 words of font info for 40 fonts, out of 3000000 for 9000
  714 hyphenation exceptions out of 8191
  36i,17n,38p,1101b,360s stack positions out of 5000i,500n,10000p,200000b,50000s
-{/usr/share/texmf-texlive/fonts/enc/
-dvips/base/8r.enc}</usr/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmsy
-6.pfb></usr/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/
-share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/share/texmf-
-texlive/fonts/type1/urw/times/utmb8a.pfb></usr/share/texmf-texlive/fonts/type1/
-urw/times/utmr8a.pfb></usr/share/texmf-texlive/fonts/type1/urw/times/utmri8a.pf
-b>
-Output written on articleIrodsUserMeeting.pdf (7 pages, 543440 bytes).
+{/usr/share/texmf-texlive/fonts/enc/dvips/
+base/8r.enc}</usr/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmsy6.pfb>
+</usr/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/share/
+texmf-texlive/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/share/texmf-texliv
+e/fonts/type1/urw/times/utmb8a.pfb></usr/share/texmf-texlive/fonts/type1/urw/ti
+mes/utmr8a.pfb></usr/share/texmf-texlive/fonts/type1/urw/times/utmri8a.pfb>
+Output written on articleIrodsUserMeeting.pdf (8 pages, 546329 bytes).
 PDF statistics:
- 61 PDF objects out of 1000 (max. 8388607)
+ 64 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
  31 words of extra memory for PDF output out of 10000 (max. 10000000)
 

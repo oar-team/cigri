@@ -304,8 +304,46 @@ CIMENT has a centralized LDAP infrastructure. Users have the same login on all s
 \\
 Each site has a filtering router acting as a firewall. As we want all communication schemes to be possible between each irods resource (a file might be transfered from a resource to another regardless of the site), we had to open some tcp and udp ports on those firewalls. The range of ports may be defined by the administrator into the iRODS servers configuration file, so that's not an issue.
 
+\newpage
 
-\section{Results (28-31\S, 6-7 pages)}
+\section{Results and feedback (28-31\S, 6-7 pages)}
+
+\subsection{Whisper Use Case}
+
+	\begin{enumerate}
+	  \item Scientific whisper results: theses, articles, prices
+  	  \item Organisation with a DataSet: Evaluation local/Ciment, capacities adaptation students
+  	  \item First step: Conversion data format, distributions of datas on ressources: decrease the concurrency
+  	  \item Evolution specification, genericty of the codes, degree of automatization
+  	  \item Back to the first package signal processing for Japan
+  	  \item Identification seismogram: Dates, stations
+  	  \item Adding python modules for data retrieve + Calls.
+  	  \item Focus on encapsulation queries
+  	  \item Modelization distribution: sublist Dates, Stations
+      \item The files start.bash and parameters
+      \item The jdl file
+  	  \item Back to the package correlation: similar adds + possibility hash table
+  	  \item Comparison data management, example Japan processing/USArray 
+  	  \item Focus on the distribution problem (Space complexity/Transfer)
+  	  \item Mode besteffort: increase of datas transfert, it possibly adds also new steps of data storage.
+  	  \item Some order of magnitude for the Japan Computation.
+  	  \item On the Japanese results.
+  	\end{enumerate}
+
+\subsection{Infrastructure Ciment experiences}
+
+	\begin{enumerate}
+  	  \item Whisper: an opportinuty to test and try to improve IT Infra for the data-intensive case
+  	  \item Other project which permits also some advanced? Or "In genral each scientific case brings its own needs of new specification, functionality.
+	  \item Add new functionality with cigri V3: more control for the user (max job, env variable, customize cluster)
+	  \item Intro Irods: Data-intensive processing adress specific questions for Irods compare to files system
+	  \item i-commands encapsulating to deal with timeouts and connection control (secure\_iget)
+	  \item Specific rules for specific Irods server (dedicated data)?
+	  \item Specific policies to acces files?
+      \item Irods server overload with a lot of small file tranfers (schema client/irods server/icat)
+      \item Network overload with automatic staging
+      \item Finish: Despite the problems, this allows processing of terabytes of data within hours.
+	\end{enumerate}
 
 
 
