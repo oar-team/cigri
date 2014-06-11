@@ -94,6 +94,9 @@ module Cigri
           when "POST_TIMEOUT","TIMEOUT", "CONNECTION_RESET", "CONNECTION_REFUSED", "SSL_ERROR", "SUBMIT_JOB", "GET_JOBS", "GET_JOB", "GET_MEDIA","GET_STRESS_FACTOR", "FILL_JOBS_CACHE", "RUNNER_GET_JOB_CHUNK_ERROR"
             blacklist_cluster(event.id,event.props[:cluster_id],event.props[:campaign_id])
             event.checked
+          when "CLUSTER_MANUALLY_DISABLED"
+            blacklist_cluster(event.id,event.props[:cluster_id])
+            event.checked
           when "PERMISSION_DENIED", "FORBIDDEN"
             # This is an event that may be specific to a user, so we do not blacklist the cluster
             event.checked

@@ -99,6 +99,27 @@ class API < Sinatra::Base
     print(output)
   end
 
+  # New event (for manual blacklisting purposes, by the admin)
+  post '/events' do
+    response['Allow'] = 'GET'
+    user=request.env[settings.username_variable]
+    if user!="root"
+      halt 403, print({:status => 403, :title => "Forbidden", :message => "Only root can create an event"}) 
+    else
+      protected!
+      request.body.rewind
+      event=JSON.parse(request.body.read)
+      begin
+        e=Cigri::Event.new(event)
+        Cigri::Colombo.new(e).check_clusters
+      rescue => err
+        halt 400, print({:status => 400, :title => "Bad request", :message => err.message}) 
+      end
+      status 201
+      print({:status => 201, :title => :Created, :message => "New event created"})
+    end
+  end 
+
   # Details of an event
   get '/events/:id/?' do |id|
     response['Allow'] = 'DELETE,GET,POST,PUT'
