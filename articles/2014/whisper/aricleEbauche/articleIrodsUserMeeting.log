@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-1.40.10 (TeX Live 2009/Debian) (format=pdflatex 2011.11.4)  6 JUN 2014 09:39
+This is pdfTeX, Version 3.1415926-1.40.10 (TeX Live 2009/Debian) (format=pdflatex 2011.11.4)  11 JUN 2014 18:39
 entering extended mode
  %&-line parsing enabled.
 **articleIrodsUserMeeting.tex
@@ -125,89 +125,116 @@ Package: caption3 2009/10/09 v3.1k caption3 kernel (AR)
 )
 \c@ContinuedFloat=\count96
 )
+(/usr/share/texmf-texlive/tex/latex/listings/listings.sty
+\lst@mode=\count97
+\lst@gtempboxa=\box52
+\lst@token=\toks15
+\lst@length=\count98
+\lst@currlwidth=\dimen119
+\lst@column=\count99
+\lst@pos=\count100
+\lst@lostspace=\dimen120
+\lst@width=\dimen121
+\lst@newlines=\count101
+\lst@lineno=\count102
+\lst@maxwidth=\dimen122
+
+(/usr/share/texmf-texlive/tex/latex/listings/lstmisc.sty
+File: lstmisc.sty 2007/02/22 1.4 (Carsten Heinz)
+\c@lstnumber=\count103
+\lst@skipnumbers=\count104
+\lst@framebox=\box53
+)
+(/usr/share/texmf-texlive/tex/latex/listings/listings.cfg
+File: listings.cfg 2007/02/22 1.4 listings configuration
+))
+Package: listings 2007/02/22 1.4 (Carsten Heinz)
+
 (./articleIrodsUserMeeting.aux)
 \openout1 = `articleIrodsUserMeeting.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 12.
-LaTeX Font Info:    ... okay on input line 12.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 12.
-LaTeX Font Info:    ... okay on input line 12.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 12.
-LaTeX Font Info:    ... okay on input line 12.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 12.
-LaTeX Font Info:    ... okay on input line 12.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 12.
-LaTeX Font Info:    ... okay on input line 12.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 12.
-LaTeX Font Info:    ... okay on input line 12.
-LaTeX Font Info:    Try loading font information for T1+ptm on input line 12.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 13.
+LaTeX Font Info:    ... okay on input line 13.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 13.
+LaTeX Font Info:    ... okay on input line 13.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 13.
+LaTeX Font Info:    ... okay on input line 13.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 13.
+LaTeX Font Info:    ... okay on input line 13.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 13.
+LaTeX Font Info:    ... okay on input line 13.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 13.
+LaTeX Font Info:    ... okay on input line 13.
+LaTeX Font Info:    Try loading font information for T1+ptm on input line 13.
 
 (/usr/share/texmf-texlive/tex/latex/psnfss/t1ptm.fd
 File: t1ptm.fd 2001/06/04 font definitions for T1/ptm.
 )
 (/usr/share/texmf/tex/context/base/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
-\scratchcounter=\count97
-\scratchdimen=\dimen119
-\scratchbox=\box52
-\nofMPsegments=\count98
-\nofMParguments=\count99
-\everyMPshowfont=\toks15
-\MPscratchCnt=\count100
-\MPscratchDim=\dimen120
-\MPnumerator=\count101
-\everyMPtoPDFconversion=\toks16
+\scratchcounter=\count105
+\scratchdimen=\dimen123
+\scratchbox=\box54
+\nofMPsegments=\count106
+\nofMParguments=\count107
+\everyMPshowfont=\toks16
+\MPscratchCnt=\count108
+\MPscratchDim=\dimen124
+\MPnumerator=\count109
+\everyMPtoPDFconversion=\toks17
 )
 Package caption Info: Begin \AtBeginDocument code.
+Package caption Info: listings package is loaded.
 Package caption Info: End \AtBeginDocument code.
+\c@lstlisting=\count110
 LaTeX Font Info:    Font shape `T1/ptm/bx/n' in size <14.4> not available
-(Font)              Font shape `T1/ptm/b/n' tried instead on input line 20.
+(Font)              Font shape `T1/ptm/b/n' tried instead on input line 21.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <12> on input line 20.
+(Font)              <12> on input line 21.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <8> on input line 20.
+(Font)              <8> on input line 21.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <6> on input line 20.
+(Font)              <6> on input line 21.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <5> on input line 20.
+(Font)              <5> on input line 21.
 LaTeX Font Info:    Font shape `T1/ptm/bx/n' in size <12> not available
-(Font)              Font shape `T1/ptm/b/n' tried instead on input line 24.
+(Font)              Font shape `T1/ptm/b/n' tried instead on input line 25.
 
-Underfull \hbox (badness 10000) in paragraph at lines 26--34
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 26--34
+Underfull \hbox (badness 10000) in paragraph at lines 27--35
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 26--34
+Underfull \hbox (badness 10000) in paragraph at lines 27--35
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 26--34
+Underfull \hbox (badness 10000) in paragraph at lines 27--35
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 27--35
 
  []
 
 [1
 
 {/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}]
-Underfull \hbox (badness 10000) in paragraph at lines 91--92
+Underfull \hbox (badness 10000) in paragraph at lines 95--96
 
  []
 
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <7> on input line 96.
+(Font)              <7> on input line 100.
 
-Underfull \hbox (badness 10000) in paragraph at lines 113--118
+Underfull \hbox (badness 10000) in paragraph at lines 117--122
 
  []
 
 [2]
-Underfull \hbox (badness 10000) in paragraph at lines 144--145
+Underfull \hbox (badness 10000) in paragraph at lines 148--149
 
  []
 
@@ -223,17 +250,17 @@ File: briandPosterAGU2013GimpProcessing.png Graphic file (type png)
 LaTeX Warning: `h' float specifier changed to `ht'.
 
 [3 <./schemaCorrelationStep.png (PNG copy)>]
-Underfull \hbox (badness 10000) in paragraph at lines 205--206
+Underfull \hbox (badness 10000) in paragraph at lines 209--210
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 230--233
+Underfull \hbox (badness 10000) in paragraph at lines 234--237
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 237--239
+Underfull \hbox (badness 10000) in paragraph at lines 241--243
 
  []
 
@@ -256,34 +283,41 @@ File: schemaCimentStorageStatus.png Graphic file (type png)
 <use schemaCimentStorageStatus.png>
 
 Package multicol Warning: I moved some lines to the next page.
-(multicol)                Footnotes on page 5 might be wrong on input line 298.
+(multicol)                Footnotes on page 5 might be wrong on input line 302.
 
 
 [5 <./schemaCimentStorageNodesIcat.png> <./schemaCimentStorageSupercomputers.pn
 g> <./schemaNodeStorageCiment.png> <./schemaCimentStorageStatus.png (PNG copy)>
 ] [6] [7]
-Underfull \hbox (badness 8019) in paragraph at lines 315--316
-[]\T1/ptm/m/n/10 Organisation with a DataSet: Eval-u-a-tion lo-
+
+Package multicol Warning: I moved some lines to the next page.
+(multicol)                Footnotes on page 8 might be wrong on input line 390.
+
+
+[8]
+Overfull \hbox (11.80075pt too wide) in paragraph at lines 438--439
+[][][][][][][][] 
  []
 
-[8] (./articleIrodsUserMeeting.aux) ) 
+[9] [10] (./articleIrodsUserMeeting.aux) ) 
 Here is how much of TeX's memory you used:
- 2236 strings out of 493848
- 32953 string characters out of 1152823
- 111116 words of memory out of 3000000
- 5523 multiletter control sequences out of 15000+50000
+ 3411 strings out of 493848
+ 50271 string characters out of 1152823
+ 133252 words of memory out of 3000000
+ 6686 multiletter control sequences out of 15000+50000
  30335 words of font info for 40 fonts, out of 3000000 for 9000
  714 hyphenation exceptions out of 8191
- 36i,17n,38p,1101b,360s stack positions out of 5000i,500n,10000p,200000b,50000s
-{/usr/share/texmf-texlive/fonts/enc/dvips/
-base/8r.enc}</usr/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmsy6.pfb>
-</usr/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/share/
-texmf-texlive/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/share/texmf-texliv
-e/fonts/type1/urw/times/utmb8a.pfb></usr/share/texmf-texlive/fonts/type1/urw/ti
-mes/utmr8a.pfb></usr/share/texmf-texlive/fonts/type1/urw/times/utmri8a.pfb>
-Output written on articleIrodsUserMeeting.pdf (8 pages, 546329 bytes).
+ 36i,17n,38p,1101b,956s stack positions out of 5000i,500n,10000p,200000b,50000s
+{/usr/share/texmf-texlive/fonts/enc/d
+vips/base/8r.enc}</usr/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmsy1
+0.pfb></usr/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmsy6.pfb></usr/
+share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/share/texmf-
+texlive/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/share/texmf-texlive/font
+s/type1/urw/times/utmb8a.pfb></usr/share/texmf-texlive/fonts/type1/urw/times/ut
+mr8a.pfb></usr/share/texmf-texlive/fonts/type1/urw/times/utmri8a.pfb>
+Output written on articleIrodsUserMeeting.pdf (10 pages, 562227 bytes).
 PDF statistics:
- 64 PDF objects out of 1000 (max. 8388607)
+ 74 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
  31 words of extra memory for PDF output out of 10000 (max. 10000000)
 

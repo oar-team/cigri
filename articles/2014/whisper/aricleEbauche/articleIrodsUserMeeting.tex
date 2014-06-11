@@ -6,6 +6,7 @@
 \usepackage{times}
 \usepackage{multicol}
 \usepackage{caption}
+\usepackage{listings}
 \renewcommand{\thefootnote}{\fnsymbol{footnote}}
 \setlength{\parindent}{0.3cm}
 
@@ -81,8 +82,11 @@ Data-Intensive, grid computing, distributed storage, Seismic Noise, Whisper, Cig
   	  \item Low Interaction Cigri/Irods
   	  \item Cigri V2 and V3 functionalities
   	\end{enumerate}
-  \item Results (28-31\S, 6-7 pages)
-  \item Discussion (7-10\S, 1-2 pages)
+  \item Results and feedback (28-31\S, 6-7 pages))
+      \begin{enumerate}
+	    \item Whisper Use Case
+        \item Infrastructure Ciment experiences
+       \end{enumerate}
 \end{enumerate}
 %*/
 
@@ -329,6 +333,154 @@ Each site has a filtering router acting as a firewall. As we want all communicat
   	  \item Some order of magnitude for the Japan Computation.
   	  \item On the Japanese results.
   	\end{enumerate}
+
+
+Whisper is one of the projects that have made it possible to ensure that the seismic noise brought new observable.
+This permits to carry out several scientific results including imaging and monitoring. 
+Concerning monitoring, further studies provide news results about sligth variations of seismics waves induce by earthquakes.
+Many articles are in part due to this project \footnote{see whisper.obs.ujf-grenoble.fr, rubric publication} as well as
+several post-docs and PhD.
+
+
+Most of the time, on the computer part, the approach with researchers is as follows.
+After retrieving data from a data center or directly between person, we have to assess how this data can be processed.
+According to the computing time and storage capacity, either we perform operations on a dedicated bay (also host by Ciment), or either we use the Ciment infrastructure.
+It depends also on the ease of computer users and most of the time, at least the last treatments (less computationally expensive) are made locally
+(Some IT codes are also provided in order to retreive results on distributed storage).
+
+
+We focus now on the part of processing that use the data grid environment of Ciment.
+But note before that an other aspect, and not least, is the evolution of the specification. 
+Often, students and researchers have new requirements and the IT codes evolves with these specification.
+We try to be as generic as possible in order to, among other things, to achieve a sufficient level of automatization.
+However, sometimes we need to develop some parts specifically because of lack of time.
+These IT problems of specification and development time are among the most complex to evaluate for this type of project.
+
+
+A first step, for the IT part of the scientific workflow, begins by storing data and also by checking their integrity.
+We also require that data be in a seismic standard formats.
+If conversion is necessary, it can be a large data intensive computing and specific codes are developed.
+To minimize concurrency, we have also to ensure that the data are well distributed on iRODS. 
+Indeed, it happened that the data are too centralized on a resource, so that is truly diminished processing capacity.
+Some python codes are dedicated to this task and can replicate or spread randomly a Collection from a set of ressources to another set.
+
+
+Let us come back to the package of signal processing of Whisper (the first part of the figure \ref{whisperGeneralWorflow}).
+Because each seismogram can be treated separatly it is the simplest case for data grid process. We treated for instance one year of the
+Japansese seismic Network (HiNet, Tiltmeter and FNet) around of the giant 2011 Tohoku-oki earthquake (6 months before and 6 months after).
+Note that first we need to convert 9 Terabytes of Japanese Data into around 20 terabytes of a standard format (here mseed or sac).
+Then we try many processing for the 20 TB (filter, whitening, clipping, ...) and store the results in seismogram with a duration of one day.
+
+
+As almost all seismological data, the Japanese data are identified by the dates, names of seismic station and sub-networks. Therefore
+the choice of the modelization, in order to retrieve and distribute the data, follows these seismological metadatas.
+More precisely, the modelization of the distribution of the computation is made by setting a subset of dates and a subset of stations 
+(This corresponds also to a normal use for researchers that wants to test some processing rapidly with a subset of seismograms).
+Note also that the distribution is constant with respect to transfer.
+
+
+In order to get a set of seismograms from the iRODS storage  to a computational node, we add Python modules to the Whisper package of seismogram processing.
+These modules contains classes that permits to retrieve a subset of seismograms (defined by the two subsets described above). More precisely, a first step is either to test directly existence of data or either building of hash tables in order to know the available seismograms.
+Then we provide an iterator (in this case, a generator for Python) on available data in order to use other methods that performs the i-command
+'iget'. The same approach is made for the storage of the results (with the 'iput').
+
+Note that these commands of transfer between iRODS and computational nodes can become very difficult to achieve because of the concurrency of the queries.
+To take into account this obstacle, one develops a module that provides lot of encapsulations of the i-commands (number of try, waiting time,
+resubmission, with error, 'else' command,  etc...). The IT infrastructure provide also wery usefull encapsulations.
+
+
+We have also to adapt our process for the grid computation with CiGri. We first define a file of parameters 'param.txt' where
+each line correponds to the parameters of one job on the grid, for instance:
+
+\begin{lstlisting}%[language=bash]
+
+cat param.txt
+
+traces160_0_8_0 160 0 8 0
+traces160_0_8_1 160 0 8 1
+...
+traces160_1_8_0 160 1 8 0
+traces160_1_8_1 160 1 8 1
+...
+\end{lstlisting}
+
+Here we divide the dates in 160 sublists and the stations in 8 sublists. 
+The line "traces160\_0\_8\_1 160 0 8 1" correponds to a job named 'traces160\_0\_8\_1' where
+we take the sublist of dates of index 0 and the sublist of stations of index 1 (each sublist have the length +/-1).
+(There are also other parameters for components and networks not described here.) 
+
+
+For each of the 1280 jobs, a script is launched by CiGri , say 'start.bash', that take for
+arguments a line of the file parameter. The script, among other things, load necessary library like appropriate python, retrieve the code on iRODS,
+here 'main.py' and run the code (This is a diagrammatic view).
+
+\begin{lstlisting}%[language=bash]
+
+cat start.bash
+
+#!/bin/bash
+set -e
+...
+module load python
+...
+DirToCompute=$1
+cd DirToCompute
+...
+iget -rf Codes
+cd Codes
+...
+NumberDate=$2
+IndexDate=$3
+NumberStation=$4
+IndexStation=$5
+...
+python main.py NumberDate 
+     IndexDate NumberStation IndexStation
+...
+cd
+rm -rf DirToCompute
+\end{lstlisting}
+
+Then one defines the json jdl file (job description language), say 'processingSeismogram.jdl'.
+
+\begin{lstlisting}%[language=bash]
+
+cat processingSeismogram.jdl
+
+{
+  "name": "test_processing",
+  "resources": "core=1",
+  "exec_file": "$HOME/start.bash",
+  "param_file": "param.txt",
+  "type": "best-effort",
+  
+  "clusters": {
+    "c1": {
+       	"prologue": [
+       	... lines of codes for the 
+       	... cluster c1 first of all ],
+       	"project": "whisper",
+       	"walltime": "00:20:00"
+       	},
+    "c2": {
+    	"prologue": [
+        ... lines of codes for the 
+        ... cluster c2 first of all ],
+        "project": "whisper",
+        "max_jobs": "450",
+        "walltime": "00:30:00"
+    	},
+    ...
+    }
+...
+}
+\end{lstlisting}
+
+Here the campaign named 'test\_processing' take only one core. It run the file 'start.bash' with the parameter
+file 'param.txt' in mode besteffort. It uses the clusters named 'c1' and 'c2' for the project 'whisper' with the duration
+defined by 'walltime'. We can add other parameters for each clusters such that the maximum number of
+jobs runing at the same time (the variable 'max\_jobs').
+
 
 \subsection{Infrastructure Ciment experiences}
 
