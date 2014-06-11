@@ -112,6 +112,11 @@ class API < Sinatra::Base
       begin
         e=Cigri::Event.new(event)
         Cigri::Colombo.new(e).check_clusters
+        if event["job_id"]
+          job=Cigri::Job.new(:id=>event["job_id"].to_i)
+          job.update({'state' => 'event'})
+          e.update({'campaign_id' => job.props[:campaign_id]})
+        end
       rescue => err
         halt 400, print({:status => 400, :title => "Bad request", :message => err.message}) 
       end

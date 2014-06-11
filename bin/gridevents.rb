@@ -15,6 +15,7 @@ resubmit = false
 event_id = nil
 global = false
 cluster = nil
+job = nil
 blacklist = false
 
 optparse = OptionParser.new do |opts|
@@ -50,6 +51,13 @@ optparse = OptionParser.new do |opts|
     fix = false
   end
 
+  opts.on('--mark-job-event ID',String, 'Create a manual event on a job (only root)') do |j|
+    job = j
+    fix = false
+  end
+
+
+
   opts.on( '--version', 'Display Cigri version' ) do
     puts "#{File.basename(__FILE__)} v#{Cigri::VERSION}"
     exit
@@ -74,11 +82,11 @@ if campaign_id.nil? && ARGV[0]
   campaign_id=ARGV[0]
 end
 
-abort("Missing CAMPAIGN (-c), EVENT (-e) id or --global (-g)\n" + optparse.to_s) unless campaign_id or event_id or global or blacklist
+abort("Missing CAMPAIGN (-c), EVENT (-e) id or --global (-g)\n" + optparse.to_s) unless campaign_id or event_id or global or blacklist or job
 
 url = "/campaigns/#{campaign_id}/events" if campaign_id
 url = "/events/#{event_id}" if event_id
-url = "/events" if global or blacklist
+url = "/events" if global or blacklist or job
 
 begin 
   client = Cigri::Client.new 
@@ -96,6 +104,16 @@ begin
     # Create an event for blacklisting a cluster
     elsif blacklist
       event={"class" => 'cluster', "cluster_id" => cluster.to_i, "code" => "CLUSTER_MANUALLY_DISABLED", "message" => "Cluster #{cluster} disabled by the administrator of the grid. Please, be patient."}.to_json
+      response = client.post(url,event,'Content-Type' => 'application/json')
+      parsed_response = JSON.parse(response.body)
+      if response.code != "201"
+        STDERR.puts("Failed to add event: #{parsed_response['message']}.")
+        exit 1
+      end   
+
+    # Create a manual event on a job
+    elsif job
+      event={"class" => 'job', "job_id" => job.to_i, "code" => "MANUAL_EVENT", "message" => "The job has been marked in the event state by the administrator."}.to_json
       response = client.post(url,event,'Content-Type' => 'application/json')
       parsed_response = JSON.parse(response.body)
       if response.code != "201"
