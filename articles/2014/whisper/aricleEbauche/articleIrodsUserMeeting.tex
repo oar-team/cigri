@@ -144,7 +144,7 @@ that this project has been implemented as we show below.
 
 \newpage
 
-\section{Software for data-intensive processing (6-12\S , 1-2 pages) }
+\section{Software for data-intensive processing (6-12\S , 1-2 pages) } \label{Section_Software_for_data-intensive_processing}
 ~\\
 
 A part of the Whisper project is specificaly dedicated to the IT codes. This includes to design a specification, an implementation and some optimisations of
@@ -317,7 +317,7 @@ Each site has a filtering router acting as a firewall. As we want all communicat
 	\begin{enumerate}
 	  \item Scientific whisper results: theses, articles, prices
   	  \item Organisation with a DataSet: Evaluation local/Ciment, capacities adaptation students
-  	  \item Comparison data management, example Japan processing/USArray 
+  	  \item Comparison data management, examples Japan processing/USArray 
   	  \item Evolution specification, genericty of the codes, degree of automatization
   	  \item First step: Conversion data format, distributions of datas on ressources: decrease the concurrency
   	  \item Back to the first package signal processing for Japan
@@ -329,6 +329,7 @@ Each site has a filtering router acting as a firewall. As we want all communicat
       \item The jdl file
   	  \item Back to the package correlation: similar adds 
   	  \item Focus on the distribution problem (Space complexity/Transfer)
+  	  \item Focus on file size: flat/dictionnary
   	  \item Mode besteffort: increase of datas transfert, it possibly adds also new steps of data storage.
   	  \item Some order of magnitude for the Japan Computation.
   	  \item On the Japanese results.
@@ -347,6 +348,10 @@ After retrieving data from a data center or directly between person, we have to 
 According to the computing time and storage capacity, either we perform operations on a dedicated bay (also host by Ciment), or either we use the Ciment infrastructure.
 It depends also on the ease of computer users and most of the time, at least the last treatments (less computationally expensive) are made locally
 (Some IT codes are also provided in order to retreive results on distributed storage).
+For instance, with small datasets (datas from La Reunion or the Alpes) we work only locally. With larger dataset (China, USArray, Japan Network).
+We use both local and distributed computation.
+
+
 
 
 We focus now on the part of processing that use the data grid environment of Ciment.
@@ -492,18 +497,41 @@ all the couple of seismograms we have two types of processes. For a fix subset o
 and compute all the existing couples for this subset, or either we retrieve two disjoint subsets of stations and compute all the 
 correlations where each seismogram is in a different sublist. This distribution for the computation of the correlations offers a good granularity.
 
+
 With this kind of distribution for the stations, the transfer bewteen iRODS and the computational node becomes proportional to 
 the distribution, i.e. the number of sublists of stations. Therefore we have to maximize the distribution of the dates and minimize it
 for the stations in order to obtain a reasonable walltime. Note that it is possible to improve the transfert.
 However, a fairly simple improvement have to effect that the distribution become dependent on the distributed architecture of computation.
 In order to keep genericity of the codes we do not change this aspect.
 
+Moreover, special attention was given to selecting the size of files to transfer with iRODS.
+We do not store each correlation separately, we group them into dictionary to achieve file sizes between 100MB and 500MB most of the time. 
+This order of magnitude seems appropriate for the infrastructure iRODS.
+For simplicity, we build the grouping according to the parameters of the distribution. This allows to improve the transfer performance.
+However, unlike a flat architecture, this forced us to develop codes to retrieve the data. Analysis of some subset of correlations (the 3rd step of the figure \ref{whisperGeneralWorflow}) may request transfer much more than desired.
 
-The mode besteffort also increase the transfert of data because some job are killed and submit in an other place.
-Moreover in some cases, such that a big walltime, we add new steps of iRODS storage for the process in order to store intermediate calculation
-(It is not the case for correlation because of the good granularity). 
-Note that this may represent a significant development effort.
 
+The mode besteffort also increases the transfert of data because some job are killed and are submitted in an other place.
+Moreover in some cases, such that a big walltime, we add new steps of iRODS storage for the process in order to store certain intermediate calculation
+(It is not the case for the correlations because of the good granularity). Note that this may represent a significant development effort.
+
+
+We focus now on the Japanese computation. With the optimizations described in section \ref{Section_Software_for_data-intensive_processing} 
+and the data-grid environment, the computation of 350 millions individual correlations of the Japanese Network (especially the dense Hi-Net Network). 
+are done at most a few days. This is a big change that can test many treatments in order to find information in the noise.
+More precisely the seismogram processing of the Japanese network take half day here (depend obiously on the resampling).
+Depending on the types of the correlations (stacking, overlap) and also of the availability of the grid (we suppose an usual case here), 
+the computation of all the correlations take between 9h and 20h. The 'iget' i-commands corresponds approximatively to 11TB (with the best-effort mode,
+some transfers are carried out several times) whereas the 'iput' i-command corresponds here to 3.3TB. 
+
+
+We illustrate with the figure \ref{JapanVelocity}, one of the analysis of the correlations that represents an image
+of change of the velocity of seismic waves.
+\begin{center}%[h]
+\centering
+\captionof{figure}{\label{JapanVelocity}}
+\includegraphics[width=8cm]{JapanVelocity.png}
+\end{center}
 
 
 \subsection{Infrastructure Ciment experiences}
