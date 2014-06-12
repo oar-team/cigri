@@ -103,7 +103,8 @@ with the seismic ambient noise such that evolution of seismic waves speed.
 This noise is almost all the signal continuously recorded by
 the seismic stations worldwide (Europe, China, USA, Japan), except earthquakes. It offers new
 observables for the seismologists, new types of virtuals seismograms that are not only located at the 
-place of earthquakes. For instance, one can obtain wave paths that probes the deepest part of the Earth.
+place of earthquakes and that are provided by the operation of correlation  which requires significant computations.
+For instance, one can obtain wave paths that probes the deepest part of the Earth.
 %(variations in space and time of the seismic waves)
 
  
@@ -115,8 +116,8 @@ USArray represents 500 GB (it depends on the sampling of the recorders).
 
 
 In addition, the calculation operations downstream may produce even more data than the observation data.
-To give an order of magnitude, more than 200 TB has been managed by the Whisper project at the same time. 
-A classical processing produces 8 TB in 5 days. An other one 'read' 3 or 4 TB and 'produced' 1 TB in 6 hours.
+To give an order of magnitude, more than 200 TB have to be processed by the Whisper project at the same time. 
+A classical processing produces 8 TB in 5 days. Another computation 'read' 3 or 4 TB and 'produced' 1 TB in 6 hours.
 Many tests of the signal processing are done and computational data are deleted as and when required.
 \\
 
@@ -147,25 +148,25 @@ that this project has been implemented as we show below.
 \section{Software for data-intensive processing (6-12\S , 1-2 pages) } \label{Section_Software_for_data-intensive_processing}
 ~\\
 
-A part of the Whisper project is specificaly dedicated to the IT codes. This includes to design a specification, an implementation and some optimisations of
-a sequence of a data-management and of a computations \footnote{see code-whisper.isterre.fr/html/ (part of the design)}.
-This project uses some own IT resources (servers, dedicated bay) but also uses common IT infrastructure of the university.
+
+A part of the Whisper project is specificaly dedicated to the IT codes. This includes to design a specification, an implementation and some optimisations of the sequence of data-management as well as of the computations \footnote{see code-whisper.isterre.fr/html/ (part of the design)}.
+This project uses its own IT resources (servers, dedicated bay) as well as the common IT infrastructure of the university.
 We developed also adaptations for the IT infrastrutures and we provide technical support for researchers.
 
-Most of the IT codes are writing with the \emph{Python} language and uses intensively the scientific libraries \emph{Scipy} (fortran and C embeded) 
-and \emph{Obspy} \footnote{ see www.obspy.org} (essentially the 'read' function). The latest one is dedicated to the seismological community. 
+Most of the IT codes are written with the \emph{Python} language and make intensive use of the scientific libraries \emph{Scipy} (fortran and C embeded) 
+and \emph{Obspy} \footnote{ see www.obspy.org} (essentially the 'read' function) which is dedicated to the seismological community. 
 
-The IT codes consists of several tools described schematically at the figure \ref{whisperGeneralWorflow} and grouped into three parts. The first one concerns the signal processing, the second part permits the computation of the correlations and the last part consists of codes for the analysis of the correlations.
+The IT codes consist of several tools described schematically in figure \ref{whisperGeneralWorflow} and grouped into three parts. The first one concerns the signal processing, the second part permits the computation of the correlations and the last part consists of codes for the analysis of the correlations.
 
-A first package provides a flexible way to process raw data, to specify a pipeline of pre-processing of signal.
-The user starts by specifying a directory, a set of seismic stations and a set of dates. Then the codes scan the directory
+The first package provides a flexible way to process raw data, to specify a pipeline of pre-processing of signal.
+The user starts by specifying a directory, a set of seismic stations and a set of dates. Then the codes scans the directory
 and extracts all pieces of seismograms (also called traces) and rearranges them in a specific architecture of files in order to calculate the correlations to the next step.
-We use here intensively the function 'read' of the library Obspy which allows to open most of format files seismogram.
-The user also define his own sequence of processings. He can use the functions predefined but also the Python libraries he needs. 
-Moreover he can add eventually his own processing.
+We use here intensively the function 'read' of the library Obspy which allows to open most of the seismogram file formats.
+The user also define his own sequence of processings. He can use the functions predefined but also the Python libraries he needs and,
+moreover, he can add eventually his own functions.
 
 The second package concerns correlations. 
-Roughly speaking, a correlation is an operation with two seismograms (for a given time windows) that provides the coherent part of the two seismograms 
+Roughly speaking, a correlation is an operation with two seismograms (for a given time window) that provides the coherent part of the two seismograms 
 (associated to the 2 stations) which is the seismic waves that propagate between the 2 stations.
 (Moreover, in some favorables cases, it converges to the Green's function). 
 Thus, the code computes all the correlations and provides an architecture of files that corresponds to all the couples of seismograms (for each date). 
@@ -182,11 +183,11 @@ Note that the space complexity is linear for seismograms processing but quadrati
 These quadratic space complexity can be critical and lot of effort was made in order to optimize the computation in two direction. First we improve the computation of the fast fourier transform by pre-calculating some "good" combinations of small primes numbers. 
 With this method, we improve of forty percent the time computation in the favorable cases.
 
-Nevertheless, the main optimization was made by testing the behaviour of the carbage collector of Python in order to follow the cache heuristics. More precisely, we do not use the gc module or the 'del' statement but we try to schedule and localize the line of code in order to find the good unfolding that uses the architecture optimally.
+Nevertheless, the main optimization was made by testing the behaviour of the carbage collector of Python in order to follow the cache heuristics. More precisely, we do not use the 'gc' module or the 'del' statement but we try to schedule and localize the line of code in order to find the good unfolding that uses the architecture optimally.
 
 The last part of computer codes concerns the analysis of correlations (the virtual new seismograms) with methods such as beamforming, doublet or inversion.
 We also compute correlations of correlations C3 (also new seismograms). For example, we study the variations
-in velocity of seismic waves as we illustrate below. 
+in velocity of seismic waves as we illustrate below in figure \ref{JapanVelocity}. 
 
 These codes permit to process a dataset on a computer laptop. 
 Nevertheless, to take advantage of IT infrastructure at the University of Grenoble, 
@@ -213,8 +214,8 @@ adjustments have been made for the grid computing as we shall see later.
 
 The data-intensive processing
 needs obviously an IT infrastructure in order to couple storage and computation.
-In our cases, most of the processing are embarrassingly parallel.
-The amount of data and the location of compute nodes available suggests using a 
+In our cases, most of the processings are embarrassingly parallel.
+The amount of data and the location of available compute nodes suggests the use of a 
 distributed storage system and a grid manager.
 
 
