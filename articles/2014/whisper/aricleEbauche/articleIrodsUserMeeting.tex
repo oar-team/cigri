@@ -317,17 +317,17 @@ Each site has a filtering router acting as a firewall. As we want all communicat
 	\begin{enumerate}
 	  \item Scientific whisper results: theses, articles, prices
   	  \item Organisation with a DataSet: Evaluation local/Ciment, capacities adaptation students
-  	  \item First step: Conversion data format, distributions of datas on ressources: decrease the concurrency
+  	  \item Comparison data management, example Japan processing/USArray 
   	  \item Evolution specification, genericty of the codes, degree of automatization
+  	  \item First step: Conversion data format, distributions of datas on ressources: decrease the concurrency
   	  \item Back to the first package signal processing for Japan
-  	  \item Identification seismogram: Dates, stations
+  	  \item Identification seismogram: Dates, stations  / Modelization distribution: sublist Dates, Stations
   	  \item Adding python modules for data retrieve + Calls.
   	  \item Focus on encapsulation queries
-  	  \item Modelization distribution: sublist Dates, Stations
-      \item The files start.bash and parameters
+      \item The file parameters
+      \item the file start.bash
       \item The jdl file
-  	  \item Back to the package correlation: similar adds + possibility hash table
-  	  \item Comparison data management, example Japan processing/USArray 
+  	  \item Back to the package correlation: similar adds 
   	  \item Focus on the distribution problem (Space complexity/Transfer)
   	  \item Mode besteffort: increase of datas transfert, it possibly adds also new steps of data storage.
   	  \item Some order of magnitude for the Japan Computation.
@@ -384,6 +384,7 @@ These modules contains classes that permits to retrieve a subset of seismograms 
 Then we provide an iterator (in this case, a generator for Python) on available data in order to use other methods that performs the i-command
 'iget'. The same approach is made for the storage of the results (with the 'iput').
 
+
 Note that these commands of transfer between iRODS and computational nodes can become very difficult to achieve because of the concurrency of the queries.
 To take into account this obstacle, one develops a module that provides lot of encapsulations of the i-commands (number of try, waiting time,
 resubmission, with error, 'else' command,  etc...). The IT infrastructure provide also wery usefull encapsulations.
@@ -406,7 +407,7 @@ traces160_1_8_1 160 1 8 1
 
 Here we divide the dates in 160 sublists and the stations in 8 sublists. 
 The line "traces160\_0\_8\_1 160 0 8 1" correponds to a job named 'traces160\_0\_8\_1' where
-we take the sublist of dates of index 0 and the sublist of stations of index 1 (each sublist have the length +/-1).
+we take the sublist of dates of index 0 and the sublist of stations of index 1 (each sublist have the same length +/-1).
 (There are also other parameters for components and networks not described here.) 
 
 
@@ -457,15 +458,15 @@ cat processingSeismogram.jdl
   "clusters": {
     "c1": {
        	"prologue": [
-       	... lines of codes for the 
-       	... cluster c1 first of all ],
+       	secure_iget -f /IrodsColl/start.bash,
+       	secure_iget -f /IrodsColl/param.txt,
+       	... other lines of commands ],
        	"project": "whisper",
        	"walltime": "00:20:00"
        	},
     "c2": {
     	"prologue": [
-        ... lines of codes for the 
-        ... cluster c2 first of all ],
+        ... lines of commands ],
         "project": "whisper",
         "max_jobs": "450",
         "walltime": "00:30:00"
@@ -476,10 +477,33 @@ cat processingSeismogram.jdl
 }
 \end{lstlisting}
 
+
 Here the campaign named 'test\_processing' take only one core. It run the file 'start.bash' with the parameter
 file 'param.txt' in mode besteffort. It uses the clusters named 'c1' and 'c2' for the project 'whisper' with the duration
-defined by 'walltime'. We can add other parameters for each clusters such that the maximum number of
+defined by 'walltime'. In the prologue, we retrieve script and the parameter file on iRODS. 
+One can add other parameters for each clusters such that the maximum number of
 jobs runing at the same time (the variable 'max\_jobs').
+
+
+
+Concerning the package for the correlations (the second part of the figure \ref{whisperGeneralWorflow}), we also add similar modules
+to retrieve on iRods the subsets of seismograms that have been treated. In order to compute all the correlations that corresponds to
+all the couple of seismograms we have two types of processes. For a fix subset of dates, either we retrieve one subset of stations 
+and compute all the existing couples for this subset, or either we retrieve two disjoint subsets of stations and compute all the 
+correlations where each seismogram is in a different sublist. This distribution for the computation of the correlations offers a good granularity.
+
+With this kind of distribution for the stations, the transfer bewteen iRODS and the computational node becomes proportional to 
+the distribution, i.e. the number of sublists of stations. Therefore we have to maximize the distribution of the dates and minimize it
+for the stations in order to obtain a reasonable walltime. Note that it is possible to improve the transfert.
+However, a fairly simple improvement have to effect that the distribution become dependent on the distributed architecture of computation.
+In order to keep genericity of the codes we do not change this aspect.
+
+
+The mode besteffort also increase the transfert of data because some job are killed and submit in an other place.
+Moreover in some cases, such that a big walltime, we add new steps of iRODS storage for the process in order to store intermediate calculation
+(It is not the case for correlation because of the good granularity). 
+Note that this may represent a significant development effort.
+
 
 
 \subsection{Infrastructure Ciment experiences}

@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-1.40.10 (TeX Live 2009/Debian) (format=pdflatex 2011.11.4)  11 JUN 2014 18:39
+This is pdfTeX, Version 3.1415926-1.40.10 (TeX Live 2009/Debian) (format=pdflatex 2011.11.4)  12 JUN 2014 12:04
 entering extended mode
  %&-line parsing enabled.
 **articleIrodsUserMeeting.tex
@@ -291,19 +291,29 @@ g> <./schemaNodeStorageCiment.png> <./schemaCimentStorageStatus.png (PNG copy)>
 ] [6] [7]
 
 Package multicol Warning: I moved some lines to the next page.
-(multicol)                Footnotes on page 8 might be wrong on input line 390.
+(multicol)                Footnotes on page 8 might be wrong on input line 391.
 
 
 [8]
-Overfull \hbox (11.80075pt too wide) in paragraph at lines 438--439
+Overfull \hbox (11.80075pt too wide) in paragraph at lines 439--440
 [][][][][][][][] 
+ []
+
+
+Overfull \hbox (35.801pt too wide) in paragraph at lines 461--462
+[][][][][][][][][][][][][][][] 
+ []
+
+
+Overfull \hbox (29.80093pt too wide) in paragraph at lines 462--463
+[][][][][][][][][][][][][][][] 
  []
 
 [9] [10] (./articleIrodsUserMeeting.aux) ) 
 Here is how much of TeX's memory you used:
  3411 strings out of 493848
  50271 string characters out of 1152823
- 133252 words of memory out of 3000000
+ 134252 words of memory out of 3000000
  6686 multiletter control sequences out of 15000+50000
  30335 words of font info for 40 fonts, out of 3000000 for 9000
  714 hyphenation exceptions out of 8191
@@ -315,7 +325,7 @@ share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/share/texmf-
 texlive/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/share/texmf-texlive/font
 s/type1/urw/times/utmb8a.pfb></usr/share/texmf-texlive/fonts/type1/urw/times/ut
 mr8a.pfb></usr/share/texmf-texlive/fonts/type1/urw/times/utmri8a.pfb>
-Output written on articleIrodsUserMeeting.pdf (10 pages, 562227 bytes).
+Output written on articleIrodsUserMeeting.pdf (10 pages, 563617 bytes).
 PDF statistics:
  74 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
