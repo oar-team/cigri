@@ -13,32 +13,34 @@
 \begin{document}
 \long\def\/*#1*/{}
 \date{}%{\today}
-\title{\Large\bf Data Intensive processing with iRODS and the middleware CiGri for the Whisper project}
+\title{\huge{DRAFT} \\ ~\\ \Large\bf Data Intensive processing with iRODS and the middleware CiGri for the Whisper project}
 \author{\begin{tabular}[t]{c@{\extracolsep{8em}}c}
-	Briand X.\footnote{Isterre, Cnrs, email xav.briand@gmail.com}  & Bzeznik B.\footnote{Ciment, Universit\'e Joseph Fourier} \\
+	Briand Xavier\footnote{Cnrs, Isterre, Whisper, email xav.briand@gmail.com}  & Bzeznik Bruno\footnote{Ciment, Universit\'e Joseph Fourier, Technical header of Ciment} \\
 \end{tabular}}
-
 \maketitle
 %\thispagestyle{empty}
 
 
 \subsection*{Abstract}
 {\em
-blabla
-\\
-\\
-\\
-\\
-\\
-blabla
+
+Like many projects in science of the universe, the seismological project Whisper is faced with massive data processing.
+This leads to specific IT software for the project as well as suitable IT infrastructure. We present here both aspects.
+
+We provide a flexible way to design a sequence of processing. We also deal with data-management and computational optimization questions.
+
+On IT infrastructure, we present the platform Ciment provided by the University of Grenoble. It offers a data-grid environement with the 
+distributed storage iRODS and the grid manager CiGri.
+
+This is the partnership between these two IT components that has enabled a data-intensive processing and, also,  permits to the Whisper project to bring new scientific results.
+
 }
-\subsection*{Keywords}
-Data-Intensive, grid computing, distributed storage, Seismic Noise, Whisper, Cigri, Irods.
+{\bf Keywords}:  Data-Intensive, grid computing, distributed storage, Seismic Noise, Whisper, Cigri, Irods.
 
 
 
 \begin{multicols}{2}
-%\/*
+\/*
 \section{Plan}
 \begin{enumerate}
 	\item Introduction, abstract (3\S , 1 page) 
@@ -88,14 +90,10 @@ Data-Intensive, grid computing, distributed storage, Seismic Noise, Whisper, Cig
         \item Infrastructure Ciment experiences
        \end{enumerate}
 \end{enumerate}
-%*/
+*/
 
 \newpage
-\section{Background 7-10\S, 1-2 pages}
-~\\
-
-
-
+\section{Background}% 7-10\S, 1-2 pages}
 
 The \emph{Whisper} \footnote{FP7 ERC Advanced grant 227507, see whisper.obs.ujf-grenoble.fr} 
 project is a an european project on seismology whose goal is to study properties of the earth
@@ -143,10 +141,9 @@ It is thanks to the close collaboration between IT ressources of Whisper and the
 that this project has been implemented as we show below.
 
 
-\newpage
+%\newpage
 
-\section{Software for data-intensive processing (6-12\S , 1-2 pages) } \label{Section_Software_for_data-intensive_processing}
-~\\
+\section{Software for data-intensive processing} \label{Section_Software_for_data-intensive_processing} %(6-12\S , 1-2 pages) } 
 
 
 A part of the Whisper project is specificaly dedicated to the IT codes. This includes to design a specification, an implementation and some optimisations of the sequence of data-management as well as of the computations \footnote{see code-whisper.isterre.fr/html/ (part of the design)}.
@@ -172,7 +169,7 @@ Roughly speaking, a correlation is an operation with two seismograms (for a give
 Thus, the code computes all the correlations and provides an architecture of files that corresponds to all the couples of seismograms (for each date). 
 
 %\end{multicols}
-\begin{center}%[h]
+\begin{center}[h]
 \centering
 \captionof{figure}{\label{whisperCorrelationStep} Step of the correlations}
 \includegraphics[width=6cm]{schemaCorrelationStep.png}
@@ -197,17 +194,16 @@ adjustments have been made for the grid computing as we shall see later.
 \begin{figure}[h]
 \centering
 \caption{\label{whisperGeneralWorflow} Main sequences of processings of the Whisper Codes}
-\includegraphics[width=16cm]{briandPosterAGU2013GimpProcessing.png}
+\includegraphics[width=14cm]{briandPosterAGU2013GimpProcessing.png}
 \end{figure}
 
 
-\newpage
+
 \begin{multicols}{2}
 
 
 
-\section{IT infrastructure for grid computing (6-12\S , 1-2 pages) }
-~\\
+\section{IT infrastructure for grid computing}% (6-12\S , 1-2 pages) }
 
 
 \subsection{CiGri and iRODS synergy}
@@ -301,7 +297,6 @@ Users may monitor their campaigns and act on it whith a CLI or a REST API. Some 
 \\
 CiGri is now at the version 3, which represents a major evolution in terms of modeling and technology (Rest API, Ruby). It is structured around a PostgreSQL database and high level components (Ruby scripting language, Apache with SSL authentication, Sinatra,...).
 
-\newpage
 
 \subsection{Authentication and security}
 
@@ -309,12 +304,12 @@ CIMENT has a centralized LDAP infrastructure. Users have the same login on all s
 \\
 Each site has a filtering router acting as a firewall. As we want all communication schemes to be possible between each irods resource (a file might be transfered from a resource to another regardless of the site), we had to open some tcp and udp ports on those firewalls. The range of ports may be defined by the administrator into the iRODS servers configuration file, so that's not an issue.
 
-\newpage
 
-\section{Results and feedback (28-31\S, 6-7 pages)}
+
+\section{Results and feedback} % (28-31\S, 6-7 pages)}
 
 \subsection{Whisper Use Case}
-
+\/*
 	\begin{enumerate}
 	  \item Scientific whisper results: theses, articles, prices
   	  \item Organisation with a DataSet: Evaluation local/Ciment, capacities adaptation students
@@ -335,7 +330,7 @@ Each site has a filtering router acting as a firewall. As we want all communicat
   	  \item Some order of magnitude for the Japan Computation.
   	  \item On the Japanese results.
   	\end{enumerate}
-
+*/
 
 Whisper is one of the projects that have made it possible to ensure that the seismic noise brought new observable.
 This permits to carry out several scientific results including imaging and monitoring. 
