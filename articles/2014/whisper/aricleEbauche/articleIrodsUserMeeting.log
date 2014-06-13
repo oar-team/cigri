@@ -1,20 +1,15 @@
-This is pdfTeX, Version 3.1415926-1.40.10 (TeX Live 2009/Debian) (format=pdflatex 2011.11.4)  13 JUN 2014 10:12
+This is pdfTeX, Version 3.1415926-2.4-1.40.13 (TeX Live 2012/Debian) (format=pdflatex 2013.1.15)  13 JUN 2014 12:24
 entering extended mode
+ restricted \write18 enabled.
  %&-line parsing enabled.
 **articleIrodsUserMeeting.tex
 (./articleIrodsUserMeeting.tex
-LaTeX2e <2009/09/24>
-Babel <v3.8l> and hyphenation patterns for english, usenglishmax, dumylang, noh
-yphenation, farsi, arabic, croatian, bulgarian, ukrainian, russian, czech, slov
-ak, danish, dutch, finnish, french, basque, ngerman, german, german-x-2009-06-1
-9, ngerman-x-2009-06-19, ibycus, monogreek, greek, ancientgreek, hungarian, san
-skrit, italian, latin, latvian, lithuanian, mongolian2a, mongolian, bokmal, nyn
-orsk, romanian, irish, coptic, serbian, turkish, welsh, esperanto, uppersorbian
-, estonian, indonesian, interlingua, icelandic, kurmanji, slovenian, polish, po
-rtuguese, spanish, galician, catalan, swedish, ukenglish, pinyin, loaded.
-(/usr/share/texmf-texlive/tex/latex/base/article.cls
+LaTeX2e <2011/06/27>
+Babel <v3.8m> and hyphenation patterns for english, dumylang, nohyphenation, lo
+aded.
+(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
 Document Class: article 2007/10/19 v1.4h Standard LaTeX document class
-(/usr/share/texmf-texlive/tex/latex/base/size10.clo
+(/usr/share/texlive/texmf-dist/tex/latex/base/size10.clo
 File: size10.clo 2007/10/19 v1.4h Standard LaTeX file (size option)
 )
 \c@part=\count79
@@ -29,43 +24,50 @@ File: size10.clo 2007/10/19 v1.4h Standard LaTeX file (size option)
 \belowcaptionskip=\skip42
 \bibindent=\dimen102
 )
-(/usr/share/texmf-texlive/tex/latex/graphics/graphicx.sty
+(/usr/share/texlive/texmf-dist/tex/latex/graphics/graphicx.sty
 Package: graphicx 1999/02/16 v1.0f Enhanced LaTeX Graphics (DPC,SPQR)
 
-(/usr/share/texmf-texlive/tex/latex/graphics/keyval.sty
+(/usr/share/texlive/texmf-dist/tex/latex/graphics/keyval.sty
 Package: keyval 1999/03/16 v1.13 key=value parser (DPC)
 \KV@toks@=\toks14
 )
-(/usr/share/texmf-texlive/tex/latex/graphics/graphics.sty
+(/usr/share/texlive/texmf-dist/tex/latex/graphics/graphics.sty
 Package: graphics 2009/02/05 v1.0o Standard LaTeX Graphics (DPC,SPQR)
 
-(/usr/share/texmf-texlive/tex/latex/graphics/trig.sty
+(/usr/share/texlive/texmf-dist/tex/latex/graphics/trig.sty
 Package: trig 1999/03/16 v1.09 sin cos tan (DPC)
 )
-(/etc/texmf/tex/latex/config/graphics.cfg
-File: graphics.cfg 2009/08/28 v1.8 graphics configuration of TeX Live
+(/usr/share/texlive/texmf-dist/tex/latex/latexconfig/graphics.cfg
+File: graphics.cfg 2010/04/23 v1.9 graphics configuration of TeX Live
 )
 Package graphics Info: Driver file: pdftex.def on input line 91.
 
-(/usr/share/texmf-texlive/tex/latex/pdftex-def/pdftex.def
-File: pdftex.def 2009/08/25 v0.04m Graphics/color for pdfTeX
+(/usr/share/texlive/texmf-dist/tex/latex/pdftex-def/pdftex.def
+File: pdftex.def 2011/05/27 v0.06d Graphics/color for pdfTeX
+
+(/usr/share/texlive/texmf-dist/tex/generic/oberdiek/infwarerr.sty
+Package: infwarerr 2010/04/08 v1.3 Providing info/warning/error messages (HO)
+)
+(/usr/share/texlive/texmf-dist/tex/generic/oberdiek/ltxcmds.sty
+Package: ltxcmds 2011/11/09 v1.22 LaTeX kernel commands for general use (HO)
+)
 \Gread@gobject=\count87
 ))
 \Gin@req@height=\dimen103
 \Gin@req@width=\dimen104
-) (./rfia2000.sty)
-(/usr/share/texmf-texlive/tex/latex/base/fontenc.sty
+)
+(./rfia2000.sty) (/usr/share/texlive/texmf-dist/tex/latex/base/fontenc.sty
 Package: fontenc 2005/09/27 v1.99g Standard LaTeX package
 
-(/usr/share/texmf-texlive/tex/latex/base/t1enc.def
+(/usr/share/texlive/texmf-dist/tex/latex/base/t1enc.def
 File: t1enc.def 2005/09/27 v1.99g Standard LaTeX file
 LaTeX Font Info:    Redeclaring font encoding T1 on input line 43.
 ))
-(/usr/share/texmf-texlive/tex/latex/psnfss/times.sty
+(/usr/share/texlive/texmf-dist/tex/latex/psnfss/times.sty
 Package: times 2005/04/12 PSNFSS-v9.2a (SPQR) 
 )
-(/usr/share/texmf-texlive/tex/latex/tools/multicol.sty
-Package: multicol 2008/12/05 v1.6h multicolumn formatting (FMi)
+(/usr/share/texlive/texmf-dist/tex/latex/tools/multicol.sty
+Package: multicol 2011/06/27 v1.7a multicolumn formatting (FMi)
 \c@tracingmulticols=\count88
 \mult@box=\box26
 \multicol@leftmargin=\dimen105
@@ -110,12 +112,13 @@ Package: multicol 2008/12/05 v1.6h multicolumn formatting (FMi)
 \multicolundershoot=\dimen112
 \mult@nat@firstbox=\box50
 \colbreak@box=\box51
+\multicol@sort@counter=\count96
 )
-(/usr/share/texmf-texlive/tex/latex/caption/caption.sty
-Package: caption 2009/10/09 v3.1k Customizing captions (AR)
+(/usr/share/texlive/texmf-dist/tex/latex/caption/caption.sty
+Package: caption 2012/02/19 v3.2f Customizing captions (AR)
 
-(/usr/share/texmf-texlive/tex/latex/caption/caption3.sty
-Package: caption3 2009/10/09 v3.1k caption3 kernel (AR)
+(/usr/share/texlive/texmf-dist/tex/latex/caption/caption3.sty
+Package: caption3 2012/01/12 v1.4b caption3 kernel (AR)
 \captionmargin=\dimen113
 \captionmargin@=\dimen114
 \captionwidth=\dimen115
@@ -123,29 +126,29 @@ Package: caption3 2009/10/09 v3.1k caption3 kernel (AR)
 \caption@parindent=\dimen117
 \caption@hangindent=\dimen118
 )
-\c@ContinuedFloat=\count96
+\c@ContinuedFloat=\count97
 )
-(/usr/share/texmf-texlive/tex/latex/listings/listings.sty
-\lst@mode=\count97
+(/usr/share/texlive/texmf-dist/tex/latex/listings/listings.sty
+\lst@mode=\count98
 \lst@gtempboxa=\box52
 \lst@token=\toks15
-\lst@length=\count98
+\lst@length=\count99
 \lst@currlwidth=\dimen119
-\lst@column=\count99
-\lst@pos=\count100
+\lst@column=\count100
+\lst@pos=\count101
 \lst@lostspace=\dimen120
 \lst@width=\dimen121
-\lst@newlines=\count101
-\lst@lineno=\count102
+\lst@newlines=\count102
+\lst@lineno=\count103
 \lst@maxwidth=\dimen122
 
-(/usr/share/texmf-texlive/tex/latex/listings/lstmisc.sty
+(/usr/share/texlive/texmf-dist/tex/latex/listings/lstmisc.sty
 File: lstmisc.sty 2007/02/22 1.4 (Carsten Heinz)
-\c@lstnumber=\count103
-\lst@skipnumbers=\count104
+\c@lstnumber=\count104
+\lst@skipnumbers=\count105
 \lst@framebox=\box53
 )
-(/usr/share/texmf-texlive/tex/latex/listings/listings.cfg
+(/usr/share/texlive/texmf-dist/tex/latex/listings/listings.cfg
 File: listings.cfg 2007/02/22 1.4 listings configuration
 ))
 Package: listings 2007/02/22 1.4 (Carsten Heinz)
@@ -167,26 +170,74 @@ LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 13.
 LaTeX Font Info:    ... okay on input line 13.
 LaTeX Font Info:    Try loading font information for T1+ptm on input line 13.
 
-(/usr/share/texmf-texlive/tex/latex/psnfss/t1ptm.fd
+(/usr/share/texlive/texmf-dist/tex/latex/psnfss/t1ptm.fd
 File: t1ptm.fd 2001/06/04 font definitions for T1/ptm.
 )
-(/usr/share/texmf/tex/context/base/supp-pdf.mkii
+(/usr/share/texlive/texmf-dist/tex/context/base/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
-\scratchcounter=\count105
+\scratchcounter=\count106
 \scratchdimen=\dimen123
 \scratchbox=\box54
-\nofMPsegments=\count106
-\nofMParguments=\count107
+\nofMPsegments=\count107
+\nofMParguments=\count108
 \everyMPshowfont=\toks16
-\MPscratchCnt=\count108
+\MPscratchCnt=\count109
 \MPscratchDim=\dimen124
-\MPnumerator=\count109
+\MPnumerator=\count110
+\makeMPintoPDFobject=\count111
 \everyMPtoPDFconversion=\toks17
+) (/usr/share/texlive/texmf-dist/tex/generic/oberdiek/pdftexcmds.sty
+Package: pdftexcmds 2011/11/29 v0.20 Utility functions of pdfTeX for LuaTeX (HO
 )
+
+(/usr/share/texlive/texmf-dist/tex/generic/oberdiek/ifluatex.sty
+Package: ifluatex 2010/03/01 v1.3 Provides the ifluatex switch (HO)
+Package ifluatex Info: LuaTeX not detected.
+)
+(/usr/share/texlive/texmf-dist/tex/generic/oberdiek/ifpdf.sty
+Package: ifpdf 2011/01/30 v2.3 Provides the ifpdf switch (HO)
+Package ifpdf Info: pdfTeX in PDF mode is detected.
+)
+Package pdftexcmds Info: LuaTeX not detected.
+Package pdftexcmds Info: \pdf@primitive is available.
+Package pdftexcmds Info: \pdf@ifprimitive is available.
+Package pdftexcmds Info: \pdfdraftmode found.
+)
+(/usr/share/texlive/texmf-dist/tex/latex/oberdiek/epstopdf-base.sty
+Package: epstopdf-base 2010/02/09 v2.5 Base part for package epstopdf
+
+(/usr/share/texlive/texmf-dist/tex/latex/oberdiek/grfext.sty
+Package: grfext 2010/08/19 v1.1 Manage graphics extensions (HO)
+
+(/usr/share/texlive/texmf-dist/tex/generic/oberdiek/kvdefinekeys.sty
+Package: kvdefinekeys 2011/04/07 v1.3 Define keys (HO)
+))
+(/usr/share/texlive/texmf-dist/tex/latex/oberdiek/kvoptions.sty
+Package: kvoptions 2011/06/30 v3.11 Key value format for package options (HO)
+
+(/usr/share/texlive/texmf-dist/tex/generic/oberdiek/kvsetkeys.sty
+Package: kvsetkeys 2012/04/25 v1.16 Key value parser (HO)
+
+(/usr/share/texlive/texmf-dist/tex/generic/oberdiek/etexcmds.sty
+Package: etexcmds 2011/02/16 v1.5 Avoid name clashes with e-TeX commands (HO)
+Package etexcmds Info: Could not find \expanded.
+(etexcmds)             That can mean that you are not using pdfTeX 1.50 or
+(etexcmds)             that some package has redefined \expanded.
+(etexcmds)             In the latter case, load this package earlier.
+)))
+Package grfext Info: Graphics extension search list:
+(grfext)             [.png,.pdf,.jpg,.mps,.jpeg,.jbig2,.jb2,.PNG,.PDF,.JPG,.JPE
+G,.JBIG2,.JB2,.eps]
+(grfext)             \AppendGraphicsExtensions on input line 452.
+
+(/usr/share/texlive/texmf-dist/tex/latex/latexconfig/epstopdf-sys.cfg
+File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Liv
+e
+))
 Package caption Info: Begin \AtBeginDocument code.
 Package caption Info: listings package is loaded.
 Package caption Info: End \AtBeginDocument code.
-\c@lstlisting=\count110
+\c@lstlisting=\count112
 LaTeX Font Info:    Font shape `T1/ptm/bx/n' in size <14.4> not available
 (Font)              Font shape `T1/ptm/b/n' tried instead on input line 21.
 LaTeX Font Info:    External font `cmex10' loaded for size
@@ -238,18 +289,25 @@ Underfull \hbox (badness 10000) in paragraph at lines 149--150
 
  []
 
-<schemaCorrelationStep.png, id=14, 318.7107pt x 164.7756pt>
+<schemaCorrelationStep.png, id=15, 318.7107pt x 164.7756pt>
 File: schemaCorrelationStep.png Graphic file (type png)
 
 <use schemaCorrelationStep.png>
-<briandPosterAGU2013GimpProcessing.png, id=15, 1683.891pt x 475.5366pt>
+Package pdftex.def Info: schemaCorrelationStep.png used on input line 178.
+(pdftex.def)             Requested size: 170.71652pt x 88.26343pt.
+
+<briandPosterAGU2013GimpProcessing.png, id=16, 1683.891pt x 475.5366pt>
 File: briandPosterAGU2013GimpProcessing.png Graphic file (type png)
 
 <use briandPosterAGU2013GimpProcessing.png>
+Package pdftex.def Info: briandPosterAGU2013GimpProcessing.png used on input li
+ne 200.
+(pdftex.def)             Requested size: 455.24408pt x 128.55623pt.
+
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
-[3 <./schemaCorrelationStep.png (PNG copy)>]
+[3 <./schemaCorrelationStep.png>]
 Underfull \hbox (badness 10000) in paragraph at lines 210--211
 
  []
@@ -264,31 +322,44 @@ Underfull \hbox (badness 10000) in paragraph at lines 242--244
 
  []
 
-<schemaCimentStorageNodesIcat.png, id=19, 613.93365pt x 381.94695pt>
+<schemaCimentStorageNodesIcat.png, id=20, 613.93365pt x 381.94695pt>
 File: schemaCimentStorageNodesIcat.png Graphic file (type png)
 
-<use schemaCimentStorageNodesIcat.png> [4 <./briandPosterAGU2013GimpProcessing.
-png (PNG copy)>]
-<schemaCimentStorageSupercomputers.png, id=24, 575.63055pt x 385.9218pt>
+<use schemaCimentStorageNodesIcat.png>
+Package pdftex.def Info: schemaCimentStorageNodesIcat.png used on input line 24
+8.
+(pdftex.def)             Requested size: 227.62204pt x 141.60954pt.
+ [4 <./briandPosterAGU2013GimpProcessing.png>] <schemaCimentStorageSupercompute
+rs.png, id=25, 575.63055pt x 385.9218pt>
 File: schemaCimentStorageSupercomputers.png Graphic file (type png)
 
 <use schemaCimentStorageSupercomputers.png>
-<schemaNodeStorageCiment.png, id=25, 378.6948pt x 151.767pt>
+Package pdftex.def Info: schemaCimentStorageSupercomputers.png used on input li
+ne 257.
+(pdftex.def)             Requested size: 227.62204pt x 152.60526pt.
+
+<schemaNodeStorageCiment.png, id=26, 378.6948pt x 151.767pt>
 File: schemaNodeStorageCiment.png Graphic file (type png)
 
 <use schemaNodeStorageCiment.png>
-<schemaCimentStorageStatus.png, id=26, 358.4592pt x 132.2541pt>
+Package pdftex.def Info: schemaNodeStorageCiment.png used on input line 268.
+(pdftex.def)             Requested size: 142.26378pt x 57.01437pt.
+
+<schemaCimentStorageStatus.png, id=27, 358.4592pt x 132.2541pt>
 File: schemaCimentStorageStatus.png Graphic file (type png)
 
 <use schemaCimentStorageStatus.png>
+Package pdftex.def Info: schemaCimentStorageStatus.png used on input line 276.
+(pdftex.def)             Requested size: 227.62204pt x 83.98242pt.
+
 
 Package multicol Warning: I moved some lines to the next page.
 (multicol)                Footnotes on page 5 might be wrong on input line 303.
 
 
 [5 <./schemaCimentStorageNodesIcat.png> <./schemaCimentStorageSupercomputers.pn
-g> <./schemaNodeStorageCiment.png> <./schemaCimentStorageStatus.png (PNG copy)>
-] [6] [7] [8]
+g> <./schemaNodeStorageCiment.png> <./schemaCimentStorageStatus.png>] [6]
+[7] [8]
 Overfull \hbox (11.80075pt too wide) in paragraph at lines 445--446
 [][][][][][][][] 
  []
@@ -303,29 +374,50 @@ Overfull \hbox (29.80093pt too wide) in paragraph at lines 468--469
 [][][][][][][][][][][][][][][] 
  []
 
-[9] <JapanVelocity.png, id=47, 567.3195pt x 411.2163pt>
+[9] <JapanVelocity.png, id=48, 567.3195pt x 411.2163pt>
 File: JapanVelocity.png Graphic file (type png)
 
-<use JapanVelocity.png> [10 <./JapanVelocity.png>] [11]
+<use JapanVelocity.png>
+Package pdftex.def Info: JapanVelocity.png used on input line 534.
+(pdftex.def)             Requested size: 227.62204pt x 164.98557pt.
+LaTeX Font Info:    Font shape `T1/ptm/bx/n' in size <10> not available
+(Font)              Font shape `T1/ptm/b/n' tried instead on input line 560.
+
+Underfull \hbox (badness 10000) in paragraph at lines 554--562
+
+ []
+
+[10 <./JapanVelocity.png>]
+LaTeX Font Info:    Try loading font information for OMS+ptm on input line 563.
+
+
+(/usr/share/texlive/texmf-dist/tex/latex/psnfss/omsptm.fd
+File: omsptm.fd 
+)
+LaTeX Font Info:    Font shape `OMS/ptm/m/n' in size <10> not available
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 563.
+ [11]
 (./articleIrodsUserMeeting.aux) ) 
 Here is how much of TeX's memory you used:
- 3423 strings out of 493848
- 50500 string characters out of 1152823
- 133284 words of memory out of 3000000
- 6697 multiletter control sequences out of 15000+50000
- 30335 words of font info for 40 fonts, out of 3000000 for 9000
- 714 hyphenation exceptions out of 8191
- 36i,17n,38p,1101b,956s stack positions out of 5000i,500n,10000p,200000b,50000s
-{/usr/share/texmf-texlive/fonts/enc/dvips/base
-/8r.enc}</usr/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmsy10.pfb></u
-sr/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmsy6.pfb></usr/share/tex
-mf-texlive/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/share/texmf-texlive/f
-onts/type1/public/amsfonts/cm/cmsy8.pfb></usr/share/texmf-texlive/fonts/type1/u
-rw/times/utmb8a.pfb></usr/share/texmf-texlive/fonts/type1/urw/times/utmr8a.pfb>
-</usr/share/texmf-texlive/fonts/type1/urw/times/utmri8a.pfb>
-Output written on articleIrodsUserMeeting.pdf (11 pages, 600647 bytes).
+ 4096 strings out of 495059
+ 62405 string characters out of 3182030
+ 143276 words of memory out of 3000000
+ 7235 multiletter control sequences out of 15000+200000
+ 33138 words of font info for 42 fonts, out of 3000000 for 9000
+ 14 hyphenation exceptions out of 8191
+ 38i,17n,38p,1652b,958s stack positions out of 5000i,500n,10000p,200000b,50000s
+{/usr/share/texlive/texmf-dist/fonts/enc/dvips
+/base/8r.enc}</usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy
+10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb>
+</usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/s
+hare/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/share/te
+xlive/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/share/texlive/texmf-dis
+t/fonts/type1/urw/times/utmr8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/u
+rw/times/utmri8a.pfb>
+Output written on articleIrodsUserMeeting.pdf (11 pages, 598635 bytes).
 PDF statistics:
- 79 PDF objects out of 1000 (max. 8388607)
+ 81 PDF objects out of 1000 (max. 8388607)
+ 49 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
  36 words of extra memory for PDF output out of 10000 (max. 10000000)
 
