@@ -1,8 +1,8 @@
-This is pdfTeX, Version 3.1415926-1.40.10 (TeX Live 2009/Debian) (format=pdflatex 2011.11.4)  13 JUN 2014 16:42
+This is pdfTeX, Version 3.1415926-1.40.10 (TeX Live 2009/Debian) (format=pdflatex 2011.11.4)  13 JUN 2014 16:46
 entering extended mode
  %&-line parsing enabled.
-**articleIrodsUserMeeting.tex
-(./articleIrodsUserMeeting.tex
+**Draft_BriandBzeznikIrodsUserMeeting2014.tex
+(./Draft_BriandBzeznikIrodsUserMeeting2014.tex
 LaTeX2e <2009/09/24>
 Babel <v3.8l> and hyphenation patterns for english, usenglishmax, dumylang, noh
 yphenation, farsi, arabic, croatian, bulgarian, ukrainian, russian, czech, slov
@@ -150,8 +150,8 @@ File: listings.cfg 2007/02/22 1.4 listings configuration
 ))
 Package: listings 2007/02/22 1.4 (Carsten Heinz)
 
-(./articleIrodsUserMeeting.aux)
-\openout1 = `articleIrodsUserMeeting.aux'.
+(./Draft_BriandBzeznikIrodsUserMeeting2014.aux)
+\openout1 = `Draft_BriandBzeznikIrodsUserMeeting2014.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 13.
 LaTeX Font Info:    ... okay on input line 13.
@@ -277,24 +277,25 @@ File: omsptm.fd
 )
 LaTeX Font Info:    Font shape `OMS/ptm/m/n' in size <10> not available
 (Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 559.
- [7 <./JapanVelocity.png>] [8] (./articleIrodsUserMeeting.aux) ) 
+ [7 <./JapanVelocity.png>] [8] (./Draft_BriandBzeznikIrodsUserMeeting2014.aux) 
+) 
 Here is how much of TeX's memory you used:
  3446 strings out of 493848
- 50848 string characters out of 1152823
+ 50992 string characters out of 1152823
  133286 words of memory out of 3000000
  6715 multiletter control sequences out of 15000+50000
  35860 words of font info for 44 fonts, out of 3000000 for 9000
  714 hyphenation exceptions out of 8191
- 36i,17n,38p,1652b,1509s stack positions out of 5000i,500n,10000p,200000b,50000s
-{/usr/share/tex
-mf-texlive/fonts/enc/dvips/base/8r.enc}</usr/share/texmf-texlive/fonts/type1/pu
-blic/amsfonts/cm/cmsy10.pfb></usr/share/texmf-texlive/fonts/type1/public/amsfon
-ts/cm/cmsy6.pfb></usr/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmsy7.
-pfb></usr/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/sh
-are/texmf-texlive/fonts/type1/urw/times/utmb8a.pfb></usr/share/texmf-texlive/fo
-nts/type1/urw/times/utmr8a.pfb></usr/share/texmf-texlive/fonts/type1/urw/times/
-utmri8a.pfb>
-Output written on articleIrodsUserMeeting.pdf (8 pages, 602337 bytes).
+ 36i,17n,38p,1668b,1509s stack positions out of 5000i,500n,10000p,200000b,50000s
+{/usr/share/texmf-texlive/fonts/enc/dvips/base/8r.enc}</usr/share/texmf-texliv
+e/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texmf-texlive/fonts/typ
+e1/public/amsfonts/cm/cmsy6.pfb></usr/share/texmf-texlive/fonts/type1/public/am
+sfonts/cm/cmsy7.pfb></usr/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cm
+sy8.pfb></usr/share/texmf-texlive/fonts/type1/urw/times/utmb8a.pfb></usr/share/
+texmf-texlive/fonts/type1/urw/times/utmr8a.pfb></usr/share/texmf-texlive/fonts/
+type1/urw/times/utmri8a.pfb>
+Output written on Draft_BriandBzeznikIrodsUserMeeting2014.pdf (8 pages, 602337 
+bytes).
 PDF statistics:
  70 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
