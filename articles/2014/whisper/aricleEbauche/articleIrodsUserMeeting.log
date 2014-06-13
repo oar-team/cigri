@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-1.40.10 (TeX Live 2009/Debian) (format=pdflatex 2011.11.4)  12 JUN 2014 18:25
+This is pdfTeX, Version 3.1415926-1.40.10 (TeX Live 2009/Debian) (format=pdflatex 2011.11.4)  13 JUN 2014 10:12
 entering extended mode
  %&-line parsing enabled.
 **articleIrodsUserMeeting.tex
@@ -288,13 +288,7 @@ Package multicol Warning: I moved some lines to the next page.
 
 [5 <./schemaCimentStorageNodesIcat.png> <./schemaCimentStorageSupercomputers.pn
 g> <./schemaNodeStorageCiment.png> <./schemaCimentStorageStatus.png (PNG copy)>
-] [6] [7]
-
-Package multicol Warning: I moved some lines to the next page.
-(multicol)                Footnotes on page 8 might be wrong on input line 392.
-
-
-[8]
+] [6] [7] [8]
 Overfull \hbox (11.80075pt too wide) in paragraph at lines 445--446
 [][][][][][][][] 
  []
@@ -312,13 +306,13 @@ Overfull \hbox (29.80093pt too wide) in paragraph at lines 468--469
 [9] <JapanVelocity.png, id=47, 567.3195pt x 411.2163pt>
 File: JapanVelocity.png Graphic file (type png)
 
-<use JapanVelocity.png> [10 <./JapanVelocity.png>]
+<use JapanVelocity.png> [10 <./JapanVelocity.png>] [11]
 (./articleIrodsUserMeeting.aux) ) 
 Here is how much of TeX's memory you used:
- 3418 strings out of 493848
- 50438 string characters out of 1152823
- 133269 words of memory out of 3000000
- 6692 multiletter control sequences out of 15000+50000
+ 3423 strings out of 493848
+ 50500 string characters out of 1152823
+ 133284 words of memory out of 3000000
+ 6697 multiletter control sequences out of 15000+50000
  30335 words of font info for 40 fonts, out of 3000000 for 9000
  714 hyphenation exceptions out of 8191
  36i,17n,38p,1101b,956s stack positions out of 5000i,500n,10000p,200000b,50000s
@@ -329,9 +323,9 @@ mf-texlive/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/share/texmf-texlive/f
 onts/type1/public/amsfonts/cm/cmsy8.pfb></usr/share/texmf-texlive/fonts/type1/u
 rw/times/utmb8a.pfb></usr/share/texmf-texlive/fonts/type1/urw/times/utmr8a.pfb>
 </usr/share/texmf-texlive/fonts/type1/urw/times/utmri8a.pfb>
-Output written on articleIrodsUserMeeting.pdf (10 pages, 596960 bytes).
+Output written on articleIrodsUserMeeting.pdf (11 pages, 600647 bytes).
 PDF statistics:
- 76 PDF objects out of 1000 (max. 8388607)
+ 79 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
  36 words of extra memory for PDF output out of 10000 (max. 10000000)
 
