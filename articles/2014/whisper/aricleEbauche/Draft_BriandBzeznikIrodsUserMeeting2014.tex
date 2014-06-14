@@ -19,22 +19,18 @@
 \end{tabular}}
 \maketitle
 %\thispagestyle{empty}
-
-
 \subsection*{Abstract}
 {\em
-
 Like many projects in science of the universe, the seismological project Whisper is faced with massive data processing.
 This leads to specific IT software for the project as well as suitable IT infrastructure. We present here both aspects.
 
 We provide a flexible way to design a sequence of processing. We also deal with data-management and computational optimization questions.
-
 On IT infrastructure, we present the platform Ciment provided by the University of Grenoble. It offers a data-grid environement with the 
 distributed storage iRODS and the grid manager CiGri.
 
 This is the partnership between these two IT components that has enabled a data-intensive processing and, also,  permits to the Whisper project to bring new scientific results.
-
 }
+~\\ \\
 {\bf Keywords}:  Data-Intensive, grid computing, distributed storage, Seismic Noise, Whisper, Cigri, Irods.
 
 
@@ -93,7 +89,7 @@ This is the partnership between these two IT components that has enabled a data-
 */
 
 \newpage
-\section{Background}% 7-10\S, 1-2 pages}
+\section{Introduction}% 7-10\S, 1-2 pages}
 
 The \emph{Whisper} \footnote{FP7 ERC Advanced grant 227507, see whisper.obs.ujf-grenoble.fr} 
 project is a an european project on seismology whose goal is to study properties of the earth
@@ -117,12 +113,10 @@ In addition, the calculation operations downstream may produce even more data th
 To give an order of magnitude, more than 200 TB have to be processed by the Whisper project at the same time. 
 A classical processing produces 8 TB in 5 days. Another computation 'read' 3 or 4 TB and 'produced' 1 TB in 6 hours.
 Many tests of the signal processing are done and computational data are deleted as and when required.
-\\
 
 
 Nowadays, the earth sciences or more generally, sciences of the universe are widely engaged in
 data-intensive processing. This leads to design scientific workflow, towards data-intensive discovery and e-Science.
-
 
 Reflected by the Whisper project, we have to organize the science objectives with
 the computer constraints. We have to take into account 
@@ -135,7 +129,6 @@ organize distributed data management and acces to computational ressources: a da
 
 The University of Grenoble offers, thanks to the High Performance Computing (HPC) centre \emph{Ciment}, this kind of environement with the distributed file system \emph{Irods}
 and the middelware \emph{CiGri}.% (Ciment platform).
-
 
 It is thanks to the close collaboration between IT ressources of Whisper and the infrastrucrures of the University
 that this project has been implemented as we show below.
@@ -224,7 +217,7 @@ it provides a local data grid environement.
 
 The distributed storage accessible by all the computing nodes of all the clusters is managed by iRODS \footnote{see irods.org}.
 Nowadays it represents approximately 700 TB. The grid computing is managed by the \emph{CiGri 
-\footnote{see ciment.ujf-grenoble.fr/cigri/dokuwiki} middleware}, that is part of the OAR \footnote{see oar.imag.fr} project (the Resource and Job Management System on which CiGri relies). CiGri and iRODS together build a complementary solution for embarrassingly parallel computations with large input/output distributed data sets.
+\footnote{see ciment.ujf-grenoble.fr/cigri/dokuwiki} middleware}, that is part of the OAR \footnote{see oar.imag.fr} \cite{key:CDGHMMNR, key:CHR2009} project (the Resource and Job Management System on which CiGri relies). CiGri and iRODS together build a complementary solution for embarrassingly parallel computations with large input/output distributed data sets.
 
 Furthermore, whith unitary parametric jobs that are reasonnably short in time, CiGri can deal with the best-effort mode provided by OAR. In this mode, grid jobs are scheduled on free resources with a zero priority and may be killed at any time when the local demand of resources increases. This CIMENT organization (independant computing clusters glued together with a best-effort grid middleware and a distributed storage), in place for more than a decade, has proven to be very efficient, allowing near one hundred percent usage of computing resources thanks to small jobs being managed at the grid level.
 
@@ -561,7 +554,16 @@ Another interesting aspect of iRODS for a project like Whisper is that we can re
   \item We made some preliminary tests of the python bindings of the iRODS API (called Pyrods). We noticed that when you have a lot of small operations to do from a python code (like in the Whisper project), either creating a lot of small files, or meta-data, Pyrods may be 10 times faster than a shell loop with i-commands inside. We are now making code examples for the other users to be able to take benefits from this method that would have been useful for the Whisper project.
 \end{itemize}
 
-Despite the problems that have been solved or not, we are currently able to process terabytes of data within a few hours, and product good scientific results in a reduced delay, therefore we may say that Whisper+CiGri+iRODS is a great success!
+\section{Conclusion}
+
+Despite the problems that have been solved or not, we are currently able to process terabytes of data within a few hours.
+
+Note also that the local data grid (iRODS+CiGri) and more generally the platform of Ciment as well as the OAR tools permit for the Whisper project  to produce significant new results for seismological community in a reduced delay.
+
+Lot of improvements that involve automatization of the processing, and also concerning the scientific workflow have constantly been made.
+
+We may say that Whisper+CiGri+iRODS is a great success!
+
 
 \begin{thebibliography}{9}
 
@@ -570,16 +572,27 @@ P Bou\'e, P Poli, M Campillo, H Pedersen, X Briand, P Roux,
 Teleseismic correlations of ambient seismic noise for deep global imaging of the Earth.
 {\em Geophysical Journal International 194 (2), 844-848.}
 
+
+\bibitem{key:CDGHMMNR}
+Nicolas Capit, Georges Da Costa, Yiannis Georgiou, Guillaume Huard, Cyrille Martin, Gr\'egory Mouni\'e, Pierre Neyron, Olivier Richard,
+A batch scheduler with high level components.
+{\em Cluster computing and Grid 2005 (CCGrid05), Cardiff, Royaume-Uni, 2005.}
+
 \bibitem{key:CFLC2010}
 JH Chen, B Froment, QY Liu, M Campillo.
 Distribution of seismic wave speed changes associated with the 12 May 2008 Mw 7.9 Wenchuan earthquake.
 {\em Geophysical Research Letters 37 (18).}
 
-\bibitem{key:CCQSC}
- Gen-Tao Chiang, Peter Clapham, Guoying Qi, Kevin Sale and Guy Coates,
- Implementing a genomic data management system using iRODS in the Wellcome Trust Sanger Institute.
+\bibitem{key:CCQSC2005}
+Gen-Tao Chiang, Peter Clapham, Guoying Qi, Kevin Sale and Guy Coates,
+Implementing a genomic data management system using iRODS in the Wellcome Trust Sanger Institute.
 {\em BMC Bioinformatics,12(1):361+, September 2011.}
 
+\bibitem{key:CHR2009}
+Beno\^it Claudel, Guillaume Huard, Olivier Richard,
+TakTuk, Adaptive Deployment of Remote Executions.
+{\em Proceedings of the International Symposium on High Performance Distributed Computing (HPDC) (2009) 91-100.}
+ 
 \bibitem{key:HCM2014}
 G. Hillers, M. Campillo, K.-F. Ma.
 Seismic velocity variations at TCDP are controlled by MJO driven precipitation pattern and high fluid discharge properties.

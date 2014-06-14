@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-1.40.10 (TeX Live 2009/Debian) (format=pdflatex 2011.11.4)  13 JUN 2014 16:46
+This is pdfTeX, Version 3.1415926-1.40.10 (TeX Live 2009/Debian) (format=pdflatex 2011.11.4)  14 JUN 2014 14:48
 entering extended mode
  %&-line parsing enabled.
 **Draft_BriandBzeznikIrodsUserMeeting2014.tex
@@ -198,16 +198,16 @@ LaTeX Font Info:    External font `cmex10' loaded for size
 LaTeX Font Info:    External font `cmex10' loaded for size
 (Font)              <5> on input line 20.
 LaTeX Font Info:    Font shape `T1/ptm/bx/n' in size <12> not available
-(Font)              Font shape `T1/ptm/b/n' tried instead on input line 24.
+(Font)              Font shape `T1/ptm/b/n' tried instead on input line 22.
 LaTeX Font Info:    Font shape `T1/ptm/bx/n' in size <10> not available
-(Font)              Font shape `T1/ptm/b/n' tried instead on input line 38.
-LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <7> on input line 98.
+(Font)              Font shape `T1/ptm/b/n' tried instead on input line 34.
 
-Underfull \hbox (badness 10000) in paragraph at lines 116--121
+Underfull \hbox (badness 10000) in paragraph at lines 31--35
 
  []
 
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <7> on input line 94.
 [1
 
 {/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}]
@@ -220,12 +220,15 @@ File: briandPosterAGU2013GimpProcessing.png Graphic file (type png)
 
 <use briandPosterAGU2013GimpProcessing.png> [2 <./schemaCorrelationStep.png (PN
 G copy)> <./briandPosterAGU2013GimpProcessing.png (PNG copy)>]
-Underfull \hbox (badness 10000) in paragraph at lines 231--234
+Underfull \hbox (badness 10000) in paragraph at lines 224--227
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 238--240
+LaTeX Warning: Citation `key:CCQSC' on page 3 undefined on input line 231.
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 231--233
 
  []
 
@@ -239,7 +242,7 @@ File: schemaCimentStorageSupercomputers.png Graphic file (type png)
 <use schemaCimentStorageSupercomputers.png>
 
 Package multicol Warning: I moved some lines to the next page.
-(multicol)                Footnotes on page 3 might be wrong on input line 257.
+(multicol)                Footnotes on page 3 might be wrong on input line 250.
 
 
 [3 <./schemaCimentStorageNodesIcat.png> <./schemaCimentStorageSupercomputers.pn
@@ -253,12 +256,12 @@ File: schemaCimentStorageStatus.png Graphic file (type png)
 <use schemaCimentStorageStatus.png>
 
 Package multicol Warning: I moved some lines to the next page.
-(multicol)                Footnotes on page 4 might be wrong on input line 309.
+(multicol)                Footnotes on page 4 might be wrong on input line 299.
 
 
 [4 <./schemaNodeStorageCiment.png> <./schemaCimentStorageStatus.png (PNG copy)>
 ] [5]
-Overfull \hbox (11.80075pt too wide) in paragraph at lines 451--452
+Overfull \hbox (11.80075pt too wide) in paragraph at lines 444--445
 [][][][][][][][] 
  []
 
@@ -266,35 +269,38 @@ Overfull \hbox (11.80075pt too wide) in paragraph at lines 451--452
 File: JapanVelocity.png Graphic file (type png)
 
 <use JapanVelocity.png>
-Underfull \hbox (badness 10000) in paragraph at lines 550--558
+Underfull \hbox (badness 10000) in paragraph at lines 543--551
 
  []
 
-LaTeX Font Info:    Try loading font information for OMS+ptm on input line 559.
+LaTeX Font Info:    Try loading font information for OMS+ptm on input line 552.
 
 (/usr/share/texmf-texlive/tex/latex/psnfss/omsptm.fd
 File: omsptm.fd 
 )
 LaTeX Font Info:    Font shape `OMS/ptm/m/n' in size <10> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 559.
- [7 <./JapanVelocity.png>] [8] (./Draft_BriandBzeznikIrodsUserMeeting2014.aux) 
-) 
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 552.
+ [7 <./JapanVelocity.png>] [8] (./Draft_BriandBzeznikIrodsUserMeeting2014.aux)
+
+LaTeX Warning: There were undefined references.
+
+ ) 
 Here is how much of TeX's memory you used:
- 3446 strings out of 493848
- 50992 string characters out of 1152823
- 133286 words of memory out of 3000000
- 6715 multiletter control sequences out of 15000+50000
+ 3449 strings out of 493848
+ 51034 string characters out of 1152823
+ 133292 words of memory out of 3000000
+ 6718 multiletter control sequences out of 15000+50000
  35860 words of font info for 44 fonts, out of 3000000 for 9000
  714 hyphenation exceptions out of 8191
- 36i,17n,38p,1668b,1509s stack positions out of 5000i,500n,10000p,200000b,50000s
-{/usr/share/texmf-texlive/fonts/enc/dvips/base/8r.enc}</usr/share/texmf-texliv
-e/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texmf-texlive/fonts/typ
-e1/public/amsfonts/cm/cmsy6.pfb></usr/share/texmf-texlive/fonts/type1/public/am
-sfonts/cm/cmsy7.pfb></usr/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cm
-sy8.pfb></usr/share/texmf-texlive/fonts/type1/urw/times/utmb8a.pfb></usr/share/
-texmf-texlive/fonts/type1/urw/times/utmr8a.pfb></usr/share/texmf-texlive/fonts/
-type1/urw/times/utmri8a.pfb>
-Output written on Draft_BriandBzeznikIrodsUserMeeting2014.pdf (8 pages, 602337 
+ 36i,17n,38p,1668b,1506s stack positions out of 5000i,500n,10000p,200000b,50000s
+{/usr/share/texmf-texlive/fonts/enc/dvips/base/8r.enc}</usr/share/texmf-texli
+ve/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texmf-texlive/fonts/ty
+pe1/public/amsfonts/cm/cmsy6.pfb></usr/share/texmf-texlive/fonts/type1/public/a
+msfonts/cm/cmsy7.pfb></usr/share/texmf-texlive/fonts/type1/public/amsfonts/cm/c
+msy8.pfb></usr/share/texmf-texlive/fonts/type1/urw/times/utmb8a.pfb></usr/share
+/texmf-texlive/fonts/type1/urw/times/utmr8a.pfb></usr/share/texmf-texlive/fonts
+/type1/urw/times/utmri8a.pfb>
+Output written on Draft_BriandBzeznikIrodsUserMeeting2014.pdf (8 pages, 603855 
 bytes).
 PDF statistics:
  70 PDF objects out of 1000 (max. 8388607)
