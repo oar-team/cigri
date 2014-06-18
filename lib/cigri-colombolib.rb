@@ -504,8 +504,30 @@ module Cigri
     #
     def notify_log_events!(im_handlers)
       events=@events.records.select{|event| event.props[:notified] == "f" and event.props[:class]=="log"}
-      COLOMBOLIBLOGGER.debug("Notifying #{events.length} log events") if events.length > 0
+      max=30
+      if events.length > max
+        COLOMBOLIBLOGGER.warn("Too many log events (#{events.length}). Notifying only the #{max} first.")
+        message_props={
+                        :subject => "Too many log events!" ,
+                        :message => "Too many log events! Notifying only the first #{max}.",
+                        :admin => true,
+                        :severity => "high"
+                      }
+        message=Cigri::Message.new(message_props,im_handlers)
+        begin
+          message.send
+        rescue => e
+          COLOMBOLIBLOGGER.error("Error sending notification: #{e.message} #{e.backtrace}")
+        end
+      else
+        COLOMBOLIBLOGGER.debug("Notifying #{events.length} log events") if events.length > 0
+      end
+      count=0
       events.each do |event|
+        count+=1
+        if count >= max
+          break
+        end
         message_props={
                         :subject => "New log event ##{event.id}: #{event.props[:code]}" ,
                         :message => event.props[:message],
