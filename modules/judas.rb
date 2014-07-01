@@ -75,8 +75,10 @@ end
 
 # Notify function
 def notify(im_handlers)
-  # Notify all open events
-  events=Cigri::Eventset.new(:where => "state='open' and notified=false")
+  # Notify all open events (excepted internals)
+  events=Cigri::Eventset.new(:where => "state='open' and notified=false and code !='RESUBMIT'
+                                                                        and code !='RESUBMIT_END'
+                                       ")
   Cigri::Colombo.new(events).notify(im_handlers)
 
   # Notify events of the class notify (events created closed, just for notification)

@@ -30,6 +30,9 @@ begin
   Signal.trap(signal){ 
     #cleanup!
     logger.warn('Interruption caught: exiting.')
+    Cigri::Event.new(:class => "log", :code => "ALMIGHTY_TERMINATING", :state => "closed", :message => "Cigri is terminating!")
+    Process.kill("USR1",judas_pid)
+    sleep(3)
     # Reset trap on childs
     trap("CHLD") {
       # do nothing
@@ -136,6 +139,11 @@ begin
          'updator' => "#{File.dirname(__FILE__)}/updator.rb",
          'nikita' => "#{File.dirname(__FILE__)}/nikita.rb",
   }
+
+
+  Cigri::Event.new(:class => "log", :code => "ALMIGHTY_STARTING", :state => "closed", :message => "Cigri is starting.")
+  sleep(3)
+  Process.kill("USR1",judas_pid)
 
   #Main almighty loop executing modules sequentially
   while true do

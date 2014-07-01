@@ -37,6 +37,8 @@ begin
   
   logger.debug('Starting')
 
+  have_to_notify=false
+
   ## 
   # Check for finished campaigns
   ## 
@@ -92,6 +94,7 @@ begin
   end
   if Time.now.to_i - last_grid_usage_entry_date.to_i > GRID_USAGE_UPDATE_PERIOD
    logger.debug("updating grid_usage")
+    have_to_notify=true
     begin
       cigri_jobs=Cigri::Jobset.new
       cigri_jobs.get_running
@@ -159,7 +162,6 @@ begin
   # Update clusters stress factors
   ## 
   logger.debug("updating stress_factors")
-  have_to_notify=false
   Cigri::ClusterSet.new.each do |cluster|
     if not cluster.blacklisted?
       stress_factor=cluster.get_global_stress_factor
