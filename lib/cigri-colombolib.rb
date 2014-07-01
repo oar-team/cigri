@@ -515,6 +515,12 @@ module Cigri
           COLOMBOLIBLOGGER.error("Error sending notification: #{e.message} #{e.backtrace}")
         end
       end # events
+      # Mark all events as notified
+      if count==max
+        events.each do |event|
+          event.notified!
+        end
+      end
     end
 
     ## Notify log events
@@ -570,13 +576,19 @@ module Cigri
           COLOMBOLIBLOGGER.error("Error sending notification: #{e.message} #{e.backtrace}")
         end
       end
+      # Mark all events as notified
+      if count==max
+        events.each do |event|
+          event.notified!
+        end
+      end
     end
 
     # Some events should never be notified (internal events)
     # This methods removes such events from the @events array.
     def remove_not_to_be_notified_events!
       @events.each do |event|
-        if ["RESUBMIT","RESUBMIT_END","FRAG"].include?(event.props[:code])
+        if ["RESUBMIT","RESUBMIT_END","FRAG","QUEUED_FOR_TOO_LONG"].include?(event.props[:code])
           @events.records.delete(event)
         end
       end
