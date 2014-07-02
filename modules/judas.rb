@@ -45,24 +45,29 @@ im_handlers={}
 if XMPPLIB
   # Xmpp connexion
   if config.exists?("NOTIFICATIONS_XMPP_SERVER")
-    begin
-      jid = Jabber::JID.new(config.get("NOTIFICATIONS_XMPP_IDENTITY"))
-      im_handlers[:xmpp] = Jabber::Client.new(jid)
-      im_handlers[:xmpp].connect(config.get("NOTIFICATIONS_XMPP_SERVER"),config.get("NOTIFICATIONS_XMPP_PORT",5222).to_i)
-      im_handlers[:xmpp].auth(config.get("NOTIFICATIONS_XMPP_PASSWORD"))
-      im_handlers[:xmpp].send(Jabber::Presence.new.set_show(nil).set_status('I am the grid!'))
+    def xmpp_connect(client,config)
+      return true if client.is_connected?
+      client.connect(config.get("NOTIFICATIONS_XMPP_SERVER"),config.get("NOTIFICATIONS_XMPP_PORT",5222).to_i)
+      client.auth(config.get("NOTIFICATIONS_XMPP_PASSWORD"))
+      client.send(Jabber::Presence.new.set_show(nil).set_status('I am the grid!'))
       # add the callback to respond to server ping
-      im_handlers[:xmpp].add_iq_callback do |iq_received|
+      client.add_iq_callback do |iq_received|
         if iq_received.type == :get
           if iq_received.queryns.to_s != 'http://jabber.org/protocol/disco#info'
             iq = Jabber::Iq.new(:result, client.jid.node)
             iq.id = iq_received.id
             iq.from = iq_received.to
             iq.to = iq_received.from
-            im_handlers[:xmpp].send(iq)
+            client.send(iq)
           end
         end
       end
+      client.on_exception { sleep 2; xmpp_connect }
+    end
+    jid = Jabber::JID.new(config.get("NOTIFICATIONS_XMPP_IDENTITY"))
+    im_handlers[:xmpp] = Jabber::Client.new(jid)
+    begin
+      xmpp_connect(im_handlers[:xmpp],config)
     rescue => e
       logger.error("Could not connect to XMPP server, notifications disabled: #{e.inspect}\n#{e.backtrace}")
       im_handlers[:xmpp]=nil
