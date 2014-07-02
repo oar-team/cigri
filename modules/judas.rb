@@ -45,7 +45,7 @@ im_handlers={}
 if XMPPLIB
   # Xmpp connexion
   if config.exists?("NOTIFICATIONS_XMPP_SERVER")
-    def xmpp_connect(client,config)
+    def xmpp_connect(client,config,logger)
       return true if client.is_connected?
       client.connect(config.get("NOTIFICATIONS_XMPP_SERVER"),config.get("NOTIFICATIONS_XMPP_PORT",5222).to_i)
       client.auth(config.get("NOTIFICATIONS_XMPP_PASSWORD"))
@@ -62,12 +62,16 @@ if XMPPLIB
           end
         end
       end
-      client.on_exception { sleep 2; xmpp_connect }
+      client.on_exception do |e|
+        logger.warn("XMPP deconnected (#{e.message}). Trying to re-connect")
+        sleep 5
+        xmpp_connect(client,config,logger)
+      end
     end
     jid = Jabber::JID.new(config.get("NOTIFICATIONS_XMPP_IDENTITY"))
     im_handlers[:xmpp] = Jabber::Client.new(jid)
     begin
-      xmpp_connect(im_handlers[:xmpp],config)
+      xmpp_connect(im_handlers[:xmpp],config,logger)
     rescue => e
       logger.error("Could not connect to XMPP server, notifications disabled: #{e.inspect}\n#{e.backtrace}")
       im_handlers[:xmpp]=nil
