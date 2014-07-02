@@ -64,7 +64,9 @@ if XMPPLIB
       end
       client.on_exception do |e|
         logger.warn("XMPP deconnected (#{e.message}). Trying to re-connect")
-        sleep 5
+        sleep 3
+        client.close
+        sleep 2
         xmpp_connect(client,config,logger)
       end
     end
