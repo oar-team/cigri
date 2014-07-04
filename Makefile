@@ -17,6 +17,7 @@ WWWGROUP=www-data
 CIGRIUSER=cigri
 CIGRIGROUP=cigri
 APIBASE=/cigri-api
+PIDDIR=/var/run/cigri
 USERCMDS=$(patsubst bin/%.rb,%,$(wildcard bin/*.rb))
 
 SPEC_OPTS=--colour --format nested -u
@@ -94,6 +95,8 @@ install-cigri-user-config:
 	chown $(CIGRIUSER) $(DESTDIR)$(CIGRICONFDIR)/api-clients.conf
 
 install-cigri-launcher:
+	install -d -m 0755 $(DESTDIR)$(PIDDIR)
+	chown $(CIGRIUSER) $(DESTDIR)$(PIDDIR)
 	install -d -m 0755 $(DESTDIR)$(CIGRIDIR)
 	install -m 0755 sbin/cigri_start.in $(DESTDIR)/etc/init.d/cigri
 	perl -pi -e "s#%%CIGRIDIR%%#$(CIGRIDIR)#g;;\

@@ -11,7 +11,7 @@ require 'cigri-colombolib'
 config = Cigri.conf
 logger = Cigri::Logger.new("JUDAS #{ARGV[0]}", config.get('LOG_FILE'))
 
-$0 = "Cigri: judas #{ARGV[0]}"
+$0 = "cigri: judas #{ARGV[0]}"
 
 begin
   require 'net/smtp'

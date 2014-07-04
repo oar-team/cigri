@@ -7,6 +7,10 @@ require 'cigri-colombolib'
 
 $0='cigri: almighty'
 
+File.open("/var/run/cigri/almighty.pid", "w") do |f|
+  f.write $$
+end
+
 sleeptime=10
 child_timeout=300
 
