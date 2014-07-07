@@ -146,6 +146,26 @@ class API < Sinatra::Base
     print(output)
   end
 
+  # Abort a running job
+  delete '/jobs/:id' do |id|
+    response['Allow'] = 'GET'
+    begin
+      job=Cigri::Job.new(:id=>id)
+      db_connect() do |dbh|
+        check_rights!(dbh,request.env[settings.username_variable],job.props[:campaign_id])
+      end
+      rescue Cigri::NotFound
+        not_found
+      rescue Cigri::Unauthorized => e
+        halt 403, print({:status => 403, :title => "Forbidden", :message => e.message})
+      rescue Exception => e
+        halt 400, print({:status => 400, :title => "Error", :message => "Error canceling job #{id}: #{e}"})
+    end
+    Cigri::Event.new({:code => "USER_FRAG", :job_id => id, :class => "job", :message => "User request to cancel the job #{id}"})
+    status 202
+    print({:status => 202, :title => :Accepted, :message => "Job #{id} cancel event created"})
+  end
+
   # Get infos about a unitary job
   get '/jobs/:id' do |id|
     response['Allow'] = 'GET'

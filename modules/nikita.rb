@@ -13,7 +13,7 @@ $0='cigri: nikita'
 begin
   config = Cigri.conf
   logfile = config.get('LOG_FILE',"STDOUT")
-  logger = Cigri::Logger.new('NIKITA', logfile)
+  $logger = Cigri::Logger.new('NIKITA', logfile)
 
   if logfile != "STDOUT" && logfile != "STDERR"
     $stdout.reopen(logfile, "a")
@@ -23,12 +23,46 @@ begin
   %w{INT TERM}.each do |signal|
     Signal.trap(signal){ 
       #cleanup!
-      logger.warn('Interruption caught: exiting.')
+      $logger.warn('Interruption caught: exiting.')
       exit(1)
     }
   end
   
-  logger.debug('Starting')
+  # Kill function
+  def kill(job,event)
+      state=job.props[:state]
+
+      # Kill running or waiting jobs
+      if state == "running" or state == "remote_waiting"
+        $logger.debug("Killing job #{job.id}")
+        job_event=Cigri::Event.new({:class => "job", 
+                          :job_id => job.id, 
+                          :code => event.props[:code],
+                          :state => "closed",
+                          :message => "Nikita requested to kill the job because of a #{event.props[:code]} event"})
+        job.update({:state => "event"})
+        job_event.close
+        begin
+          job.kill
+          return true
+        rescue => e
+          $logger.warn("Could not kill job #{job.id}")
+          $logger.debug("Error while killing #{job.id}: #{e}")
+        end
+
+      # Remove to_launch jobs
+      elsif state == "to_launch"
+        job.delete
+        return true
+
+      # Do nothing for launching jobs, but warn as we must wait
+      elsif state == "launching"
+        $logger.warn("The job #{job.id} is in the launching state. We have to wait.")
+        return false
+      end
+  end
+
+  $logger.debug('Starting')
 
   # Check for campaigns to kill
   events=Cigri::Eventset.new({:where => "class='campaign' and code='USER_FRAG' and state='open'"})
@@ -42,34 +76,8 @@ begin
     # Treat the other jobs
     jobs=Cigri::Jobset.new({:where => "jobs.campaign_id=#{event.props[:campaign_id]} and jobs.state != 'event'"})
     jobs.each do |job|
-      state=job.props[:state]
-
-      # Kill running or waiting jobs
-      if state == "running" or state == "remote_waiting"
-        logger.debug("Killing job #{job.id}")
-        job_event=Cigri::Event.new({:class => "job", 
-                          :job_id => job.id, 
-                          :code => "USER_FRAG",
-                          :state => "closed",
-                          :message => "Nikita requested to kill the job because of a USER_FRAG event on campaign #{event.props[:campaign_id]}"})
-        job.update({:state => "event"})
-        job_event.close
-        begin
-          job.kill
-        rescue => e
-          logger.warn("Could not kill job #{job.id}")
-          logger.debug("Error while killing #{job.id}: #{e}")
-        end
-
-      # Remove to_launch jobs
-      elsif state == "to_launch"
-        job.delete
-
-      # Do nothing for launching jobs, but warn as we must wait
-      elsif state == "launching"
-        logger.warn("The job #{job.id} is in the launching state. We have to wait.")
-        can_close=false
-      end
+      r=kill(job,event)
+      can_close=false if not r
     end
     if can_close
       event.close
@@ -77,8 +85,16 @@ begin
   end
 
   # Check for unitary jobs to kill
-  # TODO
-
+  events=Cigri::Eventset.new({:where => "class='job' and code='USER_FRAG' and state='open'"})
+  events.each do |event|
+    can_close=true
+    job_events=Cigri::Eventset.new({:where => "class='job' and job_id=#{event.props[:job_id]} and state='open' and not code='USER_FRAG'"})
+    job_events.update({:state => 'closed'}) if job_events.length > 0
+    jobs=Cigri::Jobset.new(:where => "jobs.id=#{event.props[:job_id]}")
+    r=kill(jobs.records[0],event)
+    event.close if r
+  end
+    
   # Check for jobs in remotewaiting for too long
   remote_waiting_timeout=config.get("REMOTE_WAITING_TIMEOUT",900)
   jobs=Cigri::Jobset.new({:where => "jobs.state='remote_waiting' and extract('epoch' from now()) - extract('epoch' from jobs.submission_time) > #{remote_waiting_timeout}"})
@@ -99,8 +115,8 @@ begin
         job.decrease_affinity
       end
     rescue => e
-      logger.warn("Could not kill job #{job.id}")
-      logger.debug("Error while killing #{job.id}: #{e}")
+      $logger.warn("Could not kill job #{job.id}")
+      $logger.debug("Error while killing #{job.id}: #{e}")
     end
   end
 
@@ -124,5 +140,7 @@ begin
   end
 
 
-  logger.debug('Exiting')
+  $logger.debug('Exiting')
 end
+
+
