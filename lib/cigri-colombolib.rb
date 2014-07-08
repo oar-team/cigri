@@ -188,6 +188,7 @@ module Cigri
           # Automatic resubmit when the job was killed
           if type == "EXTERMINATE" or type == "WALLTIME" or type == "BESTEFFORT_KILL"
             resubmit=true
+            job.decrease_affinity if type == "WALLTIME" # try another cluster
             break
           # Automatic resubmit when the job is FRAGGED except if the frag was made by Nikita
           # as it should be already re-submitted
@@ -296,6 +297,7 @@ module Cigri
                          :message => "The job exited with an unknown error. Job events: #{cluster_job["events"].inspect}")
       end
       job.update({:state => 'event'})
+      job.decrease_affinity
     end
 
     # Check the jobs and return true when there's a blacklisting
