@@ -140,7 +140,7 @@ end
 # Returns the SQL form of a unix timestamp (integer or Time object)
 #
 def to_sql_timestamp(timestamp)
-  return "TIMESTAMP 'epoch' + #{timestamp.to_i} * INTERVAL '1 second'"
+  return "TIMESTAMP WITH TIME ZONE 'epoch' + #{timestamp.to_i} * INTERVAL '1 second'"
 end
 
 ## 
