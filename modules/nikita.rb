@@ -94,7 +94,31 @@ begin
     r=kill(jobs.records[0],event)
     event.close if r
   end
-    
+  
+  # Check for expired walltime
+  jobs=Cigri::Jobset.new
+  jobs.get_expired
+  jobs.to_jobs
+  Cigri::ClusterSet.new.each do |cluster|
+    jobs.remove_blacklisted(cluster.id)
+  end
+  jobs.each do |job|
+    $logger.debug("Killing job #{job.id} because of walltime")
+    job_event=Cigri::Event.new({:class => "job",
+                          :job_id => job.id,
+                          :campaign_id => job.props[:campaign_id],
+                          :code => "CIGRI_WALLTIME",
+                          :state => "open",
+                          :message => "Cigri sent kill signal to job #{job.id} because it has reached the walltime and OAR doesn't seem to care"})
+    job.update({:state => "event"})
+    begin
+      job.kill
+    rescue => e
+      $logger.warn("Could not kill job #{job.id}")
+      $logger.debug("Error while killing #{job.id}: #{e}")
+    end
+  end
+  
   # Check for jobs in remotewaiting for too long
   remote_waiting_timeout=config.get("REMOTE_WAITING_TIMEOUT",900)
   jobs=Cigri::Jobset.new({:where => "jobs.state='remote_waiting' and extract('epoch' from now()) - extract('epoch' from jobs.submission_time) > #{remote_waiting_timeout}"})

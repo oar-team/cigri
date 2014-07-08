@@ -165,7 +165,7 @@ module Cigri
     # Creates the new jobset
     def initialize(props={})
       @fields="jobs.id as id, parameters.param as param, campaigns.grid_user as grid_user,
-               jobs.campaign_id as campaign_id, param_id, batch_id, cluster_id, 
+               jobs.campaign_id as campaign_id, param_id, batch_id, jobs.cluster_id, 
                collect_id, jobs.state as state, return_code, 
                jobs.submission_time as submission_time, start_time, 
                stop_time, node_name, resources_used, remote_id, tag, runner_options"
@@ -222,6 +222,19 @@ module Cigri
                       and #{@join}
                       and cluster_id=#{cluster_id}"))
     end
+
+   # Get running jobs with expired walltime (walltime + 30 minutes)
+   # Those jobs should not be running as they should already be killed by OAR
+   def get_expired
+     fill(get("jobs,parameters,campaigns,campaign_properties",@fields,"
+               jobs.state='running' 
+               AND jobs.campaign_id=campaign_properties.campaign_id
+               AND jobs.cluster_id=campaign_properties.cluster_id
+               AND campaign_properties.name='walltime'
+               AND campaign_properties.value::INTERVAL + '0:30:00' < (now()-jobs.start_time)::TIME
+               AND #{@join}"))
+   end
+    
 
    # Get the ids (array) of all campaigns from this jobset
     def campaigns

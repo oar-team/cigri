@@ -188,7 +188,11 @@ module Cigri
           # Automatic resubmit when the job was killed
           if type == "EXTERMINATE" or type == "WALLTIME" or type == "BESTEFFORT_KILL"
             resubmit=true
-            job.decrease_affinity if type == "WALLTIME" # try another cluster
+            if type == "WALLTIME"
+              Cigri::Event.new(:class => 'notify', :state => 'closed', :campaign_id => job.props[:campaign_id],
+                       :code => "WALLTIME_WARNING", :message => "Job #{job.id} has been resubmited with modified affinity because of walltime reached")
+              job.decrease_affinity if type == "WALLTIME" # This increase the possibility to try another cluster
+            end
             break
           # Automatic resubmit when the job is FRAGGED except if the frag was made by Nikita
           # as it should be already re-submitted
@@ -319,6 +323,12 @@ module Cigri
             job.resubmit
           end 
           event.close
+ 
+        # Treat job events that do not cause a blacklist
+        elsif ( event.props[:class] == "job" and
+                  event.props[:checked] == "no" and
+                  event.props[:code] == "CIGRI_WALLTIME" )
+          event.checked
 
         # Treat other errors (blacklist cluster for campaign)
         elsif ( event.props[:class] == "job" and 
@@ -486,7 +496,7 @@ module Cigri
         if ["FINISHED_CAMPAIGN","NEW_CAMPAIGN"].include?(event.props[:code])
           message_props[:severity]="low"
         #   Temporary or such events
-        elsif ["TIMEOUT","CONNECTION_REFUSED","CONNECTION_RESET","SSL_ERROR","UNDER_STRESS"].include?(event.props[:code])
+        elsif ["TIMEOUT","CONNECTION_REFUSED","CONNECTION_RESET","SSL_ERROR","UNDER_STRESS","WALLTIME_WARNING"].include?(event.props[:code])
           message_props[:severity]="medium"
         #   Fatal events (lead to a blacklist until manually fixed)
         else
