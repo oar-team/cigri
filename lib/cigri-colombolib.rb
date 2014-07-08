@@ -493,7 +493,7 @@ module Cigri
                       }
         # Classifying severity
         #   Informational events
-        if ["FINISHED_CAMPAIGN","NEW_CAMPAIGN"].include?(event.props[:code])
+        if ["NEW_CAMPAIGN"].include?(event.props[:code])
           message_props[:severity]="low"
         #   Temporary or such events
         elsif ["TIMEOUT","CONNECTION_REFUSED","CONNECTION_RESET","SSL_ERROR","UNDER_STRESS","WALLTIME_WARNING"].include?(event.props[:code])
@@ -574,7 +574,7 @@ module Cigri
                         :admin => true
                       }
         # Classifying severity
-        if ["RUNNER_FAILED"].include?(event.props[:code])
+        if ["RUNNER_FAILED","ALMIGHTY_TERMINATING","ALMIGHTY_STARTING","JUDAS_FAILED"].include?(event.props[:code])
           message_props[:severity]="high"
         else
           message_props[:severity]="low"
