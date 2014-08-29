@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-1.40.10 (TeX Live 2009/Debian) (format=pdflatex 2011.11.4)  29 AUG 2014 14:05
+This is pdfTeX, Version 3.1415926-1.40.10 (TeX Live 2009/Debian) (format=pdflatex 2011.11.4)  29 AUG 2014 14:10
 entering extended mode
  %&-line parsing enabled.
 **Draft_BriandBzeznikIrodsUserMeeting2014.tex
@@ -188,29 +188,29 @@ Package caption Info: listings package is loaded.
 Package caption Info: End \AtBeginDocument code.
 \c@lstlisting=\count110
 LaTeX Font Info:    Font shape `T1/ptm/bx/n' in size <14.4> not available
-(Font)              Font shape `T1/ptm/b/n' tried instead on input line 22.
+(Font)              Font shape `T1/ptm/b/n' tried instead on input line 21.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <12> on input line 22.
+(Font)              <12> on input line 21.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <8> on input line 22.
+(Font)              <8> on input line 21.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <6> on input line 22.
+(Font)              <6> on input line 21.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <5> on input line 22.
+(Font)              <5> on input line 21.
 LaTeX Font Info:    Font shape `T1/ptm/bx/n' in size <12> not available
-(Font)              Font shape `T1/ptm/b/n' tried instead on input line 24.
+(Font)              Font shape `T1/ptm/b/n' tried instead on input line 23.
 LaTeX Font Info:    Font shape `T1/ptm/bx/n' in size <10> not available
-(Font)              Font shape `T1/ptm/b/n' tried instead on input line 36.
+(Font)              Font shape `T1/ptm/b/n' tried instead on input line 35.
 
-Underfull \hbox (badness 10000) in paragraph at lines 33--37
+Underfull \hbox (badness 10000) in paragraph at lines 32--36
 
  []
 
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <7> on input line 96.
+(Font)              <7> on input line 95.
 
 Package multicol Warning: I moved some lines to the next page.
-(multicol)                Footnotes on page 1 might be wrong on input line 147.
+(multicol)                Footnotes on page 1 might be wrong on input line 146.
 
 
 [1
@@ -225,15 +225,15 @@ File: briandPosterAGU2013GimpProcessing.png Graphic file (type png)
 
 <use briandPosterAGU2013GimpProcessing.png> [2 <./schemaCorrelationStep.png (PN
 G copy)> <./briandPosterAGU2013GimpProcessing.png (PNG copy)>]
-Underfull \hbox (badness 10000) in paragraph at lines 226--229
+Underfull \hbox (badness 10000) in paragraph at lines 225--228
 
  []
 
 
-LaTeX Warning: Citation `key:CCQSC' on page 3 undefined on input line 233.
+LaTeX Warning: Citation `key:CCQSC' on page 3 undefined on input line 232.
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 233--235
+Underfull \hbox (badness 10000) in paragraph at lines 232--234
 
  []
 
@@ -247,7 +247,7 @@ File: schemaCimentStorageSupercomputers.png Graphic file (type png)
 <use schemaCimentStorageSupercomputers.png>
 
 Package multicol Warning: I moved some lines to the next page.
-(multicol)                Footnotes on page 3 might be wrong on input line 252.
+(multicol)                Footnotes on page 3 might be wrong on input line 251.
 
 
 [3 <./schemaCimentStorageNodesIcat.png> <./schemaCimentStorageSupercomputers.pn
@@ -261,12 +261,12 @@ File: schemaCimentStorageStatus.png Graphic file (type png)
 <use schemaCimentStorageStatus.png>
 
 Package multicol Warning: I moved some lines to the next page.
-(multicol)                Footnotes on page 4 might be wrong on input line 301.
+(multicol)                Footnotes on page 4 might be wrong on input line 300.
 
 
 [4 <./schemaNodeStorageCiment.png> <./schemaCimentStorageStatus.png (PNG copy)>
 ] [5]
-Overfull \hbox (11.80075pt too wide) in paragraph at lines 446--447
+Overfull \hbox (11.80075pt too wide) in paragraph at lines 445--446
 [][][][][][][][] 
  []
 
@@ -274,18 +274,18 @@ Overfull \hbox (11.80075pt too wide) in paragraph at lines 446--447
 File: JapanVelocity.png Graphic file (type png)
 
 <use JapanVelocity.png>
-Underfull \hbox (badness 10000) in paragraph at lines 545--555
+Underfull \hbox (badness 10000) in paragraph at lines 544--554
 
  []
 
 [7 <./JapanVelocity.png>]
-LaTeX Font Info:    Try loading font information for OMS+ptm on input line 556.
+LaTeX Font Info:    Try loading font information for OMS+ptm on input line 555.
 
  (/usr/share/texmf-texlive/tex/latex/psnfss/omsptm.fd
 File: omsptm.fd 
 )
 LaTeX Font Info:    Font shape `OMS/ptm/m/n' in size <10> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 556.
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 555.
 [8] [9] (./Draft_BriandBzeznikIrodsUserMeeting2014.aux)
 
 LaTeX Warning: There were undefined references.
