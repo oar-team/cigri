@@ -13,7 +13,9 @@
 \begin{document}
 \long\def\/*#1*/{}
 \date{}%{\today}
-\title{\huge{DRAFT} \\ ~\\ \Large\bf Data Intensive processing with iRODS and the middleware CiGri for the Whisper project}
+%\title{\huge{DRAFT} \\ ~\\ \Large\bf Data Intensive processing with iRODS and the middleware CiGri for the Whisper project}
+\title{ ~\\ \Large\bf Data Intensive processing with iRODS and the middleware CiGri for the Whisper project}
+
 \author{\begin{tabular}[t]{c@{\extracolsep{8em}}c}
 	Briand Xavier\footnote{Cnrs, Isterre, Whisper, email xav.briand@gmail.com}  & Bzeznik Bruno\footnote{Ciment, Universit\'e Joseph Fourier, Technical header of Ciment} \\
 \end{tabular}}
@@ -31,7 +33,7 @@ distributed storage iRODS and the grid manager CiGri.
 This is the partnership between these two IT components that has enabled a data-intensive processing and, also,  permits to the Whisper project to bring new scientific results.
 }
 ~\\ \\
-{\bf Keywords}:  Data-Intensive, grid computing, distributed storage, Seismic Noise, Whisper, Cigri, Irods.
+{\bf Keywords}:  Data-Intensive, Grid computing, Distributed storage, Seismic Noise, Whisper, Cigri, Irods.
 
 
 
@@ -127,7 +129,7 @@ the technical support. But it also influences in terms of choice of appropriate 
 Even if this project has his own ressources, such a problem of data-intensive requires specific tools able to 
 organize distributed data management and acces to computational ressources: a data grid environment.
 
-The University of Grenoble offers, thanks to the High Performance Computing (HPC) centre \emph{Ciment}, this kind of environement with the distributed file system \emph{Irods}
+The University of Grenoble offers, thanks to the High Performance Computing (HPC) centre \emph{Ciment}, this kind of environement with the data management system \emph{Irods}
 and the middelware \emph{CiGri}.% (Ciment platform).
 
 It is thanks to the close collaboration between IT ressources of Whisper and the infrastrucrures of the University
@@ -256,7 +258,7 @@ Each node has currently 2 RAID arrays from 24 to 48 raw TB as illustrated at the
 \captionof{figure}{\label{schemaNodeStorageCiment} A storage node}
 \includegraphics[width=5cm]{schemaNodeStorageCiment.png}
 \end{center}
-iRODS nodes are running Debian GNU/Linux with Kanif \footnote{see http://taktuk.gforge.inria.fr/kanif/} for easy synchronisation of the system administration.
+iRODS nodes are running Debian GNU/Linux with Kanif \footnote{see http://taktuk.gforge.inria.fr/kanif/} \cite{key:CHR2009} for easy synchronisation of the system administration.
 CIMENT has set up a web interface where the user can easily check the status of the ressources (figure \ref{schemaCimentStorageStatus}).
 
 \begin{center}%[h]
@@ -329,7 +331,7 @@ Whisper is one of the projects that have made it possible to ensure that the sei
 This permits to carry out several scientific results including imaging and monitoring. 
 Concerning monitoring, further studies provide news results about sligth variations of seismics waves induce by earthquakes.
 Many articles are in part due to this project as well as
-several post-docs and PhD (see \cite{key:CFLC2010, key:BPCPBR, key:HCM2014, key:OPLC2013, key:PCP, key:MPPVCS}) and also whisper.obs.ujf-grenoble.fr, rubric publication).
+several post-docs and PhD (see \cite{key:CFLC2010, key:BPCPBR, key:HCM2014, key:OPLC2013, key:PCP, key:MPPVCS, key:RCRZCSKCCWD, key:RBCSP, key:BCTASBEM}) and also whisper.obs.ujf-grenoble.fr, rubric publication).
 
 
 Most of the time, on the computer part, the approach with researchers is as follows.
@@ -530,7 +532,7 @@ some transfers are carried out several times) whereas the 'iput' i-command corre
 
 
 We illustrate with the figure \ref{JapanVelocity}, one of the analysis of the correlations that represents an image
-of change of the velocity of seismic waves.
+of change of the velocity of seismic waves in Japan (the giant 2011 Tohoku earthquake, see \cite{key:BCTASBEM}).
 \begin{center}%[h]
 \centering
 \captionof{figure}{\label{JapanVelocity}}
@@ -540,7 +542,9 @@ of change of the velocity of seismic waves.
 
 \subsection{Infrastructure Ciment experiences}
 
-With the Whisper project, as with some few other projects, we had the opporunity to test and improve the CIMENT IT infrastructure for a data-intensive case. In this kind of projects, data management and input/output data flows are a big part of the process regarding the actual computing time for the analysis. With a grid of several thousands cpu-cores, such a project may act as a real distributed attack against our storage infrastructures! So, as a first consequence of the deployment of such computing jobs, we had to implement new "limiting" functionnalities into our infrastructure softwares or configurations. For example, CiGri is able to limit the number of submitted jobs for a given campaign on a given cluster if we know that the jobs concurrency can overload our Irods infrastructure. As another example, iRODS may be configured to limit the number of simultaneous connections. But in this case, the i-command returns with an error and the job may be aborted. There's a "--retry" optionnal argument, but with a high level of concurrency, it increases the load and may completely exhaust the servers with a ton of retry queries. We then developped a wrapper for the i-commands, called secure-i-commands that implements a retry on some specific error cases  with an incremental delay to prevent from flooding the irods servers. Of course, this can be improved as this leads to a waste of computing resources because they are reserved and not used while waiting. But this is at least a security improvement in case the highler level decision processes does not work as expected because of their high complexity.
+With the Whisper project, as with some few other projects, we had the opporunity to test and improve the CIMENT IT infrastructure for a data-intensive case. 
+Note also that the data-grid environment is used by many other scientifics projects such that research in Particle Physics \cite{key:BB} or genomics research \cite{key:MLBDJ}.
+For this kind of project, data management and input/output data flows are a big part of the process regarding the actual computing time for the analysis. With a grid of several thousands cpu-cores, such a project may act as a real distributed attack against our storage infrastructures! So, as a first consequence of the deployment of such computing jobs, we had to implement new "limiting" functionnalities into our infrastructure softwares or configurations. For example, CiGri is able to limit the number of submitted jobs for a given campaign on a given cluster if we know that the jobs concurrency can overload our Irods infrastructure. As another example, iRODS may be configured to limit the number of simultaneous connections. But in this case, the i-command returns with an error and the job may be aborted. There's a "--retry" optionnal argument, but with a high level of concurrency, it increases the load and may completely exhaust the servers with a ton of retry queries. We then developped a wrapper for the i-commands, called secure-i-commands that implements a retry on some specific error cases  with an incremental delay to prevent from flooding the irods servers. Of course, this can be improved as this leads to a waste of computing resources because they are reserved and not used while waiting. But this is at least a security improvement in case the highler level decision processes does not work as expected because of their high complexity.
 \\
 Regarding the iRODS choice, it was made on the features: we need a distributed file system suitable for a distributed and heterogeneous grid infrastructure composed of several supercomputers having gateways to reach each-other; and we need a unique namespace. We also need the sites to be independent of the others. It means that a site can be out of service, the data available in another site should still be available. The only case when the entire infrastructure is broken is when the centralized meta-catalog is not reachable. But this part of the infrastructure is located in a highly available datacenter and we may also implement a HA meta-catalog. As it is not posix compliant, iRODS allows more control for the admins and the users. For example, replication can be completely controlled. In our case, we do an automatic replication (staging) of the files when they are got from site A or B to site C, for network optimization. But the user may also want to replicate on every sites to get better performances with big jobs campaigns spread on every clusters of the grid. 
 Also better than a posix filesystem, the users can add custom meta-data to the files and collections allowing them to retrieve data by making some queries with an SQL-like syntax. 
@@ -563,14 +567,26 @@ Note also that the local data grid (iRODS+CiGri) and more generally the platform
 Lot of improvements that involve automatization of the processing, and also concerning the scientific workflow have constantly been made.
 We may say that Whisper+CiGri+iRODS is a great success!
 
+\section{Acknowledgements}
+We thanks Emmanuel Chaljub, the OAR team and the Ciment team as well as the Whisper project and the Verce project for all their  very useful support.
+
 
 \begin{thebibliography}{9}
 
+\bibitem{key:BB}
+C. Biscarat, B. Bzeznik.
+Synergy between the CIMENT tier-2 HPC centre and the HEP community at LPSC in Grenoble (France)
+{\em J. Phys.: Conf. Ser. 513 032008, 2014}
+    
 \bibitem{key:BPCPBR}
-P Bou\'e, P Poli, M Campillo, H Pedersen, X Briand, P Roux,
+P Bou\'e, P Poli, M Campillo, H Pedersen, X Briand, P Roux.
 Teleseismic correlations of ambient seismic noise for deep global imaging of the Earth.
 {\em Geophysical Journal International 194 (2), 844-848.}
 
+\bibitem{key:BCTASBEM}
+Brenguier, F., M. Campillo, T. Takeda, Y. Aoki, N. M. Shapiro, X. Briand, K. Emoto, H. Miyake (2014).
+Mapping pressurized volcanic fluids from induced crustal seismic velocity drops.
+{\em Science, 345, 80-82, 2014.}
 
 \bibitem{key:CDGHMMNR}
 Nicolas Capit, Georges Da Costa, Yiannis Georgiou, Guillaume Huard, Cyrille Martin, Gr\'egory Mouni\'e, Pierre Neyron, Olivier Richard,
@@ -588,7 +604,7 @@ Implementing a genomic data management system using iRODS in the Wellcome Trust 
 {\em BMC Bioinformatics,12(1):361+, September 2011.}
 
 \bibitem{key:CHR2009}
-Beno\^it Claudel, Guillaume Huard, Olivier Richard,
+Beno\^it Claudel, Guillaume Huard, Olivier Richard.
 TakTuk, Adaptive Deployment of Remote Executions.
 {\em Proceedings of the International Symposium on High Performance Distributed Computing (HPDC) (2009) 91-100.}
  
@@ -596,6 +612,16 @@ TakTuk, Adaptive Deployment of Remote Executions.
 G. Hillers, M. Campillo, K.-F. Ma.
 Seismic velocity variations at TCDP are controlled by MJO driven precipitation pattern and high fluid discharge properties.
 {\em Earth and Planetary Science Letters, Volume 391, 1 April 2014, Pages 121-127.}
+
+\bibitem{key:MPPVCS}
+Macquet M., Paul A., Pedersen H., Villase~nor A., Chevrot S., Sylvander M. and the PYROPE working group.
+Ambient noise tomography of the Pyrenees and surrounding regions : inversion for a 3-D Vs model in a very heterogeneous crust.
+{\em accepted in Geophysical Journal International.}
+
+\bibitem{key:MLBDJ}
+M\"unkem\"uller T., Lavergne S., Bzeznik B., Dray S., Jombart T.,
+Schiffers K., Thuiller W. 
+How to measure and test phylogenetic signal. Methods in Ecology and Evolution, 3: 743-756, 2012.
 
 \bibitem{key:OPLC2013}
 Obermann, A., T. Plan\`es, E. Larose, and M. Campillo.
@@ -607,10 +633,16 @@ P. Poli, M. Campillo H. A. Pedersen,
 Body-wave imaging of Earth's mantle discontinuities from ambient seismic noise.
 {\em Science 338 (6110), 1063-1065.}
 
-\bibitem{key:MPPVCS}
-Macquet M., Paul A., Pedersen H., Villase~nor A., Chevrot S., Sylvander M. and the PYROPE working group.
-Ambient noise tomography of the Pyrenees and surrounding regions : inversion for a 3-D Vs model in a very heterogeneous crust.
-{\em accepted in Geophysical Journal International.}
+\bibitem{key:RCRZCSKCCWD}
+D. Rivet, M. Campillo, M. Radiguet, D. Zigone, V. Cruz-Atienza, N. M. Shapiro, V. Kostoglodov, N. Cotte,
+G. Cougoulat, A. Walpersdorf and E. Daub
+Seismic velocity changes, strain rate and non-volcanic tremors during the 2009-2010 slow slip event in Guerrero, Mexico. 
+{\em Geophys. J. Int. 2014;196:447-460. }
+
+\bibitem{key:RBCSP}
+Rivet D., Brenguier F., Clarke D., Shapiro N.M., Peltier A. 
+Long-term dynamics of Piton de la Fournaise volcano from 13 years of seismic velocity changes measurements and GPS observation.
+{\em J. of Geophys. Res. 2014; submitted.} 
 
 \end{thebibliography}
 
