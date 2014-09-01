@@ -279,27 +279,28 @@ The access to 6600 cores of the clusters of the CIMENT platform is achieved thro
 CiGri launches embarrassingly parallel jobs on idle processors of every computing clusters and then optimizes the resources usage which are used for parallel jobs otherwise.
 
 Each cluster of the University of Grenoble uses the resource manager OAR. CiGri acts, among other things, as a metascheduler of OAR.
-It retrieves the clusters states trough OAR and submits the jobs on free resources without exhausting the local scheduling queues.
+It retrieves the clusters states trough the OAR RESTful API (figure \ref{schemaCigriArch}) and submits the jobs on free resources without exhausting the local scheduling queues.
 
 \begin{center}%[h]
 \centering
 \captionof{figure}{\label{schemaCigriArch} Cigri communications}
-\includegraphics[width=8cm]{cigri_arch.png}
+\includegraphics[width=6cm]{cigri_arch.png}
 \end{center}
 
 While it may work in normal mode, CiGri is mostly used in best-effort mode and thus provides an automatic resubmission mecanism. CiGri offers a customizable notification system with a smart events management. With those mecanisms, the user can submit a big amount of small jobs, called a campaign, and forget about it until all the jobs of the campaign are terminated or CiGri notifies a serious problem.
+
+\begin{center}%[h]
+\centering
+\captionof{figure}{\label{schemaCigriJDL} Cigri jobs campaign submission}
+\includegraphics[width=7cm]{cigri_sub.png}
+\end{center}
+
 
 Roughly speaking, in order to run a campaign, the user describes through a file (in the JSON format) the parameters of the campaign 
 such as the accepted cluters, the needed resources, the maximum duration, the location of the codes, a prologue or epilogue script,...  
 Codes and input data are retrieved from iRODS using i-commands into the prologue scripts and the jobs scripts (or using the iRODS API if the jobs are written into a supported language). So, there's no direct connexion between CiGri and iRODS, but the usage is totally complementary through the jobs scripts. 
 Moreover, the user defines also a file where each line represents a value of the parameter for the user's code.
-Thus, the number of line of these parameter file corresponds to the number of jobs of the campaign.
-
-\begin{center}%[h]
-\centering
-\captionof{figure}{\label{schemaCigriJDL} Cigri jobs campaign submission}
-\includegraphics[width=8cm]{cigri_sub.png}
-\end{center}
+Thus, the number of line of these parameter file corresponds to the number of jobs of the campaign (figure \ref{schemaCigriJDL}).
 
 Users may monitor their campaigns and acts on it whith a CLI or a REST API. Some statistics are provided, such as the completion percentage (in the term of number of terminated jobs), jobs execution rates, automatic re-submissions rate. When a job fails with a non-zero exit status, the user is notified by mail or jabber and requested for an action before submitting further jobs on the same supercomputer: simple acknowledge, acknowledge and re-submission or abort the campaign. Standard and error outputs of the jobs may be easily retrieved from the CiGri host without having to log on the underlying supercomputers. Users may even not be authorized to log-on to a specific supercomputer but allowed to start and manage best-effort jobs on it thanks to CiGri.
 
