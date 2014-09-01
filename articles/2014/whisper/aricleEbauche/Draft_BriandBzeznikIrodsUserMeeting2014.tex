@@ -16,7 +16,7 @@
 \title{ ~\\ \Large\bf Data Intensive processing with iRODS and the middleware CiGri for the Whisper project}
 
 \author{\begin{tabular}[t]{c@{\extracolsep{8em}}c}
-	Briand Xavier\footnote{Cnrs, Isterre, Whisper, email xav.briand@gmail.com}  & Bzeznik Bruno\footnote{Ciment, Universit\'e Joseph Fourier, Technical header of Ciment} \\
+	Briand Xavier\footnote{Cnrs, Isterre, Whisper, Verce, email xav.briand@gmail.com}  & Bzeznik Bruno\footnote{CIMENT, Universit\'e Joseph Fourier, Technical header of CIMENT} \\
 \end{tabular}}
 \maketitle
 %\thispagestyle{empty}
@@ -26,13 +26,13 @@ Like many projects in science of the universe, the seismological project Whisper
 This leads to specific IT software for the project as well as suitable IT infrastructure. We present here both aspects.
 
 We provide a flexible way to design a sequence of processing. We also deal with data-management and computational optimization questions.
-On IT infrastructure, we present the platform Ciment provided by the University of Grenoble. It offers a data-grid environement with the 
+On IT infrastructure, we present the platform CIMENT provided by the University of Grenoble. It offers a data-grid environement with the 
 distributed storage iRODS and the grid manager CiGri.
 
 This is the partnership between these two IT components that has enabled a data-intensive processing and, also,  permits to the Whisper project to bring new scientific results.
 }
-~\\ \\
-{\bf Keywords}:  Data-Intensive, Grid computing, Distributed storage, Seismic Noise, Whisper, Cigri, Irods.
+~\\ \\ 
+{\bf Keywords}:  Data-Intensive, Grid computing, Distributed storage, Seismic Noise, Whisper, CiGri, iRODS.
 
 
 
@@ -68,23 +68,23 @@ This is the partnership between these two IT components that has enabled a data-
   \item IT infrastrcuture for grid computing (6-12\S , 1-2 pages)
     \begin{enumerate}
   	  \item Needs of coupling storage computation
-  	  \item Presentation Ciment
-  	  \item Coupling Irods/Cigri
+  	  \item Presentation CIMENT
+  	  \item Coupling iRODS/CiGri
   	  \item Resulting Data-Grid
-      \item Presentation Irods
-	  \item General Infra Irods (diagram)
-	  \item Effective Nodes Irods (diagram)
-  	  \item General Cigri
+      \item Presentation iRODS
+	  \item General Infra iRODS (diagram)
+	  \item Effective Nodes iRODS (diagram)
+  	  \item General CiGri
   	  \item Mechanism with OAR
   	  \item Mechanism resubmission/besteffort
   	  \item Description of a campaign
-  	  \item Low Interaction Cigri/Irods
-  	  \item Cigri V2 and V3 functionalities
+  	  \item Low Interaction CiGri/iRODS
+  	  \item CiGri V2 and V3 functionalities
   	\end{enumerate}
   \item Results and feedback (28-31\S, 6-7 pages))
       \begin{enumerate}
 	    \item Whisper Use Case
-        \item Infrastructure Ciment experiences
+        \item Infrastructure CIMENT experiences
        \end{enumerate}
 \end{enumerate}
 */
@@ -114,26 +114,32 @@ In addition, the calculation operations downstream may produce even more data th
 To give an order of magnitude, more than 200 TB have to be processed by the Whisper project at the same time. 
 A classical processing produces 8 TB in 5 days. Another computation 'read' 3 or 4 TB and 'produced' 1 TB in 6 hours.
 Many tests of the signal processing are done and computational data are deleted as and when required.
+~\\ \\
 
-
+\vspace{0.18cm}
 Nowadays, the earth sciences or more generally, sciences of the universe are widely engaged in
 data-intensive processing. This leads to design scientific workflow, towards data-intensive discovery and e-Science.
+\vspace{-0.04cm}
 
 Reflected by the Whisper project, we have to organize the science objectives with
 the computer constraints. We have to take into account 
 the duration of postdocs and PhD theses, as well as the availability of computer infrastructures and their ease of access. 
 This leads to many questions about software development, including the genericity of computer code and 
-the technical support. But it also influences in terms of choice of appropriate infrastrucures.
+the technical support. But it also influences in terms of choice of appropriate infrastrutcures.
+%\vspace{-0.02cm}
 
 Even if this project has his own ressources, such a problem of data-intensive requires specific tools able to 
 organize distributed data management and acces to computational ressources: a data grid environment.
+\vspace{-0.04cm}
 
-The University of Grenoble offers, thanks to the High Performance Computing (HPC) centre \emph{Ciment}, this kind of environement with the data management system \emph{Irods}
-and the middelware \emph{CiGri}.% (Ciment platform).
+The University of Grenoble offers, thanks to the High Performance Computing (HPC) centre \emph{CIMENT}, this kind of environment with the data management system \emph{iRODS}
+and the middelware \emph{CiGri}.% (CIMENT platform).
+\vspace{-0.04cm}
 
-It is thanks to the close collaboration between IT ressources of Whisper and the infrastrucrures of the University
+It is thanks to the close collaboration between IT ressources of Whisper and the infrastructures of the University
 that this project has been implemented as we show below.
 
+~\\ \\
 
 %\newpage
 
@@ -142,7 +148,7 @@ that this project has been implemented as we show below.
 
 A part of the Whisper project is specificaly dedicated to the IT codes. This includes to design a specification, an implementation and some optimisations of the sequence of data-management as well as of the computations \footnote{see code-whisper.isterre.fr/html/ (part of the design)}.
 This project uses its own IT resources (servers, dedicated bay) as well as the common IT infrastructure of the university.
-We developed also adaptations for the IT infrastrutures and we provide technical support for researchers.
+We developed also adaptations for the IT infrastructures and we provide technical support for researchers.
 
 Most of the IT codes are written with the \emph{Python} language and make intensive use of the scientific libraries \emph{Scipy} (fortran and C embeded) 
 and \emph{Obspy} \footnote{ see www.obspy.org} (essentially the 'read' function) which is dedicated to the seismological community. 
@@ -209,8 +215,8 @@ The amount of data and the location of available compute nodes suggests the use 
 distributed storage system and a grid manager.
 
 
-The IT infrastructure used here is provided by the \emph{Ciment} \footnote{see ciment.ujf-grenoble.fr} 
-platform. Ciment is the High Performance Computing (HPC) center of the Grenoble University. It offers a partial pooling of computing 
+The IT infrastructure used here is provided by the \emph{CIMENT} \footnote{see CIMENT.ujf-grenoble.fr} 
+platform. CIMENT is the High Performance Computing (HPC) center of the Grenoble University. It offers a partial pooling of computing 
 resources (10 computing clusters, 6600 cores and some GPUS) and many documentations for users. 
 %It also provides a data grid environement : a grid of supercomputers and a distributed storage.
 Moreover, the computational resources are integrated in a local grid of supercomputers. Associated with a distributed storage,
@@ -218,7 +224,7 @@ it provides a local data grid environement.
 
 The distributed storage accessible by all the computing nodes of all the clusters is managed by iRODS \footnote{see irods.org}.
 Nowadays it represents approximately 700 TB. The grid computing is managed by the \emph{CiGri 
-\footnote{see ciment.ujf-grenoble.fr/cigri/dokuwiki} middleware}, that is part of the OAR \footnote{see oar.imag.fr} \cite{key:CDGHMMNR, key:CHR2009} project (the Resource and Job Management System on which CiGri relies). CiGri and iRODS together build a complementary solution for embarrassingly parallel computations with large input/output distributed data sets.
+\footnote{see CIMENT.ujf-grenoble.fr/cigri/dokuwiki} middleware}, that is part of the OAR \footnote{see oar.imag.fr} \cite{key:CDGHMMNR, key:CHR2009} project (the Resource and Job Management System on which CiGri relies). CiGri and iRODS together build a complementary solution for embarrassingly parallel computations with large input/output distributed data sets.
 
 Furthermore, whith unitary parametric jobs that are reasonnably short in time, CiGri can deal with the best-effort mode provided by OAR. In this mode, grid jobs are scheduled on free resources with a zero priority and may be killed at any time when the local demand of resources increases. This CIMENT organization (independant computing clusters glued together with a best-effort grid middleware and a distributed storage), in place for more than a decade, has proven to be very efficient, allowing near one hundred percent usage of computing resources thanks to small jobs being managed at the grid level.
 
@@ -229,7 +235,7 @@ total observation and thus allows the user to monitor its calculation.
 \subsection{iRODS infrastructure}
 
 
-The Integrated Rule-Oriented Data System (iRODS) is a Distributed File System (DFS) offering a single namespace for files that are stored on differents resources that may be on different locations. The administrator can set up rules (microservices) to perform some automatic actions, for example the storage of a checksum or an automatic replication to the nearest resource (staging).  The user can control himself replications and create user-defined metadata. iRODS exposes a Command Line Interface (the i-commands), an API useable from several programmation languages (C, python, PHP,...), a fuse interface, a web gui, and a webdav interface. The meta-catalog is an SQL database, which makes it very efficient for managing additionnal meta-data or making advanced queries (see \cite{key:CCQSC} for an illustration of use). It is not "block-oriented", and thus relies on underlying Posix filesystems. Performance is not the main goal, but when the files are distributed on different resources, the only bottleneck is the meta-catalog (which is centralized).
+The Integrated Rule-Oriented Data System (iRODS) is a data managment system offering a single namespace for files that are stored on differents resources that may be on different locations. The administrator can set up rules (microservices) to perform some automatic actions, for example the storage of a checksum or an automatic replication to the nearest resource (staging).  The user can control himself replications and create user-defined metadata. iRODS exposes a Command Line Interface (the i-commands), an API useable from several programming languages (C, python, PHP,...), a fuse interface, a web gui, and a webdav interface. The meta-catalog is an SQL database, which makes it very efficient for managing additionnal meta-data or making advanced queries (see \cite{key:CCQSC2005} for an illustration of use). It is not "block-oriented", and thus relies on underlying Posix filesystems. Performance is not the main goal, but when the files are distributed on different resources, the only bottleneck is the meta-catalog (which is centralized).
 \\
 
 \begin{center}%[h]
@@ -239,7 +245,7 @@ The Integrated Rule-Oriented Data System (iRODS) is a Distributed File System (D
 \end{center}
 
 
-The iRODS storage infrastructure of Ciment consists of a unique zone with the iCat server and a dozen of nodes as illustrated on figure \ref{schemaCimentStorageNodesIcat}. The nodes are groupped inside 3 different locations, called site A, site B and site C, having heterogeneous WAN connexions. Each site has it's own 10Gbe local network switch.
+The iRODS storage infrastructure of CIMENT consists of a unique zone with the iCat server and a dozen of nodes as illustrated on figure \ref{schemaCimentStorageNodesIcat}. The nodes are groupped inside 3 different locations, called site A, site B and site C, having heterogeneous WAN connexions. Each site has it's own 10Gbe local network switch.
 
 \begin{center}%[h]
 \centering
@@ -258,7 +264,7 @@ Each node has currently 2 RAID arrays from 24 to 48 raw TB as illustrated at the
 \includegraphics[width=5cm]{schemaNodeStorageCiment.png}
 \end{center}
 iRODS nodes are running Debian GNU/Linux with Kanif \footnote{see http://taktuk.gforge.inria.fr/kanif/} \cite{key:CHR2009} for easy synchronisation of the system administration.
-CIMENT has set up a web interface where the user can easily check the status of the ressources (figure \ref{schemaCimentStorageStatus}).
+CIMENT has set up a web interface where the user can easily check the status of the resources (figure \ref{schemaCimentStorageStatus}).
 
 \begin{center}%[h]
 \centering
@@ -269,13 +275,13 @@ CIMENT has set up a web interface where the user can easily check the status of 
 
 \subsection{CiGri infrastructure}
 
-The access to 6600 cores of the clusters of the Ciment platform is achieved through the middleware CiGri.
-Cigri launches embarrassingly parallel jobs on idle processors of every computing clusters and then optimizes the resources usage which are used for parallel jobs otherwise.
+The access to 6600 cores of the clusters of the CIMENT platform is achieved through the middleware CiGri.
+CiGri launches embarrassingly parallel jobs on idle processors of every computing clusters and then optimizes the resources usage which are used for parallel jobs otherwise.
 
-Each cluster of the University of Grenoble uses the resource manager OAR. Cigri acts, among other things, as a metascheduler of OAR.
+Each cluster of the University of Grenoble uses the resource manager OAR. CiGri acts, among other things, as a metascheduler of OAR.
 It retrieves the clusters states trough OAR and submits the jobs on free resources without exhausting the local scheduling queues.
 
-%Figure serveur cigri et clusters, REST API
+%Figure serveur CiGri et clusters, REST API
 
 While it may work in normal mode, CiGri is mostly used in best-effort mode and thus provides an automatic resubmission mecanism. CiGri offers a customizable notification system with a smart events management. With those mecanisms, the user can submit a big amount of small jobs, called a campaign, and forget about it until all the jobs of the campaign are terminated or CiGri notifies a serious problem.
 
@@ -287,16 +293,16 @@ Thus, the number of line of these parameter file corresponds to the number of jo
 
 %Figure JDL+Params-> campaign
 
-Users may monitor their campaigns and act on it whith a CLI or a REST API. Some statistics are provided, such as the completion percentage (in the term of number of terminated jobs), jobs execution rates, automatic re-submissions rate. When a job fails with a non-zero exit status, the user is notified by mail or jabber and requested for an action before submitting further jobs on the same supercomputer: simple aknowledge, aknowledge and re-submission or abort the campaign. Standard and error outputs of the jobs may be easily retrieved from the CiGri host without having to log on the underlying supercomputers. Users may even not be authorized to log-on to a specific supercomputer but allowed to start and manage best-effort jobs on it thanks to CiGri.
-\\
+Users may monitor their campaigns and acts on it whith a CLI or a REST API. Some statistics are provided, such as the completion percentage (in the term of number of terminated jobs), jobs execution rates, automatic re-submissions rate. When a job fails with a non-zero exit status, the user is notified by mail or jabber and requested for an action before submitting further jobs on the same supercomputer: simple acknowledge, acknowledge and re-submission or abort the campaign. Standard and error outputs of the jobs may be easily retrieved from the CiGri host without having to log on the underlying supercomputers. Users may even not be authorized to log-on to a specific supercomputer but allowed to start and manage best-effort jobs on it thanks to CiGri.
+
 CiGri is now at the version 3, which represents a major evolution in terms of modeling and technology (Rest API, Ruby). It is structured around a PostgreSQL database and high level components (Ruby scripting language, Apache with SSL authentication, Sinatra,...).
 
 
 \subsection{Authentication and security}
 
 CIMENT has a centralized LDAP infrastructure. Users have the same login on all supercomputers and on the CiGri frontend. As iRODS does not offers a simple and direct LDAP authentication mechanism, we use the simple password method with an automatic synchronisation from our LDAP server to the iRODS database. We also have a script that automatically initializes the iRODS unix environment directly into the users home directory (.irods/.irodsEnv and .irods/.irodsA files) on every supercomputer, so that iRODS authentication becomes completely transparent to the users.
-\\
-Each site has a filtering router acting as a firewall. As we want all communication schemes to be possible between each irods resource (a file might be transfered from a resource to another regardless of the site), we had to open some tcp and udp ports on those firewalls. The range of ports may be defined by the administrator into the iRODS servers configuration file, so that's not an issue.
+
+Each site has a filtering router acting as a firewall. As we want all communication schemes to be possible between each iRODS resource (a file might be transfered from a resource to another regardless of the site), we had to open some tcp and udp ports on those firewalls. The range of ports may be defined by the administrator into the iRODS servers configuration file, so that's not an issue.
 
 
 
@@ -306,10 +312,10 @@ Each site has a filtering router acting as a firewall. As we want all communicat
 \/*
 	\begin{enumerate}
 	  \item Scientific whisper results: theses, articles, prices
-  	  \item Organisation with a DataSet: Evaluation local/Ciment, capacities adaptation students
+  	  \item Organisation with a DataSet: Evaluation local/CIMENT, capacities adaptation students
   	  \item Comparison data management, examples Japan processing/USArray 
   	  \item Evolution specification, genericty of the codes, degree of automatization
-  	  \item First step: Conversion data format, distributions of datas on ressources: decrease the concurrency
+  	  \item First step: Conversion data format, distributions of datas on resources: decrease the concurrency
   	  \item Back to the first package signal processing for Japan
   	  \item Identification seismogram: Dates, stations  / Modelization distribution: sublist Dates, Stations
   	  \item Adding python modules for data retrieve + Calls.
@@ -328,14 +334,14 @@ Each site has a filtering router acting as a firewall. As we want all communicat
 
 Whisper is one of the projects that have made it possible to ensure that the seismic noise brought new observable.
 This permits to carry out several scientific results including imaging and monitoring. 
-Concerning monitoring, further studies provide news results about sligth variations of seismics waves induce by earthquakes.
+Concerning monitoring, further studies provide news results about sligth variations of seismics waves induced by earthquakes.
 Many articles are in part due to this project as well as
-several post-docs and PhD (see \cite{key:CFLC2010, key:BPCPBR, key:HCM2014, key:OPLC2013, key:PCP, key:MPPVCS, key:RCRZCSKCCWD, key:RBCSP, key:BCTASBEM}) and also whisper.obs.ujf-grenoble.fr, rubric publication).
+several post-docs and PhD (see \cite{key:CFLC2010, key:BPCPBR, key:HCM2014, key:OPLC2013, key:PCP, key:MPPVCS, key:RCRZCSKCCWD, key:RBCSP, key:BCTASBEM} and also whisper.obs.ujf-grenoble.fr, rubric publication).
 
 
 Most of the time, on the computer part, the approach with researchers is as follows.
-After retrieving data from a data center or directly between person, we have to assess how this data can be processed.
-According to the computing time and storage capacity, either we perform operations on a dedicated bay (also host by Ciment), or either we use the Ciment infrastructure.
+After retrieving data from a data center or directly between persons, we have to assess how this data can be processed.
+According to the computing time and storage capacity, either we perform operations on a dedicated bay (also host by CIMENT), or either we use the CIMENT infrastructure.
 It depends also on the ease of computer users and most of the time, at least the last treatments (less computationally expensive) are made locally
 (Some IT codes are also provided in order to retreive results on distributed storage).
 For instance, with small datasets (datas from La Reunion or the Alpes) we work only locally. With larger dataset (China, USArray, Japan Network).
@@ -343,7 +349,7 @@ We use both local and distributed computation.
 
 
 
-We focus now on the part of processing that use the data grid environment of Ciment.
+We focus now on the part of processing that use the data grid environment of CIMENT.
 But note before that an other aspect, and not least, is the evolution of the specification. 
 Often, students and researchers have new requirements and the IT codes evolves with these specification.
 We try to be as generic as possible in order to, among other things, to achieve a sufficient level of automatization.
@@ -356,12 +362,12 @@ We also require that data be in a seismic standard formats.
 If conversion is necessary, it can be a large data intensive computing and specific codes are developed.
 To minimize concurrency, we have also to ensure that the data are well distributed on iRODS. 
 Indeed, it happened that the data are too centralized on a resource, so that is truly diminished processing capacity.
-Some python codes are dedicated to this task and can replicate or spread randomly a Collection from a set of ressources to another set.
+Some python codes are dedicated to this task and can replicate or spread randomly a Collection from a set of resources to another set.
 
 
 Let us come back to the package of signal processing of Whisper (the first part of the figure \ref{whisperGeneralWorflow}).
 Because each seismogram can be treated separatly it is the simplest case for data grid process. We treated for instance one year of the
-Japansese seismic Network (HiNet, Tiltmeter and FNet) around of the giant 2011 Tohoku-oki earthquake (6 months before and 6 months after).
+Japanese seismic Network (HiNet, Tiltmeter and FNet) around of the giant 2011 Tohoku-oki earthquake (6 months before and 6 months after).
 Note that first we need to convert 9 Terabytes of Japanese Data into around 20 terabytes of a standard format (here mseed or sac).
 Then we try many processing for the 20 TB (filter, whitening, clipping, ...) and store the results in seismogram with a duration of one day.
 
@@ -465,8 +471,8 @@ cat processingSeismogram.jdl
 
 "c1": {
   "prologue": [
-  secure_iget -f /IrodsColl/start.bash,
-  secure_iget -f /IrodsColl/param.txt,
+  secure_iget -f /iRODSColl/start.bash,
+  secure_iget -f /iRODSColl/param.txt,
   mkdir -p DirToCompute,
   secure_iget -rf Codes DirToCompute,
   ... other lines of commands ],
@@ -497,7 +503,7 @@ jobs runing at the same time (the variable 'max\_jobs').
 
 
 Concerning the package for the correlations (the second part of the figure \ref{whisperGeneralWorflow}), we also add similar modules
-to retrieve on iRods the subsets of seismograms that have been treated. In order to compute all the correlations that corresponds to
+to retrieve on iRODS the subsets of seismograms that have been treated. In order to compute all the correlations that corresponds to
 all the couple of seismograms we have two types of processes. For a fix subset of dates, either we retrieve one subset of stations 
 and compute all the existing couples for this subset, or either we retrieve two disjoint subsets of stations and compute all the 
 correlations where each seismogram is in a different sublist. This distribution for the computation of the correlations offers a good granularity.
@@ -539,21 +545,22 @@ of change of the velocity of seismic waves in Japan (the giant 2011 Tohoku earth
 \end{center}
 
 
-\subsection{Infrastructure Ciment experiences}
+\subsection{Infrastructure CIMENT experiences}
 
-With the Whisper project, as with some few other projects, we had the opporunity to test and improve the CIMENT IT infrastructure for a data-intensive case. 
+With the Whisper project, as with some few other projects, we had the opportunity to test and improve the CIMENT IT infrastructure for a data-intensive case. 
 Note also that the data-grid environment is used by many other scientifics projects such that research in Particle Physics \cite{key:BB} or genomics research \cite{key:MLBDJ}.
-For this kind of project, data management and input/output data flows are a big part of the process regarding the actual computing time for the analysis. With a grid of several thousands cpu-cores, such a project may act as a real distributed attack against our storage infrastructures! So, as a first consequence of the deployment of such computing jobs, we had to implement new "limiting" functionnalities into our infrastructure softwares or configurations. For example, CiGri is able to limit the number of submitted jobs for a given campaign on a given cluster if we know that the jobs concurrency can overload our Irods infrastructure. As another example, iRODS may be configured to limit the number of simultaneous connections. But in this case, the i-command returns with an error and the job may be aborted. There's a "--retry" optionnal argument, but with a high level of concurrency, it increases the load and may completely exhaust the servers with a ton of retry queries. We then developped a wrapper for the i-commands, called secure-i-commands that implements a retry on some specific error cases  with an incremental delay to prevent from flooding the irods servers. Of course, this can be improved as this leads to a waste of computing resources because they are reserved and not used while waiting. But this is at least a security improvement in case the highler level decision processes does not work as expected because of their high complexity.
-\\
+For this kind of project, data management and input/output data flows are a big part of the process regarding the actual computing time for the analysis. With a grid of several thousands cpu-cores, such a project may act as a real distributed attack against our storage infrastructures! So, as a first consequence of the deployment of such computing jobs, we had to implement new "limiting" functionnalities into our infrastructure softwares or configurations. For example, CiGri is able to limit the number of submitted jobs for a given campaign on a given cluster if we know that the jobs concurrency can overload our iRODS infrastructure. As another example, iRODS may be configured to limit the number of simultaneous connections. But in this case, the i-command returns with an error and the job may be aborted. There's a "--retry" optionnal argument, but with a high level of concurrency, it increases the load and may completely exhaust the servers with a ton of retry queries. We then developped a wrapper for the i-commands, called secure-i-commands that implements a retry on some specific error cases  with an incremental delay to prevent from flooding the iRODS servers. Of course, this can be improved as this leads to a waste of computing resources because they are reserved and not used while waiting. But this is at least a security improvement in case the highler level decision processes does not work as expected because of their high complexity.
+
 Regarding the iRODS choice, it was made on the features: we need a distributed file system suitable for a distributed and heterogeneous grid infrastructure composed of several supercomputers having gateways to reach each-other; and we need a unique namespace. We also need the sites to be independent of the others. It means that a site can be out of service, the data available in another site should still be available. The only case when the entire infrastructure is broken is when the centralized meta-catalog is not reachable. But this part of the infrastructure is located in a highly available datacenter and we may also implement a HA meta-catalog. As it is not posix compliant, iRODS allows more control for the admins and the users. For example, replication can be completely controlled. In our case, we do an automatic replication (staging) of the files when they are got from site A or B to site C, for network optimization. But the user may also want to replicate on every sites to get better performances with big jobs campaigns spread on every clusters of the grid. 
 Also better than a posix filesystem, the users can add custom meta-data to the files and collections allowing them to retrieve data by making some queries with an SQL-like syntax. 
-\\
+
 Another interesting aspect of iRODS for a project like Whisper is that we can register into iRODS data that are stored on a dedicated posix filesystem. For example, the Japanese raw data were stored on external storage disks that we copied through USB directly onto a server dedicated to the project. We then added this server as an iRODS resource and then registered the data to make them available to the whole grid. In this example, we also used the access rules to set up a read/write policy for the only concerned users.
-\\\textbf{Open problems and future works}
 \\
+\textbf{Open problems and future works}
+
 \begin{itemize}
-  \item Irods has a different transfert policy for "small" files (under 32MB). In this case, files are transiting through the server used by the client instead of a direct connection between the original resource and the client. In a high load context, with a lot of small file transfers, it leads to an overload of the concerned server. A possible solution to that problem could be to share the load among the servers of a given site. For that, we can imagine using a virtual ip address making a round robind on all the ip addresses of the servers of the site.
-  \item We issued some network overloads: automatic staging, as set up for a site that has a lower bandwidth than the others may result in a lot of background irods processes doing the replication even when connection rate limit is set up on the servers and even when iget commands are aborted. Under some circumstances, it may completely overload a 1Gb/s ethernet link between 2 sites. Another overload encountered was when the user activates the -Q (use RBUDP (datagram) protocol for the data transfer) option. Even from a single node, this option can cause dramatic overload of network interfaces. Maybe iRODS should implement better rate limit control. 
+  \item iRODS has a different transfert policy for "small" files (under 32MB). In this case, files are transiting through the server used by the client instead of a direct connection between the original resource and the client. In a high load context, with a lot of small file transfers, it leads to an overload of the concerned server. A possible solution to that problem could be to share the load among the servers of a given site. For that, we can imagine using a virtual ip address making a round robind on all the ip addresses of the servers of the site.
+  \item We issued some network overloads: automatic staging, as set up for a site that has a lower bandwidth than the others may result in a lot of background iRODS processes doing the replication even when connection rate limit is set up on the servers and even when iget commands are aborted. Under some circumstances, it may completely overload a 1Gb/s ethernet link between 2 sites. Another overload encountered was when the user activates the -Q (use RBUDP (datagram) protocol for the data transfer) option. Even from a single node, this option can cause dramatic overload of network interfaces. Maybe iRODS should implement better rate limit control. 
   \item We made some preliminary tests of the python bindings of the iRODS API (called Pyrods). We noticed that when you have a lot of small operations to do from a python code (like in the Whisper project), either creating a lot of small files, or meta-data, Pyrods may be 10 times faster than a shell loop with i-commands inside. We are now making code examples for the other users to be able to take benefits from this method that would have been useful for the Whisper project.
 \end{itemize}
 
@@ -561,20 +568,20 @@ Another interesting aspect of iRODS for a project like Whisper is that we can re
 
 Despite the problems that have been solved or not, we are currently able to process terabytes of data within a few hours.
 
-Note also that the local data grid (iRODS+CiGri) and more generally the platform of Ciment as well as the OAR tools permit for the Whisper project  to produce significant new results for seismological community in a reduced delay.
+Note also that the local data grid (iRODS+CiGri) and more generally the platform of CIMENT as well as the OAR tools permit for the Whisper project  to produce significant new results for seismological community in a reduced delay.
 
 Lot of improvements that involve automatization of the processing, and also concerning the scientific workflow have constantly been made.
 We may say that Whisper+CiGri+iRODS is a great success!
 
 \section{Acknowledgements}
-We thanks Emmanuel Chaljub, the OAR team and the Ciment team as well as the Whisper project and the Verce project for all their  very useful support.
+We thanks Emmanuel Chaljub, the OAR team and the CIMENT team as well as the Whisper project and the Verce project for all their very useful support.
 
 
 \begin{thebibliography}{9}
 
 \bibitem{key:BB}
 C. Biscarat, B. Bzeznik.
-Synergy between the CIMENT tier-2 HPC centre and the HEP community at LPSC in Grenoble (France)
+Synergy between the Ciment tier-2 HPC centre and the HEP community at LPSC in Grenoble (France)
 {\em J. Phys.: Conf. Ser. 513 032008, 2014}
     
 \bibitem{key:BPCPBR}
