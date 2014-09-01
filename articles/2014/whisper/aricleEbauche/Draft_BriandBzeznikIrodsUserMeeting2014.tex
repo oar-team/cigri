@@ -215,7 +215,7 @@ The amount of data and the location of available compute nodes suggests the use 
 distributed storage system and a grid manager.
 
 
-The IT infrastructure used here is provided by the \emph{CIMENT} \footnote{see CIMENT.ujf-grenoble.fr} 
+The IT infrastructure used here is provided by the \emph{CIMENT} \footnote{see ciment.ujf-grenoble.fr} 
 platform. CIMENT is the High Performance Computing (HPC) center of the Grenoble University. It offers a partial pooling of computing 
 resources (10 computing clusters, 6600 cores and some GPUS) and many documentations for users. 
 %It also provides a data grid environement : a grid of supercomputers and a distributed storage.
@@ -224,7 +224,7 @@ it provides a local data grid environement.
 
 The distributed storage accessible by all the computing nodes of all the clusters is managed by iRODS \footnote{see irods.org}.
 Nowadays it represents approximately 700 TB. The grid computing is managed by the \emph{CiGri 
-\footnote{see CIMENT.ujf-grenoble.fr/cigri/dokuwiki} middleware}, that is part of the OAR \footnote{see oar.imag.fr} \cite{key:CDGHMMNR, key:CHR2009} project (the Resource and Job Management System on which CiGri relies). CiGri and iRODS together build a complementary solution for embarrassingly parallel computations with large input/output distributed data sets.
+\footnote{see ciment.ujf-grenoble.fr/cigri/dokuwiki} middleware}, that is part of the OAR \footnote{see oar.imag.fr} \cite{key:CDGHMMNR, key:CHR2009} project (the Resource and Job Management System on which CiGri relies). CiGri and iRODS together build a complementary solution for embarrassingly parallel computations with large input/output distributed data sets.
 
 Furthermore, whith unitary parametric jobs that are reasonnably short in time, CiGri can deal with the best-effort mode provided by OAR. In this mode, grid jobs are scheduled on free resources with a zero priority and may be killed at any time when the local demand of resources increases. This CIMENT organization (independant computing clusters glued together with a best-effort grid middleware and a distributed storage), in place for more than a decade, has proven to be very efficient, allowing near one hundred percent usage of computing resources thanks to small jobs being managed at the grid level.
 
@@ -571,7 +571,7 @@ Another interesting aspect of iRODS for a project like Whisper is that we can re
   \item iRODS has a different transfert policy for "small" files (under 32MB). In this case, files are transiting through the server used by the client instead of a direct connection between the original resource and the client. In a high load context, with a lot of small file transfers, it leads to an overload of the concerned server. A possible solution to that problem could be to share the load among the servers of a given site. For that, we can imagine using a virtual ip address making a round robind on all the ip addresses of the servers of the site.
   \item We issued some network overloads: automatic staging, as set up for a site that has a lower bandwidth than the others may result in a lot of background iRODS processes doing the replication even when connection rate limit is set up on the servers and even when iget commands are aborted. Under some circumstances, it may completely overload a 1Gb/s ethernet link between 2 sites. Another overload encountered was when the user activates the -Q (use RBUDP (datagram) protocol for the data transfer) option. Even from a single node, this option can cause dramatic overload of network interfaces. Maybe iRODS should implement better rate limit control. 
   \item We made some preliminary tests of the python bindings of the iRODS API (called Pyrods). We noticed that when you have a lot of small operations to do from a python code (like in the Whisper project), either creating a lot of small files, or meta-data, Pyrods may be 10 times faster than a shell loop with i-commands inside. We are now making code examples for the other users to be able to take benefits from this method that would have been useful for the Whisper project.
-  \item We also noticed that a multiprocess program made with python and the PyRODS API improves the speed of a recursive transfer of a collection containing a lot of small files (thousands of 64kb files for example). We can conclude that iget/iput commands are not optimized for that kind of transfers.
+  \item We also noticed that a multiprocess program made with python and the PyRODS API improves the speed of a recursive transfer of a collection containing a lot of small files (thousands of 64kb files for example).
 \end{itemize}
 
 \section{Conclusion}
