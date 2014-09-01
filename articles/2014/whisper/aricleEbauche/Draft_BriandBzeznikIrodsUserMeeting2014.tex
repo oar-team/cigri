@@ -23,13 +23,13 @@
 \subsection*{Abstract}
 {\em
 Like many projects in science of the universe, the seismological project Whisper is faced with massive data processing.
-This leads to specific IT software for the project as well as suitable IT infrastructure. We present here both aspects.
+This leads to specific IT softwares for the project as well as suitable IT infrastructures. We present here both aspects.
 
 We provide a flexible way to design a sequence of processing. We also deal with data-management and computational optimization questions.
 On IT infrastructure, we present the platform CIMENT provided by the University of Grenoble. It offers a data-grid environement with the 
 distributed storage iRODS and the grid manager CiGri.
 
-This is the partnership between these two IT components that has enabled a data-intensive processing and, also,  permits to the Whisper project to bring new scientific results.
+This is the partnership between these two IT components that has enabled a data-intensive processing and, also,  permited the Whisper project to bring new scientific results.
 }
 ~\\ \\ 
 {\bf Keywords}:  Data-Intensive, Grid computing, Distributed storage, Seismic Noise, Whisper, CiGri, iRODS.
@@ -125,11 +125,11 @@ Reflected by the Whisper project, we have to organize the science objectives wit
 the computer constraints. We have to take into account 
 the duration of postdocs and PhD theses, as well as the availability of computer infrastructures and their ease of access. 
 This leads to many questions about software development, including the genericity of computer code and 
-the technical support. But it also influences in terms of choice of appropriate infrastrutcures.
+the technical support. But it also influences in terms of choice of appropriate infrastructures.
 %\vspace{-0.02cm}
 
-Even if this project has his own ressources, such a problem of data-intensive requires specific tools able to 
-organize distributed data management and acces to computational ressources: a data grid environment.
+Even if this project has its own ressources, such a problem of data-intensive processing requires specific tools able to 
+organize distributed data management and access to computational ressources: a data grid environment.
 \vspace{-0.04cm}
 
 The University of Grenoble offers, thanks to the High Performance Computing (HPC) centre \emph{CIMENT}, this kind of environment with the data management system \emph{iRODS}
@@ -146,7 +146,7 @@ that this project has been implemented as we show below.
 \section{Software for data-intensive processing} \label{Section_Software_for_data-intensive_processing} %(6-12\S , 1-2 pages) } 
 
 
-A part of the Whisper project is specificaly dedicated to the IT codes. This includes to design a specification, an implementation and some optimisations of the sequence of data-management as well as of the computations \footnote{see code-whisper.isterre.fr/html/ (part of the design)}.
+A part of the Whisper project is specificaly dedicated to the IT codes. This includes the design of a specification, an implementation and some optimisations of the sequence of data-management as well as of the computations \footnote{see code-whisper.isterre.fr/html/ (part of the design)}.
 This project uses its own IT resources (servers, dedicated bay) as well as the common IT infrastructure of the university.
 We developed also adaptations for the IT infrastructures and we provide technical support for researchers.
 
@@ -159,7 +159,7 @@ The first package provides a flexible way to process raw data, to specify a pipe
 The user starts by specifying a directory, a set of seismic stations and a set of dates. Then the codes scans the directory
 and extracts all pieces of seismograms (also called traces) and rearranges them in a specific architecture of files in order to calculate the correlations to the next step.
 We use here intensively the function 'read' of the library Obspy which allows to open most of the seismogram file formats.
-The user also define his own sequence of processings. He can use the functions predefined but also the Python libraries he needs and,
+The user also defines his own sequence of processings. He can use the functions predefined but also the Python libraries he needs and,
 moreover, he can add eventually his own functions.
 
 The second package concerns correlations. 
@@ -281,7 +281,11 @@ CiGri launches embarrassingly parallel jobs on idle processors of every computin
 Each cluster of the University of Grenoble uses the resource manager OAR. CiGri acts, among other things, as a metascheduler of OAR.
 It retrieves the clusters states trough OAR and submits the jobs on free resources without exhausting the local scheduling queues.
 
-%Figure serveur CiGri et clusters, REST API
+\begin{center}%[h]
+\centering
+\captionof{figure}{\label{schemaCigriArch} Cigri communications}
+\includegraphics[width=8cm]{cigri_arch.png}
+\end{center}
 
 While it may work in normal mode, CiGri is mostly used in best-effort mode and thus provides an automatic resubmission mecanism. CiGri offers a customizable notification system with a smart events management. With those mecanisms, the user can submit a big amount of small jobs, called a campaign, and forget about it until all the jobs of the campaign are terminated or CiGri notifies a serious problem.
 
@@ -291,7 +295,11 @@ Codes and input data are retrieved from iRODS using i-commands into the prologue
 Moreover, the user defines also a file where each line represents a value of the parameter for the user's code.
 Thus, the number of line of these parameter file corresponds to the number of jobs of the campaign.
 
-%Figure JDL+Params-> campaign
+\begin{center}%[h]
+\centering
+\captionof{figure}{\label{schemaCigriJDL} Cigri jobs campaign submission}
+\includegraphics[width=8cm]{cigri_sub.png}
+\end{center}
 
 Users may monitor their campaigns and acts on it whith a CLI or a REST API. Some statistics are provided, such as the completion percentage (in the term of number of terminated jobs), jobs execution rates, automatic re-submissions rate. When a job fails with a non-zero exit status, the user is notified by mail or jabber and requested for an action before submitting further jobs on the same supercomputer: simple acknowledge, acknowledge and re-submission or abort the campaign. Standard and error outputs of the jobs may be easily retrieved from the CiGri host without having to log on the underlying supercomputers. Users may even not be authorized to log-on to a specific supercomputer but allowed to start and manage best-effort jobs on it thanks to CiGri.
 
@@ -562,6 +570,7 @@ Another interesting aspect of iRODS for a project like Whisper is that we can re
   \item iRODS has a different transfert policy for "small" files (under 32MB). In this case, files are transiting through the server used by the client instead of a direct connection between the original resource and the client. In a high load context, with a lot of small file transfers, it leads to an overload of the concerned server. A possible solution to that problem could be to share the load among the servers of a given site. For that, we can imagine using a virtual ip address making a round robind on all the ip addresses of the servers of the site.
   \item We issued some network overloads: automatic staging, as set up for a site that has a lower bandwidth than the others may result in a lot of background iRODS processes doing the replication even when connection rate limit is set up on the servers and even when iget commands are aborted. Under some circumstances, it may completely overload a 1Gb/s ethernet link between 2 sites. Another overload encountered was when the user activates the -Q (use RBUDP (datagram) protocol for the data transfer) option. Even from a single node, this option can cause dramatic overload of network interfaces. Maybe iRODS should implement better rate limit control. 
   \item We made some preliminary tests of the python bindings of the iRODS API (called Pyrods). We noticed that when you have a lot of small operations to do from a python code (like in the Whisper project), either creating a lot of small files, or meta-data, Pyrods may be 10 times faster than a shell loop with i-commands inside. We are now making code examples for the other users to be able to take benefits from this method that would have been useful for the Whisper project.
+  \item We also noticed that a multiprocess program made with python and the PyRODS API improves the speed of a recursive transfer of a collection containing a lot of small files (thousands of 64kb files for example). We can conclude that iget/iput commands are not optimized for that kind of transfers.
 \end{itemize}
 
 \section{Conclusion}
