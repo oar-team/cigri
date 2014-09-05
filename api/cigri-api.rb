@@ -270,8 +270,9 @@ class API < Sinatra::Base
     
     limit = params['limit'] || 100
     offset = params['offset'] || 0
+    all = params['all'] || 0
 
-    output = get_formated_campaign_events(id, limit, offset)
+    output = get_formated_campaign_events(id, limit, offset, all)
 
     status 200
     print(output)
@@ -678,11 +679,11 @@ class API < Sinatra::Base
     #  - id: id of the campaign
     #  - limit: number of events to get
     #  - offset: start from event "offset"
-    def get_formated_campaign_events(id, limit, offset)      
+    def get_formated_campaign_events(id, limit, offset, all = 0)      
       campaign = get_campaign(id)
       events = nil
       begin
-        events = campaign.events(limit, offset)
+        events = campaign.events(limit, offset, all)
       rescue DBI::ProgrammingError => e
         halt 400, print({:status => 400, :title => "Error", :message => "#{e}"})
       end

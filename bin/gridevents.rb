@@ -16,6 +16,7 @@ event_id = nil
 global = false
 cluster = nil
 job = nil
+all = false
 blacklist = false
 
 optparse = OptionParser.new do |opts|
@@ -27,6 +28,10 @@ optparse = OptionParser.new do |opts|
 
   opts.on( '-c', '--campaign ID', String, 'Show or close events for this campaign ID' ) do |c|
     campaign_id = c
+  end
+
+  opts.on( '-a', '--all', 'Show all events, even those that are closed (warning: it does not print the current global events)' ) do
+    all = true
   end
 
   opts.on( '-g', '--global', String, 'Show current global events (not specific to a campaign)' ) do
@@ -85,6 +90,7 @@ end
 abort("Missing CAMPAIGN (-c), EVENT (-e) id or --global (-g)\n" + optparse.to_s) unless campaign_id or event_id or global or blacklist or job
 
 url = "/campaigns/#{campaign_id}/events" if campaign_id
+url += "?all=1" if campaign_id and all
 url = "/events/#{event_id}" if event_id
 url = "/events" if global or blacklist or job
 

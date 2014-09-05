@@ -778,22 +778,31 @@ end
 # Array: [id,class,code,job_id,cluster_id,message,date_open]
 #
 ##
-def get_campaign_events(dbh, id, limit, offset)
+def get_campaign_events(dbh, id, limit, offset, all = 0)
+  # Wether we show open events for the current campaing AND open global events on the campaign's clusters
+  # or we show open/closed events of the given campaign
+  if all == 0
+     state="state='open' and"
+     global="or ( cluster_id in
+                  (select distinct cluster_id from campaign_properties where campaign_id = #{id})
+                  and campaign_id is null
+                 )"
+     filter=""
+  else
+     state=""
+     global=""
+     # Hidden events (only useful for cigri internals)
+     filter="and code != 'REMOTE_WAITING_FRAG'"
+  end
   query = "SELECT id,class,code,job_id,cluster_id,message,date_open,parent,state
            FROM events
-           WHERE state='open'
-                and ( campaign_id = ?
-                      or (
-                        cluster_id in
-                          (select distinct cluster_id from campaign_properties where campaign_id = ?)
-                        and campaign_id is null
-                         )
-                    )
+           WHERE #{state}
+                 ( campaign_id = ? #{global} #{filter})
            ORDER BY id
            LIMIT ? 
            OFFSET ?"
 
-  dbh.select_all(query, id, id, limit, offset)
+  dbh.select_all(query, id, limit, offset)
 end
 
 ##
