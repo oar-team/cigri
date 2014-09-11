@@ -792,7 +792,7 @@ def get_campaign_events(dbh, id, limit, offset, all = 0)
      state=""
      global=""
      # Hidden events (only useful for cigri internals)
-     filter="and code != 'REMOTE_WAITING_FRAG'"
+     filter="and code != 'REMOTE_WAITING_FRAG' and code != 'FRAG_RESUBMIT_BY_NIKITA'"
   end
   query = "SELECT id,class,code,job_id,cluster_id,message,date_open,parent,state
            FROM events

@@ -10,6 +10,10 @@ require 'cigri-colombolib'
 
 $0='cigri: nikita'
 
+def notify_judas
+  Process.kill("USR1",Process.ppid)
+end
+
 begin
   config = Cigri.conf
   logfile = config.get('LOG_FILE',"STDOUT")
@@ -65,19 +69,28 @@ begin
   $logger.debug('Starting')
 
   # Check for campaigns to kill
+  $logger.debug('Check for campaigns to kill')
   events=Cigri::Eventset.new({:where => "class='campaign' and code='USER_FRAG' and state='open'"})
   events.each do |event|
     can_close=true
 
     # Treat the jobs that have open events (close them)
+    $logger.debug("   Closing jobs with events (campaign #{event.props[:campaign_id]})")
     job_events=Cigri::Eventset.new({:where => "class='job' and campaign_id=#{event.props[:campaign_id]} and state='open'"})
     job_events.update({:state => 'closed'}) if job_events.length > 0
 
     # Treat the other jobs
-    jobs=Cigri::Jobset.new({:where => "jobs.campaign_id=#{event.props[:campaign_id]} and jobs.state != 'event'"})
+    $logger.debug("   Killing jobs of campaign #{event.props[:campaign_id]}")
+    jobs=Cigri::Jobset.new({:where => "jobs.campaign_id=#{event.props[:campaign_id]} and jobs.state != 'event' and jobs.state != 'terminated'"})
     jobs.each do |job|
       r=kill(job,event)
-      can_close=false if not r
+      if not r
+        $logger.warn("Could not kill job #{job.id}!")
+        Cigri::Event.new(:class => 'notify', :state => 'closed',
+                       :code => "NIKITA_KILL_PROBLEM", :message => "Nikita could not kill job #{job.id}!")
+        notify_judas
+        can_close=false
+      end
     end
     if can_close
       event.close
@@ -85,6 +98,7 @@ begin
   end
 
   # Check for unitary jobs to kill
+  $logger.debug('Check for unitary jobs to kill')
   events=Cigri::Eventset.new({:where => "class='job' and code='USER_FRAG' and state='open'"})
   events.each do |event|
     can_close=true
@@ -96,6 +110,7 @@ begin
   end
   
   # Check for expired walltime
+  $logger.debug('Check for expired walltime')
   jobs=Cigri::Jobset.new
   jobs.get_expired
   jobs.to_jobs
@@ -120,6 +135,7 @@ begin
   end
   
   # Check for jobs in remotewaiting for too long
+  $logger.debug('Check for jobs in remotewaiting for too long')
   remote_waiting_timeout=config.get("REMOTE_WAITING_TIMEOUT",900)
   jobs=Cigri::Jobset.new({:where => "jobs.state='remote_waiting' and extract('epoch' from now()) - extract('epoch' from jobs.submission_time) > #{remote_waiting_timeout}"})
   jobs.each do |job|
@@ -145,6 +161,7 @@ begin
   end
 
   # Check for queued jobs for too long
+  $logger.debug('Check for queued jobs for too long')
   remote_waiting_timeout=config.get("REMOTE_WAITING_TIMEOUT",900)
   jobs=Cigri::JobtolaunchSet.new({:where => "extract('epoch' from now()) - extract('epoch' from queuing_date) > #{remote_waiting_timeout}",
                                   :what => "jobs_to_launch.id as id,jobs_to_launch.task_id as task_id,cluster_id"
