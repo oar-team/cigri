@@ -225,7 +225,7 @@ module Cigri
                          :message => "Resubmit cause: #{type}")
 
       # Exit status errors
-      elsif (!cluster_job["exit_code"].nil? && cluster_job["exit_code"].to_i >> 8 > 0 )
+      elsif (!cluster_job["exit_code"].nil? && cluster_job["exit_code"].to_i > 0 )
         case job.props[:tag]
           when "prologue"
             code="PROLOG_EXIT_ERROR"
@@ -245,7 +245,7 @@ module Cigri
           COLOMBOLIBLOGGER.warn("Could not get the stderr file #{stderr_file} for failed job #{job.id}: #{e.to_s}")
         end
         # Create event
-        message = "The job exited with exit status #{cluster_job["exit_code"].to_i >> 8};"
+        message = "The job exited with exit status #{cluster_job["exit_code"].to_i};"
         message += "\nLast #{STDERR_TAIL} lines of stderr_file:\n#{stderr}" if stderr.length > 0
         Cigri::Event.new(:class => "job",
                          :code => code,

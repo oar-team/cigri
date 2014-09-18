@@ -141,7 +141,7 @@ while true do
                  remote_job=cluster_job
                  stop_time=Time.at(cluster_job["stop_time"].to_i)
               end
-              if (cluster_job["exit_code"].to_i >> 8) > 0
+              if (cluster_job["exit_code"].to_i) > 0
                 logger.info("Job #{job.id} has non-null exit-status.")
                 Cigri::Colombo::analyze_remote_job_events(job,remote_job)
                 events=Cigri::Eventset.new({ :where => "class = 'job' and cluster_id = #{cluster.id} and state='open'"})
