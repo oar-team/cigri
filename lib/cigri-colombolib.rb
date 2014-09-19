@@ -275,11 +275,11 @@ module Cigri
                          :state => 'closed',
                          :message => message)
 
-      # Fragged by nikita
+      # Fragged (and then re-submitted)
       elsif type == "FRAG_JOB_REQUEST"
-        message = "Fragged and resubmitted by Nikita"
+        message = "Fragged and resubmitted"
         Cigri::Event.new(:class => "job",
-                         :code => "FRAG_RESUBMIT_BY_NIKITA",
+                         :code => "FRAG_RESUBMIT",
                          :job_id => job.id,
                          :campaign_id => job.props[:campaign_id],
                          :cluster_id => job.props[:cluster_id],
