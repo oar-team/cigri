@@ -495,7 +495,7 @@ module Cigri
         if ["NEW_CAMPAIGN"].include?(event.props[:code])
           message_props[:severity]="low"
         #   Temporary or such events
-        elsif ["TIMEOUT","CONNECTION_REFUSED","CONNECTION_RESET","SSL_ERROR","UNDER_STRESS","WALLTIME_WARNING"].include?(event.props[:code])
+        elsif ["TIMEOUT","CONNECTION_REFUSED","CONNECTION_RESET","SSL_ERROR","UNDER_STRESS","WALLTIME_WARNING","CIGRI_WALLTIME"].include?(event.props[:code])
           message_props[:severity]="medium"
         #   Fatal events (lead to a blacklist until manually fixed)
         else

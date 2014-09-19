@@ -111,6 +111,7 @@ begin
   
   # Check for expired walltime
   $logger.debug('Check for expired walltime')
+  have_to_notify=false
   jobs=Cigri::Jobset.new
   jobs.get_expired
   jobs.to_jobs
@@ -119,20 +120,22 @@ begin
   end
   jobs.each do |job|
     $logger.debug("Killing job #{job.id} because of walltime")
-    job_event=Cigri::Event.new({:class => "job",
+    job_event=Cigri::Event.new({:class => "notify",
                           :job_id => job.id,
                           :campaign_id => job.props[:campaign_id],
                           :code => "CIGRI_WALLTIME",
-                          :state => "open",
+                          :state => "close",
                           :message => "Cigri sent kill signal to job #{job.id} because it has reached the walltime and OAR doesn't seem to care"})
-    job.update({:state => "event"})
+    have_to_notify=true
     begin
       job.kill
+      job.decrease_affinity
     rescue => e
       $logger.warn("Could not kill job #{job.id}")
       $logger.debug("Error while killing #{job.id}: #{e}")
     end
   end
+  notify_judas if have_to_notify
   
   # Check for jobs in remotewaiting for too long
   $logger.debug('Check for jobs in remotewaiting for too long')
