@@ -194,10 +194,9 @@ module Cigri
               job.decrease_affinity if type == "WALLTIME" # This increase the possibility to try another cluster
             end
             break
-          # Automatic resubmit when the job is FRAGGED except if the frag was made by Nikita
-          # as it should be already re-submitted
+          # Automatic resubmit when the job is FRAGGED
           elsif type == "FRAG_JOB_REQUEST"
-            resubmit=true if Eventset.new(:where => "job_id=#{job.id} and code='REMOTE_WAITING_FRAG'").empty?
+            resubmit=true
             break
           # Catch this types for special treatment
           elsif type == "WORKING_DIRECTORY" 

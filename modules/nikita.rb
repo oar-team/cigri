@@ -144,14 +144,12 @@ begin
                     :code => "REMOTE_WAITING_FRAG",
                     :campaign_id => job.props[:campaign_id],
                     :state => "closed",
-                    :message => "Killed because it was remote_waiting for too long. Resubmitting job."})
-    job.update({:state => "event"})
+                    :message => "Killed because it was remote_waiting for too long. Job will be resubmitted."})
     job_event.close
     begin
       job.kill
-      # Resubmit (except for pro/epilogue as the metascheduler does it)
+      # Decrease affinity so that the job may be tried on another cluster
       if not job.props[:tag] == "prologue" and not job.props[:tag] == "epilogue"
-        job.resubmit
         job.decrease_affinity
       end
     rescue => e
