@@ -124,7 +124,7 @@ begin
                           :job_id => job.id,
                           :campaign_id => job.props[:campaign_id],
                           :code => "CIGRI_WALLTIME",
-                          :state => "close",
+                          :state => "closed",
                           :message => "Cigri sent kill signal to job #{job.id} because it has reached the walltime and OAR doesn't seem to care"})
     have_to_notify=true
     begin
