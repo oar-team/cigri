@@ -128,8 +128,9 @@ module Cigri
               ) && (Time.now.to_i - Time.parse(event.props[:date_update]).to_i) > AUTOFIX_DELAY
             event.checked
             cluster=Cluster.new({:id => event.props[:cluster_id]})
+            COLOMBOLIBLOGGER.debug("  Checking #{cluster.name}")
             if cluster.check_api?
-              COLOMBOLIBLOGGER.debug("Autofixing #{cluster.name}")
+              COLOMBOLIBLOGGER.debug("  Autofixing #{cluster.name}")
               event.close
             end
           end
