@@ -906,13 +906,11 @@ end
 #
 ##
 def get_campaign_active_jobs_number_on_cluster(dbh, id, cluster_id)
-  dbh.select_one("SELECT COUNT(*) FROM jobs
-                                  LEFT JOIN events ON jobs.id=events.job_id
+  active=dbh.select_one("SELECT COUNT(*) FROM jobs
                                   WHERE (jobs.state='running'
                                      OR jobs.state='submitted'
                                      OR jobs.state='to_launch'
-                                     OR jobs.state='remote_waiting'
-                                     OR (jobs.state='event' and events.state='open'))
+                                     OR jobs.state='remote_waiting')
                                     AND jobs.cluster_id=?
                                     AND jobs.campaign_id=?", cluster_id, id)[0]
 end

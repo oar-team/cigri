@@ -254,7 +254,7 @@ module Cigri
         blacklist[campaign_id]=true if cluster.blacklisted?(:campaign_id=>campaign_id) 
       end
       @records.each do |record|
-        new_records << record if not blacklist[record.props[:campaign_id]]
+        new_records << record if not blacklist[record.props[:campaign_id].to_i]
       end
       @records=new_records
     end
