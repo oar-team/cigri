@@ -884,7 +884,7 @@ module Cigri
         when "normal"
           opts[:besteffort] = false 
         else
-          logger.warn("Unknown campaign type: "+@clusters[cluster_id]["type"].to_s+"; using best-effort")
+          JOBLIBLOGGER.warn("Unknown campaign type: "+@clusters[cluster_id]["type"].to_s+"; using best-effort")
           opts[:besteffort] = true
         end
       end
