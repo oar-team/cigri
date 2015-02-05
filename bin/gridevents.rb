@@ -46,7 +46,7 @@ optparse = OptionParser.new do |opts|
     fix = true
   end
 
-  opts.on('-r', '--resubmit', 'Resubmit each job concerned by the fixed events') do
+  opts.on('-r', '--resubmit', 'Resubmit each job concerned by the fixed events (needs --fix') do
     resubmit = true
   end
 
@@ -80,6 +80,12 @@ rescue OptionParser::ParseError => e
   $stderr.puts e
   $stderr.puts "\n" + optparse.to_s
   exit 1
+end
+
+# Exit on bad options combinations
+if resubmit and not fix
+   $stderr.puts "Error: --resubmit must be used with --fix!"
+   exit 2
 end
 
 # Campaign id can be passed as an argument (same as -c option)
