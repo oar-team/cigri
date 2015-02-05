@@ -122,7 +122,8 @@ API_HEADER_USERNAME="HTTP_X_CIGRI_USER"
 #
 # Minimum duration in seconds between two updates of the grid_usage table
 # This table is maintained only for making statistics and informations to the 
-# users.
+# users. Set to 0 to disable.
 GRID_USAGE_UPDATE_PERIOD="60"
 # Dirty wait for maximizing chances of gridusage processes synchro
+# Ignored if GRID_USAGE_UPDATE_PERIOD is set to 0
 GRID_USAGE_SYNC_TIME="10"

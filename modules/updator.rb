@@ -89,77 +89,80 @@ begin
   ## 
   # Update grid_usage table
   ## 
-  last_grid_usage_entry_date=0
-  sync_seconds=GRID_USAGE_SYNC_TIME # Max seconds to wait for synchro of the updator processes
-  db_connect do |dbh|
-    last_grid_usage_entry_date=last_grid_usage_entry_date(dbh)
-  end
-  if Time.now.to_i - last_grid_usage_entry_date.to_i > GRID_USAGE_UPDATE_PERIOD
-   logger.debug("updating grid_usage")
-    have_to_notify=true
-    begin
-      cigri_jobs=Cigri::Jobset.new
-      cigri_jobs.get_running
-      cigri_jobs.records.map! {|j| j.props[:remote_id].to_i }        
-      date=Time.now
-      Cigri::ClusterSet.new.each do |cluster|
-        if not cluster.blacklisted?
-          pid=fork
-          if pid.nil?
-            sync_date=Time.now.to_i
-            # Get the resource_units
-            logger.debug("Getting resources of #{cluster.name} (it takes at least #{sync_seconds} seconds)")
-            cluster_resources=cluster.get_resources
-            cigri_resources=0
-            unavailable_resources=[]
-            resource_units={}
-            cluster_resources.each do |r|
-              resource_units[r["id"]]=r[cluster.props[:resource_unit]]
-              if r["state"] != "Alive" and
-                 (r["state"] != "Absent" or (r["state"] == "Absent" and r["available_upto"].to_i < Time.now.to_i))
-                unavailable_resources << r[cluster.props[:resource_unit]]
-              end
-            end
-            max_resource_units=resource_units.values.uniq.length 
-    
-            # Get the cluster jobs
-            cluster_jobs=cluster.get_jobs
-            # Jobs consume resources units
-            #TODO: remove jobs running on suspected resources!
-            cluster_jobs.each do |cluster_job|
-              cluster_job["resources"].each do |job_resource|
-                count=resource_units.length
-                resource_units.delete_if {|k,v| v==resource_units[job_resource["id"]] }
-                if cigri_jobs.records.include?(cluster_job["id"].to_i )
-                  cigri_resources+=count-resource_units.length
+  if GRID_USAGE_UPDATE_PERIOD == 0
+    logger.debug("Skipping grid_usage update (disabled by configuration)")
+  else
+    last_grid_usage_entry_date=0
+    sync_seconds=GRID_USAGE_SYNC_TIME # Max seconds to wait for synchro of the updator processes
+    db_connect do |dbh|
+      last_grid_usage_entry_date=last_grid_usage_entry_date(dbh)
+    end
+    if Time.now.to_i - last_grid_usage_entry_date.to_i > GRID_USAGE_UPDATE_PERIOD
+     logger.debug("updating grid_usage")
+      have_to_notify=true
+      begin
+        cigri_jobs=Cigri::Jobset.new
+        cigri_jobs.get_running
+        cigri_jobs.records.map! {|j| j.props[:remote_id].to_i }        
+        date=Time.now
+        Cigri::ClusterSet.new.each do |cluster|
+          if not cluster.blacklisted?
+            pid=fork
+            if pid.nil?
+              sync_date=Time.now.to_i
+              # Get the resource_units
+              logger.debug("Getting resources of #{cluster.name} (it takes at least #{sync_seconds} seconds)")
+              cluster_resources=cluster.get_resources
+              cigri_resources=0
+              unavailable_resources=[]
+              resource_units={}
+              cluster_resources.each do |r|
+                resource_units[r["id"]]=r[cluster.props[:resource_unit]]
+                if r["state"] != "Alive" and
+                   (r["state"] != "Absent" or (r["state"] == "Absent" and r["available_upto"].to_i < Time.now.to_i))
+                  unavailable_resources << r[cluster.props[:resource_unit]]
                 end
               end
+              max_resource_units=resource_units.values.uniq.length 
+      
+              # Get the cluster jobs
+              cluster_jobs=cluster.get_jobs
+              # Jobs consume resources units
+              #TODO: remove jobs running on suspected resources!
+              cluster_jobs.each do |cluster_job|
+                cluster_job["resources"].each do |job_resource|
+                  count=resource_units.length
+                  resource_units.delete_if {|k,v| v==resource_units[job_resource["id"]] }
+                  if cigri_jobs.records.include?(cluster_job["id"].to_i )
+                    cigri_resources+=count-resource_units.length
+                  end
+                end
+              end
+                
+              # Dirty synchro to maximize the chances of having the new sql entries at the same time
+              seconds=Time.now.to_i-sync_date
+              if seconds < sync_seconds
+                sleep sync_seconds - seconds
+              end
+     
+              # Create the entry
+              Datarecord.new("grid_usage",{:date => date,
+                                         :cluster_id => cluster.id,
+                                         :max_resources => max_resource_units,
+                                         :used_resources => max_resource_units - resource_units.values.uniq.length,
+                                         :used_by_cigri => cigri_resources,
+                                         :unavailable_resources => unavailable_resources.uniq.length
+                                        })
+              exit(0)
             end
-              
-            # Dirty synchro to maximize the chances of having the new sql entries at the same time
-            seconds=Time.now.to_i-sync_date
-            if seconds < sync_seconds
-              sleep sync_seconds - seconds
-            end
-   
-            # Create the entry
-            Datarecord.new("grid_usage",{:date => date,
-                                       :cluster_id => cluster.id,
-                                       :max_resources => max_resource_units,
-                                       :used_resources => max_resource_units - resource_units.values.uniq.length,
-                                       :used_by_cigri => cigri_resources,
-                                       :unavailable_resources => unavailable_resources.uniq.length
-                                      })
-            exit(0)
-          end
-        end 
+          end 
+        end
+        Process.waitall
+      rescue => e
+        logger.warn("Could not update the grid_usage table! #{e.message} #{e.backtrace}") 
       end
-      Process.waitall
-    rescue => e
-      logger.warn("Could not update the grid_usage table! #{e.message} #{e.backtrace}") 
     end
   end
- 
   ## 
   # Update clusters stress factors
   ## 
