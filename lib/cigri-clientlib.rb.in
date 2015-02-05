@@ -51,10 +51,11 @@ module Cigri
         events.each do |event|
           job=''
           job=" of job #{event['job_id']}" if event['job_id']
+          cluster=" on #{event['cluster_name']}" if event['cluster_name']
           because=''
           because=" because of #{event['parent']}" if event['parent']
           puts "------------------------------------------------------------------------------"
-          puts "#{event['id']}: (#{event['state']}) #{event['code']}#{job} at #{event['date_open']} on #{event['cluster_name']}#{because}"
+          puts "#{event['id']}: (#{event['state']}) #{event['code']}#{job} at #{event['date_open']}#{cluster}#{because}"
           puts event['message'] if !event['message'].nil?
         end
         puts "------------------------------------------------------------------------------"

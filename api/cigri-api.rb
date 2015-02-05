@@ -826,7 +826,9 @@ class API < Sinatra::Base
          {:rel => :self, :href => to_url("events/#{id}")},
          {:rel => :parent, :href => to_url('events')}
       ]
-      event.props[:cluster_name]=CLUSTER_NAMES[event.props[:cluster_id]],
+      if event.props[:cluster_id]
+        event.props[:cluster_name]=CLUSTER_NAMES[event.props[:cluster_id]]
+      end
       event.props
     end
 
