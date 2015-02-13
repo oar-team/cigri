@@ -26,6 +26,7 @@ begin
   require 'xmpp4r/client'
   $VERBOSE=true
   XMPPLIB=true
+  require 'cigri-xmpp4r-encoding-patch'
 rescue LoadError
   XMPPLIB=false
 end
