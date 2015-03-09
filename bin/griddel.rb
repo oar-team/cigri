@@ -27,7 +27,7 @@ optparse = OptionParser.new do |opts|
     resume = true
   end
 
-  opts.on('--purge', 'Purge the campaign (only if it is paused)') do
+  opts.on('--purge', 'Purge the campaign (only if it is finished)') do
     purge = true
   end
 
