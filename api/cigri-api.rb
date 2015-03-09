@@ -478,6 +478,10 @@ class API < Sinatra::Base
           msg="resumed"
           resume_campaign(dbh, request.env[settings.username_variable], id)
           Cigri::Event.new({:code => "RESUMED", :campaign_id => id, :class => "campaign", :message => "User request to resume the campaign #{id}", :state => 'closed'})
+        elsif params['purge']
+          msg="purge request"
+          purge_campaign(dbh, request.env[settings.username_variable], id)
+          Cigri::Event.new({:code => "PURGE", :campaign_id => id, :class => "campaign", :message => "User request to purge the campaign #{id}", :state => 'closed'})
         else
           msg="cancelled"
           cancel_campaign(dbh, request.env[settings.username_variable], id)

@@ -10,6 +10,7 @@ require 'version.rb'
 verbose = false
 hold = false
 resume = false
+purge = false
 job_id=false
 optparse = OptionParser.new do |opts|
   opts.banner = "Usage:  #{File.basename(__FILE__)} <CAMPAIGN_ID> [CAMPAIGN_IDS...] [options]"
@@ -24,6 +25,10 @@ optparse = OptionParser.new do |opts|
 
   opts.on('-r', '--resume', 'Resumes the campaign (only if it is paused)') do
     resume = true
+  end
+
+  opts.on('--purge', 'Purge the campaign (only if it is paused)') do
+    purge = true
   end
 
   opts.on( '-j', '--job ID', String,  'Cancel a single job' ) do |j|
@@ -54,6 +59,7 @@ abort("Missing CAMPAIGN_ID\n" + optparse.to_s) unless ARGV.length > 0 or job_id
 status=""
 status="?hold=1" if hold
 status="?resume=1" if resume
+status="?purge=1" if purge
 
 begin 
   client = Cigri::Client.new 

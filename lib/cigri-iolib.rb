@@ -555,6 +555,54 @@ def delete_campaign(dbh, user, id)
 end
 
 ##
+# Purge a campaign: deletes parameters if campaign is finished
+# to free up disk usage. All other logs are kepts.
+#
+# == Parameters
+# - dbh: database handle
+# - user: user requesting campaign deletion
+# - id: campaign id to purge
+#
+# == Exceptions
+# - Cigri::Unauthorized if the user does not have the rights to delete the campaign
+# - Cigri::NotFound if the campaign "id" does not exist
+#
+##
+def purge_campaign(dbh, user, id)
+  IOLIBLOGGER.debug("Received request to purge campaign '#{id}'")
+  
+  check_rights!(dbh, user, id)
+  
+  dbh['AutoCommit'] = false
+  begin
+
+    row = dbh.select_one("SELECT state FROM campaigns WHERE id = ?", id)
+    if row[0] != "cancelled" and row[0] != "terminated"
+      IOLIBLOGGER.warn("Not purging non-terminated campaign #{id}")
+      return false
+    end
+
+    to_delete = {'parameters' => 'campaign_id','bag_of_tasks' => 'campaign_id'} 
+    
+    to_delete.each do |k, v|
+      nb = dbh.do("DELETE FROM #{k} WHERE #{v} = ?", id)
+      IOLIBLOGGER.debug("Deleted #{nb} rows from table '#{k}' for campaign #{id}")
+    end 
+    
+    dbh.commit()
+    IOLIBLOGGER.info("Campaign #{id} purge")
+  rescue Exception => e
+    IOLIBLOGGER.error('Error during campaign purge, rolling back changes: ' + e.inspect)
+    dbh.rollback()
+    raise e
+  ensure
+    dbh['AutoCommit'] = true
+  end
+end
+
+
+
+##
 # Closes all the events opened on a campaign
 #
 # == Parameters
