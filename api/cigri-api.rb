@@ -190,6 +190,14 @@ class API < Sinatra::Base
     print(output)
   end
 
+  # Get the cluster's scheduler infos of a job
+  get '/jobs/:id/cinfos' do |id|
+    response['Allow'] = 'GET'
+    output = get_job_cinfos(id)
+    status 200
+    print(output)
+  end
+
   # Get the jdl as saved in the database
   get '/campaigns/:id/jdl/?' do |id|
     response['Allow'] = 'GET'
@@ -868,6 +876,14 @@ class API < Sinatra::Base
         halt 400, print({:status => 400, :title => "Get media error", :message => e.to_s})   
       end
       return {:output => output}
+    end
+
+    # Get the cluster's scheduler infos of a given job 
+    def get_job_cinfos(id)
+      job=get_job(id)
+      cluster=Cigri::Cluster.new(:id => job.props[:cluster_id])
+      cluster_job=cluster.get_job(job.props[:remote_id].to_i, job.props[:grid_user])
+      return cluster_job
     end
  
     def params_to_update

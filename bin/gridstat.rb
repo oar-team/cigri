@@ -24,6 +24,7 @@ events = false
 offset = nil
 output = nil
 jdl=false
+cinfos=false
 optparse = OptionParser.new do |opts|
   opts.banner = "Usage: #{File.basename(__FILE__)} [options] [<campaign ID>]"
   
@@ -49,6 +50,10 @@ optparse = OptionParser.new do |opts|
 
   opts.on( '-j', '--job ID', String,  'Print infos about a job' ) do |j|
     job_id=j
+  end
+
+  opts.on( '-c', '--cinfos', String,  "Print cluster's scheduler infos about a job (used with -j)" ) do
+    cinfos = true
   end
 
   opts.on( '-H', '--headerless', 'Remove the columns title' ) do
@@ -133,6 +138,12 @@ if output and not job_id
   exit 1
 end
 
+# Clusters infos option needs a job id
+if cinfos and not job_id
+  $stderr.puts "You must provide a job id (-j <id>) with --cinfos!"
+  exit 1
+end
+
 url = '/campaigns'
 url << "/#{campaign_id}" if campaign_id
 url << "/jdl?pretty" if jdl
@@ -144,6 +155,7 @@ url << "?offset=#{offset}" if offset and dump and not pretty
 
 url = "/jobs/#{job_id}" if job_id
 url << "/#{output}" if output
+url << "/cinfos?pretty" if cinfos
 
 begin 
   client = Cigri::Client.new()
@@ -155,8 +167,8 @@ begin
     events = JSON.parse(response.body)['items']
     Cigri::Client.print_events(events)
   elsif job_id
-    j = JSON.parse(response.body)
     if output
+       j = JSON.parse(response.body)
        if j["status"]
          if j["status"]==404
            warn "File not found:\n#{j['message']}"
@@ -166,6 +178,8 @@ begin
        else
          puts j["output"]
        end
+    elsif cinfos
+      puts response.body
     else
        Cigri::Client.print_job(j)
     end
