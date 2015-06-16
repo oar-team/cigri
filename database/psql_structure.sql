@@ -224,6 +224,7 @@ CREATE TABLE tasks_affinity (
   cluster_id INTEGER NOT NULL,
   priority INTEGER NOT NULL
 );
+CREATE INDEX tasks_affinity_idx ON tasks_affinity(id);
 CREATE INDEX tasks_affinity_idx_param_id ON tasks_affinity(param_id);
 CREATE INDEX tasks_affinity_idx_cluster_id ON tasks_affinity(cluster_id);
 
