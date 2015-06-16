@@ -931,14 +931,17 @@ end
 #
 ##
 def get_campaign_active_jobs_number(dbh, id)
-  dbh.select_one("SELECT COUNT(*) FROM jobs
-                                  LEFT JOIN events ON jobs.id=events.job_id
-                                  WHERE (jobs.state='running'
-                                     OR jobs.state='submitted'
-                                     OR jobs.state='to_launch'
-                                     OR jobs.state='remote_waiting'
-                                     OR (jobs.state='event' and events.state='open'))
-                                    AND jobs.campaign_id=?", id)[0]
+  dbh.select_one("SELECT COUNT(*) FROM (
+                                         SELECT jobs.id FROM jobs,events
+                                             WHERE jobs.id=events.job_id
+                                                AND jobs.state='event'
+                                                AND events.state='open'
+                                                AND jobs.campaign_id=?
+                                         UNION
+                                         SELECT jobs.id FROM jobs 
+                                             WHERE campaign_id=?
+                                                 AND jobs.state IN ('running','submitted','to_launch','remote_waiting')
+                                       ) AS current_jobs;",id,id)[0]
 end
 
 ##
@@ -1427,6 +1430,17 @@ end
 #
 def reset_task_affinity(dbh,param_id,cluster_id)
   query="delete from tasks_affinity where param_id=#{param_id} and cluster_id=#{cluster_id}"
+  dbh.do(query)
+end
+
+##
+# Clean tasks_affinity table
+#
+def clean_tasks_affinity_table(dbh)
+  query="delete from tasks_affinity where id in (
+           select tasks_affinity.id from tasks_affinity,parameters,campaigns 
+              where tasks_affinity.param_id=parameters.id and parameters.campaign_id=campaigns.id 
+                 and campaigns.state in ('terminated','cancelled'));"
   dbh.do(query)
 end
 

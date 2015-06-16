@@ -68,6 +68,18 @@ begin
 
   $logger.debug('Starting')
 
+  # Clean the affinity table every hour
+  events=Cigri::Eventset.new({:where => "class='log' and code='NIKITA_CLEAN_AFFINITY' and now() - date_open < interval '1 hour'"})
+  if events.empty?
+    $logger.debug('Cleaning the tasks_affinity table')
+    db_connect do |dbh|
+      clean_tasks_affinity_table(dbh)
+    end
+    Cigri::Event.new(:class => 'log', :state => 'closed', 
+                     :code => "NIKITA_CLEAN_AFFINITY", 
+                     :message => "Nikita cleaned affinity table")
+  end
+
   # Check for campaigns to kill
   $logger.debug('Check for campaigns to kill')
   events=Cigri::Eventset.new({:where => "class='campaign' and code='USER_FRAG' and state='open'"})
