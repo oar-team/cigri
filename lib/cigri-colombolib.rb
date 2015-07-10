@@ -364,7 +364,7 @@ module Cigri
     end
 
     ##
-    # Notify events that should be aggregated, surch as EXIT_ERRORS, RUNNER_SUBMIT_ERRORS
+    # Notify events that should be aggregated, such as EXIT_ERRORS, RUNNER_SUBMIT_ERRORS
     # Such events are grouped into one aggregated notification message
     #
     # == Parameters:

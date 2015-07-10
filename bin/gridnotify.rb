@@ -37,7 +37,7 @@ optparse = OptionParser.new do |opts|
     unsubscribe = true
   end
 
-  opts.on('-s', '--severity <low|medium|high>', String, 'Set the severity of notifications to low,medium or high') do |s|
+  opts.on('-s', '--severity <low|medium|high>', String, 'Set the severity of notifications to low, medium or high') do |s|
     severity = s
   end
 

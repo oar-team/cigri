@@ -78,10 +78,10 @@ while true do
   ##########################################################################
   # Jobs control
   ##########################################################################
-  # Check if there are some jobs in the transitionnal "launching" jobs
+  # Check if there are some jobs in the transitionnal "launching" state
   logger.debug("Jobs control")
   if cluster.has_launching_jobs?
-    logger.warn("There are some 'launching' jobs!")
+    logger.warn("There are some jobs in the 'launching' state!")
     launching_jobs = Cigri::Jobset.new
     launching_jobs.get_launching(cluster.id)
     launching_jobs.update({:state => 'event'})
@@ -198,7 +198,7 @@ while true do
               tap_can_be_opened[cluster.taps[campaign_id].id]=false
           end
         rescue Cigri::ClusterAPIConnectionError => e
-          message="Could not get remote job #{job.id}!\n#{e.to_s} because of a connexion problem to the cluster API"
+          message="Could not get remote job #{job.id}!\n#{e.to_s} because of a connection problem to the cluster API"
           logger.warn(message)
           cluster.taps[campaign_id].close # There's a problem, so we close the tap
           tap_can_be_opened[cluster.taps[campaign_id].id]=false

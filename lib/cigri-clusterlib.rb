@@ -1,7 +1,7 @@
 #!/usr/bin/ruby -w
 #
 # Cigri cluster library. This library gives methods to access
-# to the local resource manager of the clusters. It is based on
+# the local resource manager of the clusters. It is based on
 # REST calls.
 #
 # == Example:
@@ -24,10 +24,10 @@ STRESS_FACTOR = config.get('STRESS_FACTOR',0.8).to_f
 LOG_JOBS = config.get('LOG_JOBS',0).to_i == 1 ? true : false
 LOG_JOBS_DIRECTORY = config.get('LOG_JOBS_DIRECTORY',"/var/log/cigri_jobs") 
 
-
-# TODO: this is maybe something not to be fixed, but computed, and maybe 
-# dependent on the campaign, not only the cluster
-QUEUE_GAUGE = 10
+# unused :
+# # TODO: this is maybe something not to be fixed, but computed, and maybe 
+# # dependent on the campaign, not only the cluster
+# QUEUE_GAUGE = 10
 
 module Cigri
   ##
@@ -142,18 +142,19 @@ module Cigri
       return n > 0
     end
 
-    # Returns yes if the queue (jobs_to_launch) is under the gauge
-    def queue_low?
-      n=0
-      db_connect() do |dbh|
-        n=dbh.select_one("SELECT count(*) 
-                        FROM jobs_to_launch 
-                        WHERE cluster_id=?",@id)[0].to_i
-      end
-      return true if n < QUEUE_GAUGE
-      CLUSTERLIBLOGGER.debug("Cluster #{name} has #{n} jobs in queue")
-      return false
-    end
+    # unused :
+    # # Returns yes if the queue (jobs_to_launch) is under the gauge
+    # def queue_low?
+    #   n=0
+    #   db_connect() do |dbh|
+    #     n=dbh.select_one("SELECT count(*) 
+    #                     FROM jobs_to_launch 
+    #                     WHERE cluster_id=?",@id)[0].to_i
+    #   end
+    #   return true if n < QUEUE_GAUGE
+    #   CLUSTERLIBLOGGER.debug("Cluster #{name} has #{n} jobs in queue")
+    #   return false
+    # end
 
     # Get the running campaigns on this cluster
     def running_campaigns
@@ -182,7 +183,7 @@ module Cigri
     # Every rest query call has to be send via this method
     # We raise a Cigri::ClusterAPIConnectionError for errors
     # that are not specific to a campaign. From the runner point
-    # of view, whith such an error, it should retry later (ie
+    # of view, with such an error, it should retry later (ie
     # automatically resubmit a job for example)
     # On the other side, PermissionDenied (401), Forbidden (403) and ServerError (500)
     # are considered campaign problems and should not block the cluster

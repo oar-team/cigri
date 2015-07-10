@@ -1,6 +1,6 @@
 #!/usr/bin/ruby -w
 #
-# This library contains the classes used by the runnel module
+# This library contains the classes used by the runner module
 #
 
 require 'cigri-logger'
