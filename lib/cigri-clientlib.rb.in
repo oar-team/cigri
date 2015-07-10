@@ -21,6 +21,9 @@ module Cigri
     def initialize()
       @http = Net::HTTP.new(CONF.get('API_HOST'), CONF.get('API_PORT'))
       @http.read_timeout = CONF.get('API_TIMEOUT').to_i if CONF.exists?('API_TIMEOUT')
+      @http.use_ssl      = CONF.get('API_SSL')          if CONF.get('API_SSL', 'false') != "false"
+      @http.verify_mode  = OpenSSL::SSL::VERIFY_NONE    if CONF.get('API_VERIFY_SSL')   == "OpenSSL::SSL::VERIFY_NONE"
+
       if CONF.exists?('API_BASE')
         @base = CONF.get('API_BASE')
       else
