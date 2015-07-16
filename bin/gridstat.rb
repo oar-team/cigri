@@ -52,7 +52,7 @@ optparse = OptionParser.new do |opts|
     job_id=j
   end
 
-  opts.on( '-c', '--cinfos', String,  "Print cluster's scheduler infos about a job (used with -j)" ) do
+  opts.on( '-C', '--cinfos', String,  "Print cluster's scheduler infos about a job (used with -j)" ) do
     cinfos = true
   end
 

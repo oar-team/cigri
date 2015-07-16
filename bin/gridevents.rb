@@ -22,52 +22,52 @@ blacklist = false
 optparse = OptionParser.new do |opts|
   opts.banner = "Usage:  #{File.basename(__FILE__)} [options]"
   
-  opts.on('-v', '--verbose', 'Be verbose') do
-    verbose = true
-  end
-
-  opts.on( '-c', '--campaign ID', String, 'Show or close events for this campaign ID' ) do |c|
+  opts.on( '-c', '--campaign ID', String, 'Show events for this campaign ID or close them (with -f)' ) do |c|
     campaign_id = c
-  end
-
-  opts.on( '-a', '--all', 'Show all events, even those that are closed (warning: it does not print the current global events)' ) do
-    all = true
   end
 
   opts.on( '-g', '--global', String, 'Show current global events (not specific to a campaign)' ) do
     global = true
   end
 
-  opts.on( '-e', '--event ID', String, 'Show or close only this event' ) do |e|
+  opts.on( '-e', '--event ID', String, 'Show only this event or close it (with -f)' ) do |e|
     event_id = e
   end
-   
-  opts.on('-f', '--fix', 'Fix: close the event if specified or all events of a campaign') do
+  
+  opts.on('-f', '--fix', 'Fix: close an event (used with -e) or all the events of a campaign (used with -c)') do
     fix = true
   end
 
-  opts.on('-r', '--resubmit', 'Resubmit each job concerned by the fixed events (needs --fix') do
+  opts.on('-r', '--resubmit', 'Resubmit each job concerned by the fixed events (needs -f') do
     resubmit = true
   end
 
-  opts.on('--blacklist-cluster ID',String, 'Manually blacklist a cluster (only root)') do |c|
-    cluster = c
-    blacklist = true
-    fix = false
+  opts.on( '-a', '--all', 'Show all events, even those that are closed (warning: it does not print the current global events)' ) do
+    all = true
   end
-
-  opts.on('--mark-job-event ID',String, 'Create a manual event on a job (only root)') do |j|
-    job = j
-    fix = false
+ 
+  if ENV["USER"] == "root"
+    opts.on('--blacklist-cluster ID',String, 'Manually blacklist a cluster (only root)') do |c|
+      cluster = c
+      blacklist = true
+      fix = false
+    end
+  
+    opts.on('--mark-job-event ID',String, 'Create a manual event on a job (only root)') do |j|
+      job = j
+      fix = false
+    end
   end
-
-
-
+  
   opts.on( '--version', 'Display Cigri version' ) do
     puts "#{File.basename(__FILE__)} v#{Cigri::VERSION}"
     exit
   end
-  
+
+  opts.on('-v', '--verbose', 'Be verbose') do
+    verbose = true
+  end
+
   opts.on( '-h', '--help', 'Display this screen' ) do
     puts opts
     exit

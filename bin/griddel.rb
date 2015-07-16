@@ -12,13 +12,14 @@ hold = false
 resume = false
 purge = false
 job_id=false
+campaign_ids=[]
 optparse = OptionParser.new do |opts|
-  opts.banner = "Usage:  #{File.basename(__FILE__)} <CAMPAIGN_ID> [CAMPAIGN_IDS...] [options]"
-  
-  opts.on('-v', '--verbose', 'Be verbose') do
-    verbose = true
+  opts.banner = "Usage:  #{File.basename(__FILE__)} [options]"
+
+  opts.on('-c', '--campaign_ids id1,id2,...', Array, 'Campaigns on which to act') do |c|
+    campaign_ids=c
   end
-  
+ 
   opts.on('-p', '--pause', 'Holds the campaign') do
     hold = true
   end
@@ -35,6 +36,10 @@ optparse = OptionParser.new do |opts|
     job_id=j
   end
 
+  opts.on('-v', '--verbose', 'Be verbose') do
+    verbose = true
+  end
+ 
   opts.on( '--version', 'Display Cigri version' ) do
     puts "#{File.basename(__FILE__)} v#{Cigri::VERSION}"
     exit
@@ -54,7 +59,11 @@ rescue OptionParser::ParseError => e
   exit 1
 end
 
-abort("Missing CAMPAIGN_ID\n" + optparse.to_s) unless ARGV.length > 0 or job_id
+abort("Error: You need to provide at least one campaign_id or job_id!\n" + optparse.to_s) unless ARGV.length > 0 or campaign_ids.length > 0 or job_id
+
+if campaign_ids.length == 0
+  campaign_ids=ARGV
+end
 
 status=""
 status="?hold=1" if hold
@@ -74,7 +83,7 @@ begin
       puts "#{parsed_response['message']}." if verbose
     end
   else
-    ARGV.each do |campaign_id|
+    campaign_ids.each do |campaign_id|
       response = client.delete("/campaigns/#{campaign_id}#{status}")
       parsed_response = JSON.parse(response.body)
       if response.code != "202"
