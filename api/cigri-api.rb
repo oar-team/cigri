@@ -476,25 +476,42 @@ class API < Sinatra::Base
     protected!
 
     msg=""
+    campaign = get_campaign(id)
     db_connect() do |dbh|
       begin
         if params['hold']
-          msg="paused"
-          hold_campaign(dbh, request.env[settings.username_variable], id)
-          Cigri::Event.new({:code => "PAUSED", :campaign_id => id, :class => "campaign", :message => "User request to pause the campaign #{id}", :state => 'closed'})
+          if campaign.props[:state] == 'in_treatment'
+            msg="paused"
+            hold_campaign(dbh, request.env[settings.username_variable], id)
+            Cigri::Event.new({:code => "PAUSED", :campaign_id => id, :class => "campaign", :message => "User request to pause the campaign #{id}", :state => 'closed'})
+          else
+            halt 400, print({:status => 400, :title => "Error", :message => "Can't hold (pause) a #{campaign.props[:state]} campaign"})
+          end
         elsif params['resume']
-          msg="resumed"
-          resume_campaign(dbh, request.env[settings.username_variable], id)
-          Cigri::Event.new({:code => "RESUMED", :campaign_id => id, :class => "campaign", :message => "User request to resume the campaign #{id}", :state => 'closed'})
+          if campaign.props[:state] == 'paused'
+            msg="resumed"
+            resume_campaign(dbh, request.env[settings.username_variable], id)
+            Cigri::Event.new({:code => "RESUMED", :campaign_id => id, :class => "campaign", :message => "User request to resume the campaign #{id}", :state => 'closed'})
+          else
+            halt 400, print({:status => 400, :title => "Error", :message => "Can't resume a #{campaign.props[:state]} campaign"})
+          end
         elsif params['purge']
-          msg="purge request"
-          purge_campaign(dbh, request.env[settings.username_variable], id)
-          Cigri::Event.new({:code => "PURGE", :campaign_id => id, :class => "campaign", :message => "User request to purge the campaign #{id}", :state => 'closed'})
+          if campaign.props[:state] == 'in_treatment'
+            msg="will be purged"
+            purge_campaign(dbh, request.env[settings.username_variable], id)
+            Cigri::Event.new({:code => "PURGE", :campaign_id => id, :class => "campaign", :message => "User request to purge the campaign #{id}", :state => 'closed'})
+          else
+            halt 400, print({:status => 400, :title => "Error", :message => "Can't purge a #{campaign.props[:state]} campaign"})
+          end
         else
           msg="cancelled"
-          cancel_campaign(dbh, request.env[settings.username_variable], id)
-          # Add a frag event to kill/clean the jobs
-          Cigri::Event.new({:code => "USER_FRAG", :campaign_id => id, :class => "campaign", :message => "User request to cancel the campaign #{id}"})
+          if campaign.props[:state] != 'cancelled'
+            cancel_campaign(dbh, request.env[settings.username_variable], id)
+            # Add a frag event to kill/clean the jobs
+            Cigri::Event.new({:code => "USER_FRAG", :campaign_id => id, :class => "campaign", :message => "User request to cancel the campaign #{id}"})
+          else
+            halt 400, print({:status => 400, :title => "Error", :message => "Campaign already cancelled."})
+          end
         end
       rescue Cigri::NotFound => e
         not_found
