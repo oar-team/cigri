@@ -1,0 +1,46 @@
+Source: cigri
+Section: science
+Priority: extra
+Maintainer: Jeremie Gaidamour <jeremie.gaidamour@inria.fr>
+Build-Depends: debhelper (>= 8.0.0)
+Standards-Version: 3.9.4
+Homepage: http://ciment.ujf-grenoble.fr/cigri/dokuwiki/
+Vcs-Git: git://scm.gforge.inria.fr/cigri/cigri.git
+
+Package: cigri-server
+Architecture: all
+Depends: ${shlibs:Depends}, ${misc:Depends},
+	 ruby | ruby-interpreter,
+	 ruby-sinatra,
+	 postgresql,
+	 cigri-common,
+	 libdbd-pg-ruby,
+	 librestclient-ruby,
+	 libjson-ruby,
+Recommends: libapache2-mod-passenger,
+	    libxmpp4r-ruby,
+	    ruby-rspec,
+	    ruby-rack-test
+Description: Cigri middleware server package
+  CiGri is a lightweight grid middleware intended to dispatch large sets of multi-parametric tasks (also called bag-of-tasks) on multiple computer clusters efficiently. CiGri is designed to run on top of the OAR batch scheduler.
+ .
+ This package installs the CiGri server.
+
+Package: cigri-user
+Architecture: all
+Depends: ${shlibs:Depends}, ${misc:Depends},
+	 ruby | ruby-interpreter,
+	 cigri-common
+Description: Cigri middleware user package
+  CiGri is a lightweight grid middleware intended to dispatch large sets of multi-parametric tasks (also called bag-of-tasks) on multiple computer clusters efficiently. CiGri is designed to run on top of the OAR batch scheduler.
+ .
+ This package installs the command line interface of CiGri.
+
+Package: cigri-common
+Architecture: all
+Depends: ${shlibs:Depends}, ${misc:Depends},
+	 ruby | ruby-interpreter
+Description: Cigri middleware common package
+  CiGri is a lightweight grid middleware intended to dispatch large sets of multi-parametric tasks (also called bag-of-tasks) on multiple computer clusters efficiently. CiGri is designed to run on top of the OAR batch scheduler.
+ .
+   This package includes files needed by both the client and server part of CiGri.

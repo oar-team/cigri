@@ -1,0 +1,11 @@
+cigri (0.0.1~git20150213) unstable; urgency=low
+
+  * New upstream release
+
+ -- Jeremie Gaidamour <jeremie.gaidamour@inria.fr>  Tue, 17 Feb 2015 14:03:39 +0100
+
+cigri (0.0.1~git20140925-1) unstable; urgency=low
+
+  * Initial release
+
+ -- Jeremie Gaidamour <jeremie.gaidamour@inria.fr>  Thu, 23 Oct 2014 11:41:12 +0200

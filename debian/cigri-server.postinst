@@ -1,0 +1,50 @@
+#!/bin/sh
+# postinst script for cigri-server
+
+set -e
+
+CIGRIUSER=cigri
+CIGRIGROUP=cigri
+WWWUSER=www-data
+WWWGROUP=www-data
+
+PREFIX=/usr
+CIGRICONFDIR=/etc/cigri
+PIDDIR=/var/run/cigri
+LOGDIR=/var/log
+CIGRIDIR=$PREFIX/share/cigri
+
+# summary of how this script can be called:
+#        * <postinst> `configure' <most-recently-configured-version>
+#        * <old-postinst> `abort-upgrade' <new version>
+#        * <conflictor's-postinst> `abort-remove' `in-favour' <package>
+#          <new-version>
+#        * <deconfigured's-postinst> `abort-deconfigure' `in-favour'
+#          <failed-install-package> <version> `removing'
+#          <conflicting-package> <version>
+# for details, see http://www.debian.org/doc/debian-policy/ or
+# the debian-policy package
+
+case "$1" in
+  configure)
+    if ! id $CIGRIUSER > /dev/null 2>&1 ; then
+      adduser --disabled-password --quiet --system \
+              --home /var/lib/cigri \
+              --gecos "CiGri daemon" --group $CIGRIUSER
+    fi
+    chown $CIGRIUSER $CIGRICONFDIR/cigri.conf
+    chown $WWWUSER   $CIGRICONFDIR/api-apache.conf
+    chown $CIGRIUSER $CIGRIDIR/api/config.ru
+    mkdir -p $PIDDIR
+    chown $CIGRIUSER $PIDDIR
+    touch $LOGDIR/cigri.log
+    chown $CIGRIUSER $LOGDIR/cigri.log
+
+  ;;
+  abort-upgrade|abort-remove|abort-deconfigure)
+  ;;
+  *)
+    echo "postinst called with unknown argument \`$1'" >&2
+    exit 1
+  ;;
+esac
