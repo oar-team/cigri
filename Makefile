@@ -2,7 +2,7 @@
 # $Id$
 SHELL=/bin/bash
 
-PREFIX=/usr/local
+PREFIX=/usr
 MANDIR=$(PREFIX)/man
 BINDIR=$(PREFIX)/bin
 SBINDIR=$(PREFIX)/sbin
@@ -60,14 +60,14 @@ check-old:
 install-cigri-libs:
 	install -d -m 0755 $(DESTDIR)$(CIGRIDIR)
 	install -d -m 0755 $(DESTDIR)$(CIGRIDIR)/lib
-	@for file in lib/*; do install -m 0644 $$file $(DESTDIR)$(CIGRIDIR)/lib/; done
+	for file in lib/*; do install -m 0644 $$file $(DESTDIR)$(CIGRIDIR)/lib/; done
 	mv $(DESTDIR)$(CIGRIDIR)/lib/cigri-clientlib.rb.in $(DESTDIR)$(CIGRIDIR)/lib/cigri-clientlib.rb
 	perl -pi -e "s#%%CIGRICONFDIR%%#$(CIGRICONFDIR)#g" $(DESTDIR)$(CIGRIDIR)/lib/cigri-clientlib.rb
 
 install-cigri-modules:
 	install -d -m 0755 $(DESTDIR)$(CIGRIDIR)
 	install -d -m 0755 $(DESTDIR)$(CIGRIDIR)/modules
-	@for file in modules/*; do install -m 0755 $$file $(DESTDIR)$(CIGRIDIR)/modules; done
+	for file in modules/*; do install -m 0755 $$file $(DESTDIR)$(CIGRIDIR)/modules; done
 
 install-cigri-server-tools:
 	install -d -m 0755 $(DESTDIR)$(CIGRIDIR)
@@ -80,7 +80,7 @@ install-cigri-server-tools:
 install-cigri-user-cmds:
 	install -d -m 0755 $(DESTDIR)$(CIGRIDIR)
 	install -d -m 0755 $(DESTDIR)$(CIGRIDIR)/bin
-	@for cmd in $(USERCMDS) ; do \
+	for cmd in $(USERCMDS) ; do \
 		install -m 0755 bin/$$cmd.rb $(DESTDIR)$(CIGRIDIR)/bin/$$cmd.rb ; \
 		echo -e '#!/bin/bash\nCIGRICONFFILE=$(CIGRICONFDIR)/api-clients.conf '$(CIGRIDIR)/bin/$$cmd.rb '$$@' > $(DESTDIR)$(BINDIR)/$$cmd ; \
 		chmod 755 $(DESTDIR)$(BINDIR)/$$cmd ; \
@@ -92,48 +92,40 @@ install-cigri-user-config:
 	else install -m 0644 etc/api-clients.conf.in $(DESTDIR)$(CIGRICONFDIR)/api-clients.conf; \
 		perl -pi -e "s#%%CIGRIDIR%%#$(CIGRIDIR)#g;;\
 		s#%%APIBASE%%#$(APIBASE)#g" $(DESTDIR)$(CIGRICONFDIR)/api-clients.conf; fi
-	chown $(CIGRIUSER) $(DESTDIR)$(CIGRICONFDIR)/api-clients.conf
 
 install-cigri-launcher:
 	install -d -m 0755 $(DESTDIR)$(PIDDIR)
-	chown $(CIGRIUSER) $(DESTDIR)$(PIDDIR)
 	install -d -m 0755 $(DESTDIR)$(CIGRIDIR)
 	install -m 0755 sbin/cigri_start.in $(DESTDIR)/etc/init.d/cigri
 	perl -pi -e "s#%%CIGRIDIR%%#$(CIGRIDIR)#g;;\
 	     s#%%CIGRIUSER%%#$(CIGRIUSER)#g" $(DESTDIR)/etc/init.d/cigri
 	touch $(DESTDIR)$(LOGDIR)/cigri.log
 	chmod 600 $(DESTDIR)$(LOGDIR)/cigri.log
-	chown $(CIGRIUSER) $(DESTDIR)$(LOGDIR)/cigri.log
 	
 install-cigri-api:
 	install -d -m 0755 $(DESTDIR)$(CIGRIDIR)
 	install -d -m 0755 $(DESTDIR)$(CIGRIDIR)/api
-	@for file in api/*; do install -m 0755 $$file $(DESTDIR)$(CIGRIDIR)/api; done
+	for file in api/*; do install -m 0755 $$file $(DESTDIR)$(CIGRIDIR)/api; done
 	# The following activates the magic of Passenger's user switching support
 	# so that the API runs under the cigri user:
-	chown $(CIGRIUSER) $(DESTDIR)$(CIGRIDIR)/api/config.ru
 	# Dont'know why, but this directory must exist or passenger fails
-	mkdir -p $(WWWDIR)/cigri-api
+	mkdir -p $(DESTDIR)$(WWWDIR)/cigri-api
 
 install-cigri-server-config:
 	install -d -m 0755 $(DESTDIR)$(CIGRICONFDIR)
 	if [ -f $(DESTDIR)$(CIGRICONFDIR)/cigri.conf ]; then echo "$(DESTDIR)$(CIGRICONFDIR)/cigri.conf found, not erasing."; \
 		else install -m 0600 etc/cigri.conf.in $(DESTDIR)$(CIGRICONFDIR)/cigri.conf; fi
-	chown $(CIGRIUSER) $(DESTDIR)$(CIGRICONFDIR)/cigri.conf
 	if [ -f $(DESTDIR)$(CIGRICONFDIR)/api-apache.conf ]; then echo "$(DESTDIR)$(CIGRICONFDIR)/api-apache.conf found, not erasing."; \
 		else install -m 0644 etc/api-apache.conf.in $(DESTDIR)$(CIGRICONFDIR)/api-apache.conf; \
 		perl -pi -e "s#%%CIGRIDIR%%#$(CIGRIDIR)#g;;\
 		s#%%APIBASE%%#$(APIBASE)#g" $(DESTDIR)$(CIGRICONFDIR)/api-apache.conf; fi
-	chown $(WWWUSER) $(DESTDIR)$(CIGRICONFDIR)/api-apache.conf
 	if [ -f $(DESTDIR)$(CIGRICONFDIR)/user_lists ]; then echo "$(DESTDIR)$(CIGRICONFDIR)/user_lists found, not erasing."; \
 		else install -m 0644 etc/user_lists $(DESTDIR)$(CIGRICONFDIR)/user_lists; fi
-	chown $(WWWUSER) $(DESTDIR)$(CIGRICONFDIR)/api-apache.conf
 
 gen-ssl-cert: /etc/cigri/ssl
 
 /etc/cigri/ssl:
 	install -d -m 0700 $(DESTDIR)$(CIGRICONFDIR)/ssl
-	chown cigri $(DESTDIR)$(CIGRICONFDIR)/ssl
         #TODO: customize etc/ssl/cigri.cnf.in with variables from the makefile
 	install -m 0644 etc/ssl/cigri.cnf $(DESTDIR)$(CIGRICONFDIR)/ssl/cigri.cnf 
 	openssl genrsa -out $(DESTDIR)$(CIGRICONFDIR)/ssl/cigri.key 1024
@@ -145,9 +137,9 @@ clean:
 	rm -f doc/documentation/*.pdf doc/documentation/*.html doc/documentation/*.aux doc/documentation/*.out doc/documentation/*.log
  
 uninstall:
-	@if [ -d $(DESTDIR)$(CIGRICONFDIR) ]; then echo "Not removing $(DESTDIR)$(CIGRICONFDIR)"; fi
+	if [ -d $(DESTDIR)$(CIGRICONFDIR) ]; then echo "Not removing $(DESTDIR)$(CIGRICONFDIR)"; fi
 	rm -rf $(DESTDIR)$(CIGRIDIR) 
-	@for cmd in $(USERCMDS) ; do rm -f $(DESTDIR)$(BINDIR)/$$cmd ; done
+	for cmd in $(USERCMDS) ; do rm -f $(DESTDIR)$(BINDIR)/$$cmd ; done
 	rm -f $(DESTDIR)/etc/init.d/cigri_start
 	rm -f $(DESTDIR)/etc/init.d/cigri
 	rm -f $(DESTDIR)$(SBINDIR)/grid_test_cluster
