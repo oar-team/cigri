@@ -12,6 +12,6 @@ export DH_OPTIONS
 	dh $@ 
 
 override_dh_auto_install:
-	DESTDIR=debian/cigri-server make check-old install-cigri-modules install-cigri-launcher install-cigri-api install-cigri-server-config install-cigri-server-tools
-	DESTDIR=debian/cigri-user   make check-old install-cigri-user-cmds install-cigri-user-config
-	DESTDIR=debian/cigri-common make install-cigri-libs
+	DESTDIR=debian/cigri-server make PREFIX=/usr check-old install-cigri-modules install-cigri-launcher install-cigri-api install-cigri-server-config install-cigri-server-tools
+	DESTDIR=debian/cigri-user   make PREFIX=/usr check-old install-cigri-user-cmds install-cigri-user-config
+	DESTDIR=debian/cigri-common make PREFIX=/usr install-cigri-libs
