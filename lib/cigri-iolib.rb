@@ -313,7 +313,7 @@ end
 # - nil if cluster not found
 ##
 def get_cluster_id(dbh, cluster_name)
-  query = "SELECT id FROM clusters WHERE name = ?"
+  query = "SELECT id FROM clusters WHERE name = ? and enabled=true"
   row = dbh.select_one(query, cluster_name)
   return row[0] if row
   nil
@@ -395,9 +395,9 @@ end
 ##
 def select_clusters(dbh, where_clause = nil)
   if where_clause.nil?
-    where_clause = ""
+    where_clause = "WHERE enabled=true"
   else
-    where_clause = "WHERE #{where_clause}"
+    where_clause = "WHERE #{where_clause} and enabled=true"
   end 
   dbh.select_all("SELECT id FROM clusters #{where_clause}").flatten!
 end

@@ -424,7 +424,7 @@ class API < Sinatra::Base
           job.resubmit
         end
       rescue Cigri::NotFound => e
-        not_found
+        halt 404, print({:status => 404, :title => "Error", :message => "Event #{id} not found"})
       rescue Cigri::Unauthorized => e
         halt 403, print({:status => 403, :title => "Forbidden", :message => "Event #{id} is not specific to a campaign belonging to you: #{e.message}"})
       rescue Exception => e
@@ -453,13 +453,13 @@ class API < Sinatra::Base
           jobs.to_jobs
         end
         # Fix the campaign
-        logger.debug("Closing all events if #{id}, #{params['resubmit']}")
+        logger.debug("Closing all events of #{id}, #{params['resubmit']}")
         close_campaign_events(dbh, request.env[settings.username_variable], id)
         # Resubmit the jobs if needed
         jobs.each{|job| job.resubmit} if params['resubmit']
 
       rescue Cigri::NotFound => e
-        not_found
+        halt 404, print({:status => 404, :title => "Error", :message => "Campaign #{id} not found"})
       rescue Cigri::Unauthorized => e
         halt 403, print({:status => 403, :title => "Forbidden", :message => "Campaign #{id} does not belong to you: #{e.message}"})
       rescue Exception => e

@@ -26,6 +26,7 @@ CREATE TABLE clusters (
   power INT,
   properties VARCHAR(255),
   stress_factor FLOAT DEFAULT 0,
+  enabled BOOLEAN DEFAULT true,
   PRIMARY KEY (id)
 );
 
