@@ -75,7 +75,7 @@ install-cigri-server-tools:
 	install -d -m 0755 $(DESTDIR)$(CIGRIDIR)
 	install -d -m 0755 $(DESTDIR)$(CIGRIDIR)/sbin
 	install -m 0755 sbin/new_cluster.rb $(DESTDIR)$(CIGRIDIR)/sbin/newcluster
-	echo -e '#!/bin/bash\nCIGRICONFFILE=$(CIGRICONFDIR)/cigri.conf CIGRIDIR=$(CIGRIDIR) '$(CIGRIDIR)/sbin/grid_test_cluster.rb '$$@' > $(DESTDIR)$(SBINDIR)/grid_test_cluster ; \
+	echo -e '#!/bin/bash\nCIGRICONFFILE=$(CIGRICONFDIR)/cigri.conf CIGRIDIR=$(CIGRIDIR) $(CIGRIDIR)/sbin/grid_test_cluster.rb "$$@"' > $(DESTDIR)$(SBINDIR)/grid_test_cluster ; \
         chmod 755 $(DESTDIR)$(SBINDIR)/grid_test_cluster ; \
 	install -m 0755 sbin/grid_test_cluster.rb $(DESTDIR)$(CIGRIDIR)/sbin/grid_test_cluster.rb
 
@@ -84,7 +84,7 @@ install-cigri-user-cmds:
 	install -d -m 0755 $(DESTDIR)$(CIGRIDIR)/bin
 	for cmd in $(USERCMDS) ; do \
 		install -m 0755 bin/$$cmd.rb $(DESTDIR)$(CIGRIDIR)/bin/$$cmd.rb ; \
-		echo -e '#!/bin/bash\nCIGRICONFFILE=$(CIGRICONFDIR)/api-clients.conf '$(CIGRIDIR)/bin/$$cmd.rb '$$@' > $(DESTDIR)$(BINDIR)/$$cmd ; \
+		echo -e '#!/bin/bash\nCIGRICONFFILE=$(CIGRICONFDIR)/api-clients.conf $(CIGRIDIR)/bin/'$$cmd'.rb "$$@"' > $(DESTDIR)$(BINDIR)/$$cmd ; \
 		chmod 755 $(DESTDIR)$(BINDIR)/$$cmd ; \
 	done
 
@@ -103,7 +103,7 @@ install-cigri-launcher:
 	     s#%%CIGRIUSER%%#$(CIGRIUSER)#g" $(DESTDIR)/etc/init.d/cigri
 	touch $(DESTDIR)$(LOGDIR)/cigri.log
 	chmod 600 $(DESTDIR)$(LOGDIR)/cigri.log
-	
+
 install-cigri-api:
 	install -d -m 0755 $(DESTDIR)$(CIGRIDIR)
 	install -d -m 0755 $(DESTDIR)$(CIGRIDIR)/api
@@ -139,7 +139,7 @@ gen-ssl-cert: /etc/cigri/ssl
 clean:
 	rm -rf doc/rdoc doc/yard .yardoc
 	rm -f doc/documentation/*.pdf doc/documentation/*.html doc/documentation/*.aux doc/documentation/*.out doc/documentation/*.log
- 
+
 uninstall:
 	if [ -d $(DESTDIR)$(CIGRICONFDIR) ]; then echo "Not removing $(DESTDIR)$(CIGRICONFDIR)"; fi
 	rm -rf $(DESTDIR)$(CIGRIDIR) 
