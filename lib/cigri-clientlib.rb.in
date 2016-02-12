@@ -6,6 +6,7 @@
 require 'cigri-logger'
 require 'cigri-conflib'
 require 'net/http'
+require 'openssl'
 require 'uri'
 
 ENV['CIGRICONFFILE']="%%CIGRICONFDIR%%/api-clients.conf"
