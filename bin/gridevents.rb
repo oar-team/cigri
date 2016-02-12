@@ -9,7 +9,7 @@ require 'version.rb'
 
 verbose = false
 campaign_id = nil
-username = nil
+#username = nil
 fix = false
 resubmit = false
 event_id = nil
