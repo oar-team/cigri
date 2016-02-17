@@ -80,7 +80,7 @@ if options[:type].eql?('psql')
 
   puts 'Executing commands:'
   system("#{BASE_CMD} \"CREATE ROLE #{options[:user]} LOGIN PASSWORD \'#{options[:password]}\'\"")
-  system("#{BASE_CMD} \"CREATE DATABASE #{options[:database]} OWNER #{options[:user]} ENCODING 'UTF8'\"")
+  system("#{BASE_CMD} \"CREATE DATABASE #{options[:database]} OWNER #{options[:user]} ENCODING 'UTF8' TEMPLATE template0\"")
   cmd = "#{options[:dryrun]}sudo -u postgres psql -q -d #{options[:database]} -f #{options[:sql]}"
   system(cmd)
   abort "[ERROR] Unable to execute: #{cmd}" unless $?.success?
