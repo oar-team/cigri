@@ -271,7 +271,7 @@ module Cigri
          walltime=campaign.clusters[cluster_id]["walltime"]
        end
        submission_string["resources"]=submission_string["resources"]+",walltime="+walltime if walltime
-       submission_string["directory"]=campaign.clusters[cluster_id]["exec_directory"] if campaign.clusters[cluster_id]["exec_directory"] and tag != "prologue" 
+       submission_string["directory"]=campaign.clusters[cluster_id]["exec_directory"] if campaign.clusters[cluster_id]["exec_directory"] and tag != "prologue" and tag != "epilogue"
        submission_string["property"]=campaign.clusters[cluster_id]["properties"] if campaign.clusters[cluster_id]["properties"]
        submission_string["project"]=campaign.clusters[cluster_id]["project"] if campaign.clusters[cluster_id]["project"]
        submission_string
