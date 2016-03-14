@@ -92,6 +92,7 @@ module Cigri
       
       default_values!(res, config)
       expand_jdl!(res)
+      expand_macros!(res)
       set_params!(res)
       
       logger.debug('JDL file is well defined')
@@ -170,6 +171,7 @@ module Cigri
     # Default global values defined by configuration file
     DEFAULT_VALUES_GLOBAL_CONF = {}
     
+    # Set default values
     def self.default_values!(jdl, config)
       raise Cigri::ParseError, 'JDL does not contain the "clusters" field' unless jdl['clusters']
       
@@ -193,5 +195,31 @@ module Cigri
         end
       end
     end # default_values!
+
+    # Expand the macros
+    # {HOME} or ~: replaced by $HOME
+    # {CAMPAIGN_ID}: replaced by $CIGRI_CAMPAIGN_ID
+    # {OAR_JOB_ID}: replaced by $OAR_JOB_ID
+    def self.expand_macros!(jdl)
+      jdl['clusters'].each_value do |cluster|
+        cluster.each do |key,val|
+          # Macros for exec_directory and exec_file
+          if key == "exec_directory" or key == "exec_file"
+            # '~' or {HOME}replacement
+            cluster[key].gsub!(/~/,"$HOME")
+            cluster[key].gsub!(/{HOME}/,"$HOME")
+            # {CAMPAIGN_ID} replacement (only for exec_file)
+            cluster[key].gsub!(/{CAMPAIGN_ID}/,"\\$CIGRI_CAMPAIGN_ID") if key == "exec_file"
+          end
+          # Macros for prologue and epilogue
+          if key == "prologue" or key == "epilogue"
+            cluster[key].map!{|s| s.gsub(/{CAMPAIGN_ID}/,"\\$CIGRI_CAMPAIGN_ID")}
+            cluster[key].map!{|s| s.gsub(/{OAR_JOB_ID}/,"\\$OAR_JOB_ID")}
+            cluster[key].map!{|s| s.gsub(/~/,"\\$HOME")}
+            cluster[key].map!{|s| s.gsub(/{HOME}/,"\\$HOME")}
+          end
+        end
+      end 
+    end # expand_macros
   end # class JDLParser
 end
