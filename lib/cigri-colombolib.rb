@@ -256,7 +256,7 @@ module Cigri
 
       # Working directory errors
       elsif type == "WORKING_DIRECTORY"
-        message = "The job exited because of a working directory error. NFS problem on the cluster?;"
+        message = "The job exited because of a working directory error. Use 'gridstat -C -j #{job.id}' for more information."
         Cigri::Event.new(:class => "job",
                          :code => "WORKING_DIRECTORY_ERROR",
                          :job_id => job.id,
