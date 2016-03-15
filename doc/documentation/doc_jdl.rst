@@ -142,6 +142,15 @@ as value on all clusters.
     less than 5 minutes).
   - output_gathering_method is defined
 
+Macro variables
+---------------
+
+Some macro variables can be used inside some entries of the JDL.
+
+- {HOME} or ~: is replaced by the home directory of the user
+- {CAMPAIGN_ID}: is replaced by the id of the current campaign
+- {OAR_JOB_ID}: is replaced by the id of the OAR job (only relevent inside prologue
+  and epilogue scripts)
 
 Example of JDL
 --------------
