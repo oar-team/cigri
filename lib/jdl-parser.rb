@@ -1,6 +1,7 @@
 require 'cigri'
 require 'json'
 require 'pp'
+require 'etc'
 
 module Cigri
   ##
@@ -92,7 +93,7 @@ module Cigri
       
       default_values!(res, config)
       expand_jdl!(res)
-      expand_macros!(res)
+      expand_macros!(res,user)
       set_params!(res)
       
       logger.debug('JDL file is well defined')
@@ -200,7 +201,11 @@ module Cigri
     # {HOME} or ~: replaced by $HOME
     # {CAMPAIGN_ID}: replaced by $CIGRI_CAMPAIGN_ID
     # {OAR_JOB_ID}: replaced by $OAR_JOB_ID
-    def self.expand_macros!(jdl)
+    def self.expand_macros!(jdl,user)
+      # global parameters
+      jdl['param_file'].gsub!(/~/,Etc.getpwnam(user).dir)
+      jdl['param_file'].gsub!(/{HOME}/,Etc.getpwnam(user).dir)
+      # clusters parameters
       jdl['clusters'].each_value do |cluster|
         cluster.each do |key,val|
           # Macros for exec_directory and exec_file
