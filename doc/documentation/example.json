@@ -21,7 +21,8 @@
   "clusters": {                                     
     "luke": {                                       
       "project": "test",                            
-      "walltime": "00:5:00"                         
+      "walltime": "00:5:00",
+      "properties": "host != 'luke20'"
     },                                              
     "ceciccluster": {                               
       "walltime": "00:10:00"                        

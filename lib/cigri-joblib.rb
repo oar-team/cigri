@@ -1032,7 +1032,7 @@ module Cigri
              end
              #Limit max depending on taps
              tap=Cigri::Tap.new(:cluster_id => cluster_id.to_i, :campaign_id => campaign.id.to_i)
-             max_to_queue=tap.props[:rate].to_i*3 - queued_jobs
+             max_to_queue=tap.props[:rate].to_i*10 - queued_jobs
              max_to_queue=0 if max_to_queue < 0
              if max[couple].nil? or max[couple] == nil or max_to_queue < max[couple]
                max[couple]=max_to_queue

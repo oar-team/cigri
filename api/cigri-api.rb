@@ -899,7 +899,7 @@ class API < Sinatra::Base
     def get_job_cinfos(id)
       job=get_job(id)
       cluster=Cigri::Cluster.new(:id => job.props[:cluster_id])
-      cluster_job=cluster.get_job(job.props[:remote_id].to_i, job.props[:grid_user])
+      cluster_job=cluster.get_job(job.props[:remote_id].to_i, job.props[:grid_user], true)
       return cluster_job
     end
  

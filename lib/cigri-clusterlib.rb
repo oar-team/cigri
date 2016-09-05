@@ -399,15 +399,17 @@ module Cigri
         secure_run proc{ @api.post("jobs",job, {@description["api_auth_header"] => map_user(user)}) }, "SUBMIT_JOB"
       end
  
-      def get_job(job_id, user=nil)
+      def get_job(job_id, user=nil, details=false)
         if (job_id.is_a?(Integer))
           if not @jobs_cache[job_id].nil?
             return @jobs_cache[job_id]
           else
+            details_string=""
+            details_string="/details" if details
             if (user.nil?)
-              secure_run proc{ @api.get("jobs/#{job_id}") }, "GET_JOB"
+              secure_run proc{ @api.get("jobs/#{job_id}#{details_string}") }, "GET_JOB"
             else
-              secure_run proc{ @api.get("jobs/#{job_id}",{@description["api_auth_header"] => map_user(user)}) }, "GET_JOB"
+              secure_run proc{ @api.get("jobs/#{job_id}#{details_string}",{@description["api_auth_header"] => map_user(user)}) }, "GET_JOB"
             end
           end
         else
