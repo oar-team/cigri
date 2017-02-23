@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -e
 
@@ -55,7 +55,7 @@ oardocker exec -l root frontend /bin/bash << EOF
   a2enconf oar-restful-api-secured
   a2enmod ssl
   a2ensite default-ssl
-  service apache2 reload
+  service apache2 restart
 
   exit
 EOF
