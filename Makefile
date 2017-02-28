@@ -125,6 +125,8 @@ install-cigri-server-config:
 		s#%%APIBASE%%#$(APIBASE)#g" $(DESTDIR)$(CIGRICONFDIR)/api-apache.conf; fi
 	if [ -f $(DESTDIR)$(CIGRICONFDIR)/user_lists ]; then echo "$(DESTDIR)$(CIGRICONFDIR)/user_lists found, not erasing."; \
 		else install -m 0644 etc/user_lists $(DESTDIR)$(CIGRICONFDIR)/user_lists; fi
+	mkdir -p $(DESTDIR)$(VARDIR)
+	chown $(CIGRIUSER) $(DESTDIR)$(VARDIR)
 
 gen-ssl-cert: /etc/cigri/ssl
 
