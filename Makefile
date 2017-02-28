@@ -103,6 +103,7 @@ install-cigri-launcher:
 	     s#%%CIGRIUSER%%#$(CIGRIUSER)#g" $(DESTDIR)/etc/init.d/cigri
 	touch $(DESTDIR)$(LOGDIR)/cigri.log
 	chmod 600 $(DESTDIR)$(LOGDIR)/cigri.log
+	chown $(CIGRIUSER) $(DESTDIR)$(LOGDIR)/cigri.log
 
 install-cigri-api:
 	install -d -m 0755 $(DESTDIR)$(CIGRIDIR)
@@ -127,6 +128,7 @@ install-cigri-server-config:
 		else install -m 0644 etc/user_lists $(DESTDIR)$(CIGRICONFDIR)/user_lists; fi
 	mkdir -p $(DESTDIR)$(VARDIR)
 	chown $(CIGRIUSER) $(DESTDIR)$(VARDIR)
+	chown -R $(CIGRIUSER) $(DESTDIR)$(CIGRICONFDIR)
 
 gen-ssl-cert: /etc/cigri/ssl
 
@@ -137,6 +139,7 @@ gen-ssl-cert: /etc/cigri/ssl
 	openssl genrsa -out $(DESTDIR)$(CIGRICONFDIR)/ssl/cigri.key 1024
 	openssl req -config $(DESTDIR)$(CIGRICONFDIR)/ssl/cigri.cnf -new -key $(DESTDIR)$(CIGRICONFDIR)/ssl/cigri.key -out $(DESTDIR)$(CIGRICONFDIR)/ssl/cigri.csr
 	openssl x509 -req -days 3650 -in $(DESTDIR)$(CIGRICONFDIR)/ssl/cigri.csr -CA $(DESTDIR)/etc/ssl/certs/ssl-cert-snakeoil.pem -CAkey $(DESTDIR)/etc/ssl/private/ssl-cert-snakeoil.key -CAcreateserial -out $(DESTDIR)$(CIGRICONFDIR)/ssl/cigri.crt
+	chown -R $(CIGRIUSER) $(DESTDIR)$(CIGRICONFDIR)
 
 clean:
 	rm -rf doc/rdoc doc/yard .yardoc
