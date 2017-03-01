@@ -86,7 +86,10 @@ begin
       end
     end
     if pid == judas_pid
-      Cigri::Event.new(:class => "log", :code => "JUDAS_FAILED", :state => "closed", :message => "Judas terminated! Restarting.")
+      # TODO: disable logging for events created from a trap as this may cause deadlocks
+      #Cigri::Event.new(:class => "log", :code => "JUDAS_FAILED", :state => "closed", :message => "Judas terminated! Restarting.")
+      # Since the previous line is not possible, simply output on STDERR, for now...
+      STDERR.puts("Judas failed. Restarting!")
       sleep 5
       STDERR.puts("Restarting judas")
       npid=fork

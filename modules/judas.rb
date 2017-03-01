@@ -102,13 +102,18 @@ def notify(im_handlers)
 end
 
 # Setting up trap on USR1
+notify_flag=false
 trap("USR1") {
   STDERR.puts("Received USR1, so checking notifications")
-  notify(im_handlers)
+  notify_flag=true
 }
 
 # Main loop
 logger.info("Ready")
 while true do
+  if notify_flag==true
+    notify(im_handlers)
+    notify_flag=false
+  end
   sleep 10
 end
