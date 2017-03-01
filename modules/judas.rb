@@ -33,7 +33,7 @@ IRCLIB=false
 %w{INT TERM}.each do |signal|
   Signal.trap(signal){ 
     #cleanup!
-    logger.warn('Interruption caught: exiting.')
+    STDERR.puts('Interruption caught: exiting.')
     exit(1)
   }
 end
@@ -103,7 +103,7 @@ end
 
 # Setting up trap on USR1
 trap("USR1") {
-  logger.debug("Received USR1, so checking notifications")
+  STDERR.puts("Received USR1, so checking notifications")
   notify(im_handlers)
 }
 

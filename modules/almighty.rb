@@ -33,7 +33,7 @@ begin
   %w{INT TERM}.each do |signal|
   Signal.trap(signal){ 
     #cleanup!
-    logger.warn('Interruption caught: exiting.')
+    STDERR.puts('Interruption caught: exiting.')
     Cigri::Event.new(:class => "log", :code => "ALMIGHTY_TERMINATING", :state => "closed", :message => "Cigri is terminating!")
     Process.kill("USR1",judas_pid)
     sleep(3)
@@ -43,7 +43,7 @@ begin
     }
     # Kill every child
     childs.each do |pid|
-      logger.warn("Killing child process ##{pid}")
+      STDERR.puts("Killing child process ##{pid}")
       Process.kill("TERM",pid)
       Process.waitpid(pid,Process::WNOHANG)
     end
@@ -53,7 +53,7 @@ begin
 
   #Forward SIGUSR1 to Judas (check notifications) 
   trap("USR1") {
-    logger.debug("Received USR1, forwarding to Judas.")
+    STDERR.puts("Received USR1, forwarding to Judas.")
     Process.kill("USR1",judas_pid)
   }
 
@@ -66,16 +66,16 @@ begin
   trap("CHLD") {
     pid, status = Process.waitpid2(-1,Process::WNOHANG)
     if status != 0
-      logger.error("Child pid #{pid}: terminated with status #{status.inspect}")
+      STDERR.puts("Child pid #{pid}: terminated with status #{status.inspect}")
     else
-      logger.debug("Child pid #{pid}: CHLD received with status 0")
+      STDERR.puts("Child pid #{pid}: CHLD received with status 0")
     end
     childs.delete(pid)
     if not runner_childs[pid].nil?
       Cigri::Event.new(:class => "log", :code => "RUNNER_FAILED", :state => "closed", :message => "Runner of #{runner_childs[pid]} terminated! Restarting.")
       Process.kill("USR1",judas_pid)
       sleep 5
-      logger.warn("Restarting runner for #{runner_childs[pid]}")
+      STDERR.puts("Restarting runner for #{runner_childs[pid]}")
       npid=fork
       if npid.nil?
         exec("#{File.dirname(__FILE__)}/runner.rb", runner_childs[pid])
@@ -88,7 +88,7 @@ begin
     if pid == judas_pid
       Cigri::Event.new(:class => "log", :code => "JUDAS_FAILED", :state => "closed", :message => "Judas terminated! Restarting.")
       sleep 5
-      logger.warn("Restarting judas")
+      STDERR.puts("Restarting judas")
       npid=fork
       if npid.nil?
         exec("#{File.dirname(__FILE__)}/judas.rb")

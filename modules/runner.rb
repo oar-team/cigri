@@ -32,7 +32,7 @@ $0 = "cigri: runner #{ARGV[0]}"
 %w{INT TERM}.each do |signal|
   Signal.trap(signal){ 
     #cleanup!
-    logger.warn('Interruption caught: exiting.')
+    STDERR.puts('Interruption caught: exiting.')
     exit(1)
   }
 end
