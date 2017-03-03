@@ -203,8 +203,10 @@ module Cigri
     # {OAR_JOB_ID}: replaced by $OAR_JOB_ID
     def self.expand_macros!(jdl,user)
       # global parameters
-      jdl['param_file'].gsub!(/~/,Etc.getpwnam(user).dir)
-      jdl['param_file'].gsub!(/{HOME}/,Etc.getpwnam(user).dir)
+      if jdl['param_file']
+          jdl['param_file'].gsub!(/~/,Etc.getpwnam(user).dir)
+          jdl['param_file'].gsub!(/{HOME}/,Etc.getpwnam(user).dir)
+      end
       # clusters parameters
       jdl['clusters'].each_value do |cluster|
         cluster.each do |key,val|
