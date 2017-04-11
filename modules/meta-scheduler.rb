@@ -104,6 +104,7 @@ begin
   # Pass the ordered list to the scheduler
   scheduler=Cigri::SchedulerAffinity.new(campaigns,cluster_campaigns) 
   scheduler.do
+  scheduler.disconnect
  
   # End 
   logger.debug('Exiting')

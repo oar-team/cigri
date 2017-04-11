@@ -39,6 +39,10 @@ module Cigri
        end
     end
 
+    def disconnect
+      @dbh.disconnect()
+    end
+
   end # class SchedulerFifo
 
 

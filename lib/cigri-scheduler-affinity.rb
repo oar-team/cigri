@@ -153,6 +153,10 @@ module Cigri
       batch_tasks
     end
 
+    def disconnect
+      @dbh.disconnect()
+    end
+
   end # class SchedulerAffinity
 
 
