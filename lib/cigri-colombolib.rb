@@ -203,7 +203,16 @@ module Cigri
           elsif type == "WORKING_DIRECTORY" 
             break
           elsif type == "RESUBMIT_JOB_AUTOMATICALLY"
-            auto_resubmit_id=remote_event["description"].scan(/\(new id = (\d*)\)/)[0][0]
+            scan=remote_event["description"].scan(/\(new id = (\d*)\)/)
+            if scan == []
+              scan=remote_event["description"].scan(/(\d*)\)/)
+            end
+            if scan == []
+               COLOMBOLIBLOGGER.error("Could not get resubmit id of OAR job #{job.id}!")
+               break  
+            else
+              auto_resubmit_id=scan[0][0]
+            end
             break
           end
         end
