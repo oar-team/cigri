@@ -16,6 +16,10 @@ module Cigri
   class ParseError < Error; end
   class Unauthorized < Error; end
   ##
+  # Raised for a 400 api rest-server error
+  ##
+  class ClusterAPIBadRequest < Error; end
+  ##
   # Raised for a 401 api rest-server error
   ##
   class ClusterAPIPermissionDenied < Error; end

@@ -185,7 +185,7 @@ module Cigri
     # that are not specific to a campaign. From the runner point
     # of view, with such an error, it should retry later (ie
     # automatically resubmit a job for example)
-    # On the other side, PermissionDenied (401), Forbidden (403) and ServerError (500)
+    # On the other side, PermissionDenied (401), Forbidden (403), ServerError (500) and BadRequest (400)
     # are considered campaign problems and should not block the cluster
     # for other campaigns, so we do not generate an open event.
     def secure_run(p,default_error_code)
@@ -233,6 +233,10 @@ module Cigri
         raise
       rescue Cigri::ClusterAPIServerError => e
         event=Cigri::Event.new(:state => 'closed', :class => "cluster", :cluster_id => @id, :code => "CLUSTER_API_SERVER_ERROR", :message => e.to_s)
+        Cigri::Colombo.new(event).check
+        raise
+      rescue Cigri::ClusterAPIBadRequest => e
+        event=Cigri::Event.new(:state => 'closed', :class => "cluster", :cluster_id => @id, :code => "CLUSTER_API_BAD_REQUEST_ERROR", :message => e.to_s)
         Cigri::Colombo.new(event).check
         raise
 

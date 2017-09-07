@@ -117,6 +117,8 @@ module Cigri
       rescue RestClient::Exception => e
         if  e.http_code == 401
           raise Cigri::ClusterAPIPermissionDenied, "#{e.http_code} error in GET for #{uri}:\n #{e.response.body}"
+        elsif  e.http_code == 400
+          raise Cigri::ClusterAPIBadRequest, "#{e.http_code} error in GET for #{uri}:\n #{e.response.body}"
         elsif  e.http_code == 403
           raise Cigri::ClusterAPIForbidden, "#{e.http_code} error in GET for #{uri}:\n #{e.response.body}"
         elsif  e.http_code == 500
@@ -167,6 +169,8 @@ module Cigri
       rescue RestClient::Exception => e
         if  e.http_code == 401
           raise Cigri::ClusterAPIPermissionDenied, "#{e.http_code} error in POST for #{uri}:\n #{e.response.body}"
+        elsif  e.http_code == 400
+          raise Cigri::ClusterAPIBadRequest, "#{e.http_code} error in POST for #{uri}:\n #{e.response.body}"
         elsif  e.http_code == 403
           raise Cigri::ClusterAPIForbidden, "#{e.http_code} error in POST for #{uri}:\n #{e.response.body}"
         elsif  e.http_code == 500
@@ -196,6 +200,8 @@ module Cigri
         end
         if  e.http_code == 401
           raise Cigri::ClusterAPIPermissionDenied, "#{e.http_code} error in DELETE for #{uri}:\n #{body}"  
+        elsif  e.http_code == 400
+          raise Cigri::ClusterAPIBadRequest, "#{e.http_code} error in DELETE for #{uri}:\n #{e.response.body}"
         elsif  e.http_code == 403
           raise Cigri::ClusterAPIForbidden, "#{e.http_code} error in DELETE for #{uri}:\n #{body}"
         elsif  e.http_code == 404
