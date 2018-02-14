@@ -13,8 +13,8 @@
      # ident_module output.
      RewriteEngine On
      RewriteCond %{REMOTE_IDENT} (.*)
-     RewriteRule .* - [E=MY_REMOTE_IDENT:%1]
-     RequestHeader add X_CIGRI_USER %{MY_REMOTE_IDENT}e
+     RewriteRule .* - [E=HTTP_X_CIGRI_USER:%1]
+     #RequestHeader add X_CIGRI_USER %{MY_REMOTE_IDENT}e
    </IfModule>
 </Location>
 
