@@ -58,9 +58,9 @@ begin
   }
 
   #Catch STOP
-  trap("STOP") {
+  #trap("STOP") {
     #Do nothing
-  }
+  #}
 
   #Child processes monitoring
   trap("CHLD") {
