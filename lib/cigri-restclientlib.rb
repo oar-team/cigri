@@ -6,7 +6,7 @@
 require 'cigri-logger'
 require 'cigri-conflib'
 $VERBOSE=false
-  require 'rest_client'
+  require 'rest-client'
 #$VERBOSE=true
 require 'json'
 require 'yaml'
@@ -28,6 +28,8 @@ module Cigri
       auth_type = description["api_auth_type"]
       base_uri = description["api_url"]
 
+      options[:proxy] = nil
+
       if CONF.exists?('REST_QUERIES_TIMEOUT')
         options[:timeout] = CONF.get('REST_QUERIES_TIMEOUT').to_i
       else
@@ -48,7 +50,9 @@ module Cigri
           options[:ssl_ca_file] = CONF.get('REST_CLIENT_CA_FILE')
         end
         if CONF.exists?('REST_CLIENT_VERIFY_SSL')
-          options[:verify_ssl] = CONF.get('REST_CLIENT_VERIFY_SSL')
+		options[:verify_ssl] = CONF.get('REST_CLIENT_VERIFY_SSL').to_i
+	else
+          options[:verify_ssl] = false
         end
       elsif auth_type == "password"
         # if (user.nil? || user == "")
