@@ -27,7 +27,7 @@ module Cigri
     # Creates a new runner instance
     def initialize(cluster)
       @cluster=cluster
-      @dbh=db_connect()
+      #@dbh=db_connect()
     end
   end
 

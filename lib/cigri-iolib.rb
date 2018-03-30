@@ -46,8 +46,11 @@ def db_connect()
                       "#{CONF.get('DATABASE_USER_PASSWORD')}")
     $VERBOSE=true
     return dbh unless block_given?
-    yield dbh
-    dbh.disconnect() if dbh
+    begin
+      yield dbh
+    ensure
+      dbh.disconnect() if dbh
+    end
   rescue DBI::OperationalError => e
     IOLIBLOGGER.error("Failed to connect to database with string: #{str}\nError: #{e}\n#{e.backtrace.join("\n")}")
     IOLIBLOGGER.error("Retrying in 10s")
@@ -1604,7 +1607,6 @@ class Dataset
   def initialize(table,props={})
     # Get a DB handler
     @@dbh ||= db_connect()
-    @dbh = @@dbh
     @table=table
     @records=[]
     if props[:where]
@@ -1631,7 +1633,7 @@ class Dataset
   def get(table,what,where)
     what="*" if what.nil?
     check_connection!
-    sth=@dbh.execute("SELECT #{what} FROM #{table} WHERE #{where}")
+    sth=@@dbh.execute("SELECT #{what} FROM #{table} WHERE #{where}")
     result=[]
     sth.fetch_hash do |row|
       # The inject part is to convert string keys into symbols to optimize memory
@@ -1667,7 +1669,7 @@ class Dataset
   def delete(table=@table,id_column="id")
     IOLIBLOGGER.debug("Removing #{self.length} records from #{table}")    
     check_connection!
-    @dbh.do("DELETE FROM #{table} WHERE #{id_column} in (#{self.ids.join(',')})")
+    @@dbh.do("DELETE FROM #{table} WHERE #{id_column} in (#{self.ids.join(',')})")
   end
  
   # Same thing as delete, but also empty the dataset
@@ -1683,10 +1685,10 @@ class Dataset
     values.each_key do |field|
       if values[field].kind_of?(String) and values[field][0..8]=="TIMESTAMP"
         # No quoting for timestamp function
-        @dbh.do("UPDATE #{table} SET #{field} = #{values[field]} WHERE #{id_column} in (#{self.ids.join(',')})")
+        @@dbh.do("UPDATE #{table} SET #{field} = #{values[field]} WHERE #{id_column} in (#{self.ids.join(',')})")
       else
         # Normal quoting
-        @dbh.do("UPDATE #{table} SET #{field} = ? WHERE #{id_column} in (#{self.ids.join(',')})", values[field])
+        @@dbh.do("UPDATE #{table} SET #{field} = ? WHERE #{id_column} in (#{self.ids.join(',')})", values[field])
       end
     end
   end
@@ -1721,9 +1723,14 @@ class Dataset
   private
   #Verify the state of the connection and connect if not
   def check_connection!
-    if @@counter > 100 or !@@dbh.ping
+    if @@counter > 50 or !@@dbh.ping
+      if @@counter > 50
+        IOLIBLOGGER.debug("Refreshing database connection")
+      else
+        IOLIBLOGGER.warn("Database connection lost, re-connecting")
+      end
+      @@dbh.disconnect if @@dbh
       @@dbh = db_connect()
-      @dbh = @@dbh
       @@counter = 0
     end
     @@counter += 1

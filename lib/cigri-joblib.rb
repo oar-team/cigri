@@ -630,7 +630,7 @@ module Cigri
     # crash. This is why we directly call an iolib function ithout using datarecords.
     def take
       check_connection!
-      jobids=take_tasks(@dbh,self.ids)
+      jobids=take_tasks(@@dbh,self.ids)
       if jobids.length > 0
         Jobset.new(:where => "jobs.id in (#{jobids.join(',')})")
       else
@@ -922,7 +922,7 @@ module Cigri
     # couldn't find someting similar to "extend Module"...
     def to_campaigns
       check_connection!
-      finished_jobs = get_campaigns_nb_finished_jobs(@dbh, ids)
+      finished_jobs = get_campaigns_nb_finished_jobs(@@dbh, ids)
       campaigns=[]
       @records.each do |record|
         props = record.props
@@ -1091,7 +1091,7 @@ module Cigri
   # different order (or not!)
   def compute_tasks_list(cluster_id,campaign_id,max=nil)
     check_connection!
-    get_tasks_ids_for_campaign_on_cluster(@dbh,campaign_id,cluster_id,max)
+    get_tasks_ids_for_campaign_on_cluster(@@dbh,campaign_id,cluster_id,max)
   end
 
   end # Class Campaignset
