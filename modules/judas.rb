@@ -49,7 +49,7 @@ if XMPPLIB
       return true if client.is_connected?
       client.connect(config.get("NOTIFICATIONS_XMPP_SERVER"),config.get("NOTIFICATIONS_XMPP_PORT",5222).to_i)
       client.auth(config.get("NOTIFICATIONS_XMPP_PASSWORD"))
-      client.send(Jabber::Presence.new.set_show(nil).set_status('I am the grid!'))
+      client.send(Jabber::Presence.new.set_show(:dnd).set_status('I am the new grid!'))
       # add the callback to respond to server ping
       client.add_iq_callback do |iq_received|
         if iq_received.type == :get
