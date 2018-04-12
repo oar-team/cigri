@@ -113,7 +113,6 @@ begin
   $logger.debug('Check for unitary jobs to kill')
   events=Cigri::Eventset.new({:where => "class='job' and code='USER_FRAG' and state='open'"})
   events.each do |event|
-    can_close=true
     job_events=Cigri::Eventset.new({:where => "class='job' and job_id=#{event.props[:job_id]} and state='open' and not code='USER_FRAG'"})
     job_events.update({:state => 'closed'}) if job_events.length > 0
     jobs=Cigri::Jobset.new(:where => "jobs.id=#{event.props[:job_id]}")
@@ -132,7 +131,7 @@ begin
   end
   jobs.each do |job|
     $logger.debug("Killing job #{job.id} because of walltime")
-    job_event=Cigri::Event.new({:class => "notify",
+    Cigri::Event.new({:class => "notify",
                           :job_id => job.id,
                           :campaign_id => job.props[:campaign_id],
                           :code => "CIGRI_WALLTIME",
