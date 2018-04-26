@@ -91,7 +91,7 @@ module Cigri
         if event.props[:class]=="cluster"
           COLOMBOLIBLOGGER.debug("Checking event #{event.props[:code]}")
           case event.props[:code]
-          when "POST_TIMEOUT","TIMEOUT", "CONNECTION_RESET", "CONNECTION_REFUSED", "SSL_ERROR", "SUBMIT_JOB", "GET_JOBS", "GET_JOB", "GET_MEDIA","GET_STRESS_FACTOR", "FILL_JOBS_CACHE", "RUNNER_GET_JOB_CHUNK_ERROR"
+          when "POST_TIMEOUT","TIMEOUT", "CONNECTION_RESET", "CONNECTION_REFUSED", "HOST_UNREACHABLE", "SSL_ERROR", "SUBMIT_JOB", "GET_JOBS", "GET_JOB", "GET_MEDIA","GET_STRESS_FACTOR", "FILL_JOBS_CACHE", "RUNNER_GET_JOB_CHUNK_ERROR"
             blacklist_cluster(event.id,event.props[:cluster_id],event.props[:campaign_id])
             event.checked
           when "CLUSTER_MANUALLY_DISABLED"
@@ -122,6 +122,7 @@ module Cigri
           if  ( event.props[:code] == "TIMEOUT" ||
                 event.props[:code] == "POST_TIMEOUT" ||
                 event.props[:code] == "CONNECTION_REFUSED" ||
+                event.props[:code] == "HOST_UNREACHABLE" ||
                 event.props[:code] == "CONNECTION_RESET" ||
                 event.props[:code] == "GET_STRESS_FACTOR" ||
                 event.props[:code] == "SSL_ERROR"
@@ -505,7 +506,7 @@ module Cigri
         if ["NEW_CAMPAIGN"].include?(event.props[:code])
           message_props[:severity]="low"
         #   Temporary or such events
-        elsif ["TIMEOUT","CONNECTION_REFUSED","CONNECTION_RESET","SSL_ERROR","UNDER_STRESS","WALLTIME_WARNING","CIGRI_WALLTIME"].include?(event.props[:code])
+        elsif ["TIMEOUT","CONNECTION_REFUSED","HOST_UNREACHABLE","CONNECTION_RESET","SSL_ERROR","UNDER_STRESS","WALLTIME_WARNING","CIGRI_WALLTIME"].include?(event.props[:code])
           message_props[:severity]="medium"
         #   Fatal events (lead to a blacklist until manually fixed)
         else

@@ -213,6 +213,10 @@ module Cigri
         event=Cigri::Event.new(:class => "cluster", :cluster_id => @id, :code => "CONNECTION_REFUSED", :message => e.to_s)
         Cigri::Colombo.new(event).check
         raise Cigri::ClusterAPIConnectionError, e.message
+      rescue Errno::EHOSTUNREACH => e
+        event=Cigri::Event.new(:class => "cluster", :cluster_id => @id, :code => "HOST_UNREACHABLE", :message => e.to_s)
+        Cigri::Colombo.new(event).check
+        raise Cigri::ClusterAPIConnectionError, e.message
       rescue Errno::ECONNRESET => e
         event=Cigri::Event.new(:class => "cluster", :cluster_id => @id, :code => "CONNECTION_RESET", :message => e.to_s)
         Cigri::Colombo.new(event).check

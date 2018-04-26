@@ -104,6 +104,9 @@ install-cigri-launcher:
 	touch $(DESTDIR)$(LOGDIR)/cigri.log
 	chmod 600 $(DESTDIR)$(LOGDIR)/cigri.log
 	chown $(CIGRIUSER) $(DESTDIR)$(LOGDIR)/cigri.log
+	mkdir -p $(DESTDIR)$(LOGDIR)/cigri_jobs
+	chmod 700 $(DESTDIR)$(LOGDIR)/cigri_jobs
+	chown $(CIGRIUSER) $(DESTDIR)$(LOGDIR)/cigri_jobs
 
 install-cigri-api:
 	install -d -m 0755 $(DESTDIR)$(CIGRIDIR)
