@@ -270,7 +270,7 @@ module Cigri
        if walltime.nil? && campaign.clusters[cluster_id]["walltime"]
          walltime=campaign.clusters[cluster_id]["walltime"]
        end
-       submission_string["resources"]=submission_string["resources"]+",walltime="+walltime if walltime
+       submission_string["resources"]=submission_string["resources"]+",walltime="+walltime if walltime and submission_string["resources"].kind_of?(String)
        #expand {CAMPAIGN_ID} macro into exec_directory
        exec_directory=campaign.clusters[cluster_id]["exec_directory"].gsub(/{CAMPAIGN_ID}/,campaign.id.to_s)
        submission_string["directory"]=exec_directory if campaign.clusters[cluster_id]["exec_directory"] and tag != "prologue" and tag != "epilogue"
@@ -442,6 +442,7 @@ module Cigri
             else
               # Array grouping
               params=jobs.collect {|job| job.props[:param]}
+	      JOBLIBLOGGER.debug("resources: "+campaign.clusters[cluster_id]["resources"].inspect)
               submission = {
                             "param_file" => params.join("\n"),
                             "resources" => campaign.clusters[cluster_id]["resources"],

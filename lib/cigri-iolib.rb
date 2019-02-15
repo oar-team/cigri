@@ -222,6 +222,9 @@ def cigri_submit(dbh, jdl, user)
               if prop == "prologue" || prop == "epilogue"
                 jdl['clusters'][cluster][prop]=jdl['clusters'][cluster][prop].join("\n")
               end
+              if prop == "resources"
+        	IOLIBLOGGER.debug("resources:"+jdl['clusters'][cluster][prop].inspect)
+	      end
               dbh.do(query, prop, jdl['clusters'][cluster][prop], cluster_id, campaign_id)
             end
         end
