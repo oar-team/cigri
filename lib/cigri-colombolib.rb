@@ -278,7 +278,7 @@ module Cigri
       # OAR automatic resubmission errors
       elsif type == "RESUBMIT_JOB_AUTOMATICALLY" 
         message = "OAR did an automatic resubmission so we change the remote_id from #{job.props[:remote_id]} to #{auto_resubmit_id};"
-        job.update!(:remote_id => auto_resubmit_id)
+        job.update!(:remote_id => auto_resubmit_id,'state' => 'remote_waiting')
         Cigri::Event.new(:class => "job",
                          :code => "OAR_AUTO_RESUBMIT",
                          :job_id => job.id,

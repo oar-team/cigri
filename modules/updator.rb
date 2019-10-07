@@ -130,11 +130,14 @@ begin
               # Jobs consume resources units
               #TODO: remove jobs running on suspected resources!
               cluster_jobs.each do |cluster_job|
-                cluster_job["resources"].each do |job_resource|
-                  count=resource_units.length
-                  resource_units.delete_if {|k,v| v==resource_units[job_resource["id"]] }
-                  if cigri_jobs.records.include?(cluster_job["id"].to_i )
-                    cigri_resources+=count-resource_units.length
+                if cluster_job["state"] == "Running"
+                  cluster_job["resources"].each do |job_resource|
+                    count=resource_units.length
+                    #logger.debug("grid_usage: #{cluster.name} job #{cluster_job["id"]}: #{count}")
+                    resource_units.delete_if {|k,v| v==resource_units[job_resource["id"]] }
+                    if cigri_jobs.records.include?(cluster_job["id"].to_i )
+                      cigri_resources+=count-resource_units.length
+                    end
                   end
                 end
               end
@@ -146,6 +149,7 @@ begin
               end
      
               # Create the entry
+              logger.debug("grid_usage: #{cluster.name} #{cigri_resources}")
               Datarecord.new("grid_usage",{:date => date,
                                          :cluster_id => cluster.id,
                                          :max_resources => max_resource_units,
