@@ -382,7 +382,7 @@ module Cigri
     # - im: instant message handlers hash
     #
     def notify_aggregated_errors!(im_handlers)
-      codes_of_errors_to_aggregate=["RUNNER_SUBMIT_ERROR","EXIT_ERROR","RUNNER_SUBMIT_TIMEOUT"]
+      codes_of_errors_to_aggregate=["RUNNER_SUBMIT_ERROR","EXIT_ERROR","RUNNER_SUBMIT_TIMEOUT","RUNNER_SUBMIT_TOO_LARGE"]
       codes_of_errors_to_aggregate.each do |code|
         events=@events.records.select{|event| event.props[:code]==code and event.props[:notified] == "f"}
         COLOMBOLIBLOGGER.debug("Notifying #{events.length} #{code} events") if events.length > 0
