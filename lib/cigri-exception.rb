@@ -51,6 +51,10 @@ module Cigri
   # Raised when a cluster API timeouts at a POST query
   ##
   class ClusterAPITimeoutPOST < Error; end
+  ##
+  # Raised when a POST request is too large
+  ##
+  class ClusterAPITooLarge < Error; end
  
     
 end
