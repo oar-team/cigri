@@ -177,6 +177,8 @@ module Cigri
           raise Cigri::ClusterAPIBadRequest, "#{e.http_code} error in POST for #{uri}:\n #{e.response.body}"
         elsif  e.http_code == 403
           raise Cigri::ClusterAPIForbidden, "#{e.http_code} error in POST for #{uri}:\n #{e.response.body}"
+        elsif  e.http_code == 413
+          raise Cigri::ClusterAPITooLarge, "#{e.http_code} error in POST for #{uri}:\n #{e.response.body}"
         elsif  e.http_code == 500
           raise Cigri::ClusterAPIServerError, "#{e.http_code} error in POST for #{uri}:\n #{e.response.body}"
         else
