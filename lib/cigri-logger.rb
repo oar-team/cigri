@@ -33,10 +33,10 @@ module Cigri
       # Less info and colored on the console
       if @logdev_name == 'STDOUT' or @logdev_name == 'STDERR'
         date = datetime.strftime('%Y-%m-%d %H:%M:%S')
-        log_str = "[#{date}][#{severity[0...1]}][#{progname}] #{color_msg(msg, severity, progname)}\n"
+        "[#{date}][#{severity[0...1]}][#{progname}] #{color_msg(msg, severity, progname)}\n"
       else
         date = datetime.strftime('%Y-%m-%d %H:%M:%S.') << "%d" % datetime.usec
-        log_str = "[#{date}][#{severity[0...1]}][#{$$}][#{progname}] #{msg}\n"
+        "[#{date}][#{severity[0...1]}][#{$$}][#{progname}] #{msg}\n"
       end
     end
 
