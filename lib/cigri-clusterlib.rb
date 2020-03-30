@@ -169,6 +169,19 @@ module Cigri
       return []
     end
 
+    # Get the paused campaigns on this cluster
+    def paused_campaigns
+      result=[]
+      db_connect() do |dbh|
+        query = "SELECT distinct campaign_id FROM campaign_properties, campaigns 
+               WHERE campaigns.id=campaign_properties.campaign_id AND state='paused' 
+                   AND cluster_id = ?"
+        result=dbh.select_all(query, @id).flatten
+      end
+      return result unless result.nil?
+      return []
+    end
+
     # Check the api connexion
     def check_api?
       begin

@@ -62,7 +62,7 @@ while true do
 
   # init taps
   cluster.reset_taps
-  (current_jobs.campaigns + cluster.running_campaigns).uniq.each do |campaign_id|
+  (current_jobs.campaigns + cluster.running_campaigns + cluster.paused_campaigns).uniq.each do |campaign_id|
     tap=Cigri::Tap.new(:cluster_id => cluster.id, :campaign_id => campaign_id)
     if not tap_can_be_opened[tap.id]
       tap.decrease
