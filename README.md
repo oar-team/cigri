@@ -145,6 +145,10 @@ Last 5 lines of stderr_file:
 
 ```
 
+Clusters status
+
+![Gridclusters](doc/images/gridclusters.png)
+
 ## Dev corner
 
 Global picture:
@@ -153,8 +157,8 @@ Global picture:
 
 Database scheme:
 
-![Global picture](doc/images/cigri_db.png)
+![Database](doc/images/cigri_db.png)
 
 Metascheduler:
 
-![Global picture](doc/images/cigri_metascheduler.png)
+![Metascheduler](doc/images/cigri_metascheduler.png)
