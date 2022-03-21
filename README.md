@@ -1,3 +1,5 @@
+![Cigri logo](doc/images/logo.png)
+
 # cigri
 
 ![Cigri image](doc/images/film_ciment_snapshot.jpg)
@@ -118,6 +120,29 @@ Campaign: 20960
       queued_jobs: 4
       prologue_ok: true
       epilogue_ok: true
+```
+
+Events:
+
+```
+> gridevents -c 20960
+
+------------------------------------------------------------------------------
+34029355: (open) EXIT_ERROR of job 48872373 at 2022-02-17T08:56:35+01:00 on luke
+The job exited with exit status 35072;
+Last 5 lines of stderr_file:
+/home/xbahuibo/ABCD_H_VX/texture3D.sh: line 188: 32283 Killed                  ${EXE_PATH}/$EMPP_PROG $ARGS make hysteresis
+------------------------------------------------------------------------------
+34029356: (open) BLACKLIST at 2022-02-17T08:56:35+01:00 on luke because of 34029355
+------------------------------------------------------------------------------
+34029363: (open) EXIT_ERROR of job 48879236 at 2022-02-17T10:04:23+01:00 on luke
+The job exited with exit status 35072;
+Last 5 lines of stderr_file:
+/home/xbahuibo/ABCD_H_VX/texture3D.sh: line 188: 32984 Killed                  ${EXE_PATH}/$EMPP_PROG $ARGS make hysteresis
+------------------------------------------------------------------------------
+34029364: (open) BLACKLIST at 2022-02-17T10:04:23+01:00 on luke because of 34029363
+------------------------------------------------------------------------------
+
 ```
 
 ## Dev corner
