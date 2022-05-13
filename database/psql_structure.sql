@@ -167,6 +167,7 @@ CREATE INDEX events_idx_job_id ON events (job_id);
 CREATE INDEX events_idx_cluster_id ON events (cluster_id);
 CREATE INDEX events_idx_campaign_id ON events (campaign_id);
 CREATE INDEX events_idx_state ON events (state);
+CREATE INDEX events_idx_notified ON events (notified);
 
 DROP TABLE IF EXISTS queue_counts;
 CREATE TABLE queue_counts (
