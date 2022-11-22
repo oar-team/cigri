@@ -146,16 +146,16 @@ end
 
 url = '/campaigns'
 url << "/#{campaign_id}" if campaign_id
-url << "/jdl?pretty" if jdl
+url << "/jdl?pretty=true" if jdl
 url << "/events" if events
 url << "/jobs" if full and dump
-url << '?pretty' if dump and pretty
+url << '?pretty=true' if dump and pretty
 url << "&offset=#{offset}" if offset and dump and pretty
 url << "?offset=#{offset}" if offset and dump and not pretty
 
 url = "/jobs/#{job_id}" if job_id
 url << "/#{output}" if output
-url << "/cinfos?pretty" if cinfos
+url << "/cinfos?pretty=true" if cinfos
 
 begin 
   client = Cigri::Client.new()
