@@ -218,7 +218,11 @@ class API < Sinatra::Base
     output = get_formated_jobs(id, limit, offset)
 
     status 200
-    print(output)
+    if output == 0
+      print({:title => "No jobs found", :message => "No more jobs"})
+    else 
+      print(output)
+    end
   end
  
   # List all finished jobs of a campaign (used for cleaning)
@@ -643,7 +647,7 @@ class API < Sinatra::Base
       rescue DBI::ProgrammingError => e
         halt 400, print({:status => 400, :title => "Error", :message => "#{e}"})
       end
-      not_found if tasks.size == 0
+      return 0 if tasks.size == 0
      
       items = []
       tasks.each do |task|
