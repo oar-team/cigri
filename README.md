@@ -36,9 +36,13 @@ CiGri v3 is written in Ruby by CIMENT, the MESCAL team (from the LIG laboratory)
 - Tasks/clusters affinity
 
 TODO:
+- JWT auth mode for OAR3
 - Scratches cleaner job
+- Don't re-submit jobs killed by WALLTIME more than N times (with N a campaign parameter)
+- Prologue/epilogue needs to be prioritized over other cigri jobs
 - Production Tasks/clusters affinity (currently beta)
 - Production Smart temporal or dimensional grouping (currently beta)
+- User level mode (with SQlite database)
 - Web portal
 
 ## Quick example
