@@ -1,12 +1,19 @@
 Cigri Changelog
 ===============
 
+version 3.2
+-----------
+
+Unreleased
+
+- WIP to run with latest ruby version and adaptations to OAR3
+
 version 3.1
 -----------
 
-Current version
+Released 2024-06-12
 
-- Running with ruby 2.x
+- Production release (12 years of active services), but needs old ruby 2.x version to run
 
 version 3.0
 -----------
