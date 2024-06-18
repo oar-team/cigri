@@ -1,6 +1,6 @@
 # Database settings
-# TYPE may be Pg or Mysql
-DATABASE_TYPE = "Pg" 
+# TYPE : Only "PostgreSQL" supported for now!
+DATABASE_TYPE = "PostgreSQL" 
 DATABASE_HOST = "127.0.0.1"
 DATABASE_NAME = "cigri3"
 DATABASE_USER_NAME = "cigri3"

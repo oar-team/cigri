@@ -68,7 +68,7 @@ begin
   end 
   string=""
   clusters['items'].sort_by{|c| c['id']}.each do |item|
-    name=item['id']+": "+item["name"]
+    name=item['id'].to_s+": "+item["name"]
     string+=name
     if infos
       response = client.get(url+"/"+item['id'])

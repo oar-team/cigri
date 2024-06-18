@@ -2,7 +2,9 @@ require 'cigri-conflib'
 require 'cigri-exception'
 require 'cigri-logger'
 $VERBOSE=false
-require 'dbi'
+require 'rdbi'
+DBI=RDBI.dup
+require 'rdbi/driver/postgresql'
 $VERBOSE=true
 require 'pp'
 require 'json'
@@ -39,11 +41,18 @@ IOLIBLOGGER = Cigri::Logger.new('IOLIB', CONF.get('LOG_FILE'))
 ##
 def db_connect()
   begin
-    str = "DBI:#{CONF.get('DATABASE_TYPE')}:#{CONF.get('DATABASE_NAME')}:#{CONF.get('DATABASE_HOST')}"
+    #str = "DBI:#{CONF.get('DATABASE_TYPE')}:#{CONF.get('DATABASE_NAME')}:#{CONF.get('DATABASE_HOST')}"
     $VERBOSE=false
-    dbh = DBI.connect(str, 
-                      "#{CONF.get('DATABASE_USER_NAME')}", 
-                      "#{CONF.get('DATABASE_USER_PASSWORD')}")
+    #dbh = DBI.connect(str, 
+    #                  "#{CONF.get('DATABASE_USER_NAME')}", 
+    #                  "#{CONF.get('DATABASE_USER_PASSWORD')}")
+    dbh = DBI.connect(
+      :PostgreSQL,
+      :host => CONF.get('DATABASE_HOST'),
+      :database => CONF.get('DATABASE_NAME'),
+      :username => CONF.get('DATABASE_USER_NAME'),
+      :password => CONF.get('DATABASE_USER_PASSWORD')
+    )
     $VERBOSE=true
     return dbh unless block_given?
     begin
@@ -51,14 +60,14 @@ def db_connect()
     ensure
       dbh.disconnect() if dbh
     end
-  rescue DBI::OperationalError => e
-    IOLIBLOGGER.error("Failed to connect to database with string: #{str}\nError: #{e}\n#{e.backtrace.join("\n")}")
+  rescue DBI::Error => e
+    IOLIBLOGGER.error("Failed to connect to database: #{e}\n#{e.backtrace.join("\n")}")
     IOLIBLOGGER.error("Retrying in 10s")
     GC.start
     sleep 10
     retry
   rescue Exception => e
-    IOLIBLOGGER.error("Failed to connect to database with string: #{str}\nError: #{e}\n#{e.backtrace.join("\n")}")
+    IOLIBLOGGER.error("Failed to connect to database: #{e}\n#{e.backtrace.join("\n")}")
     raise
   end
 end
@@ -113,12 +122,12 @@ end
 ##
 def get_available_api_types(dbh)
   db = CONF.get('DATABASE_TYPE')
-  if db.eql? 'Pg'
-    return dbh.select_all("select enumlabel from pg_enum where enumtypid = 'api'::regtype").flatten!
+  if db.eql? 'PostgreSQL'
+    res=dbh.execute("select enumlabel from pg_enum where enumtypid = 'api'::regtype")
+    return res.as(:Struct).fetch(:all)
   else
     raise Cigri::Error, "Impossible to retreive available types: database type \"#{db}\" is not supported"
   end
-  
 end
 
 
@@ -380,7 +389,7 @@ end
 def get_cluster(dbh, id)
   query = "SELECT * FROM clusters WHERE id = ?"
   sth = dbh.execute(query, id)
-  res = sth.fetch_hash
+  res = sth.as(:Struct).fetch(:first)
   sth.finish
   if res.nil?
     IOLIBLOGGER.error("No cluster with id=#{id}!")
@@ -405,7 +414,8 @@ def select_clusters(dbh, where_clause = nil)
   else
     where_clause = "WHERE #{where_clause} and enabled=true"
   end 
-  dbh.select_all("SELECT id FROM clusters #{where_clause}").flatten!
+  result=dbh.execute("SELECT id FROM clusters #{where_clause}")
+  result.fetch(:all).flatten!
 end
 
 ##
