@@ -1,6 +1,7 @@
 #require 'spec_helper'
 require File.join(File.expand_path(File.dirname(__FILE__)), '..', '..', 'api', 'cigri-api.rb')
 require 'cigri'
+require 'test/unit'
 require 'rack/test'
 require 'sinatra'
 

@@ -124,7 +124,7 @@ def get_available_api_types(dbh)
   db = CONF.get('DATABASE_TYPE')
   if db.eql? 'PostgreSQL'
     res=dbh.execute("select enumlabel from pg_enum where enumtypid = 'api'::regtype")
-    return res.as(:Struct).fetch(:all)
+    return res.fetch(:all).flatten
   else
     raise Cigri::Error, "Impossible to retreive available types: database type \"#{db}\" is not supported"
   end

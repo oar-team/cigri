@@ -1,6 +1,6 @@
 #require 'spec_helper'
 require 'cigri-joblib'
-require 'dbi'
+require 'rdbi'
 
 describe 'cigri-joblib' do
   describe 'Job without database fetching' do

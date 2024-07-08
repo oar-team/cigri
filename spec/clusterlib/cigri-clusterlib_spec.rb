@@ -2,7 +2,7 @@
 require 'cigri-restclientlib'
 require 'cigri-clusterlib'
 require 'cigri-colombolib'
-require 'dbi'
+require 'rdbi'
 require 'json'
 require 'yaml'
 
