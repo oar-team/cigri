@@ -90,9 +90,10 @@ end
 ##
 def last_inserted_id(dbh, seqname = '')
   db = CONF.get('DATABASE_TYPE')
-  if db.eql? 'Pg'
-    query = "SELECT currval(?)"
-    row = dbh.select_one(query, seqname)
+  if db.eql? 'PostgreSQL'
+    sth = dbh.prepare("SELECT currval(?)")
+    sth.execute(seqname)
+    row = sth.fetch(:first)
   else
     raise Cigri::Error, "Impossible to retreive last inserted id: database type \"#{db}\" is not supported"
   end
@@ -198,7 +199,7 @@ end
 ##
 def cigri_submit(dbh, jdl, user)
   IOLIBLOGGER.debug('Saving campaign into database')
-  dbh['AutoCommit'] = false
+  dbh.execute("BEGIN TRANSACTION")
   begin
     params = jdl['params']
     jdl['params'] = []
@@ -208,10 +209,11 @@ def cigri_submit(dbh, jdl, user)
     #INSERT INTO campaigns
     query = 'INSERT into campaigns 
              (grid_user, state, type, name, submission_time, nb_jobs, jdl)
-             VALUES (?, \'in_treatment\', ?, ?, NOW(), ?, ?)'
-    dbh.do(query, user, jdl['jobs_type'], jdl['name'], 0, jdl.to_json)
-    
-    campaign_id = last_inserted_id(dbh, 'campaigns_id_seq')
+             VALUES (?, \'in_treatment\', ?, ?, NOW(), ?, ?)
+             RETURNING id'
+    sth = dbh.execute(query, user, jdl['jobs_type'], jdl['name'], 0, jdl.to_json)
+    #campaign_id = last_inserted_id(dbh, 'campaigns_id_seq')
+    campaign_id = sth.fetch(:first)[0]
     clusters = get_clusters_ids(dbh, jdl['clusters'].keys)
     
     #add campaigns properties
@@ -234,7 +236,7 @@ def cigri_submit(dbh, jdl, user)
               if prop == "resources"
         	IOLIBLOGGER.debug("resources:"+jdl['clusters'][cluster][prop].inspect)
 	      end
-              dbh.do(query, prop, jdl['clusters'][cluster][prop], cluster_id, campaign_id)
+              dbh.execute(query, prop, jdl['clusters'][cluster][prop], cluster_id, campaign_id)
             end
         end
       else
@@ -250,13 +252,11 @@ def cigri_submit(dbh, jdl, user)
       raise Cigri::Error, 'Desktop_computing campaigns are not yet supported'
     end
     
-    dbh.commit()
+    dbh.execute("COMMIT TRANSACTION")
   rescue Exception => e
     IOLIBLOGGER.error('Error running campaign submission: ' + e.inspect + e.backtrace.to_s)
-    dbh.rollback()
+    dbh.execute("ROLLBACK TRANSACTION")
     raise e
-  ensure
-    dbh['AutoCommit'] = true
   end
   campaign_id
 end
@@ -284,7 +284,7 @@ def cigri_submit_jobs(dbh, params, campaign_id, user)
   jdl['params'].concat(params)
 
   old_autocommit = dbh['AutoCommit']
-  dbh['AutoCommit'] = false
+  #dbh.execute("SET AUTOCOMMIT=OFF")
   begin
 
     dbh.do("UPDATE campaigns SET state = 'in_treatment' WHERE id = ?", campaign_id) if campaign[0] == "terminated"
@@ -348,7 +348,10 @@ def get_clusters_ids(dbh, clusters_names)
   res = {}
   if clusters_names.length > 0
     query = 'SELECT name, id FROM clusters WHERE name IN (?' << ',?' * (clusters_names.length - 1) << ')'
-    dbh.select_all(query, *clusters_names){|row| res[row['name']] = row['id']}
+    sth=dbh.execute(query, *clusters_names)
+    sth.fetch(:all).each do |row|
+       res[row[0]] = row[1]
+    end
   end
   res
 end
@@ -441,7 +444,7 @@ def cancel_campaign(dbh, user, id)
   check_rights!(dbh, user, id)
 
   nb = 0
-  dbh['AutoCommit'] = false
+  #dbh.execute("SET AUTOCOMMIT=OFF")
   begin
     query = "DELETE FROM jobs_to_launch WHERE task_id in (SELECT id from bag_of_tasks where campaign_id = ?)"
     nb = dbh.do(query, id)
@@ -465,7 +468,7 @@ def cancel_campaign(dbh, user, id)
     dbh.rollback()
     raise e
   ensure
-    dbh['AutoCommit'] = true
+    #dbh.execute("SET AUTOCOMMIT=1")
   end
   IOLIBLOGGER.info("Campaign #{id} cancelled")
   nb
@@ -545,7 +548,7 @@ def delete_campaign(dbh, user, id)
   
   check_rights!(dbh, user, id)
   
-  dbh['AutoCommit'] = false
+  #dbh.execute("SET AUTOCOMMIT=OFF")
   begin
     nb = dbh.do("DELETE FROM jobs_to_launch WHERE task_id in (SELECT id from bag_of_tasks where campaign_id = ?)", id)
     IOLIBLOGGER.debug("Deleted #{nb} 'jobs_to_launch' for campaign #{id}")
@@ -566,7 +569,7 @@ def delete_campaign(dbh, user, id)
     dbh.rollback()
     raise e
   ensure
-    dbh['AutoCommit'] = true
+    #dbh.execute("SET AUTOCOMMIT=1")
   end
 end
 
@@ -589,7 +592,7 @@ def purge_campaign(dbh, user, id)
   
   check_rights!(dbh, user, id)
   
-  dbh['AutoCommit'] = false
+  #dbh.execute("SET AUTOCOMMIT=OFF")
   begin
 
     row = dbh.select_one("SELECT state FROM campaigns WHERE id = ?", id)
@@ -612,7 +615,7 @@ def purge_campaign(dbh, user, id)
     dbh.rollback()
     raise e
   ensure
-    dbh['AutoCommit'] = true
+    #dbh.execute("SET AUTOCOMMIT=1")
   end
 end
 
@@ -724,7 +727,8 @@ end
 #
 ##
 def check_rights!(dbh, user, id)
-  row = dbh.select_one("SELECT grid_user FROM campaigns WHERE id = ?", id)
+  res = dbh.execute("SELECT grid_user FROM campaigns WHERE id = ?", id)
+  row = res.fetch(:first)
   if not row
     IOLIBLOGGER.warn("Asked to check rights on a campaign that does not exist (#{id})")
     raise Cigri::NotFound, "Campaign #{id} not found"
@@ -1181,7 +1185,7 @@ def add_jobs_to_launch(dbh, tasks, cluster_id, tag, runner_options, order_num)
     runner_options["batch_id"]=new_batch_id(dbh)
   end
   runner_options=JSON.generate(runner_options)
-  dbh['AutoCommit'] = false
+  #dbh.execute("SET AUTOCOMMIT=OFF")
   begin
     query = 'INSERT into jobs_to_launch
              (task_id,cluster_id,tag,runner_options,queuing_date,order_num)
@@ -1195,7 +1199,7 @@ def add_jobs_to_launch(dbh, tasks, cluster_id, tag, runner_options, order_num)
     dbh.rollback()
     raise e
   ensure
-    dbh['AutoCommit'] = true
+    #dbh.execute("SET AUTOCOMMIT=1")
   end
 end
 
@@ -1210,7 +1214,7 @@ end
 # Array of job ids
 ##
 def take_tasks(dbh, tasks)
-  dbh['AutoCommit'] = false
+  #dbh.execute("SET AUTOCOMMIT=OFF")
   begin
     jobids = []
     counts = {}
@@ -1256,7 +1260,7 @@ def take_tasks(dbh, tasks)
     dbh.rollback()
     raise e
   ensure
-    dbh['AutoCommit'] = true
+    #dbh.execute("SET AUTOCOMMIT=1")
   end
 end
 
@@ -1464,11 +1468,11 @@ end
 # Reset cluster queues
 #
 def reset_cluster_queues(dbh)
-  dbh['AutoCommit'] = false
+  #dbh.execute("SET AUTOCOMMIT=OFF")
   query="delete from jobs_to_launch"
   dbh.do(query)
   dbh.commit()
-  dbh['AutoCommit'] = true 
+  #dbh.execute("SET AUTOCOMMIT=1") 
 end
 
 
@@ -1648,7 +1652,7 @@ class Dataset
     check_connection!
     sth=@@dbh.execute("SELECT #{what} FROM #{table} WHERE #{where}")
     result=[]
-    sth.fetch_hash do |row|
+    sth.fetch(:first) do |row|
       # The inject part is to convert string keys into symbols to optimize memory
       result << row.inject({}){|h,(k,v)| h[k.to_sym] = v; h}
     end
