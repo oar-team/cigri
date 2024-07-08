@@ -277,18 +277,19 @@ def cigri_submit_jobs(dbh, params, campaign_id, user)
 
   check_rights!(dbh, user, campaign_id)
 
-  campaign = dbh.select_one("SELECT state, jdl FROM campaigns WHERE id = ?", campaign_id)
+  campaign = dbh.execute("SELECT state, jdl FROM campaigns WHERE id = ?", campaign_id).fetch(:first)
   raise Cigri::Error, "Unable to add jobs to campaign #{campaign_id} because it was cancelled" if campaign[0] == "cancelled"
 
   jdl = JSON.parse(campaign[1])
   jdl['params'].concat(params)
 
-  old_autocommit = dbh['AutoCommit']
+  #old_autocommit = dbh['AutoCommit']
   #dbh.execute("SET AUTOCOMMIT=OFF")
+  dbh.execute("BEGIN TRANSACTION")
   begin
 
-    dbh.do("UPDATE campaigns SET state = 'in_treatment' WHERE id = ?", campaign_id) if campaign[0] == "terminated"
-    dbh.do("UPDATE campaigns SET jdl = ?, nb_jobs = ? WHERE id = ?", jdl.to_json, jdl['params'].length, campaign_id)
+    dbh.execute("UPDATE campaigns SET state = 'in_treatment' WHERE id = ?", campaign_id) if campaign[0] == "terminated"
+    dbh.execute("UPDATE campaigns SET jdl = ?, nb_jobs = ? WHERE id = ?", jdl.to_json, jdl['params'].length, campaign_id)
 
     base_query = 'INSERT INTO parameters
                   (name, param, campaign_id)
@@ -299,19 +300,19 @@ def cigri_submit_jobs(dbh, params, campaign_id, user)
       slice.map!{ |param| "(#{quote(param.to_s.split.first)}, #{quote(param)}, #{campaign_id})"}
 
       sth = dbh.execute(base_query + slice.join(', ') + " RETURNING id")
-      inserted_ids = sth.fetch_all
+      inserted_ids = sth.fetch(:all).flatten
       sth.finish
 
       inserted_ids.map!{ |param| "(#{param[0]}, #{campaign_id}, 10)"}
-      dbh.do('INSERT INTO bag_of_tasks (param_id, campaign_id, priority) VALUES ' + inserted_ids.join(','))
+      dbh.execute('INSERT INTO bag_of_tasks (param_id, campaign_id, priority) VALUES ' + inserted_ids.join(','))
     end
-    dbh.commit() unless old_autocommit == false
+    #dbh.commit() unless old_autocommit == false
+    dbh.execute("COMMIT TRANSACTION")
   rescue Exception => e
     IOLIBLOGGER.error("Error adding new jobs to campaign #{campaign_id}: " + e.inspect)
-    dbh.rollback()
+    #dbh.rollback()
+    dbh.execute("ROLLBACK TRANSACTION")
     raise e
-  ensure
-    dbh['AutoCommit'] = old_autocommit
   end
 end
 
@@ -908,7 +909,7 @@ end
 #
 ##
 def get_campaign_nb_events(dbh, id)
-  dbh.select_one("SELECT count(*)
+  dbh.execute("SELECT count(*)
                   FROM events
                   WHERE state='open'
                    AND ( campaign_id = ?
@@ -918,7 +919,7 @@ def get_campaign_nb_events(dbh, id)
                         and campaign_id is null
                          )
                     )
-                  ", id, id)[0]
+              ", id, id).fetch(:first)[0]
 end
 
 ##
@@ -1052,10 +1053,10 @@ end
 #
 ##
 def get_campaign_nb_finished_jobs(dbh, id)
-dbh.select_one("SELECT COUNT(*) FROM jobs
+dbh.execute("SELECT COUNT(*) FROM jobs
                                 WHERE campaign_id = ?
                                   AND param_id > 0 
-                                  AND state = 'terminated'", id)[0]
+                                  AND state = 'terminated'", id).fetch(:first)[0]
 end
 
 ##
@@ -1540,13 +1541,16 @@ class Datarecord
     what = "*" if what.nil?
     sth = dbh.execute("SELECT #{what} FROM #{table} WHERE #{@index} = #{id.to_i}")
     # The inject part is to convert string keys into symbols to optimize memory
-    record = sth.fetch_hash
+    res = {}
+    sth.fetch(:all).each do |row|
+       res[row[0]] = row[1]
+    end
     dbh.disconnect
-    if record.nil?
+    if res == {}
       IOLIBLOGGER.warn("Datarecord #{@index}=#{id} not found into #{table}")
       return nil
     else      
-      return record.inject({}){|h,(k,v)| h[k.to_sym] = v; h}
+      return res.inject({}){|h,(k,v)| h[k.to_s.to_sym] = v; h}
     end
   end
  
