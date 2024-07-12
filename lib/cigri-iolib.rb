@@ -72,40 +72,12 @@ def db_connect()
   end
 end
 
-
-##
-# Method defined to get the last inserted id in a database
-# == Usage
-#    db_connect() do |dbh|
-#      dbh.do('INSERT ... INTO table')
-#      ID = last_inserted_id(dbh, 'table_row_seq')
-#    end
-#
-# == Parameters
-# - dbh: databale handle
-# - seqname: sequence name to retreive the last-id
-#
-# == Exceptions
-# - Cigri::Error if database type defined in cigri.conf not supported 
-##
-def last_inserted_id(dbh, seqname = '')
-  db = CONF.get('DATABASE_TYPE')
-  if db.eql? 'PostgreSQL'
-    sth = dbh.prepare("SELECT currval(?)")
-    sth.execute(seqname)
-    row = sth.fetch(:first)
-  else
-    raise Cigri::Error, "Impossible to retreive last inserted id: database type \"#{db}\" is not supported"
-  end
-  row[0]
-end
-
 ##
 # Return the date from the SQL server
 ##
 def db_date(dbh)
   query = "SELECT now()"
-  row = dbh.select_one(query)
+  row = dbh.execute(query).fetch(:first)
   row[0]
 end
 
@@ -212,7 +184,6 @@ def cigri_submit(dbh, jdl, user)
              VALUES (?, \'in_treatment\', ?, ?, NOW(), ?, ?)
              RETURNING id'
     sth = dbh.execute(query, user, jdl['jobs_type'], jdl['name'], 0, jdl.to_json)
-    #campaign_id = last_inserted_id(dbh, 'campaigns_id_seq')
     campaign_id = sth.fetch(:first)[0]
     clusters = get_clusters_ids(dbh, jdl['clusters'].keys)
     
@@ -251,7 +222,6 @@ def cigri_submit(dbh, jdl, user)
     else
       raise Cigri::Error, 'Desktop_computing campaigns are not yet supported'
     end
-    
     dbh.execute("COMMIT TRANSACTION")
   rescue Exception => e
     IOLIBLOGGER.error('Error running campaign submission: ' + e.inspect + e.backtrace.to_s)
@@ -282,9 +252,6 @@ def cigri_submit_jobs(dbh, params, campaign_id, user)
 
   jdl = JSON.parse(campaign[1])
   jdl['params'].concat(params)
-
-  #old_autocommit = dbh['AutoCommit']
-  #dbh.execute("SET AUTOCOMMIT=OFF")
   dbh.execute("BEGIN TRANSACTION")
   begin
 
@@ -306,11 +273,9 @@ def cigri_submit_jobs(dbh, params, campaign_id, user)
       inserted_ids.map!{ |param| "(#{param[0]}, #{campaign_id}, 10)"}
       dbh.execute('INSERT INTO bag_of_tasks (param_id, campaign_id, priority) VALUES ' + inserted_ids.join(','))
     end
-    #dbh.commit() unless old_autocommit == false
     dbh.execute("COMMIT TRANSACTION")
   rescue Exception => e
     IOLIBLOGGER.error("Error adding new jobs to campaign #{campaign_id}: " + e.inspect)
-    #dbh.rollback()
     dbh.execute("ROLLBACK TRANSACTION")
     raise e
   end
@@ -330,7 +295,7 @@ end
 ##
 def get_cluster_id(dbh, cluster_name)
   query = "SELECT id FROM clusters WHERE name = ? and enabled=true"
-  row = dbh.select_one(query, cluster_name)
+  row = dbh.execute(query, cluster_name).fetch(:first)
   return row[0] if row
   nil
 end
@@ -373,7 +338,7 @@ def new_cluster(dbh, name, api_url, api_auth_type, api_username, api_password, a
     query = 'INSERT into clusters
              (name,api_url,api_auth_type,api_username,api_password,api_auth_header,ssh_host,batch,resource_unit,power,properties)
              VALUES (?,?,?,?,?,?,?,?,?,?, ?)'
-    dbh.do(query,name,api_url,api_auth_type,api_username,api_password,api_auth_header,ssh_host,batch,resource_unit,power,properties)
+    dbh.execute(query,name,api_url,api_auth_type,api_username,api_password,api_auth_header,ssh_host,batch,resource_unit,power,properties)
   rescue Exception => e
     IOLIBLOGGER.error("Error inserting cluster #{name}: " + e.inspect)
     raise e
@@ -445,31 +410,29 @@ def cancel_campaign(dbh, user, id)
   check_rights!(dbh, user, id)
 
   nb = 0
-  #dbh.execute("SET AUTOCOMMIT=OFF")
+  dbh.execute("BEGIN TRANSACTION")
   begin
     query = "DELETE FROM jobs_to_launch WHERE task_id in (SELECT id from bag_of_tasks where campaign_id = ?)"
-    nb = dbh.do(query, id)
+    nb = dbh.execute(query, id)
     IOLIBLOGGER.debug("Deleted #{nb} 'jobs_to_launch' for campaign #{id}")
     
     to_delete = {'bag_of_tasks' => 'campaign_id'} 
     to_delete.each do |k, v|
-      nb = dbh.do("DELETE FROM #{k} WHERE #{v} = ?", id)
+      nb = dbh.execute("DELETE FROM #{k} WHERE #{v} = ?", id)
       IOLIBLOGGER.debug("Deleted #{nb} rows from table '#{k}' for campaign #{id}")
     end 
        
     #query = "UPDATE jobs SET state = 'event' WHERE campaign_id = ? AND state != 'terminated'"
-    #nb = dbh.do(query, id)
+    #nb = dbh.execute(query, id)
 
     query = "UPDATE campaigns SET state = 'cancelled' where id = ? and state != 'cancelled'"
-    nb = dbh.do(query, id)
+    nb = dbh.execute(query, id)
     
-    dbh.commit()
+    dbh.execute("COMMIT TRANSACTION")
   rescue Exception => e
     IOLIBLOGGER.error('Error during campaign deletion, rolling back changes: ' + e.inspect)
-    dbh.rollback()
+    dbh.execute("ROLLBACK TRANSACTION")
     raise e
-  ensure
-    #dbh.execute("SET AUTOCOMMIT=1")
   end
   IOLIBLOGGER.info("Campaign #{id} cancelled")
   nb
@@ -495,7 +458,7 @@ def hold_campaign(dbh, user, id)
 
   begin
     query = "UPDATE campaigns SET state='paused' WHERE id=? and state='in_treatment'"
-    dbh.do(query, id)
+    dbh.execute(query, id)
   rescue Exception => e
     IOLIBLOGGER.error('Error during campaign holding' + e.inspect)
     raise e
@@ -523,7 +486,7 @@ def resume_campaign(dbh, user, id)
 
   begin
     query = "UPDATE campaigns SET state='in_treatment' WHERE id=? and state='paused'"
-    dbh.do(query, id)
+    dbh.execute(query, id)
   rescue Exception => e
     IOLIBLOGGER.error('Error during campaign resuming' + e.inspect)
     raise e
@@ -549,9 +512,9 @@ def delete_campaign(dbh, user, id)
   
   check_rights!(dbh, user, id)
   
-  #dbh.execute("SET AUTOCOMMIT=OFF")
+  dbh.execute("BEGIN TRANSACTION")
   begin
-    nb = dbh.do("DELETE FROM jobs_to_launch WHERE task_id in (SELECT id from bag_of_tasks where campaign_id = ?)", id)
+    nb = dbh.execute("DELETE FROM jobs_to_launch WHERE task_id in (SELECT id from bag_of_tasks where campaign_id = ?)", id)
     IOLIBLOGGER.debug("Deleted #{nb} 'jobs_to_launch' for campaign #{id}")
 
     to_delete = {'campaigns' => 'id', 'bag_of_tasks' => 'campaign_id',
@@ -559,18 +522,16 @@ def delete_campaign(dbh, user, id)
                  'parameters' => 'campaign_id', 'events' => 'campaign_id'} 
     
     to_delete.each do |k, v|
-      nb = dbh.do("DELETE FROM #{k} WHERE #{v} = ?", id)
+      nb = dbh.execute("DELETE FROM #{k} WHERE #{v} = ?", id)
       IOLIBLOGGER.debug("Deleted #{nb} rows from table '#{k}' for campaign #{id}")
     end 
     
-    dbh.commit()
+    dbh.execute("COMMIT TRANSACTION")
     IOLIBLOGGER.info("Campaign #{id} deleted")
   rescue Exception => e
     IOLIBLOGGER.error('Error during campaign deletion, rolling back changes: ' + e.inspect)
-    dbh.rollback()
+    dbh.execute("ROLLBACK TRANSACTION")
     raise e
-  ensure
-    #dbh.execute("SET AUTOCOMMIT=1")
   end
 end
 
@@ -593,10 +554,10 @@ def purge_campaign(dbh, user, id)
   
   check_rights!(dbh, user, id)
   
-  #dbh.execute("SET AUTOCOMMIT=OFF")
+  dbh.execute("BEGIN TRANSACTION")
   begin
 
-    row = dbh.select_one("SELECT state FROM campaigns WHERE id = ?", id)
+    row = dbh.execute("SELECT state FROM campaigns WHERE id = ?", id).fetch(:first)
     if row[0] != "cancelled" and row[0] != "terminated"
       IOLIBLOGGER.warn("Not purging non-terminated campaign #{id}")
       return false
@@ -605,18 +566,16 @@ def purge_campaign(dbh, user, id)
     to_delete = {'parameters' => 'campaign_id','bag_of_tasks' => 'campaign_id'} 
     
     to_delete.each do |k, v|
-      nb = dbh.do("DELETE FROM #{k} WHERE #{v} = ?", id)
+      nb = dbh.execute("DELETE FROM #{k} WHERE #{v} = ?", id)
       IOLIBLOGGER.debug("Deleted #{nb} rows from table '#{k}' for campaign #{id}")
     end 
     
-    dbh.commit()
+    dbh.execute("COMMIT TRANSACTION")
     IOLIBLOGGER.info("Campaign #{id} purge")
   rescue Exception => e
     IOLIBLOGGER.error('Error during campaign purge, rolling back changes: ' + e.inspect)
-    dbh.rollback()
+    dbh.execute("ROLLBACK TRANSACTION")
     raise e
-  ensure
-    #dbh.execute("SET AUTOCOMMIT=1")
   end
 end
 
@@ -638,7 +597,7 @@ end
 def close_campaign_events(dbh, user, id)
   IOLIBLOGGER.debug("Received request to close all events for campaign '#{id}'")
   check_rights!(dbh, user, id)
-  nb = dbh.do("UPDATE events 
+  nb = dbh.execute("UPDATE events 
                 SET state='closed' 
                 WHERE campaign_id = ? AND NOT code = 'BLACKLIST'", id)
   IOLIBLOGGER.debug("Closed #{nb} 'events' for campaign #{id}")
@@ -667,7 +626,7 @@ def close_event(dbh, user, id)
   if user != 'root'
     check_rights!(dbh, user, event.props[:campaign_id])
   end
-  dbh.do("UPDATE events 
+  dbh.execute("UPDATE events 
                 SET state='closed' 
                 WHERE id = ?", id)
   IOLIBLOGGER.debug("Closed event ##{id}")
@@ -705,7 +664,7 @@ def update_campaign(dbh, user, id, hash)
     end
     query << "WHERE id = ?"
     begin 
-      dbh.do(query, id)
+      dbh.execute(query, id)
       IOLIBLOGGER.info("Campaign #{id} updated")
     rescue Exception => e
       IOLIBLOGGER.error('Error during campaign update: ' + e.inspect)
@@ -729,7 +688,9 @@ end
 ##
 def check_rights!(dbh, user, id)
   res = dbh.execute("SELECT grid_user FROM campaigns WHERE id = ?", id)
-  row = res.fetch(:first)
+  if res.has_data?
+    row = res.fetch(:first)
+  end
   if not row
     IOLIBLOGGER.warn("Asked to check rights on a campaign that does not exist (#{id})")
     raise Cigri::NotFound, "Campaign #{id} not found"
@@ -822,7 +783,7 @@ def get_campaign_task(dbh, id, task_id)
            WHERE p.campaign_id = ?
              AND p.id = ?"
 
-  task = dbh.select_one(query, id, task_id)
+  task = dbh.execute(query, id, task_id).fetch(:first)
   if task
     query = "SELECT jobs.*, clusters.name as clustername
              FROM jobs, clusters
@@ -934,10 +895,10 @@ end
 #
 ##
 def get_campaign_remaining_tasks_number(dbh, id)
-  dbh.select_one("SELECT COUNT(*) FROM bag_of_tasks 
+  dbh.execute("SELECT COUNT(*) FROM bag_of_tasks 
                                   LEFT JOIN jobs_to_launch ON bag_of_tasks.id = task_id
                                   WHERE task_id is null 
-                                    AND campaign_id=?", id)[0]
+                                    AND campaign_id=?", id).fetch(:first)[0]
 end
 
 ##
@@ -952,7 +913,7 @@ end
 #
 ##
 def get_campaign_active_jobs_number(dbh, id)
-  dbh.select_one("SELECT COUNT(*) FROM (
+  dbh.execute("SELECT COUNT(*) FROM (
                                          SELECT jobs.id FROM jobs,events
                                              WHERE jobs.id=events.job_id
                                                 AND jobs.state='event'
@@ -962,7 +923,7 @@ def get_campaign_active_jobs_number(dbh, id)
                                          SELECT jobs.id FROM jobs 
                                              WHERE campaign_id=?
                                                  AND jobs.state IN ('running','submitted','to_launch','remote_waiting')
-                                       ) AS current_jobs;",id,id)[0]
+                                       ) AS current_jobs;",id,id).fetch(:first)[0]
 end
 
 ##
@@ -978,13 +939,13 @@ end
 #
 ##
 def get_campaign_active_jobs_number_on_cluster(dbh, id, cluster_id)
-  dbh.select_one("SELECT COUNT(*) FROM jobs
+  dbh.execute("SELECT COUNT(*) FROM jobs
                                   WHERE (jobs.state='running'
                                      OR jobs.state='submitted'
                                      OR jobs.state='to_launch'
                                      OR jobs.state='remote_waiting')
                                     AND jobs.cluster_id=?
-                                    AND jobs.campaign_id=?", cluster_id, id)[0]
+                                    AND jobs.campaign_id=?", cluster_id, id).fetch(:first)[0]
 end
 
 
@@ -1001,10 +962,10 @@ end
 #
 ##
 def get_campaign_queued_jobs_number_on_cluster(dbh, id, cluster_id)
-  dbh.select_one("SELECT COUNT(*) FROM jobs_to_launch, bag_of_tasks
+  dbh.execute("SELECT COUNT(*) FROM jobs_to_launch, bag_of_tasks
                   WHERE jobs_to_launch.task_id = bag_of_tasks.id
                     AND jobs_to_launch.cluster_id = ?
-                    AND bag_of_tasks.campaign_id = ?", cluster_id, id)[0]
+                    AND bag_of_tasks.campaign_id = ?", cluster_id, id).fetch(:first)[0]
 end
 
 ##
@@ -1019,9 +980,9 @@ end
 #
 ##
 def get_campaign_to_launch_jobs_number(dbh, id)
-  dbh.select_one("SELECT COUNT(*) FROM jobs_to_launch,bag_of_tasks
+  dbh.execute("SELECT COUNT(*) FROM jobs_to_launch,bag_of_tasks
                                   WHERE task_id=bag_of_tasks.id
-                                    AND campaign_id=?", id)[0]
+                                    AND campaign_id=?", id).fetch(:first)[0]
 end
 
 ##
@@ -1036,9 +997,9 @@ end
 #
 ##
 def get_campaign_launching_jobs_number(dbh, id)
-  dbh.select_one("SELECT COUNT(*) FROM jobs
+  dbh.execute("SELECT COUNT(*) FROM jobs
                                   WHERE state='launching'
-                                    AND campaign_id=?", id)[0]
+                                    AND campaign_id=?", id).fetch(:first)[0]
 end
 
 ##
@@ -1071,9 +1032,9 @@ end
 #
 ##
 def get_cluster_nb_launching_jobs(dbh, id)
-dbh.select_one("SELECT COUNT(*) FROM jobs
+dbh.execute("SELECT COUNT(*) FROM jobs
                                 WHERE cluster_id = ? 
-                                  AND state = 'launching'", id)[0]
+                                  AND state = 'launching'", id).fetch(:first)[0]
 end
 
 ##
@@ -1164,7 +1125,7 @@ end
 ##
 def new_batch_id(dbh)
   query = "SELECT batch_id FROM jobs ORDER BY batch_id LIMIT 1"
-  row = dbh.select_one(query)
+  row = dbh.execute(query).fetch(:first)
   return row[0]+1 if row and not row[0].nil?
   return 1
 end
@@ -1186,21 +1147,19 @@ def add_jobs_to_launch(dbh, tasks, cluster_id, tag, runner_options, order_num)
     runner_options["batch_id"]=new_batch_id(dbh)
   end
   runner_options=JSON.generate(runner_options)
-  #dbh.execute("SET AUTOCOMMIT=OFF")
+  dbh.execute("BEGIN TRANSACTION")
   begin
     query = 'INSERT into jobs_to_launch
              (task_id,cluster_id,tag,runner_options,queuing_date,order_num)
              VALUES (?,?,?,?,now(),?)'
     tasks.each do |task_id|
-      dbh.do(query, task_id, cluster_id, tag, runner_options, order_num)
+      dbh.execute(query, task_id, cluster_id, tag, runner_options, order_num)
     end
-    dbh.commit()
+    dbh.execute("COMMIT TRANSACTION")
   rescue Exception => e
     IOLIBLOGGER.error("Error inserting tasks into jobs_to_launch: " + e.inspect)
-    dbh.rollback()
+    dbh.execute("ROLLBACK TRANSACTION")
     raise e
-  ensure
-    #dbh.execute("SET AUTOCOMMIT=1")
   end
 end
 
@@ -1215,7 +1174,7 @@ end
 # Array of job ids
 ##
 def take_tasks(dbh, tasks)
-  #dbh.execute("SET AUTOCOMMIT=OFF")
+  dbh.execute("BEGIN TRANSACTION")
   begin
     jobids = []
     counts = {}
@@ -1227,9 +1186,9 @@ def take_tasks(dbh, tasks)
                            ORDER BY b.priority DESC, b.id")
     jobs.each do |job|
       # delete from the bag of task
-      dbh.do("DELETE FROM bag_of_tasks where id = #{job['id']}")     
+      dbh.execute("DELETE FROM bag_of_tasks where id = #{job['id']}")     
       # delete from the cluster queue
-      dbh.do("DELETE FROM jobs_to_launch where task_id = #{job['id']}")
+      dbh.execute("DELETE FROM jobs_to_launch where task_id = #{job['id']}")
       # Increment the count for (campaign,cluster) pair
       count_key=[job['campaign_id'], job['cluster_id']]
       counts[count_key] ? counts[count_key] += 1 : counts[count_key]=1
@@ -1240,28 +1199,27 @@ def take_tasks(dbh, tasks)
         batch_id=runner_options["batch_id"].to_i
       end
       # insert the new job into the jobs table
-      res=dbh.select_one("INSERT INTO jobs (campaign_id, state, cluster_id, param_id, tag, runner_options, batch_id)
+      res=dbh.execute("INSERT INTO jobs (campaign_id, state, cluster_id, param_id, tag, runner_options, batch_id)
               VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id",
               job['campaign_id'], "to_launch", job['cluster_id'], job['param_id'], job['tag'], 
                 job['runner_options'], batch_id
-            )
+                     ).fetch(:first)
       jobids << res[0]
       IOLIBLOGGER.debug("Took task: #{res[0]}")
     end
     # Update the queue counts that are used for throughputs calculations
     counts.each do |pair,count|
-      dbh.do("INSERT INTO queue_counts (date,campaign_id,cluster_id,jobs_count)
+      dbh.execute("INSERT INTO queue_counts (date,campaign_id,cluster_id,jobs_count)
               VALUES (#{to_sql_timestamp(Time.now)}, ?, ?, ?)",
               pair[0],pair[1],count
             )
     end
     return jobids
+    dbh.execute("COMMIT TRANSACTION")
   rescue Exception => e
     IOLIBLOGGER.error("Error taking tasks from the bag: " + e.inspect)
-    dbh.rollback()
+    dbh.execute("ROLLBACK TRANSACTION")
     raise e
-  ensure
-    #dbh.execute("SET AUTOCOMMIT=1")
   end
 end
 
@@ -1276,7 +1234,7 @@ end
 #
 ##
 def remove_remaining_tasks(dbh, campaign_id)
-  dbh.do("DELETE FROM bag_of_tasks
+  dbh.execute("DELETE FROM bag_of_tasks
            WHERE id IN 
             (SELECT bag_of_tasks.id FROM bag_of_tasks LEFT JOIN jobs_to_launch ON bag_of_tasks.id=task_id
               WHERE task_id IS NULL) 
@@ -1287,9 +1245,9 @@ end
 # Add the null parameter if it is missing (done once at almighty boot)
 #
 def check_null_parameter(dbh)
- if dbh.select_one("SELECT COUNT(*) FROM parameters WHERE id = 0")[0] < 1
+  if dbh.execute("SELECT COUNT(*) FROM parameters WHERE id = 0").fetch(:first)[0] < 1
    IOLIBLOGGER.debug("Initializing the null parameter")
-   dbh.do("INSERT INTO parameters (id,campaign_id,name,param)
+   dbh.execute("INSERT INTO parameters (id,campaign_id,name,param)
                        VALUES (0,0,'null','null parameter for special jobs, dont delete!')")
  end
 end
@@ -1299,7 +1257,7 @@ end
 #
 def add_notification_subscription(dbh,sub,user)
   user="%%admin%%" if user == "root"
-  dbh.do("INSERT INTO user_notifications (grid_user,type,identity,severity)
+  dbh.execute("INSERT INTO user_notifications (grid_user,type,identity,severity)
                       VALUES (?,?,?,?)",
          user,sub['type'],sub['identity'],sub['severity'])
 end
@@ -1309,14 +1267,14 @@ end
 #
 def del_notification_subscription(dbh,type,identity,user)
   user="%%admin%%" if user == "root"
-  dbh.do("DELETE FROM user_notifications WHERE grid_user=? and type=? and identity=?",
+  dbh.execute("DELETE FROM user_notifications WHERE grid_user=? and type=? and identity=?",
          user,type,identity)
 end
 ##
 # Get the last inserted entry date from grid_usage table
 #
 def last_grid_usage_entry_date(dbh)
-  result=dbh.select_one("SELECT extract(epoch from date) FROM grid_usage ORDER by date desc limit 1")
+  result=dbh.execute("SELECT extract(epoch from date) FROM grid_usage ORDER by date desc limit 1").fetch(:first)
   return 0 if result.nil?
   result[0]
 end
@@ -1376,16 +1334,16 @@ end
 #
 def get_campaign_throughput(dbh,campaign_id,time_window)
   query="select max(extract(epoch from start_time)) from jobs where campaign_id=#{campaign_id} and state='terminated';"
-  res=dbh.select_one(query)
+  res=dbh.execute(query).fetch(:first)
   return 0 if res.nil?
   last_job_start=res[0].to_i
   query="select min(extract(epoch from start_time)) from jobs where extract(epoch from start_time) > #{last_job_start}-#{time_window} and campaign_id=#{campaign_id} and state='terminated';"
-  res=dbh.select_one(query)
+  res=dbh.execute(query).fetch(:first)
   return 0 if res.nil?
   first_job_start=res[0].to_i
   return 0 if (last_job_start - first_job_start) == 0
   query="select count(*) from jobs where extract(epoch from start_time) > #{last_job_start}-#{time_window} and campaign_id=#{campaign_id} and state='terminated';"
-  res=dbh.select_one(query)
+  res=dbh.execute(query).fetch(:first)
   return res[0].to_f/(last_job_start - first_job_start).to_f
 end
 
@@ -1395,10 +1353,10 @@ end
 def get_campaign_failures_rate(dbh,campaign_id)
   # count the jobs with events that are failures
   query="select count(*) from jobs,events where jobs.id=events.job_id and events.code != 'REMOTE_WAITING_FRAG' and events.campaign_id=#{campaign_id};"
-  failures=dbh.select_one(query)[0].to_i
+  failures=dbh.execute(query).fetch(:first)[0].to_i
   # count the terminated jobs
   query="select count(*) from jobs where state='terminated' and jobs.campaign_id=#{campaign_id};"
-  terminated=dbh.select_one(query)[0].to_i
+  terminated=dbh.execute(query).fetch(:first)[0].to_i
   total=failures+terminated
   return 0 if total == 0
   return failures.to_f/total.to_f
@@ -1410,10 +1368,10 @@ end
 def get_campaign_resubmit_rate(dbh,campaign_id)
   # count the jobs with events that are resubmits
   query="select count(*) from jobs,events where jobs.id=events.job_id and events.code = 'RESUBMIT' and events.campaign_id=#{campaign_id};"
-  failures=dbh.select_one(query)[0].to_i
+  failures=dbh.execute(query).fetch(:first)[0].to_i
   # count the terminated jobs
   query="select count(*) from jobs where state='terminated' and jobs.campaign_id=#{campaign_id};"
-  terminated=dbh.select_one(query)[0].to_i
+  terminated=dbh.execute(query).fetch(:first)[0].to_i
   total=failures+terminated
   return 0 if total == 0
   return failures.to_f/total.to_f
@@ -1435,7 +1393,7 @@ def decrease_task_affinity(dbh,param_id,cluster_id)
     query="update tasks_affinity set priority=#{priority-1}
            where id=#{id}"
   end
-  dbh.do(query)
+  dbh.execute(query)
 end
 
 ##
@@ -1444,14 +1402,14 @@ end
 def get_task_affinity(dbh,param_id,cluster_id)
   query="select id,param_id,cluster_id,priority from tasks_affinity 
          where param_id=#{param_id} and cluster_id=#{cluster_id}"
-  dbh.select_one(query)
+  dbh.execute(query).fetch(:first)
 end
 ##
 # Delete an affinity (ie reset it to 0)
 #
 def reset_task_affinity(dbh,param_id,cluster_id)
   query="delete from tasks_affinity where param_id=#{param_id} and cluster_id=#{cluster_id}"
-  dbh.do(query)
+  dbh.execute(query)
 end
 
 ##
@@ -1462,18 +1420,17 @@ def clean_tasks_affinity_table(dbh)
            select tasks_affinity.id from tasks_affinity,parameters,campaigns 
               where tasks_affinity.param_id=parameters.id and parameters.campaign_id=campaigns.id 
                  and campaigns.state in ('terminated','cancelled'));"
-  dbh.do(query)
+  dbh.execute(query)
 end
 
 ##
 # Reset cluster queues
 #
 def reset_cluster_queues(dbh)
-  #dbh.execute("SET AUTOCOMMIT=OFF")
   query="delete from jobs_to_launch"
-  dbh.do(query)
-  dbh.commit()
-  #dbh.execute("SET AUTOCOMMIT=1") 
+  dbh.execute("BEGIN TRANSACTION")
+  dbh.execute(query)
+  dbh.execute("COMMIT TRANSACTION")
 end
 
 
@@ -1529,9 +1486,9 @@ class Datarecord
         what << key
         values << quote(value)
       end    
-      query << "(" + what.join(',') + ") VALUES (" + values.join(',') +")"
-      dbh.do(query)
-      return last_inserted_id(dbh, "#{table}_id_seq")
+      query << "(" + what.join(',') + ") VALUES (" + values.join(',') +") RETURNING id"
+      sth = dbh.execute(query)
+      return sth.fetch(:first)[0]
     end
   end
 
@@ -1560,7 +1517,7 @@ class Datarecord
   # Delete the record from the database
   def delete
     db_connect() do |dbh|
-      dbh.do("DELETE FROM #{@table} where #{@index}=#{props[:id]}")
+      dbh.execute("DELETE FROM #{@table} where #{@index}=#{props[:id]}")
     end
   end
 
@@ -1581,11 +1538,11 @@ class Datarecord
         # Special case of timestamps, should not be automatically quoted by the placeholder syntax
         if value.kind_of?(String) and value[0..8]=="TIMESTAMP"
           query = "UPDATE #{table} SET #{field} = #{value} WHERE #{@index} = ?"
-          dbh.do(query, id)
+          dbh.execute(query, id)
         # Default case
         else
           query = "UPDATE #{table} SET #{field} = ? WHERE #{@index} = ?"
-          dbh.do(query, value, id)
+          dbh.execute(query, value, id)
         end
       end
     end
@@ -1686,7 +1643,7 @@ class Dataset
   def delete(table=@table,id_column="id")
     IOLIBLOGGER.debug("Removing #{self.length} records from #{table}")    
     check_connection!
-    @@dbh.do("DELETE FROM #{table} WHERE #{id_column} in (#{self.ids.join(',')})")
+    @@dbh.execute("DELETE FROM #{table} WHERE #{id_column} in (#{self.ids.join(',')})")
   end
  
   # Same thing as delete, but also empty the dataset
@@ -1702,10 +1659,10 @@ class Dataset
     values.each_key do |field|
       if values[field].kind_of?(String) and values[field][0..8]=="TIMESTAMP"
         # No quoting for timestamp function
-        @@dbh.do("UPDATE #{table} SET #{field} = #{values[field]} WHERE #{id_column} in (#{self.ids.join(',')})")
+        @@dbh.execute("UPDATE #{table} SET #{field} = #{values[field]} WHERE #{id_column} in (#{self.ids.join(',')})")
       else
         # Normal quoting
-        @@dbh.do("UPDATE #{table} SET #{field} = ? WHERE #{id_column} in (#{self.ids.join(',')})", values[field])
+        @@dbh.execute("UPDATE #{table} SET #{field} = ? WHERE #{id_column} in (#{self.ids.join(',')})", values[field])
       end
     end
   end

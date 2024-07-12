@@ -7,6 +7,8 @@ require 'sinatra'
 
 set :environment, :test
 
+cluster1 = "dahu"
+
 describe 'API' do
   include Rack::Test::Methods
 
@@ -15,7 +17,7 @@ describe 'API' do
   end
   
   before(:each) do
-    post '/campaigns', '{"name":"test_api", "nb_jobs":10,"clusters":{"fukushima":{"exec_file":"e"}}}', 'HTTP_X_CIGRI_USER' => 'Rspec'
+    post '/campaigns', '{"name":"test_api", "nb_jobs":10,"clusters":{"'+cluster1+'":{"exec_file":"e"}}}', 'HTTP_X_CIGRI_USER' => 'Rspec'
     response = JSON.parse last_response.body
     @test_id = response['id']
   end
@@ -173,7 +175,7 @@ describe 'API' do
     describe 'Success' do
 
       it 'should post a campaign' do
-      post '/campaigns', '{"name":"test_api", "nb_jobs":10,"clusters":{"fukushima":{"exec_file":"e"}}}', 'HTTP_X_CIGRI_USER' => 'Rspec'
+      post '/campaigns', '{"name":"test_api", "nb_jobs":10,"clusters":{"'+cluster1+'":{"exec_file":"e"}}}', 'HTTP_X_CIGRI_USER' => 'Rspec'
         response = JSON.parse last_response.body
         last_response.status.should be 201 
         last_response['Location'].should == "/campaigns/#{response['id']}"
@@ -197,7 +199,7 @@ describe 'API' do
     describe 'Failure' do
 
       it 'should fail to submit a campaign for an unauthorized user' do
-        post '/campaigns', '{"name":"test_api", "nb_jobs":10,"clusters":{"fukushima":{"exec_file":"e"}}}', 'HTTP_X_CIGRI_USER' => 'unknown'
+        post '/campaigns', '{"name":"test_api", "nb_jobs":10,"clusters":{"'+cluster1+'":{"exec_file":"e"}}}', 'HTTP_X_CIGRI_USER' => 'unknown'
         last_response.status.should be 403
       end
 
