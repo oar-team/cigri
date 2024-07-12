@@ -1541,11 +1541,7 @@ class Datarecord
     what = "*" if what.nil?
     sth = dbh.execute("SELECT #{what} FROM #{table} WHERE #{@index} = #{id.to_i}")
     # The inject part is to convert string keys into symbols to optimize memory
-    res = {}
-    sth.fetch(:all).each do |row|
-       res[row[0]] = row[1]
-    end
-    dbh.disconnect
+    res = sth.as(:Struct).fetch(:first).to_h
     if res == {}
       IOLIBLOGGER.warn("Datarecord #{@index}=#{id} not found into #{table}")
       return nil
