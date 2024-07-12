@@ -728,8 +728,8 @@ end
 def get_campaign_properties(dbh, id)
   result=[]
   sth = dbh.execute("SELECT name,value,cluster_id,campaign_id FROM campaign_properties WHERE campaign_id = ?", id)
-  sth.fetch_hash do |row|
-    result << row
+  sth.as(:Struct).fetch(:all) do |row|
+    result << row.to_h
   end
   sth.finish
   return result
@@ -760,7 +760,11 @@ def get_campaign_tasks(dbh, id, limit, offset)
            LIMIT ? 
            OFFSET ?"
 
-  dbh.select_all(query, id, limit, offset)
+  res = []
+  dbh.execute(query, id, limit, offset).as(:Struct).fetch(:all).each do |row|
+    res.append(row.to_h)
+  end
+  return res
 end
 
 ##
@@ -783,13 +787,16 @@ def get_campaign_task(dbh, id, task_id)
            WHERE p.campaign_id = ?
              AND p.id = ?"
 
-  task = dbh.execute(query, id, task_id).fetch(:first)
+  sth = dbh.execute(query, id, task_id)
+  if sth.has_data?
+    task=sth.fetch(:first)
+  end
   if task
     query = "SELECT jobs.*, clusters.name as clustername
              FROM jobs, clusters
              WHERE param_id = ?
                AND jobs.cluster_id = clusters.id"
-    task << dbh.select_all(query, task_id)
+    task << dbh.execute(query, task_id).fetch(:all)
   end
 
   task
@@ -1324,7 +1331,7 @@ end
 #
 def get_average_job_duration(dbh,campaign_id)
   query="select avg(extract(epoch from stop_time - start_time)),stddev(extract(epoch from stop_time - start_time)) from jobs where campaign_id=#{campaign_id} and stop_time is not null and start_time is not null and state='terminated'"
-  res=dbh.select_all(query)
+  res=dbh.execute(query).fetch(:all)
   return [0,0] if res.length == 0
   return res[0]
 end
@@ -1497,13 +1504,13 @@ class Datarecord
     dbh = db_connect()
     what = "*" if what.nil?
     sth = dbh.execute("SELECT #{what} FROM #{table} WHERE #{@index} = #{id.to_i}")
-    # The inject part is to convert string keys into symbols to optimize memory
-    res = sth.as(:Struct).fetch(:first).to_h
-    if res == {}
+    if sth.has_data?
+      # The inject part is to convert string keys into symbols to optimize memory
+      res = sth.as(:Struct).fetch(:first).to_h
+      return res.inject({}){|h,(k,v)| h[k.to_s.to_sym] = v; h}
+    else      
       IOLIBLOGGER.warn("Datarecord #{@index}=#{id} not found into #{table}")
       return nil
-    else      
-      return res.inject({}){|h,(k,v)| h[k.to_s.to_sym] = v; h}
     end
   end
  

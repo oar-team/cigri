@@ -20,7 +20,7 @@ APIBASE=/cigri-api
 PIDDIR=/var/run/cigri
 USERCMDS=$(patsubst bin/%.rb,%,$(wildcard bin/*.rb))
 
-SPEC_OPTS=--colour
+SPEC_OPTS=--colour --fail-fast
 
 .PHONY: man
 

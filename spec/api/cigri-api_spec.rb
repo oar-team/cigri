@@ -22,11 +22,11 @@ describe 'API' do
     @test_id = response['id']
   end
 
-  after(:each) do
-    db_connect do |dbh|
-      delete_campaign(dbh, 'Rspec', @test_id)
-    end
-  end
+#  after(:each) do
+#    db_connect do |dbh|
+#      delete_campaign(dbh, 'Rspec', @test_id)
+#    end
+#  end
 
   def check_headers(get=false, post=false, put=false, delete=false)
     last_response.header['Allow'].include?('GET').should be get
