@@ -796,9 +796,8 @@ def get_campaign_task(dbh, id, task_id)
              FROM jobs, clusters
              WHERE param_id = ?
                AND jobs.cluster_id = clusters.id"
-    task << dbh.execute(query, task_id).fetch(:all)
+    task << dbh.execute(query, task_id).as(:Struct).fetch(:first).to_h
   end
-
   task
 end
 

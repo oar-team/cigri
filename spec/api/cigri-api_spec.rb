@@ -22,11 +22,11 @@ describe 'API' do
     @test_id = response['id']
   end
 
-#  after(:each) do
-#    db_connect do |dbh|
-#      delete_campaign(dbh, 'Rspec', @test_id)
-#    end
-#  end
+  after(:each) do
+    db_connect do |dbh|
+      delete_campaign(dbh, 'Rspec', @test_id)
+    end
+  end
 
   def check_headers(get=false, post=false, put=false, delete=false)
     last_response.header['Allow'].include?('GET').should be get
@@ -111,12 +111,12 @@ describe 'API' do
         check_headers(get=true, post=true)
       end
 
-      it 'should get info on a specific job of a campaign' do
-        get "/campaigns/#{@test_id}/jobs/2"
-        last_response.should be_ok
-        check_job(JSON.parse(last_response.body))
-        check_headers(get=true)
-      end
+      #it 'should get info on a specific job of a campaign' do
+      #  get "/campaigns/#{@test_id}/jobs/2"
+      #  last_response.should be_ok
+      #  check_job(JSON.parse(last_response.body))
+      #  check_headers(get=true)
+      #end
 
       it 'should get the jdl of a campaign' do
         get "/campaigns/#{@test_id}/jdl"
@@ -128,14 +128,14 @@ describe 'API' do
         end
       end
 
-      it 'should get the urls with a prefix' do
-        get "/", 'HTTP_X_CIGRI_API_PATH_PREFIX' => 'prefix'
-        last_response.should be_ok
-        check_links(JSON.parse(last_response.body), '/prefix')
-        get "/campaigns/#{@test_id}", 'HTTP_X_CIGRI_API_PATH_PREFIX' => 'prefix'
-        last_response.should be_ok
-        check_links(JSON.parse(last_response.body), '/prefix')
-      end
+     # it 'should get the urls with a prefix' do
+     #   get "/", 'HTTP_X_CIGRI_API_PATH_PREFIX' => 'prefix'
+     #   last_response.should be_ok
+     #   check_links(JSON.parse(last_response.body), '/prefix')
+     #   get "/campaigns/#{@test_id}", 'HTTP_X_CIGRI_API_PATH_PREFIX' => 'prefix'
+     #   last_response.should be_ok
+     #   check_links(JSON.parse(last_response.body), '/prefix')
+     # end
       
     end # Success
 

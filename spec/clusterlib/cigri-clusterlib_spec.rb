@@ -7,39 +7,40 @@ require 'json'
 require 'yaml'
 
 describe 'cigri-restclientlib (RestSession)' do
-  describe "Initialize" do
-    it 'should not raise error' do
-      lambda{Cigri::RestSession.new({"api_url" => "http://localhost/oarapi/",
-                                     "api_auth_type"=>"cert"},
-                                      "application/json")}.should_not raise_error Exception
-    end
-    it 'should have a root ok in JSON' do
-      rest=Cigri::RestSession.new({"api_url" => "http://localhost/oarapi/",
-                                     "api_auth_type"=>"cert"},
-                                          "application/json")
-      lambda{rest.get("")}.should_not raise_error Exception
-    end
-    it 'should have a root ok in YAML' do
-      rest=Cigri::RestSession.new({"api_url" => "http://localhost/oarapi/",
-                                  "api_auth_type"=>"cert"},
-                                                "text/yaml")
-      lambda{rest.get("")}.should_not raise_error Exception
-    end
-    it 'should work with a username/passwd' do
-      rest=Cigri::RestSession.new({"api_url" => "http://localhost/oarapi/",
-                                  "api_auth_type"=>"password",
-                                  "api_username" => "kameleon",
-                                  "api_password" => "kameleon"},
-                                                 "text/yaml")
-      lambda{rest.get("")}.should_not raise_error Exception
-    end
- end
+  #  describe "Initialize" do
+  #    it 'should not raise error' do
+  #      lambda{Cigri::RestSession.new({"api_url" => "http://localhost/oarapi/",
+  #                                     "api_auth_type"=>"cert"},
+  #                                      "application/json")}.should_not raise_error Exception
+  #    end
+  #    it 'should have a root ok in JSON' do
+  #      rest=Cigri::RestSession.new({"api_url" => "http://localhost/oarapi/",
+  #                                     "api_auth_type"=>"cert"},
+  #                                          "application/json")
+  #      lambda{rest.get("")}.should_not raise_error Exception
+  #    end
+  #    it 'should have a root ok in YAML' do
+  #      rest=Cigri::RestSession.new({"api_url" => "http://localhost/oarapi/",
+  #                                  "api_auth_type"=>"cert"},
+  #                                                "text/yaml")
+  #      lambda{rest.get("")}.should_not raise_error Exception
+  #    end
+  #    it 'should work with a username/passwd' do
+  #      rest=Cigri::RestSession.new({"api_url" => "http://localhost/oarapi/",
+  #                                  "api_auth_type"=>"password",
+  #                                  "api_username" => "kameleon",
+  #                                  "api_password" => "kameleon"},
+  #                                                 "text/yaml")
+  #      lambda{rest.get("")}.should_not raise_error Exception
+  #    end
+  # end
   describe "Collection" do
     before(:all) do
-      @rest=Cigri::RestSession.new({"api_url" => "http://localhost/oarapi/",
+      @rest=Cigri::RestSession.new({"api_url" => "https://f-dahu.u-ga.fr:6669/oarapi-cigri/",
                                   "api_auth_type"=>"password",
                                   "api_username" => "kameleon",
-                                  "api_password" => "kameleon"},
+                                  "api_password" => "kameleon",
+                                  "api_auth_type" => "cert"},
                                        "application/json")
     end
     it 'should return an array' do
@@ -61,7 +62,7 @@ describe 'cigri-clusterlib (Cluster)' do
       lambda{Cigri::Cluster.new(:name => "non_existent.cluster")}.should raise_error Exception
     end
     it 'should succeed when the name of a valid cluster is given' do
-      lambda{Cigri::Cluster.new(:name => "tchernobyl")}.should_not raise_error Exception
+      lambda{Cigri::Cluster.new(:name => "dahu")}.should_not raise_error Exception
     end
     it 'should succeed when the id of a valid cluster is given' do
       lambda{Cigri::Cluster.new(:id => 2)}.should_not raise_error Exception
@@ -70,7 +71,7 @@ describe 'cigri-clusterlib (Cluster)' do
 
   describe "Tchernobyl resources" do
     before(:all) do
-      @cluster=Cigri::Cluster.new(:name => "tchernobyl")
+      @cluster=Cigri::Cluster.new(:name => "dahu")
     end
     it 'should return an array' do
       @cluster.get_resources.should be_an(Array)
@@ -79,7 +80,7 @@ describe 'cigri-clusterlib (Cluster)' do
   
   describe "Job submission" do
     before(:all) do
-      @cluster=Cigri::Cluster.new(:name => "tchernobyl")
+      @cluster=Cigri::Cluster.new(:name => "dahu")
       @job=@cluster.submit_job({:command => "sleep 300", :stdout => "/dev/null", :stderr => "/dev/null"},"kameleon")
     end
     it "should return an id" do

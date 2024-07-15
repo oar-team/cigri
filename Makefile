@@ -19,8 +19,11 @@ CIGRIGROUP=cigri
 APIBASE=/cigri-api
 PIDDIR=/var/run/cigri
 USERCMDS=$(patsubst bin/%.rb,%,$(wildcard bin/*.rb))
+CACERT=/etc/cigri/ssl.orig/cigriCA/certs/cigriCA.crt
+CAKEY=/etc/cigri/ssl.orig/cigriCA/private/myca.key
 
-SPEC_OPTS=--colour --fail-fast
+SPEC_OPTS=--colour --fail-fast 
+#SPEC_OPTS=--colour
 
 .PHONY: man
 
@@ -139,9 +142,9 @@ gen-ssl-cert: /etc/cigri/ssl
 	install -d -m 0700 $(DESTDIR)$(CIGRICONFDIR)/ssl
         #TODO: customize etc/ssl/cigri.cnf.in with variables from the makefile
 	install -m 0644 etc/ssl/cigri.cnf $(DESTDIR)$(CIGRICONFDIR)/ssl/cigri.cnf 
-	openssl genrsa -out $(DESTDIR)$(CIGRICONFDIR)/ssl/cigri.key 1024
+	openssl genrsa -out $(DESTDIR)$(CIGRICONFDIR)/ssl/cigri.key 2048
 	openssl req -config $(DESTDIR)$(CIGRICONFDIR)/ssl/cigri.cnf -new -key $(DESTDIR)$(CIGRICONFDIR)/ssl/cigri.key -out $(DESTDIR)$(CIGRICONFDIR)/ssl/cigri.csr
-	openssl x509 -req -days 3650 -in $(DESTDIR)$(CIGRICONFDIR)/ssl/cigri.csr -CA $(DESTDIR)/etc/ssl/certs/ssl-cert-snakeoil.pem -CAkey $(DESTDIR)/etc/ssl/private/ssl-cert-snakeoil.key -CAcreateserial -out $(DESTDIR)$(CIGRICONFDIR)/ssl/cigri.crt
+	openssl x509 -req -days 3650 -in $(DESTDIR)$(CIGRICONFDIR)/ssl/cigri.csr -CA $(CACERT) -CAkey $(CAKEY) -CAcreateserial -out $(DESTDIR)$(CIGRICONFDIR)/ssl/cigri.crt
 	chown -R $(CIGRIUSER) $(DESTDIR)$(CIGRICONFDIR)
 
 clean:
