@@ -11,19 +11,19 @@ describe 'cigri-conflib' do
   
   describe 'initialize successes' do    
     it 'should success when an existent file is given' do
-      lambda{Cigri::Conf.new('etc/cigri.conf')}.should_not raise_error Exception
+      lambda{Cigri::Conf.new('/etc/cigri/cigri.conf')}.should_not raise_error Exception
     end
   end # initialize successes
 
   describe 'methods' do
     before(:each) do
-      @config = Cigri::Conf.new('etc/cigri.conf')
+      @config = Cigri::Conf.new('/etc/cigri/cigri.conf')
     end
     it 'should say if a variable is non-existent' do
-      @config.exists?("Obiwankenobi").should be_false
+      @config.exists?("Obiwankenobi").should be false
     end
     it 'should say if a variable exists' do
-      @config.exists?("INSTALL_PATH").should be_true
+      @config.exists?("INSTALL_PATH").should be true
     end
     it 'should return a value for INSTALL_PATH' do
       @config.get("INSTALL_PATH").should be_a(String)

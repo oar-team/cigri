@@ -267,7 +267,7 @@ def cigri_submit_jobs(dbh, params, campaign_id, user)
       slice.map!{ |param| "(#{quote(param.to_s.split.first)}, #{quote(param)}, #{campaign_id})"}
 
       sth = dbh.execute(base_query + slice.join(', ') + " RETURNING id")
-      inserted_ids = sth.fetch(:all).flatten
+      inserted_ids=sth.fetch(:all)
       sth.finish
 
       inserted_ids.map!{ |param| "(#{param[0]}, #{campaign_id}, 10)"}
