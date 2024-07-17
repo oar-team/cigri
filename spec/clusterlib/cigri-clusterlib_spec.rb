@@ -81,19 +81,19 @@ describe 'cigri-clusterlib (Cluster)' do
   describe "Job submission" do
     before(:all) do
       @cluster=Cigri::Cluster.new(:name => "dahu")
-      @job=@cluster.submit_job({:command => "sleep 300", :stdout => "/dev/null", :stderr => "/dev/null"},"kameleon")
+      @job=@cluster.submit_job({:command => "sleep 300", :stdout => "/dev/null", :stderr => "/dev/null", :project => "test"},"bzizou")
     end
     it "should return an id" do
       @job["id"].should be_an(Integer)
     end
     it "should have created a job" do
-      @cluster.get_job(@job["id"],"kameleon")["id"].should == @job["id"]
+      @cluster.get_job(@job["id"],"bzizou")["id"].should == @job["id"]
     end
     it "should have the job listed in the jobs collection" do
       @cluster.get_jobs.index{|job| job["id"]=@job["id"] }.should_not be nil
     end
     it "should be able to ask for the job to be deleted" do
-      @cluster.delete_job(@job["id"],"kameleon").should be_true
+      @cluster.delete_job(@job["id"],"bzizou")["status"].should equal? "Delete request registered"
     end
   end # Job submission
 end # cigri-clusterlib
