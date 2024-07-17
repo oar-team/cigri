@@ -113,23 +113,23 @@ describe 'jdl-parser' do
     
     it 'should be able to save a correct json' do 
       dbh = db_connect() do |dbh|
-        lambda{@cid = Cigri::JDLParser.save(dbh, '{"name":"n","nb_jobs":10,"clusters":{"tchernobyl":{"exec_file":"e"}}}', 'testuser')}.should_not raise_error
+        lambda{@cid = Cigri::JDLParser.save(dbh, '{"name":"n","nb_jobs":10,"clusters":{"dahu":{"exec_file":"e"}}}', 'testuser')}.should_not raise_error
       end
     end
     
     it 'should fail if dbh is bad' do
-      lambda{Cigri::JDLParser.save({}, '{"name":"n","nb_jobs":10,"clusters":{"tchernobyl":{"exec_file":"e"}}}', 'testuser')}.should raise_error
+      lambda{Cigri::JDLParser.save({}, '{"name":"n","nb_jobs":10,"clusters":{"dahu":{"exec_file":"e"}}}', 'testuser')}.should raise_error
     end
     
     it 'should not be able to save an incorrect json' do
       db_connect() do |dbh|
-        lambda{@cid = Cigri::JDLParser.save(dbh, '{"name":"n", "clusters":{"tchernobyl":{"exec_file":"e"}}}', 'testuser')}.should raise_error Cigri::ParseError
+        lambda{@cid = Cigri::JDLParser.save(dbh, '{"name":"n", "clusters":{"dahu":{"exec_file":"e"}}}', 'testuser')}.should raise_error Cigri::ParseError
       end
     end
 
     it 'should return an id' do
       db_connect() do |dbh|
-        @cid = Cigri::JDLParser.save(dbh, '{"name":"n","nb_jobs":10,"clusters":{"tchernobyl":{"exec_file":"e"}}}', 'testuser')
+        @cid = Cigri::JDLParser.save(dbh, '{"name":"n","nb_jobs":10,"clusters":{"dahu":{"exec_file":"e"}}}', 'testuser')
         @cid.should be_an(Integer)
       end
     end

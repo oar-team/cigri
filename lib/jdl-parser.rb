@@ -104,7 +104,7 @@ module Cigri
         logger.info('Campaign saved in database')
         return campaign_id
       rescue Exception => e
-        logger.error('Campaing could not be saved in DB:' + e.message)
+        logger.error('Campaign could not be saved in DB:' + e.message + e.backtrace)
         raise e
       end
     end # def self.save

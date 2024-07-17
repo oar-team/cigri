@@ -119,26 +119,26 @@ describe 'cigri-joblib' do
       @property12.delete
       @property21.delete
       @property22.delete
-     end
+    end
 
-     it 'should contain 2 running campaigns' do
+    it 'should contain 2 running campaigns' do
        @campaign_set.length.should == 2
-     end
+    end
 
-     it 'should contain 3 clusters' do
+    it 'should contain 3 clusters' do
        cluster_cache=@campaign_set.get_clusters
        cluster_cache.length.should == 3
-     end
+    end
   
-     it 'should compute couples orders' do
+    it 'should compute couples orders' do
        lambda { couples=@campaign_set.compute_campaigns_orders }.should_not raise_error Exception
-     end
+    end
 
-     it 'should return 4 couples' do
+    it 'should return 4 couples' do
        @campaign_set.compute_campaigns_orders.length.should == 4
-     end
+    end
 
-     context 'when a cluster is stressed' do
+    context 'when a cluster is stressed' do
        it 'should return 2 couples' do
          cluster=Datarecord.new('clusters',:id => 2)
          cluster.props[:stress_factor]=1.2
@@ -147,14 +147,14 @@ describe 'cigri-joblib' do
          cluster.props[:stress_factor]=0
          cluster.update(cluster.props)
        end
-     end
+    end
 
-     it 'should be fifo by default' do
+    it 'should be fifo by default' do
        @campaign_set.compute_campaigns_orders.should == 
           [[1,@campaign1.id],[2,@campaign1.id],[2,@campaign2.id],[3,@campaign2.id]]
-     end
+    end
 
-     it 'should place yoda before obiwan if yoda is the best' do
+    it 'should place yoda before obiwan if yoda is the best' do
        @prio=Datarecord.new('users_priority',
                             :grid_user => "yoda", :cluster_id => 2, :priority => 10)
        begin
@@ -165,14 +165,14 @@ describe 'cigri-joblib' do
        ensure
          @prio.delete
        end
-     end
+    end
 
-     it 'should place back yoda' do
+    it 'should place back yoda' do
             @campaign_set.compute_campaigns_orders.should ==
           [[1,@campaign1.id],[2,@campaign1.id],[2,@campaign2.id],[3,@campaign2.id]]
-     end
+    end
 
-     it 'should place yoda before obiwan if yoda is in test mode' do
+    it 'should place yoda before obiwan if yoda is in test mode' do
        property = Datarecord.new('campaign_properties', :cluster_id => 2,
                                                 :campaign_id => @campaign2.id,
                                                 :name => "test_mode",
@@ -182,7 +182,7 @@ describe 'cigri-joblib' do
        campaign_set.compute_campaigns_orders.should ==
             [[1,@campaign1.id],[2,@campaign2.id],[2,@campaign1.id],[3,@campaign2.id]]
        property.delete
-     end
+    end
 
   end
   

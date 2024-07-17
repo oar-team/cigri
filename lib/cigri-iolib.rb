@@ -358,13 +358,15 @@ end
 def get_cluster(dbh, id)
   query = "SELECT * FROM clusters WHERE id = ?"
   sth = dbh.execute(query, id)
-  res = sth.as(:Struct).fetch(:first)
-  sth.finish
-  if res.nil?
+  if sth.has_data?
+    res = sth.as(:Struct).fetch(:first).to_h
+    sth.finish
+    return res
+  else
     IOLIBLOGGER.error("No cluster with id=#{id}!")
+    sth.finish
     raise Cigri::NotFound, "No cluster with id=#{id}!"
   end
-  res
 end
 
 ##
@@ -410,15 +412,15 @@ def cancel_campaign(dbh, user, id)
   check_rights!(dbh, user, id)
 
   nb = 0
-  dbh.execute("BEGIN TRANSACTION")
   begin
+    dbh.execute("BEGIN TRANSACTION")
     query = "DELETE FROM jobs_to_launch WHERE task_id in (SELECT id from bag_of_tasks where campaign_id = ?)"
-    nb = dbh.execute(query, id)
+    nb = dbh.execute(query, id).affected_count
     IOLIBLOGGER.debug("Deleted #{nb} 'jobs_to_launch' for campaign #{id}")
     
     to_delete = {'bag_of_tasks' => 'campaign_id'} 
     to_delete.each do |k, v|
-      nb = dbh.execute("DELETE FROM #{k} WHERE #{v} = ?", id)
+      nb = dbh.execute("DELETE FROM #{k} WHERE #{v} = ?", id).affected_count
       IOLIBLOGGER.debug("Deleted #{nb} rows from table '#{k}' for campaign #{id}")
     end 
        
@@ -426,11 +428,11 @@ def cancel_campaign(dbh, user, id)
     #nb = dbh.execute(query, id)
 
     query = "UPDATE campaigns SET state = 'cancelled' where id = ? and state != 'cancelled'"
-    nb = dbh.execute(query, id)
+    nb = dbh.execute(query, id).affected_count
     
     dbh.execute("COMMIT TRANSACTION")
   rescue Exception => e
-    IOLIBLOGGER.error('Error during campaign deletion, rolling back changes: ' + e.inspect)
+    IOLIBLOGGER.error('Error during campaign deletion, rolling back changes: ' + e.inspect + e.backtrace)
     dbh.execute("ROLLBACK TRANSACTION")
     raise e
   end
@@ -514,7 +516,7 @@ def delete_campaign(dbh, user, id)
   
   dbh.execute("BEGIN TRANSACTION")
   begin
-    nb = dbh.execute("DELETE FROM jobs_to_launch WHERE task_id in (SELECT id from bag_of_tasks where campaign_id = ?)", id)
+    nb = dbh.execute("DELETE FROM jobs_to_launch WHERE task_id in (SELECT id from bag_of_tasks where campaign_id = ?)", id).affected_count
     IOLIBLOGGER.debug("Deleted #{nb} 'jobs_to_launch' for campaign #{id}")
 
     to_delete = {'campaigns' => 'id', 'bag_of_tasks' => 'campaign_id',
@@ -522,7 +524,7 @@ def delete_campaign(dbh, user, id)
                  'parameters' => 'campaign_id', 'events' => 'campaign_id'} 
     
     to_delete.each do |k, v|
-      nb = dbh.execute("DELETE FROM #{k} WHERE #{v} = ?", id)
+      nb = dbh.execute("DELETE FROM #{k} WHERE #{v} = ?", id).affected_count
       IOLIBLOGGER.debug("Deleted #{nb} rows from table '#{k}' for campaign #{id}")
     end 
     
@@ -566,7 +568,7 @@ def purge_campaign(dbh, user, id)
     to_delete = {'parameters' => 'campaign_id','bag_of_tasks' => 'campaign_id'} 
     
     to_delete.each do |k, v|
-      nb = dbh.execute("DELETE FROM #{k} WHERE #{v} = ?", id)
+      nb = dbh.execute("DELETE FROM #{k} WHERE #{v} = ?", id).affected_count
       IOLIBLOGGER.debug("Deleted #{nb} rows from table '#{k}' for campaign #{id}")
     end 
     
@@ -599,7 +601,7 @@ def close_campaign_events(dbh, user, id)
   check_rights!(dbh, user, id)
   nb = dbh.execute("UPDATE events 
                 SET state='closed' 
-                WHERE campaign_id = ? AND NOT code = 'BLACKLIST'", id)
+                WHERE campaign_id = ? AND NOT code = 'BLACKLIST'", id).affected_count
   IOLIBLOGGER.debug("Closed #{nb} 'events' for campaign #{id}")
 end
 
@@ -711,7 +713,7 @@ end
 #
 ##
 def get_running_campaigns(dbh)
-  dbh.select_all("SELECT id FROM campaigns WHERE state = 'in_treatment'")
+  dbh.execute("SELECT id FROM campaigns WHERE state = 'in_treatment'").fetch(:all)
 end
 
 ##
@@ -728,7 +730,7 @@ end
 def get_campaign_properties(dbh, id)
   result=[]
   sth = dbh.execute("SELECT name,value,cluster_id,campaign_id FROM campaign_properties WHERE campaign_id = ?", id)
-  sth.as(:Struct).fetch(:all) do |row|
+  sth.as(:Struct).fetch(:all).each do |row|
     result << row.to_h
   end
   sth.finish
@@ -1408,7 +1410,10 @@ end
 def get_task_affinity(dbh,param_id,cluster_id)
   query="select id,param_id,cluster_id,priority from tasks_affinity 
          where param_id=#{param_id} and cluster_id=#{cluster_id}"
-  dbh.execute(query).fetch(:first)
+  sth=dbh.execute(query)
+  if sth.has_data?
+    sth.fetch(:first)
+  end
 end
 ##
 # Delete an affinity (ie reset it to 0)
