@@ -295,8 +295,8 @@ end
 ##
 def get_cluster_id(dbh, cluster_name)
   query = "SELECT id FROM clusters WHERE name = ? and enabled=true"
-  row = dbh.execute(query, cluster_name).fetch(:first)
-  return row[0] if row
+  sth = dbh.execute(query, cluster_name)
+  return sth.fetch(:first)[0] if sth.has_data?
   nil
 end
 
@@ -1062,7 +1062,7 @@ def get_campaigns_nb_finished_jobs(dbh, ids)
               FROM jobs
               WHERE campaign_id in ('" << ids.join('\',\'') << "') 
                 AND state = 'terminated' AND tag != 'prologue' AND tag != 'epilogue'
-              GROUP BY campaign_id").each do |row|
+              GROUP BY campaign_id").fetch(:all).each do |row|
     result[row[0]] = row[1]
   end
 
@@ -1615,9 +1615,11 @@ class Dataset
     check_connection!
     sth=@@dbh.execute("SELECT #{what} FROM #{table} WHERE #{where}")
     result=[]
-    sth.fetch(:first) do |row|
-      # The inject part is to convert string keys into symbols to optimize memory
-      result << row.inject({}){|h,(k,v)| h[k.to_sym] = v; h}
+    if sth.has_data?
+      sth.as(:Struct).fetch(:all).each do |row|
+        # The inject part is to convert string keys into symbols to optimize memory
+        result << row.to_h.inject({}){|h,(k,v)| h[k.to_s.to_sym] = v; h}
+      end
     end
     return result
   end

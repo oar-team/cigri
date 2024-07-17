@@ -47,7 +47,7 @@ describe 'cigri-restclientlib (RestSession)' do
       @rest.get_collection("resources").should be_an(Array)
     end
     it 'should manage paginated collection' do
-      @rest.get_collection("resources?limit=10").length.should > 10
+      @rest.get_collection("resources?limit=100").length.should > 100
     end
  end
 
