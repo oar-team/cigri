@@ -74,7 +74,7 @@ module Cigri
 
     # Alias to behave like other cigri objects
     def props
-      @description.inject({}){|h,(k,v)| h[k.to_sym] = v; h}
+      @description.inject({}){|h,(k,v)| h[k.to_s.to_sym] = v; h}
     end
   
     ##

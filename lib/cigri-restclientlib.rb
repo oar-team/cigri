@@ -61,7 +61,8 @@ module Cigri
         # end
       elsif auth_type == "none"
       else
-        raise Cigri::Error, "Authentification type '#{auth_type}' not supported"
+        msg = "Authentification type '" + auth_type.to_s + "' not supported"
+        raise Cigri::Error, msg
       end
       
       @api = RestClient::Resource.new(base_uri, options)

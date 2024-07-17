@@ -674,10 +674,11 @@ module Cigri
     #
     def get_clusters
       db_connect() do |dbh|
-        get_campaign_properties(dbh, id).each do |row|
-          cluster_id = row["cluster_id"].to_i
+        get_campaign_properties(dbh, id).each do |r|
+          row=r.to_h
+          cluster_id = row[:cluster_id].to_i
           @clusters[cluster_id] = {} if @clusters[cluster_id].nil?
-          @clusters[cluster_id][row["name"]] = row["value"]
+          @clusters[cluster_id][row[:name]] = row[:value]
         end
       end
     end

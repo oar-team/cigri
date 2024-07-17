@@ -54,16 +54,16 @@ module Cigri
         dbh = db_connect()
         sth = dbh.execute("SELECT * FROM taps WHERE cluster_id=#{props[:cluster_id]}
                                                 AND campaign_id=#{props[:campaign_id]}")
-        record = sth.fetch_hash
-        dbh.disconnect
+        if sth.has_data?
+          record = sth.as(:Struct).fetch(:first).to_h
+          dbh.disconnect
+          @props=record.inject({}){|h,(k,v)| h[k.to_s.to_sym] = v; h}
         #or create it
-        if record.nil?
+        else
           @props=props
           @props[:rate]=RUNNER_DEFAULT_INITIAL_NUMBER_OF_JOBS
           @props[:state]="open"
           @props[:id]=new_record(@table,props)
-        else
-          @props=record.inject({}){|h,(k,v)| h[k.to_sym] = v; h}
         end
       else
         raise Cigri::Error,("No id, or cluster_id+campaign_id provided for tap!")

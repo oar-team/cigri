@@ -296,8 +296,13 @@ end
 def get_cluster_id(dbh, cluster_name)
   query = "SELECT id FROM clusters WHERE name = ? and enabled=true"
   sth = dbh.execute(query, cluster_name)
-  return sth.fetch(:first)[0] if sth.has_data?
-  nil
+  if sth.has_data?
+    id = sth.fetch(:first)[0].to_i
+    return id
+  else
+    IOLIBLOGGER.error("Cluster having name #{cluster_name} not found!")
+    nil
+  end
 end
 
 ##
@@ -359,7 +364,10 @@ def get_cluster(dbh, id)
   query = "SELECT * FROM clusters WHERE id = ?"
   sth = dbh.execute(query, id)
   if sth.has_data?
-    res = sth.as(:Struct).fetch(:first).to_h
+    res={}
+    sth.as(:Struct).fetch(:first).to_h.each do |k,v|
+      res[k.to_s]=v
+    end
     sth.finish
     return res
   else

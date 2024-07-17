@@ -37,10 +37,7 @@ describe 'cigri-restclientlib (RestSession)' do
   describe "Collection" do
     before(:all) do
       @rest=Cigri::RestSession.new({"api_url" => "https://f-dahu.u-ga.fr:6669/oarapi-cigri/",
-                                  "api_auth_type"=>"password",
-                                  "api_username" => "kameleon",
-                                  "api_password" => "kameleon",
-                                  "api_auth_type" => "cert"},
+                                    "api_auth_type" => "cert"},
                                        "application/json")
     end
     it 'should return an array' do
@@ -59,7 +56,7 @@ describe 'cigri-clusterlib (Cluster)' do
       lambda{Cigri::Cluster.new()}.should raise_error Exception
     end
     it 'should not succeed when an invalid cluster name is given' do
-      lambda{Cigri::Cluster.new(:name => "non_existent.cluster")}.should raise_error Exception
+      lambda{Cigri::Cluster.new(:name => "non_existent.cluster",:api_auth_type => "cert")}.should raise_error Exception
     end
     it 'should succeed when the name of a valid cluster is given' do
       lambda{Cigri::Cluster.new(:name => "dahu")}.should_not raise_error Exception

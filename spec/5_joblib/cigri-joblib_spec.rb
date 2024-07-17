@@ -150,16 +150,18 @@ describe 'cigri-joblib' do
     end
 
     it 'should be fifo by default' do
+       max=30 # RUNNER_DEFAULT_INITIAL_NUMBER_OF_JOBS * 10
        @campaign_set.compute_campaigns_orders.should == 
-          [[1,@campaign1.id],[2,@campaign1.id],[2,@campaign2.id],[3,@campaign2.id]]
+          [[1,@campaign1.id,max],[2,@campaign1.id,max],[2,@campaign2.id,max],[3,@campaign2.id,max]]
     end
 
     it 'should place yoda before obiwan if yoda is the best' do
+       max=30 # RUNNER_DEFAULT_INITIAL_NUMBER_OF_JOBS * 10
        @prio=Datarecord.new('users_priority',
                             :grid_user => "yoda", :cluster_id => 2, :priority => 10)
        begin
          @campaign_set.compute_campaigns_orders.should ==
-            [[1,@campaign1.id],[2,@campaign2.id],[2,@campaign1.id],[3,@campaign2.id]]
+            [[1,@campaign1.id,max],[2,@campaign2.id,max],[2,@campaign1.id,max],[3,@campaign2.id,max]]
        rescue
          raise
        ensure
@@ -168,11 +170,13 @@ describe 'cigri-joblib' do
     end
 
     it 'should place back yoda' do
-            @campaign_set.compute_campaigns_orders.should ==
-          [[1,@campaign1.id],[2,@campaign1.id],[2,@campaign2.id],[3,@campaign2.id]]
+       max=30 # RUNNER_DEFAULT_INITIAL_NUMBER_OF_JOBS * 10
+       @campaign_set.compute_campaigns_orders.should ==
+          [[1,@campaign1.id,max],[2,@campaign1.id,max],[2,@campaign2.id,max],[3,@campaign2.id,max]]
     end
 
     it 'should place yoda before obiwan if yoda is in test mode' do
+       max=30 # RUNNER_DEFAULT_INITIAL_NUMBER_OF_JOBS * 10
        property = Datarecord.new('campaign_properties', :cluster_id => 2,
                                                 :campaign_id => @campaign2.id,
                                                 :name => "test_mode",
@@ -180,7 +184,7 @@ describe 'cigri-joblib' do
        campaign_set=Cigri::Campaignset.new()
        campaign_set.get_running
        campaign_set.compute_campaigns_orders.should ==
-            [[1,@campaign1.id],[2,@campaign2.id],[2,@campaign1.id],[3,@campaign2.id]]
+            [[1,@campaign1.id,max],[2,@campaign2.id,max],[2,@campaign1.id,max],[3,@campaign2.id,max]]
        property.delete
     end
 
