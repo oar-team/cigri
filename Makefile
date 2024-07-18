@@ -22,8 +22,8 @@ USERCMDS=$(patsubst bin/%.rb,%,$(wildcard bin/*.rb))
 CACERT=/etc/cigri/ssl.orig/cigriCA/certs/cigriCA.crt
 CAKEY=/etc/cigri/ssl.orig/cigriCA/private/myca.key
 
-#SPEC_OPTS=--colour --fail-fast 
-SPEC_OPTS=--colour
+SPEC_OPTS=--colour --fail-fast 
+#SPEC_OPTS=--colour
 
 .PHONY: man
 

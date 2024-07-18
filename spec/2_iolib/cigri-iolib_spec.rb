@@ -199,7 +199,22 @@ describe 'cigri-iolib' do
   end # delete_campaign
 
   describe 'take_tasks' do
-    xit 'should test take_tasks' do
+    it 'should return job ids' do
+      nb_params = @correct_json['params'].length
+      db_connect() do |dbh|
+        id = cigri_submit(dbh, @correct_json, 'kameleon')
+        id.should be_a(Integer)
+        query = "SELECT b.id 
+                 FROM parameters AS p, bag_of_tasks as b 
+                 WHERE p.id = b.param_id AND 
+                       p.campaign_id = b.campaign_id AND
+                       p.campaign_id = ?"
+        result = dbh.execute(query, id).fetch(:all)
+        tasks = result.map { |r| r[0] }
+        add_jobs_to_launch(dbh,tasks,1,'',{},1)
+        take_tasks(dbh,tasks).length.should == nb_params
+        delete_campaign(dbh, 'kameleon', id)
+      end
     end
   end # take tasks
   

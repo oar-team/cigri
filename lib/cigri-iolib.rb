@@ -1205,13 +1205,18 @@ def take_tasks(dbh, tasks)
   begin
     jobids = []
     counts = {}
+    jobs = []
     # Get the jobs from the cluster queue
-    jobs = dbh.select_all("SELECT b.id as id, b.param_id as param_id, b.campaign_id as campaign_id, cluster_id, j.tag as tag, j.runner_options as runner_options 
+    sth = dbh.execute("SELECT b.id as id, b.param_id as param_id, b.campaign_id as campaign_id, cluster_id, j.tag as tag, j.runner_options as runner_options 
                            FROM bag_of_tasks AS b, jobs_to_launch AS j
                            WHERE j.task_id = b.id AND
                                  b.id IN (#{tasks.join(',')})
                            ORDER BY b.priority DESC, b.id")
+    if sth.has_data?
+      jobs=sth.as(:Struct).fetch(:all)
+    end
     jobs.each do |job|
+      job = job.to_h.transform_keys(&:to_s)
       # delete from the bag of task
       dbh.execute("DELETE FROM bag_of_tasks where id = #{job['id']}")     
       # delete from the cluster queue
@@ -1241,8 +1246,8 @@ def take_tasks(dbh, tasks)
               pair[0],pair[1],count
             )
     end
-    return jobids
     dbh.execute("COMMIT TRANSACTION")
+    return jobids
   rescue Exception => e
     IOLIBLOGGER.error("Error taking tasks from the bag: " + e.inspect)
     dbh.execute("ROLLBACK TRANSACTION")
@@ -1273,10 +1278,10 @@ end
 #
 def check_null_parameter(dbh)
   if dbh.execute("SELECT COUNT(*) FROM parameters WHERE id = 0").fetch(:first)[0] < 1
-   IOLIBLOGGER.debug("Initializing the null parameter")
-   dbh.execute("INSERT INTO parameters (id,campaign_id,name,param)
+    IOLIBLOGGER.debug("Initializing the null parameter")
+    dbh.execute("INSERT INTO parameters (id,campaign_id,name,param)
                        VALUES (0,0,'null','null parameter for special jobs, dont delete!')")
- end
+  end
 end
 
 ##

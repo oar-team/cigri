@@ -118,7 +118,7 @@ describe 'jdl-parser' do
     end
     
     it 'should fail if dbh is bad' do
-      lambda{Cigri::JDLParser.save({}, '{"name":"n","nb_jobs":10,"clusters":{"dahu":{"exec_file":"e"}}}', 'testuser')}.should raise_error
+      lambda{Cigri::JDLParser.save({}, '{"name":"n","nb_jobs":10,"clusters":{"dahu":{"exec_file":"e"}}}', 'testuser')}.should raise_error TypeError
     end
     
     it 'should not be able to save an incorrect json' do
