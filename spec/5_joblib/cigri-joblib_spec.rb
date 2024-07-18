@@ -10,6 +10,7 @@ describe 'cigri-joblib' do
                             :cluster_id => 999 , 
                             :state => "terminated", 
                             :nodb => true,
+                            :runner_options => '{"besteffort":"false"}',
                             :param_id => 0)
     end
     it 'should return the provided job id' do
@@ -23,7 +24,7 @@ describe 'cigri-joblib' do
   describe 'Job from database' do
     before(:all) do
       db_connect() do |dbh|
-        @job = Cigri::Job.new(:campaign_id => 100 , :state => "terminated", :param_id => 0, :cluster_id => 999)
+        @job = Cigri::Job.new(:campaign_id => 100 , :state => "terminated", :param_id => 0, :cluster_id => 999, :runner_options => '{"besteffort":"true"}')
       end
     end
     it 'should create a new job and return an id' do
@@ -61,8 +62,8 @@ describe 'cigri-joblib' do
     before(:all) do
       campaign = Datarecord.new('campaigns', :grid_user => "obiwan", :state => "terminated", :type => "none")
       param = Datarecord.new('parameters', :campaign_id => campaign.id)
-      j1 = Cigri::Job.new(:campaign_id => campaign.id, :state => "to_launch", :node_name => "obiwan1", :param_id => param.props[:id])
-      j2 = Cigri::Job.new(:campaign_id => campaign.id, :state => "to_launch", :node_name => "obiwan2", :param_id => param.props[:id])
+      j1 = Cigri::Job.new(:campaign_id => campaign.id, :state => "to_launch", :node_name => "obiwan1", :param_id => param.props[:id], :runner_options => '{"besteffort":"true"}')
+      j2 = Cigri::Job.new(:campaign_id => campaign.id, :state => "to_launch", :node_name => "obiwan2", :param_id => param.props[:id], :runner_options => '{"besteffort":"true"}')
       @jobs=Cigri::Jobset.new(:where => "jobs.node_name like 'obiwan%'")
       j1.delete
       j2.delete

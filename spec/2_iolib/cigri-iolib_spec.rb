@@ -93,7 +93,7 @@ describe 'cigri-iolib' do
     
     it 'should fail to submit if json not correct' do
       db_connect() do |dbh|
-        lambda{cigri_submit(dbh, '', 'bzizou')}.should raise_error
+        lambda{cigri_submit(dbh, '', 'bzizou')}.should raise_error Cigri::Error
       end
     end
   end # cigri_submit

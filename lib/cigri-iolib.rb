@@ -67,7 +67,7 @@ def db_connect()
     sleep 10
     retry
   rescue Exception => e
-    IOLIBLOGGER.error("Failed to connect to database: #{e}\n#{e.backtrace.join("\n")}")
+    IOLIBLOGGER.error("Aborted database connexion: #{e}\n")
     raise
   end
 end
@@ -173,8 +173,15 @@ def cigri_submit(dbh, jdl, user)
   IOLIBLOGGER.debug('Saving campaign into database')
   dbh.execute("BEGIN TRANSACTION")
   begin
-    params = jdl['params']
-    jdl['params'] = []
+    if not jdl.is_a?(Hash)
+      raise Cigri::Error, "JDL is not a hash. Aborting campaign submission."
+    end
+    if jdl.key?("params")
+      params = jdl['params']
+      jdl['params'] = []
+    else
+      params = []
+    end
 
     jdl=check_admission_rules(binding)
 
@@ -223,6 +230,10 @@ def cigri_submit(dbh, jdl, user)
       raise Cigri::Error, 'Desktop_computing campaigns are not yet supported'
     end
     dbh.execute("COMMIT TRANSACTION")
+  rescue Cigri::Error => e
+    IOLIBLOGGER.error('Error running campaign submission: ' + e.message)
+    dbh.execute("ROLLBACK TRANSACTION")
+    raise e
   rescue Exception => e
     IOLIBLOGGER.error('Error running campaign submission: ' + e.inspect + e.backtrace.to_s)
     dbh.execute("ROLLBACK TRANSACTION")
