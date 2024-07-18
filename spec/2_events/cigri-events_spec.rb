@@ -41,6 +41,19 @@ describe 'API' do
         campaign.events(10,0,1)[0][8].should == 'closed'
       end
 
+      it 'should get a global event and close it' do
+        event=Cigri::Event.new(:class => 'notify', :state => 'open', :code => 'DUMMY_EVENT')
+        events=[]
+        db_connect do |dbh|
+          events=get_global_events(dbh, 10, 0)
+        end
+        events[0][8].should == 'open'
+        event.close()
+        event=Cigri::Event.new(:id => event.id)
+        event.props[:state].should == 'closed'
+      end
+
+
   end # Events
 
 end
