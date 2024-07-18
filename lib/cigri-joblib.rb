@@ -101,9 +101,6 @@ module Cigri
       status_file=""
       begin 
         status_file=cluster.get_file("/~/cigri_batch_state_"+id.to_s,@props[:grid_user])
-        start_time=nil
-        exit_code=nil
-        stop_time=nil
         status_file.each_line do |line|
           tag=line.split(/=/)
           case tag[0]

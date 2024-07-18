@@ -832,7 +832,7 @@ end
 # - offset
 #
 # == Returns
-# Array: [id,class,code,job_id,cluster_id,message,date_open]
+# Array: [id,class,code,job_id,cluster_id,message,date_open,state]
 #
 ##
 def get_campaign_events(dbh, id, limit, offset, all = 0)
@@ -859,7 +859,7 @@ def get_campaign_events(dbh, id, limit, offset, all = 0)
            LIMIT ? 
            OFFSET ?"
 
-  dbh.select_all(query, id, limit, offset)
+  dbh.execute(query, id, limit, offset).fetch(:all)
 end
 
 ##
