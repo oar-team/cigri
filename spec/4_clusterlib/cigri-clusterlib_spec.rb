@@ -66,7 +66,7 @@ describe 'cigri-clusterlib (Cluster)' do
     end
   end # Initialize
 
-  describe "Tchernobyl resources" do
+  describe "Dahu resources" do
     before(:all) do
       @cluster=Cigri::Cluster.new(:name => "dahu")
     end
@@ -93,4 +93,18 @@ describe 'cigri-clusterlib (Cluster)' do
       @cluster.delete_job(@job["id"],"bzizou")["status"].should equal? "Delete request registered"
     end
   end # Job submission
+end # cigri-clusterlib
+
+describe 'cigri-clusterlib (ClusterSet)' do
+  describe "Initialize" do
+    it 'should return an array' do
+      Cigri::ClusterSet.new().should be_a Array
+    end
+    it 'should return Clusters' do
+      Cigri::ClusterSet.new()[0].description["name"].should be_a String
+    end
+    it 'should return only one element when the id of a cluster is given' do
+      Cigri::ClusterSet.new("id=8").length.should == 1
+    end
+  end # Initialize
 end # cigri-clusterlib

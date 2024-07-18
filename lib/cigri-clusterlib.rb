@@ -579,7 +579,7 @@ module Cigri
       db_connect() do |dbh|
         clusters = select_clusters(dbh, where_clause)
         if clusters
-          select_clusters(dbh, where_clause).each do |id|
+          clusters.each do |id|
             push Cluster.new(:id => id)
           end
         end
