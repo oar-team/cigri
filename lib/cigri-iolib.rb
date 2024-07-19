@@ -1787,13 +1787,23 @@ class Dataset
   private
   #Verify the state of the connection and connect if not
   def check_connection!
-    if @@counter > 50 or !@@dbh.ping
+    begin
+      ping=@@dbh.ping
+    rescue
+      IOLIBLOGGER.warn("Connection to database lost!")
+      ping=nil
+    end
+    if @@counter > 50 or !ping
       if @@counter > 50
         IOLIBLOGGER.debug("Refreshing database connection")
       else
         IOLIBLOGGER.warn("Database connection lost, re-connecting")
       end
-      @@dbh.disconnect if @@dbh
+      begin
+        @@dbh.disconnect if @@dbh
+      rescue
+        nil
+      end
       @@dbh = db_connect()
       @@counter = 0
     end
