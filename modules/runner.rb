@@ -13,8 +13,6 @@ config = Cigri.conf
 logfile=config.get('LOG_FILE',"STDOUT")
 logger = Cigri::Logger.new("RUNNER #{ARGV[0]}", logfile)
 
-RUNNER_TAP_INCREASE_FACTOR=CONF.get('RUNNER_TAP_INCREASE_FACTOR',"1.5").to_f
-
 if logfile != "STDOUT" && logfile != "STDERR"
   $stdout.reopen(logfile, "a")
   $stderr.reopen(logfile, "a")
