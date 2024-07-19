@@ -2,7 +2,7 @@ require 'rubygems'
 require 'rspec'
 require 'cigri-conflib'
 
-Cigri.conf.conf['LOG_FILE'] = '/dev/null'
+Cigri.conf.conf['LOG_FILE'] = '/var/log/cigri.log'
 ENV['CIGRIDIR'] = File.expand_path(File.dirname(__FILE__))
 
 RSpec.configure do |config|

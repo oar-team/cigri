@@ -49,5 +49,26 @@ describe 'API' do
 
   end # Scheduler
 
+  # Not actualy scheduling tests, but here we can test some objects behaviors 
+  # that we could not test earlier
+
+  describe 'Cluster' do
+    
+    it "should have a running campaign" do
+      cluster=Cigri::Cluster.new(:name => cluster1)
+      cluster.running_campaigns[0].should be == @test_id
+    end
+
+    it "should report paused campaigns" do
+      cluster=Cigri::Cluster.new(:name => cluster1)
+      campaign=Cigri::Campaign.new(:id => @test_id)
+      db_connect do |dbh|
+        hold_campaign(dbh, "Rspec", @test_id)
+      end
+      cluster.paused_campaigns[0].should be == @test_id
+    end
+
+  end # Cluster
+
 end
 

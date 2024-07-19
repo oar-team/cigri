@@ -76,9 +76,7 @@ end
 # Check if we are inside a transaction
 ##
 def in_transaction?(dbh)
-  res=dbh.execute("select transaction_timestamp() != statement_timestamp() as in_transaction;").fetch(:first)[0]
-  IOLIBLOGGER.debug(res.class)
-  res
+  dbh.execute("select transaction_timestamp() != statement_timestamp() as in_transaction;").fetch(:first)[0]
 end
 
 ##
@@ -742,6 +740,56 @@ end
 ##
 def get_running_campaigns(dbh)
   dbh.execute("SELECT id FROM campaigns WHERE state = 'in_treatment'").fetch(:all)
+end
+
+##
+# Returns running (state = in_treatment) campaigns for given cluster_id
+#
+# == Parameters
+# - dbh: dababase handle
+# - cluster_id: the id of the cluster
+#
+# == Returns
+# Array of campaign id
+#
+##
+def get_running_campaigns_for_cluster(dbh,cluster_id)
+  db_connect() do |dbh|
+    query = "SELECT distinct campaign_id FROM campaign_properties, campaigns
+           WHERE campaigns.id=campaign_properties.campaign_id AND state='in_treatment'
+               AND cluster_id = ?"
+    sth=dbh.execute(query, @id)
+    if sth.has_data?
+      return sth.fetch(:all).flatten
+    else
+      return []
+    end
+  end
+end
+
+##
+# Get paused campaigns for given cluster_id
+#
+# == Parameters
+# - dbh: dababase handle
+# - cluster_id: the id of the cluster
+#
+# == Returns
+# Array of campaign id
+#
+##
+def get_paused_campaigns_for_cluster(dbh,cluster_id)
+  db_connect() do |dbh|
+    query = "SELECT distinct campaign_id FROM campaign_properties, campaigns
+             WHERE campaigns.id=campaign_properties.campaign_id AND state='paused'
+                 AND cluster_id = ?"
+    sth=dbh.execute(query, @id)
+    if sth.has_data?
+      return sth.fetch(:all).flatten
+    else
+      return []
+    end
+  end
 end
 
 ##
