@@ -73,6 +73,15 @@ def db_connect()
 end
 
 ##
+# Check if we are inside a transaction
+##
+def in_transaction?(dbh)
+  res=dbh.execute("select transaction_timestamp() != statement_timestamp() as in_transaction;").fetch(:first)[0]
+  IOLIBLOGGER.debug(res.class)
+  res
+end
+
+##
 # Return the date from the SQL server
 ##
 def db_date(dbh)
@@ -263,7 +272,7 @@ def cigri_submit_jobs(dbh, params, campaign_id, user)
 
   jdl = JSON.parse(campaign[1])
   jdl['params'].concat(params)
-  dbh.execute("BEGIN TRANSACTION")
+  dbh.execute("BEGIN TRANSACTION") if not in_transaction?(dbh)
   begin
 
     dbh.execute("UPDATE campaigns SET state = 'in_treatment' WHERE id = ?", campaign_id) if campaign[0] == "terminated"
@@ -284,10 +293,10 @@ def cigri_submit_jobs(dbh, params, campaign_id, user)
       inserted_ids.map!{ |param| "(#{param[0]}, #{campaign_id}, 10)"}
       dbh.execute('INSERT INTO bag_of_tasks (param_id, campaign_id, priority) VALUES ' + inserted_ids.join(','))
     end
-    dbh.execute("COMMIT TRANSACTION")
+    dbh.execute("COMMIT TRANSACTION") if not in_transaction?(dbh)
   rescue Exception => e
     IOLIBLOGGER.error("Error adding new jobs to campaign #{campaign_id}: " + e.inspect)
-    dbh.execute("ROLLBACK TRANSACTION")
+    dbh.execute("ROLLBACK TRANSACTION") if not in_transaction?(dbh)
     raise e
   end
 end
