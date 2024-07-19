@@ -71,7 +71,7 @@ begin
     name=item['id'].to_s+": "+item["name"]
     string+=name
     if infos
-      response = client.get(url+"/"+item['id'])
+      response = client.get(url+"/"+item['id'].to_s)
       cluster = JSON.parse(response.body)
       if more_infos
         cluster.each_key do |key|

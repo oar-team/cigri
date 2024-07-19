@@ -5,6 +5,8 @@ require 'test/unit'
 require 'rack/test'
 require 'sinatra'
 
+Test::Unit::AutoRunner.need_auto_run = false if defined?(Test::Unit::AutoRunner)
+
 set :environment, :test
 
 cluster1 = "dahu"
@@ -67,9 +69,9 @@ describe 'API' do
 
     describe 'Success' do
 
-      ['/', '/clusters'].each do |url|
+      ['/', '/clusters', '/gridusage'].each do |url|
         it "should get the url '#{url}'" do
-          get '/'
+          get url
           last_response.should be_ok
           response = JSON.parse last_response.body
           check_headers(get=true)
@@ -136,7 +138,23 @@ describe 'API' do
      #   last_response.should be_ok
      #   check_links(JSON.parse(last_response.body), '/prefix')
      # end
-      
+
+     it 'should get gridusage informations' do
+       r=Datarecord.new("grid_usage",{:date => Time.now,
+                                             :cluster_id => 1,
+                                             :max_resources => 10,
+                                             :used_resources => 5,
+                                             :used_by_cigri => 2,
+                                             :unavailable_resources => 1
+                                            })
+       get "/gridusage"
+       last_response.should be_ok
+       response = JSON.parse(last_response.body)
+       check_headers(get=true)
+       response['items'][0]['clusters'][0].has_key?("cluster_name").should be true
+       r.delete
+     end
+
     end # Success
 
     describe 'Failure' do

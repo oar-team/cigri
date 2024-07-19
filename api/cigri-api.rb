@@ -593,6 +593,7 @@ class API < Sinatra::Base
   end
 
   get '/gridusage/?' do
+    response['Allow'] = 'GET'
     params['from'] ? from=params['from'] : from=nil
     params['to'] ? to=params['to'] : to=nil
     items=[]
@@ -607,7 +608,11 @@ class API < Sinatra::Base
     output={"items" => items,
             "from" => from,
             "to" => to,
-            "total" => items.length
+            "total" => items.length,
+            "links" => [
+                         {:rel => :self, :href => to_url("gridusage")},
+                         {:rel => :parent, :href => to_url("")}
+                       ]
            }
 
     status 200

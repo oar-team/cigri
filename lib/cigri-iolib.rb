@@ -1285,9 +1285,9 @@ end
 # Get the last inserted entry date from grid_usage table
 #
 def last_grid_usage_entry_date(dbh)
-  result=dbh.execute("SELECT extract(epoch from date) FROM grid_usage ORDER by date desc limit 1").fetch(:first)
-  return 0 if result.nil?
-  result[0]
+  sth=dbh.execute("SELECT extract(epoch from date) FROM grid_usage ORDER by date desc limit 1")
+  return 0 if not sth.has_data?
+  sth.fetch(:first)[0]
 end
 
 ## 
@@ -1309,7 +1309,11 @@ def get_grid_usage(dbh,from,to)
      query+="where extract(epoch from date)<=#{to} and extract(epoch from date)>#{from} and clusters.id=grid_usage.cluster_id"
   end
   dates={}
-  result=dbh.select_all(query)
+  sth=dbh.execute(query)
+  result=[]
+  if sth.has_data?
+    result=sth.fetch(:all)
+  end
   result.each do |row|
     if dates[row[0]].nil?
       dates[row[0]] = []

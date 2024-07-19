@@ -1,6 +1,8 @@
 #require 'spec_helper'
 require 'cigri-conflib'
 
+Test::Unit::AutoRunner.need_auto_run = false if defined?(Test::Unit::AutoRunner)
+
 describe 'cigri-conflib' do
 
   describe 'initialize failures' do

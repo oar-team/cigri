@@ -6,6 +6,8 @@ require 'test/unit'
 require 'rack/test'
 require 'sinatra'
 
+Test::Unit::AutoRunner.need_auto_run = false if defined?(Test::Unit::AutoRunner)
+
 set :environment, :test
 
 cluster1 = "dahu"
