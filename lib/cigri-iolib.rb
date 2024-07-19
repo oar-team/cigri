@@ -1349,12 +1349,14 @@ end
 #
 def get_campaign_throughput(dbh,campaign_id,time_window)
   query="select max(extract(epoch from start_time)) from jobs where campaign_id=#{campaign_id} and state='terminated';"
-  res=dbh.execute(query).fetch(:first)
-  return 0 if res.nil?
+  sth=dbh.execute(query)
+  return 0 if not sth.has_data?
+  res=sth.fetch(:first)
   last_job_start=res[0].to_i
   query="select min(extract(epoch from start_time)) from jobs where extract(epoch from start_time) > #{last_job_start}-#{time_window} and campaign_id=#{campaign_id} and state='terminated';"
-  res=dbh.execute(query).fetch(:first)
-  return 0 if res.nil?
+  sth=dbh.execute(query)
+  return 0 if not sth.has_data?
+  res=sth.fetch(:first)
   first_job_start=res[0].to_i
   return 0 if (last_job_start - first_job_start) == 0
   query="select count(*) from jobs where extract(epoch from start_time) > #{last_job_start}-#{time_window} and campaign_id=#{campaign_id} and state='terminated';"

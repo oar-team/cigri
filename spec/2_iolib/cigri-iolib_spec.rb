@@ -226,6 +226,14 @@ describe 'cigri-iolib' do
     end
   end # get_running_campaigns
 
+  describe 'new_batch_id' do
+    it 'should return an integer' do
+      db_connect() do |dbh|
+        new_batch_id(dbh).should be_a(Integer)
+      end
+    end
+  end # new_batch_id
+
   describe 'decrease_affinity' do
     it 'should initiate to -1' do
       db_connect() do |dbh| 

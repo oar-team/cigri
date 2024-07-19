@@ -185,7 +185,7 @@ describe 'cigri-joblib' do
        campaign_set=Cigri::Campaignset.new()
        campaign_set.get_running
        campaign_set.compute_campaigns_orders.should ==
-            [[1,@campaign1.id,max],[2,@campaign2.id,max],[2,@campaign1.id,max],[3,@campaign2.id,max]]
+            [[1,@campaign1.id,max],[2,@campaign2.id,1],[2,@campaign1.id,max],[3,@campaign2.id,max]]
        property.delete
     end
 
