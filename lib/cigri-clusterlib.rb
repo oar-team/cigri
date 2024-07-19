@@ -142,20 +142,6 @@ module Cigri
       return n > 0
     end
 
-    # unused :
-    # # Returns yes if the queue (jobs_to_launch) is under the gauge
-    # def queue_low?
-    #   n=0
-    #   db_connect() do |dbh|
-    #     n=dbh.select_one("SELECT count(*) 
-    #                     FROM jobs_to_launch 
-    #                     WHERE cluster_id=?",@id)[0].to_i
-    #   end
-    #   return true if n < QUEUE_GAUGE
-    #   CLUSTERLIBLOGGER.debug("Cluster #{name} has #{n} jobs in queue")
-    #   return false
-    # end
-
     # Get the running campaigns on this cluster
     def running_campaigns
       db_connect() do |dbh|

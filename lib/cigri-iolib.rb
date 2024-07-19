@@ -1511,6 +1511,19 @@ def reset_cluster_queues(dbh)
 end
 
 
+##
+# Get a tap
+#
+def get_tap(dbh,cluster_id,campaign_id)
+  sth = dbh.execute("SELECT * FROM taps WHERE cluster_id=#{cluster_id}     
+                                                AND campaign_id=#{campaign_id}") 
+  if sth.has_data?            
+    sth.as(:Struct).fetch(:first).to_h.transform_keys{ |k| k.to_sym }
+  else
+    nil
+  end
+end
+
 #######################################################################
 ######################### iolib classes ###############################
 #######################################################################
@@ -1575,9 +1588,7 @@ class Datarecord
     what = "*" if what.nil?
     sth = dbh.execute("SELECT #{what} FROM #{table} WHERE #{@index} = #{id.to_i}")
     if sth.has_data?
-      # The inject part is to convert string keys into symbols to optimize memory
-      res = sth.as(:Struct).fetch(:first).to_h
-      return res.inject({}){|h,(k,v)| h[k.to_s.to_sym] = v; h}
+      sth.as(:Struct).fetch(:first).to_h.transform_keys{ |k| k.to_sym }
     else      
       IOLIBLOGGER.warn("Datarecord #{@index}=#{id} not found into #{table}")
       return nil
@@ -1688,8 +1699,7 @@ class Dataset
     result=[]
     if sth.has_data?
       sth.as(:Struct).fetch(:all).each do |row|
-        # The inject part is to convert string keys into symbols to optimize memory
-        result << row.to_h.inject({}){|h,(k,v)| h[k.to_s.to_sym] = v; h}
+        result << row.to_h.transform_keys{ |k| k.to_sym }
       end
     end
     return result

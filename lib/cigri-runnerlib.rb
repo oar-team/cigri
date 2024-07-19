@@ -52,14 +52,10 @@ module Cigri
       elsif props[:cluster_id] and props[:campaign_id]
         # Try to get it
         dbh = db_connect()
-        sth = dbh.execute("SELECT * FROM taps WHERE cluster_id=#{props[:cluster_id]}
-                                                AND campaign_id=#{props[:campaign_id]}")
-        if sth.has_data?
-          record = sth.as(:Struct).fetch(:first).to_h
-          dbh.disconnect
-          @props=record.inject({}){|h,(k,v)| h[k.to_s.to_sym] = v; h}
+        @props = get_tap(dbh,props[:cluster_id],props[:campaign_id])
+        dbh.disconnect
         #or create it
-        else
+        if @props.nil?
           @props=props
           @props[:rate]=RUNNER_DEFAULT_INITIAL_NUMBER_OF_JOBS
           @props[:state]="open"
