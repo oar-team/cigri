@@ -106,13 +106,13 @@ describe 'jdl-parser' do
     end
     
     after :each do
-      dbh = db_connect() do |dbh|
+      db_connect() do |dbh|
         delete_campaign(dbh, 'testuser', @cid) if @cid != -1
       end
     end
     
     it 'should be able to save a correct json' do 
-      dbh = db_connect() do |dbh|
+      db_connect() do |dbh|
         lambda{@cid = Cigri::JDLParser.save(dbh, '{"name":"n","nb_jobs":10,"clusters":{"dahu":{"exec_file":"e"}}}', 'testuser')}.should_not raise_error
       end
     end

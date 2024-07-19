@@ -53,7 +53,7 @@ describe 'API' do
   end
 
   def check_jobs(jobs, offset=0, limit=10)
-    jobs.class.should == Hash
+    jobs.class.should be == Hash
     %w{total items offset}.each do |key|
       jobs.has_key?(key).should be true
     end
@@ -196,7 +196,7 @@ describe 'API' do
       post '/campaigns', '{"name":"test_api", "nb_jobs":10,"clusters":{"'+cluster1+'":{"exec_file":"e"}}}', 'HTTP_X_CIGRI_USER' => 'Rspec'
         response = JSON.parse last_response.body
         last_response.status.should be 201 
-        last_response['Location'].should == "/campaigns/#{response['id']}"
+        last_response['Location'].should be == "/campaigns/#{response['id']}"
         check_links(response)
         db_connect do |dbh|
           delete_campaign(dbh, 'Rspec', response['id'])
@@ -206,7 +206,7 @@ describe 'API' do
       it 'should add more jobs in an existing campaign' do
         post "/campaigns/#{@test_id}/jobs", '["a", "b", "c", "d"]', 'HTTP_X_CIGRI_USER' => 'Rspec'
         last_response.status.should be 201
-        last_response['Location'].should == "/campaigns/#{@test_id}"
+        last_response['Location'].should be == "/campaigns/#{@test_id}"
         response = JSON.parse last_response.body
         response['total_jobs'].should be 14
         check_links(response)
@@ -244,8 +244,8 @@ describe 'API' do
         put "/campaigns/#{@test_id}", {:name => :toto, :state => :paused} , 'HTTP_X_CIGRI_USER' => 'Rspec'
         last_response.status.should be 202
         response = JSON.parse last_response.body
-        response['name'].should == "toto"
-        response['state'].should == "paused"
+        response['name'].should be == "toto"
+        response['state'].should be == "paused"
         check_links(response)
       end
 
@@ -276,7 +276,7 @@ describe 'API' do
         last_response.status.should be 202
         get "/campaigns/#{@test_id}"
         response = JSON.parse last_response.body
-        response['state'].should == "cancelled"
+        response['state'].should be == "cancelled"
       end
     end # Success
     

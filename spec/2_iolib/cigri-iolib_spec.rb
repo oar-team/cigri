@@ -86,7 +86,7 @@ describe 'cigri-iolib' do
                  WHERE p.id = b.param_id AND 
                        p.campaign_id = b.campaign_id AND
                        p.campaign_id = ?"
-        nb_jobs = dbh.execute(query, id).fetch(:first)[0].should be == nb_params
+        dbh.execute(query, id).fetch(:first)[0].should be == nb_params
         delete_campaign(dbh, 'bzizou', id)
       end
     end
@@ -212,7 +212,7 @@ describe 'cigri-iolib' do
         result = dbh.execute(query, id).fetch(:all)
         tasks = result.map { |r| r[0] }
         add_jobs_to_launch(dbh,tasks,1,'',{},1)
-        take_tasks(dbh,tasks).length.should == nb_params
+        take_tasks(dbh,tasks).length.should be == nb_params
         delete_campaign(dbh, 'kameleon', id)
       end
     end
@@ -239,14 +239,14 @@ describe 'cigri-iolib' do
       db_connect() do |dbh| 
         decrease_task_affinity(dbh,999,999)
         affinity=get_task_affinity(dbh,999,999)
-        affinity[3].should be -1
+        affinity[3].should be (-1)
       end
     end
     it 'should decrease by -1' do
       db_connect() do |dbh|
         decrease_task_affinity(dbh,999,999)
         affinity=get_task_affinity(dbh,999,999)
-        affinity[3].should be -2
+        affinity[3].should be (-2)
       end
     end
     it 'should reset' do
@@ -274,7 +274,7 @@ describe 'cigri-iolib' do
       lambda { @job.delete }.should_not raise_error Exception
     end
     it 'should have nil props for a non existant record' do
-      toto = Datarecord.new('jobs', :id => '-1').props.should == nil
+      Datarecord.new('jobs', :id => '-1').props.should == nil
     end
 
   end #  Datarecord

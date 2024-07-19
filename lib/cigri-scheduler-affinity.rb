@@ -71,7 +71,6 @@ module Cigri
           end
         end
         SCHEDULERLOGGER.debug{"Scheduling campaign #{campaign_id} on cluster #{cluster_id}"}
-        campaign=@campaigns.get_campaign(campaign_id)
         # Potential tasks, ordered
         if @stacks[cluster_id].nil?
           @stacks[cluster_id]={}

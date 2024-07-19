@@ -132,7 +132,7 @@ describe 'cigri-joblib' do
     end
   
     it 'should compute couples orders' do
-       lambda { couples=@campaign_set.compute_campaigns_orders }.should_not raise_error Exception
+       lambda { @campaign_set.compute_campaigns_orders }.should_not raise_error Exception
     end
 
     it 'should return 4 couples' do
@@ -144,7 +144,7 @@ describe 'cigri-joblib' do
          cluster=Datarecord.new('clusters',:id => 2)
          cluster.props[:stress_factor]=1.2
          cluster.update(cluster.props)
-         @campaign_set.compute_campaigns_orders.length.should == 2
+         @campaign_set.compute_campaigns_orders.length.should be == 2
          cluster.props[:stress_factor]=0
          cluster.update(cluster.props)
        end
@@ -184,7 +184,7 @@ describe 'cigri-joblib' do
                                                 :value => "true")
        campaign_set=Cigri::Campaignset.new()
        campaign_set.get_running
-       campaign_set.compute_campaigns_orders.should ==
+       campaign_set.compute_campaigns_orders.should be ==
             [[1,@campaign1.id,max],[2,@campaign2.id,1],[2,@campaign1.id,max],[3,@campaign2.id,max]]
        property.delete
     end
