@@ -1698,7 +1698,8 @@ class Dataset
     sth=@@dbh.execute("SELECT #{what} FROM #{table} WHERE #{where}")
     result=[]
     if sth.has_data?
-      sth.as(:Struct).fetch(:all).each do |row|
+      r=sth.as(:Struct).fetch(:all)
+      r.each do |row|
         result << row.to_h.transform_keys{ |k| k.to_sym }
       end
     end

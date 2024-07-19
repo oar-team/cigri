@@ -571,7 +571,8 @@ module Cigri
     # max number of jobs to get (rate)
     def get_next(cluster_id,taps={})
       # Get the jobs order by priority
-      jobs=get("jobs_to_launch,bag_of_tasks","*","cluster_id=#{cluster_id} 
+      props="bag_of_tasks.id as id,task_id,cluster_id,tag,queuing_date,runner_options,order_num,campaign_id,param_id,priority"
+      jobs=get("jobs_to_launch,bag_of_tasks",props,"cluster_id=#{cluster_id} 
                                                     AND task_id=bag_of_tasks.id
                                                     ORDER BY bag_of_tasks.priority DESC, order_num, jobs_to_launch.id")
       counts={}
