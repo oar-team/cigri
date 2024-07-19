@@ -105,12 +105,12 @@ module Cigri
           tag=line.split(/=/)
           case tag[0]
           when /BEGIN_DATE/
-            start_time=tag[1]
+            output["start_time"]=tag[1]
             output["state"]="running"
           when /RET/
-            exit_code=tag[1]
+            output["exit_code"]=tag[1]
           when /END_DATE/
-            stop_time=tag[1]
+            output["stop_time"]=tag[1]
             output["state"]="finished"
           end
         end
