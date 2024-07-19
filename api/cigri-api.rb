@@ -23,7 +23,6 @@ clusters.each do |cluster|
    CLUSTER_NAMES[cluster.id]=cluster.name
 end
 
-logger=Cigri::Logger.new('API', Cigri.conf.get('LOG_FILE'))
 
 CAMPAIGN_THROUGHPUT_WINDOW=Cigri.conf.get('CAMPAIGN_THROUGHPUT_WINDOW',"3600").to_i
 
@@ -36,6 +35,7 @@ class API < Sinatra::Base
   
   before do
     content_type :json
+    @logger=Cigri::Logger.new('API', Cigri.conf.get('LOG_FILE'))
   end
   
   # List all links
@@ -154,11 +154,11 @@ class API < Sinatra::Base
       db_connect() do |dbh|
         check_rights!(dbh,request.env[settings.username_variable],job.props[:campaign_id])
       end
-      rescue Cigri::NotFound
-        not_found
-      rescue Cigri::Unauthorized => e
-        halt 403, print({:status => 403, :title => "Forbidden", :message => e.message})
-      rescue Exception => e
+    rescue Cigri::NotFound
+      not_found
+    rescue Cigri::Unauthorized => e
+      halt 403, print({:status => 403, :title => "Forbidden", :message => e.message})
+    rescue Exception => e
         halt 400, print({:status => 400, :title => "Error", :message => "Error canceling job #{id}: #{e}"})
     end
     Cigri::Event.new({:code => "USER_FRAG", :job_id => id, :class => "job", :message => "User request to cancel the job #{id}"})
@@ -327,7 +327,7 @@ class API < Sinatra::Base
       cluster_desc['links'] = [{:rel => :self, :href => to_url("clusters/#{id}")},
                           {:rel => :parent, :href => to_url("clusters")}]
       ['api_password', 'api_username'].each { |i| cluster_desc.delete(i)}
-    rescue Exception => e
+    rescue
       not_found
     end
     
@@ -422,7 +422,7 @@ class API < Sinatra::Base
 
       begin
         event=close_event(dbh, request.env[settings.username_variable], id)
-        logger.debug("Closing event #{id}, #{params['resubmit']}")
+        @logger.debug("Closing event #{id}, #{params['resubmit']}")
         if params['resubmit'] && event.props[:job_id]
           job=Cigri::Job.new(:id=>event.props[:job_id])
           job.resubmit
@@ -457,7 +457,7 @@ class API < Sinatra::Base
           jobs.to_jobs
         end
         # Fix the campaign
-        logger.debug("Closing all events of #{id}, #{params['resubmit']}")
+        @logger.debug("Closing all events of #{id}, #{params['resubmit']}")
         close_campaign_events(dbh, request.env[settings.username_variable], id)
         # Resubmit the jobs if needed
         jobs.each{|job| job.resubmit} if params['resubmit']
