@@ -1,6 +1,8 @@
-#require 'spec_helper'
+require 'spec_helper'
 require 'cigri'
 require 'jdl-parser'
+
+Test::Unit::AutoRunner.need_auto_run = false if defined?(Test::Unit::AutoRunner)
 
 describe 'jdl-parser' do
   describe 'successes with minimal campaigns' do

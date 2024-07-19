@@ -1,6 +1,8 @@
-#require 'spec_helper'
+require 'spec_helper'
 require 'cigri-joblib'
 require 'rdbi'
+
+Test::Unit::AutoRunner.need_auto_run = false if defined?(Test::Unit::AutoRunner)
 
 describe 'cigri-joblib' do
   describe 'Job without database fetching' do

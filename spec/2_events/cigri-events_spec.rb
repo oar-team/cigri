@@ -1,4 +1,4 @@
-#require 'spec_helper'
+require 'spec_helper'
 require File.join(File.expand_path(File.dirname(__FILE__)), '..', '..', 'api', 'cigri-api.rb')
 require 'cigri'
 require 'test/unit'
@@ -6,6 +6,8 @@ require 'rack/test'
 require 'sinatra'
 
 set :environment, :test
+
+Test::Unit::AutoRunner.need_auto_run = false if defined?(Test::Unit::AutoRunner)
 
 cluster1 = "dahu"
 

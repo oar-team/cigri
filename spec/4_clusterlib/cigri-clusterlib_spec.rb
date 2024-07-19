@@ -1,10 +1,12 @@
-#require 'spec_helper'
+require 'spec_helper'
 require 'cigri-restclientlib'
 require 'cigri-clusterlib'
 require 'cigri-colombolib'
 require 'rdbi'
 require 'json'
 require 'yaml'
+
+Test::Unit::AutoRunner.need_auto_run = false if defined?(Test::Unit::AutoRunner)
 
 describe 'cigri-restclientlib (RestSession)' do
   #  describe "Initialize" do
