@@ -245,8 +245,6 @@ describe 'API' do
         last_response.status.should be 403
       end
 
-      xit 'should not update any parameters'
-
     end # Failure
 
   end # PUT

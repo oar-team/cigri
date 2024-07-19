@@ -218,11 +218,6 @@ describe 'cigri-iolib' do
     end
   end # take tasks
  
-  describe 'get_tasks_ids_for_campaign' do
-    xit 'should get tasks' do
-    end
-  end
-
   describe 'get_running_campaigns' do
     it 'should return an array' do
       db_connect() do |dbh|

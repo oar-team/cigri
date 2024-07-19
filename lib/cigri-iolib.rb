@@ -1091,27 +1091,6 @@ def get_campaigns_nb_finished_jobs(dbh, ids)
 end
 
 ##
-# Returns ids of all the tasks of campaign "id"
-#
-# == Parameters
-# - dbh: dababase handle
-# - id: campaign id
-# - number: number of tasks to return (infinite if nil)
-#
-# == Returns
-# Array of ids
-#
-##
-def get_tasks_ids_for_campaign(dbh, id, number = nil)
-  limit = number ? "LIMIT #{number}" : ""
-  dbh.select_all("SELECT bag_of_tasks.id FROM bag_of_tasks 
-                         LEFT JOIN jobs_to_launch ON bag_of_tasks.id = task_id
-                         WHERE task_id is null AND campaign_id=?
-                         ORDER by bag_of_tasks.priority DESC,bag_of_tasks.id
-                         #{limit}", id).flatten!
-end
-
-##
 # Returns ids of tasks for a given campaign ordered for a given cluster 
 # (using tasks_affinity table for sorting)
 # Takes care of not giving tasks that have already been scheduled (ie
@@ -1129,7 +1108,7 @@ end
 def get_tasks_ids_for_campaign_on_cluster(dbh, campaign_id, cluster_id, max = nil)
   return [] if max <= 0
   limit = max ? "LIMIT #{max}" : ""
-  res=dbh.select_all("SELECT bag_of_tasks.id,
+  res=dbh.execute("SELECT bag_of_tasks.id,
                          COALESCE(tasks_affinity.priority,0) as p 
                   FROM bag_of_tasks 
                   LEFT JOIN tasks_affinity 
@@ -1139,7 +1118,7 @@ def get_tasks_ids_for_campaign_on_cluster(dbh, campaign_id, cluster_id, max = ni
                   WHERE bag_of_tasks.campaign_id=#{campaign_id} 
                         AND jobs_to_launch.task_id is null
                   ORDER by bag_of_tasks.priority desc,p desc,id
-                  #{limit}")
+                  #{limit}").fetch(:all)
    res.collect! {|a| a[0]}
    return res.flatten
 end
