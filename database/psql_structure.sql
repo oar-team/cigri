@@ -9,8 +9,8 @@ INSERT INTO schema VALUES ('3.0.0-alpha0','Cesium137');
 
 DROP TABLE IF EXISTS clusters;
 DROP TYPE IF EXISTS api;
-CREATE TYPE api as ENUM('oar2_5','g5k');
-CREATE TYPE auth_type as ENUM('none','password', 'cert');
+CREATE TYPE api as ENUM('oar2_5','g5k','oar3');
+CREATE TYPE auth_type as ENUM('none','password', 'cert', 'jwt');
 CREATE TABLE clusters (
   id SERIAL NOT NULL,
   name VARCHAR(255) NOT NULL,

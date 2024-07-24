@@ -95,6 +95,26 @@ describe 'cigri-clusterlib (Cluster)' do
       @cluster.delete_job(@job["id"],"bzizou")["status"].should equal? "Delete request registered"
     end
   end # Job submission
+
+  describe "Job submission (OAR3)" do
+    before(:all) do
+      @cluster=Cigri::Cluster.new(:name => "dahu-oar3")
+      @job=@cluster.submit_job({:command => "sleep 300", :stdout => "/dev/null", :stderr => "/dev/null", :project => "test"},"bzizou")
+    end
+    it "should return an id" do
+      @job["id"].should be_an(Integer)
+    end
+    it "should have created a job" do
+      @cluster.get_job(@job["id"],"bzizou")["id"].should == @job["id"]
+    end
+    it "should have the job listed in the jobs collection" do
+      @cluster.get_jobs.index{|job| job["id"]=@job["id"] }.should_not be nil
+    end
+    it "should be able to ask for the job to be deleted" do
+      @cluster.delete_job(@job["id"],"bzizou")["status"].should equal? "Delete request registered"
+    end
+  end # Job submission
+
 end # cigri-clusterlib
 
 describe 'cigri-clusterlib (ClusterSet)' do

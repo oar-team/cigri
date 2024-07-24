@@ -61,7 +61,6 @@ describe 'API' do
 
     it "should report paused campaigns" do
       cluster=Cigri::Cluster.new(:name => cluster1)
-      campaign=Cigri::Campaign.new(:id => @test_id)
       db_connect do |dbh|
         hold_campaign(dbh, "Rspec", @test_id)
       end

@@ -58,9 +58,17 @@ module Cigri
           end
         end
         @description = get_cluster(dbh, id)
-        if @description["api_auth_header"].nil? || @description["api_auth_header"]==""
+        if @description["api_auth_type"] == "jwt"
+          @description["api_auth_header"]="Authorization"
+        elsif @description["api_auth_header"].nil? || @description["api_auth_header"]==""
           # Default value for API auth header variable
           @description["api_auth_header"]="X_REMOTE_IDENT" 
+        end
+        if @description["stress_factor"].nil?
+          @description["stress_factor"]=0
+        end
+        if @description["ssh_host"].nil?
+          @description["ssh_host"]=""
         end
         @id = id
         @taps={}
@@ -399,6 +407,7 @@ module Cigri
           end
           file.puts   
         end
+        CLUSTERLIBLOGGER.debug("#{@description["api_auth_header"]} => #{map_user(user)}")
         secure_run proc{ @api.post("jobs",job, {@description["api_auth_header"] => map_user(user)}) }, "SUBMIT_JOB"
       end
  
@@ -500,7 +509,18 @@ module Cigri
 
     end # G5kCluster
 
+    ##
+    # Oar3 REST API methods definitions.
+    # Check the RestCluster class for definitions
+    ##
+ 
+    class Oar3Cluster < OarCluster
 
+      def get_resources
+        raise "not yet implemented"      
+      end 
+
+    end
 
     ##
     # Lists the available batch types
@@ -537,6 +557,8 @@ module Cigri
             OarCluster
           when /g5k/
             G5kCluster
+          when /oar3/
+            Oar3Cluster
         end
       classe::new(opts)
     end

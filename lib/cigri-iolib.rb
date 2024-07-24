@@ -66,8 +66,11 @@ def db_connect()
     GC.start
     sleep 10
     retry
-  rescue Exception => e
+  rescue Cigri::Error => e
     IOLIBLOGGER.error("Aborted database connexion: #{e}\n")
+    raise
+  rescue Exception => e
+    IOLIBLOGGER.error("Aborted database connexion: #{e.class}\n#{e}\n#{e.backtrace.join("\n")}")
     raise
   end
 end

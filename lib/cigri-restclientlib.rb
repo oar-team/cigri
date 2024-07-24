@@ -36,6 +36,12 @@ module Cigri
         options[:timeout] = 30
       end
 
+      if CONF.exists?('REST_CLIENT_VERIFY_SSL')
+        options[:verify_ssl] = CONF.get('REST_CLIENT_VERIFY_SSL').to_i
+      else
+        options[:verify_ssl] = false
+      end
+ 
       if auth_type == "cert"
         if CONF.exists?('REST_CLIENT_CERTIFICATE_FILE') &&
            CONF.exists?('REST_CLIENT_KEY_FILE')
@@ -49,17 +55,18 @@ module Cigri
         if CONF.exists?('REST_CLIENT_CA_FILE')
           options[:ssl_ca_file] = CONF.get('REST_CLIENT_CA_FILE')
         end
-        if CONF.exists?('REST_CLIENT_VERIFY_SSL')
-		options[:verify_ssl] = CONF.get('REST_CLIENT_VERIFY_SSL').to_i
-	else
-          options[:verify_ssl] = false
-        end
-      elsif auth_type == "password"
+     elsif auth_type == "password"
         # if (user.nil? || user == "")
         #   options[:user]=user
         #   options[:password]=password
         # end
       elsif auth_type == "none"
+        nil
+      elsif auth_type == "jwt"
+        if description["batch"] != "oar3"
+          msg = "Authentification type '" + auth_type.to_s + "' only available for oar3 batch system"
+          raise Cigri::Error, msg
+        end
       else
         msg = "Authentification type '" + auth_type.to_s + "' not supported"
         raise Cigri::Error, msg
@@ -182,6 +189,8 @@ module Cigri
           raise Cigri::ClusterAPITooLarge, "#{e.http_code} error in POST for #{uri}:\n #{e.response.body}"
         elsif  e.http_code == 500
           raise Cigri::ClusterAPIServerError, "#{e.http_code} error in POST for #{uri}:\n #{e.response.body}"
+        elsif e.response.nil?
+          raise e, "Error in POST for #{uri}: empty response"
         else
           raise Cigri::Error, "#{e.http_code} error in POST for #{uri}:\n #{e.response.body}"
         end
