@@ -99,7 +99,7 @@ describe 'cigri-clusterlib (Cluster)' do
   describe "Job submission (OAR3)" do
     before(:all) do
       @cluster=Cigri::Cluster.new(:name => "dahu-oar3")
-      @job=@cluster.submit_job({:command => "sleep 300", :stdout => "/dev/null", :stderr => "/dev/null", :project => "test"},"bzizou")
+      @job=@cluster.submit_job({:command => "sleep 300", :stdout => "/dev/null", :stderr => "/dev/null", :project => "test", :type => ["devel"], :resource => ["/cpu=1,walltime=0:10:0"]},"bzizou")
     end
     it "should return an id" do
       @job["id"].should be_an(Integer)
