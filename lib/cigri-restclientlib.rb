@@ -55,7 +55,7 @@ module Cigri
         if CONF.exists?('REST_CLIENT_CA_FILE')
           options[:ssl_ca_file] = CONF.get('REST_CLIENT_CA_FILE')
         end
-     elsif auth_type == "password"
+      elsif auth_type == "password"
         # if (user.nil? || user == "")
         #   options[:user]=user
         #   options[:password]=password
@@ -147,7 +147,7 @@ module Cigri
 
     # Get a link by relation or nil if not found
     def get_link_by_rel(resource,rel)
-      if defined? resource["links"]
+      if defined? resource["links"] and not resource["links"].nil?
         resource["links"].each do |link|
           return link["href"] if link["rel"] == rel
         end

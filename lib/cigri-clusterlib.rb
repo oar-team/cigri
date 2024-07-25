@@ -526,6 +526,12 @@ module Cigri
  
     class Oar3Cluster < OarCluster
 
+      def get_jobs(props={})
+        params = "?details=1"
+        params+="&array=#{props[:array]}" if props[:array]
+        secure_run proc{ @api.get_collection("jobs#{params}") },"GET_JOBS"
+      end 
+
       def get_resources
         raise "not yet implemented"      
       end 
