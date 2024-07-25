@@ -1527,6 +1527,55 @@ def get_tap(dbh,cluster_id,campaign_id)
   end
 end
 
+##
+# Returns the JWT tokens of a user
+#
+# == Parameters
+# - dbh: dababase handle
+# - user: grid login
+#
+# == Returns
+# Array of properties
+#
+##
+def get_tokens(dbh, user)
+  result=[]
+  sth = dbh.execute("SELECT users_mapping.cluster_id,users_mapping.cluster_login 
+                    FROM users_mapping,clusters 
+                    WHERE users_mapping.grid_login = ?
+                    AND users_mapping.cluster_id = clusters.id
+                    AND clusters.api_auth_type = 'jwt'", user)
+  sth.as(:Struct).fetch(:all).each do |row|
+    result << row.to_h
+  end
+  sth.finish
+  return result
+end
+
+##
+# Add a JWT token
+#
+def add_token(dbh,token,user)
+  sth = dbh.execute("SELECT * from clusters where api_auth_type = 'jwt' and id = ?",
+                    token['cluster_id'].to_i)
+  if sth.has_data?
+    sth2 = dbh.execute("SELECT * from users_mapping where grid_login = ? and cluster_id = ?",
+                       user,token['cluster_id'].to_i)
+    if sth2.has_data?
+      dbh.execute("UPDATE users_mapping set cluster_login = ? where cluster_id = ? and grid_login = ?",
+                  "Bearer "+token['token'], token['cluster_id'].to_i, user)
+    else
+      dbh.execute("INSERT INTO users_mapping (grid_login,cluster_login,cluster_id)
+                          VALUES (?,?,?)",
+                          user, "Bearer "+token['token'], token['cluster_id'].to_i)
+    end
+    return 0
+  else
+    return 1
+  end
+end
+
+
 #######################################################################
 ######################### iolib classes ###############################
 #######################################################################

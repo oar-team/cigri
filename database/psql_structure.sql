@@ -38,7 +38,7 @@ CREATE TABLE users_mapping (
   grid_login VARCHAR(255) NOT NULL,
   cluster_login VARCHAR(255),
   cluster_id INTEGER,
-  PRIMARY KEY (grid_login)
+  PRIMARY KEY (grid_login,cluster_id)
 );
 
 DROP TABLE IF EXISTS campaigns;

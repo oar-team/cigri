@@ -592,6 +592,55 @@ class API < Sinatra::Base
     print({:status => 202, :title => :Deleted, :message => "Unsubscription ok"})
   end
 
+  # List authentication tokens
+  get '/tokens/?' do
+    protected!
+    response['Allow'] = 'GET'
+    user=request.env[settings.username_variable]
+    user="%%admin%%" if user=="root"
+    begin
+      #tokens = Dataset.new("users_mapping",:where => "grid_login = '#{user}'")
+      tokens = []
+      db_connect do |dbh|
+        tokens=get_tokens(dbh,user)
+      end
+      items=[]
+      tokens.each do |t|
+        items << t
+      end
+      output={ :items => items,
+               :links => [{:rel => :self, :href => to_url("tokens/")}] }
+    rescue Exception => e
+      halt 400, print({:status => 400, :title => "Error", :message => "Error with tokens listing: #{e}"})
+    end
+    
+    status 200
+    print(output)
+  end
+
+  #add a new JWT token
+  post '/tokens/?' do
+    protected!
+    request.body.rewind
+    t=JSON.parse(request.body.read)
+ 
+    r = 0
+    begin
+      db_connect() do |dbh|
+        r=add_token(dbh, t, request.env[settings.username_variable])
+      end
+    rescue Exception => e
+      halt 400, print({:status => 400, :title => "Error", :message => "Error with token registration: #{e}"})
+    end
+
+    if r == 1
+      halt 400, print({:status => 400, :title => "Error", :message => "Cluster #{t["cluster_id"]} auth_type is not JWT!"})
+    end
+    status 201
+    print({:status => 201, :title => :Created, :message => "New token registered"})
+    #response['Location'] = to_url("/notifications/#{id}")
+  end
+
   get '/gridusage/?' do
     response['Allow'] = 'GET'
     params['from'] ? from=params['from'] : from=nil
