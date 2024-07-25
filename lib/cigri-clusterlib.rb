@@ -263,7 +263,18 @@ module Cigri
     def map_user(user)
       nil if user.nil?
       mapped_user=Dataset.new("users_mapping", :where => "grid_login='#{user}' and cluster_id = #{@id}")
-      mapped_user.length > 0 ? mapped_user.records[0].props[:cluster_login] : user
+      if mapped_user.length > 0
+        return mapped_user.records[0].props[:cluster_login]
+      else
+        if @description["api_auth_type"] == "jwt"
+          message = "Missing token for user #{user} on cluster #{@id}"
+          event=Cigri::Event.new(:class => "cluster", :cluster_id => @id, :code => "JWT_TOKEN_NOT_FOUND", :message => message)
+          Cigri::Colombo.new(event).check
+          raise Cigri::TokenNotFound, message
+        else
+          return user
+        end
+      end
     end
 
     # Return true if the stress_factor is above 1

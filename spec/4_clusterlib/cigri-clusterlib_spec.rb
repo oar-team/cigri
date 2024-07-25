@@ -104,6 +104,10 @@ describe 'cigri-clusterlib (Cluster)' do
     it "should return an id" do
       @job["id"].should be_an(Integer)
     end
+    it "should raise an error if the user has no token" do
+      cluster=Cigri::Cluster.new(:name => "dahu-oar3")
+      lambda{cluster.submit_job({:command => "sleep 300", :stdout => "/dev/null", :stderr => "/dev/null", :project => "test", :type => ["devel"], :resource => ["/cpu=1,walltime=0:10:0"]},"Rspec")}.should raise_error Cigri::TokenNotFound
+    end
     it "should have created a job" do
       @cluster.get_job(@job["id"],"bzizou")["id"].should == @job["id"]
     end
@@ -113,7 +117,8 @@ describe 'cigri-clusterlib (Cluster)' do
     it "should be able to ask for the job to be deleted" do
       @cluster.delete_job(@job["id"],"bzizou")["status"].should equal? "Delete request registered"
     end
-  end # Job submission
+  end # Job submission OAR3
+
 
 end # cigri-clusterlib
 

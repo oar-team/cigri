@@ -97,7 +97,7 @@ module Cigri
           when "CLUSTER_MANUALLY_DISABLED"
             blacklist_cluster(event.id,event.props[:cluster_id])
             event.checked
-          when "PERMISSION_DENIED", "FORBIDDEN"
+          when "PERMISSION_DENIED", "FORBIDDEN", "JWT_TOKEN_NOT_FOUND"
             # This is an event that may be specific to a user, so we do not blacklist the cluster
             event.checked
           when "DELETE_JOB"

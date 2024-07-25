@@ -15,6 +15,7 @@ module Cigri
   class NotFound < Error; end
   class ParseError < Error; end
   class Unauthorized < Error; end
+  class TokenNotFound < Error; end
   ##
   # Raised for a 400 api rest-server error
   ##
