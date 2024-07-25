@@ -58,7 +58,7 @@ REST_CLIENT_KEY_FILE="/etc/cigri/ssl/cigri.key"
 # Certificate authority file
 #REST_CLIENT_CA_FILE="/etc/cigri/ssl/ca.cert"
 # Verify ssl option
-#REST_CLIENT_VERIFY_SSL="OpenSSL::SSL::VERIFY_PEER"
+#REST_CLIENT_VERIFY_SSL="1"
 
 #############################################################################
 ## RUNNER OPTIONS
