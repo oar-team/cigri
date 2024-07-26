@@ -349,11 +349,16 @@ module Cigri
           script+="echo \"END_DATE=`date +%s`\" >> #{state_file}\n"
         end
         submission_string={ "resources" => campaign.clusters[cluster.id]["resources"],
+                            "type" => campaign.clusters[cluster.id]["cluster_job_type"],
                             "command" => script
                           }
         #TODO: treat walltime!
         if runner_options["besteffort"]
-           submission_string["type"]="besteffort"
+           if not submission_string["type"].nil? and submission_string["type"] != ""
+             submission_string["type"]+=",besteffort"
+           else
+             submission_string["type"]="besteffort"
+           end
         end
       elsif runner_options["dimensional_grouping"]
          #TODO
@@ -413,6 +418,7 @@ module Cigri
             if tagged_job.length > 0
               submitted_jobs << submit_single_job(cluster,tagged_job[0],campaign,{
                                "resources" => "resource_id=1",
+                               "type" => campaign.clusters[cluster.id]["cluster_job_type"],
                                "name" => "cigri.#{campaign_id}",
                                "command" => campaign.clusters[cluster_id][tag] },tag )
               myjobs.delete(tagged_job[0])
@@ -443,11 +449,16 @@ module Cigri
               submission = {
                             "param_file" => params.join("\n"),
                             "resources" => campaign.clusters[cluster_id]["resources"],
+                            "type" => campaign.clusters[cluster.id]["cluster_job_type"],
                             "command" => campaign.clusters[cluster_id]["exec_file"],
                             "name" => "cigri.#{campaign_id}"
                            }
               if runner_options["besteffort"]
-                submission["type"]="besteffort"
+                if not submission["type"].nil? and submission["type"] != ""
+                  submission["type"]+=",besteffort"
+                else
+                  submission["type"]="besteffort"
+                end
               end
               submitted_jobs = submitted_jobs + submit_array_job(cluster,jobs,campaign,submission)
             end

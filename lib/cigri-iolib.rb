@@ -216,7 +216,7 @@ def cigri_submit(dbh, jdl, user)
         %w{checkpointing_type dimensional_grouping epilogue exec_file 
           output_destination output_file output_gathering_method prologue 
           properties resources temporal_grouping walltime type test_mode max_jobs 
-          prologue_walltime epilogue_walltime project exec_directory}.each do |prop|
+          prologue_walltime epilogue_walltime project exec_directory cluster_job_type}.each do |prop|
             if jdl['clusters'][cluster][prop]
               if prop == "prologue" || prop == "epilogue"
                 jdl['clusters'][cluster][prop]=jdl['clusters'][cluster][prop].join("\n")

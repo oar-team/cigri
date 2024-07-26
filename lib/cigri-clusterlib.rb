@@ -407,6 +407,10 @@ module Cigri
           job["command"] += " " + job["param_file"]
           job.delete("param_file")         
         end
+        # Clean job type if necessary
+        if job["type"]
+          job.delete("type") if job["type"] == ''
+        end
         #
         if LOG_JOBS
           file=File.new(LOG_JOBS_DIRECTORY+"/#{name}_#{user}", "a")
@@ -489,6 +493,10 @@ module Cigri
 
       # G5K API does not support job arrays, so we split in several calls.
       def submit_job(job, user)
+        # Clean job type if necessary
+        if job["type"]
+          job.delete("type") if job["type"] == ''
+        end
         command = job["command"]
         params = (job.delete("param_file") || " ").split("\n")
         ids = []
@@ -535,6 +543,39 @@ module Cigri
       def get_resources
         raise "not yet implemented"      
       end 
+
+      def submit_job(job, user="")
+        CLUSTERLIBLOGGER.debug(job.inspect)
+        # Workaround for OAR not taking 1 parameters array jobs
+        if job["param_file"] and job["param_file"].lines.count == 1
+          job["command"] += " " + job["param_file"]
+          job.delete("param_file")         
+        end
+        # OAR3 takes "resources" as an array of "resource"
+        if job["resources"]
+          job["resource"]=[job["resources"]]
+          job.delete("resources")
+        end
+        # OAR3 takes "type" as an array
+        if job["type"]
+          types=job["type"].split(/,/)
+          job["type"]=types
+        end
+        # 
+        if LOG_JOBS
+          file=File.new(LOG_JOBS_DIRECTORY+"/#{name}_#{user}", "a")
+          file.puts Time.now()
+          file.puts job.inspect
+          job.each_key do |k|
+            file.puts "  #{k}:"
+            file.puts job[k]
+          end
+          file.puts   
+        end
+        CLUSTERLIBLOGGER.debug(job.inspect)
+        secure_run proc{ @api.post("jobs",job, {@description["api_auth_header"] => map_user(user)}) }, "SUBMIT_JOB"
+      end
+ 
 
     end
 
