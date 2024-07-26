@@ -635,7 +635,7 @@ class API < Sinatra::Base
     end
 
     if r == 1
-      halt 400, print({:status => 400, :title => "Error", :message => "Cluster #{t["cluster_id"]} auth_type is not JWT!"})
+      halt 403, print({:status => 403, :title => "Error", :message => "Cluster #{t["cluster_id"]} auth_type is not JWT!"})
     end
     status 201
     print({:status => 201, :title => :Created, :message => "New token registered"})
@@ -650,7 +650,7 @@ class API < Sinatra::Base
       db_connect() do |dbh|
         r=remove_token(dbh, cluster_id.to_i, request.env[settings.username_variable])
         if r == 1
-          halt 400, print({:status => 400, :title => "Error", :message => "Cluster ##{cluster_id} auth_type is not JWT!"})
+          halt 403, print({:status => 403, :title => "Error", :message => "Cluster ##{cluster_id} auth_type is not JWT!"})
         end
       end
     rescue Exception => e
