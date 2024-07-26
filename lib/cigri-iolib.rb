@@ -1575,6 +1575,20 @@ def add_token(dbh,token,user)
   end
 end
 
+##
+# Remove a JWT token
+#
+def remove_token(dbh,cluster_id,user)
+  sth = dbh.execute("SELECT * from clusters where api_auth_type = 'jwt' and id = ?",
+                    cluster_id)
+  if sth.has_data?
+    dbh.execute("DELETE from users_mapping where cluster_id = ? and grid_login = ?",
+                  cluster_id, user)
+    return 0
+  else
+    return 1
+  end
+end
 
 #######################################################################
 ######################### iolib classes ###############################

@@ -56,7 +56,7 @@ rescue OptionParser::ParseError => e
   exit 1
 end
 
-if (not cluster_id or not token) and not list 
+if (not cluster_id or not token) and not list and not (remove and cluster_id)
   puts optparse.help
   exit
 end
@@ -75,18 +75,21 @@ begin
       puts " - Cluster ##{t["cluster_id"]} : #{t["cluster_login"].split(/ /, 2)[1]}"
     end
   elsif remove
-    response = client.delete(url+"?cluster_id="+cluster_id)
+    response = client.delete(url+"/"+cluster_id.to_s)
+    parsed_response = JSON.parse(response.body)
+    if response.code != "202"
+      STDERR.puts("Failed to remove JWT token on cluster #{cluster_id}: #{parsed_response['message']}.")
+    end
   else
     body={"cluster_id" => cluster_id, "token" => token}.to_json
     response = client.post(url,body, 'Content-Type' => 'application/json')
-    #parsed_response = JSON.parse(response.body)
+    parsed_response = JSON.parse(response.body)
     if response.code != "201"
-      STDERR.puts("Failed to register token on cluster #{cluster_id}: #{response.inspect}.")
+      STDERR.puts("Failed to register token on cluster #{cluster_id}: #{parsed_response['message']}.")
     else
-      parsed_response = JSON.parse(response.body)
       puts "#{parsed_response['message']}."
     end
-    puts "#{parsed_response['message']}." if verbose
+    puts "#{parsed_response.inspect}." if verbose
   end
 rescue Errno::ECONNREFUSED => e
   STDERR.puts("API server not reachable: #{e.inspect}")

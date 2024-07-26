@@ -31,6 +31,7 @@ class API < Sinatra::Base
     use RackDebugger, Cigri::Logger.new('API', Cigri.conf.get('LOG_FILE')) # better print of the requests in the logfile
     enable :method_override # used to make magic with hidden fields such as _put or _delete
     set :username_variable, Cigri.conf.get('API_HEADER_USERNAME') || "HTTP_X_CIGRI_USER"
+    set :show_exceptions => false
   end
   
   before do
@@ -639,6 +640,25 @@ class API < Sinatra::Base
     status 201
     print({:status => 201, :title => :Created, :message => "New token registered"})
     #response['Location'] = to_url("/notifications/#{id}")
+  end
+
+  #delete a JWT token
+  delete '/tokens/:cluster_id/?' do |cluster_id|
+    protected!
+
+    begin
+      db_connect() do |dbh|
+        r=remove_token(dbh, cluster_id.to_i, request.env[settings.username_variable])
+        if r == 1
+          halt 400, print({:status => 400, :title => "Error", :message => "Cluster ##{cluster_id} auth_type is not JWT!"})
+        end
+      end
+    rescue Exception => e
+      halt 400, print({:status => 400, :title => "Error", :message => "Error with token removal: #{e}"})
+    end
+
+    status 202
+    print({:status => 202, :title => :Deleted, :message => "Token removed"})
   end
 
   get '/gridusage/?' do
