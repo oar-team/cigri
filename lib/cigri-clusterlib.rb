@@ -540,6 +540,20 @@ module Cigri
         secure_run proc{ @api.get_collection("jobs#{params}") },"GET_JOBS"
       end 
 
+      def fill_jobs_cache(props={})
+        if not props[:ids]
+          CLUSTERLIBLOGGER.error("You must pass an 'ids' array to fill the jobs cache!")
+        else
+          ids=props[:ids].join('&job_ids=')
+          begin
+            jobs=secure_run proc{ @api.get_collection("jobs?details=1&job_ids=#{ids}",{@description["api_auth_header"] => map_user("oar")}) },"FILL_JOBS_CACHE"
+            jobs.each { |j| @jobs_cache[j["id"]]=j }
+          rescue
+            CLUSTERLIBLOGGER.error("Could not fill jobs cache!")
+          end
+        end
+      end 
+
       def get_resources
         raise "not yet implemented"      
       end 
@@ -575,7 +589,14 @@ module Cigri
         CLUSTERLIBLOGGER.debug(job.inspect)
         secure_run proc{ @api.post("jobs",job, {@description["api_auth_header"] => map_user(user)}) }, "SUBMIT_JOB"
       end
- 
+
+      def get_file(path, user=nil,tail=0)
+        secure_run proc{ @api.get("media?path_filename="+path+"&tail="+tail.to_s,{@description["api_auth_header"] => map_user(user)},:raw => true) }, "GET_MEDIA"
+      end
+
+      def delete_file(path, user=nil)
+        secure_run proc{ @api.delete("media?path_filename="+path,{@description["api_auth_header"] => map_user(user)}) }, "DELETE_MEDIA"
+      end
 
     end
 

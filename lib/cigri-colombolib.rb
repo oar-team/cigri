@@ -250,6 +250,7 @@ module Cigri
         cluster=Cluster.new({:id => job.props[:cluster_id]})
         begin
           stderr_file=cluster_job["launching_directory"]+"/"+cluster_job["stderr_file"]
+          stderr_file.sub! '%jobid%', job.props[:remote_id].to_s
           stderr=cluster.get_file(stderr_file,job.props[:grid_user],STDERR_TAIL)
         rescue => e
           stderr=''

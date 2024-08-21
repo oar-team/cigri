@@ -965,6 +965,7 @@ class API < Sinatra::Base
       cluster=Cigri::Cluster.new(:id => job.props[:cluster_id])
       cluster_job=cluster.get_job(job.props[:remote_id].to_i, job.props[:grid_user])
       file=cluster_job["launching_directory"]+"/"+cluster_job["#{type}_file"]
+      file.sub! '%jobid%', job.props[:remote_id].to_s
       begin
         output=cluster.get_file(file,job.props[:grid_user],tail)
       rescue Cigri::ClusterAPINotFound => e
