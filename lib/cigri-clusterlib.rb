@@ -575,7 +575,11 @@ module Cigri
           types=job["type"].split(/,/)
           job["type"]=types
         end
-        # 
+        # OAR3 does not need "$HOME" to be escaped
+        if job["command"]
+          job["command"].gsub! '\\$HOME', '$HOME'
+        end
+        #
         if LOG_JOBS
           file=File.new(LOG_JOBS_DIRECTORY+"/#{name}_#{user}", "a")
           file.puts Time.now()
