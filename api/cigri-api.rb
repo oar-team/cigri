@@ -626,9 +626,13 @@ class API < Sinatra::Base
     t=JSON.parse(request.body.read)
  
     r = 0
+    user = request.env[settings.username_variable]
+    if user == "root"
+      user = "oar"
+    end
     begin
       db_connect() do |dbh|
-        r=add_token(dbh, t, request.env[settings.username_variable])
+        r=add_token(dbh, t, user)
       end
     rescue Exception => e
       halt 400, print({:status => 400, :title => "Error", :message => "Error with token registration: #{e}"})
