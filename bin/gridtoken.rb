@@ -20,7 +20,7 @@ optparse = OptionParser.new do |opts|
     verbose = true
   end
 
-  opts.on( '-l', '--list', String, 'List notifications' ) do |l|
+  opts.on( '-l', '--list', String, 'Show your current tokens' ) do |l|
     list = true
   end
 

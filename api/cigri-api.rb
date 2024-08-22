@@ -598,7 +598,7 @@ class API < Sinatra::Base
     protected!
     response['Allow'] = 'GET'
     user=request.env[settings.username_variable]
-    user="%%admin%%" if user=="root"
+    user="oar" if user=="root"
     begin
       #tokens = Dataset.new("users_mapping",:where => "grid_login = '#{user}'")
       tokens = []
