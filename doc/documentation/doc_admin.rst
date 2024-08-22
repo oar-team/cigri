@@ -16,34 +16,53 @@
 Installing Cigri
 =================
 
-Use the makefile.
+Use the makefile and restart apache:
 
-TODO
+sudo make install-cigri-server install-cigri-api setup-api install-cigri-user
+sudo systemctl restart apache2.service
 
 Setting up OAR API for CiGri
 ============================
 
-- Create an ssl configuration
-TODO
-- Disable ident by default, and activate it only for <Location /oarapi> if necessary
-TODO
-- Create a client certificate 
-TODO
+With OAR3, simply install the OAR API. The authentication process is very simple using JWT.
 
 Setting up CIGRI
 ================
 
 - Set up cigri.conf
-TODO
 - Set up cigri API
-TODO
 - Set up the database
-TODO
 - Insert clusters of the grid
-TODO
 - Map user names if necessary (users_mapping table)
-TODO
-- Start cigri
+
+JWT auth
+========
+
+With clusters using JWT token authentication, you have to set up an admin token: the admin token is a simple token for the "oar" user on the cluster, which has more privileges than a regular user. Here are the steps to set up this token:
+
+- On the OAR cluster's frontend, sign on as root and do `sudo su - oar`, then `oarsub -T` (you get a token string for the "oar" user)
+- On the Cigri's frontend, sign on as root and do `gridtoken -i <id> -t <TOKEN>` with `<id>` replaced by the cigri id of the cluster a,d `<TOKEN>` replaced by the previously generated token string.
+
+Example:
+```
+bzizou@dahu-oar3:~$ sudo su - oar
+oar@dahu-oar3:~$ oarsub -T
+OAR_API_TOKEN=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoib2FyIiwiZXhwIjoxNzI0OTI3MDEwLCJkYXRlIjoiMjAyNC0wOC0yMiAxMDoyMzozMCJ9.aB8vGURiOjSBjOqyka8Ee_TigoOYXXXXXXXXXXXXXXXXXXX
+
+root@cigri-dev:~# gridtoken -i 10 -t eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoib2FyIiwiZXhwIjoxNzI0OTI3MDEwLCJkYXRlIjoiMjAyNC0wOC0yMiAxMDoyMzozMCJ9.aB8vGURiOjSBjOqyka8Ee_TigoOYXXXXXXXXXXXXXXXXXXX
+New token registered.
+root@cigri-dev:~# gridtoken -l
+You have the following tokens:
+ - Cluster #10 : eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoib2FyIiwiZXhwIjoxNzI0OTI3MDEwLCJkYXRlIjoiMjAyNC0wOC0yMiAxMDoyMzozMCJ9.aB8vGURiOjSBjOqyka8Ee_TigoOYXXXXXXXXXXXXXXXXXXX
+root@cigri-dev:~# 
+```
+
+Then, each users that want to use this cluster also have to set up a token for themselves to be able to submit jobs.
+
+Starting up CIGRI
+=================
+
+su - cigri -c "/usr/local/share/cigri/modules/almighty.rb"
 
 Troubleshooting
 ===============
