@@ -353,7 +353,7 @@ module Cigri
                             "command" => script
                           }
         #TODO: treat walltime!
-        if runner_options["besteffort"]
+        if runner_options["besteffort"] or runner_options["best-effort"]
            if not submission_string["type"].nil? and submission_string["type"] != ""
              submission_string["type"]+=",besteffort"
            else
@@ -453,7 +453,7 @@ module Cigri
                             "command" => campaign.clusters[cluster_id]["exec_file"],
                             "name" => "cigri.#{campaign_id}"
                            }
-              if runner_options["besteffort"]
+              if runner_options["besteffort"] or runner_options["best-effort"]
                 if not submission["type"].nil? and submission["type"] != ""
                   submission["type"]+=",besteffort"
                 else
@@ -893,6 +893,8 @@ module Cigri
       else
         case @clusters[cluster_id]["type"]
         when "best-effort"
+          opts[:besteffort] = true
+        when "besteffort"
           opts[:besteffort] = true
         when "normal"
           opts[:besteffort] = false 

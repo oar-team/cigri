@@ -268,7 +268,7 @@ module Cigri
       else
         if @description["api_auth_type"] == "jwt"
           message = "Missing token for user #{user} on cluster #{@id}"
-          event=Cigri::Event.new(:class => "cluster", :cluster_id => @id, :code => "JWT_TOKEN_NOT_FOUND", :message => message)
+          event=Cigri::Event.new(:class => "notify", :cluster_id => @id, :code => "JWT_TOKEN_NOT_FOUND", :message => message, :state => "closed")
           Cigri::Colombo.new(event).check
           raise Cigri::TokenNotFound, message
         else

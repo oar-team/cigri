@@ -205,12 +205,22 @@ while true do
           logger.warn(message)
           cluster.taps[campaign_id].close # There's a problem, so we close the tap
           tap_can_be_opened[cluster.taps[campaign_id].id]=false
+        rescue Cigri::ClusterAPIServerError => e
+          message="Could not get remote job #{job.id}!\n#{e.to_s} because of a (temporary?) code 500 server error with the cluster API"
+          logger.warn(message)
+          cluster.taps[campaign_id].close # There's a problem, so we close the tap
+          tap_can_be_opened[cluster.taps[campaign_id].id]=false
+          event=Cigri::Event.new(:class => "job", :code => "RUNNER_GET_JOB_SERVER_ERROR", 
+                                 :cluster_id => cluster.id, :job_id => job.id, 
+                                 :message => message, :campaign_id => job.props[:campaign_id].to_i)
+          Cigri::Colombo.new(event).check_jobs
+          have_to_notify = true
         rescue => e
           message="Could not get remote job #{job.id}!\n#{e.to_s}\n#{e.backtrace.to_s}"
           logger.warn(message)
           cluster.taps[campaign_id].close # There's a problem, so we close the tap
           tap_can_be_opened[cluster.taps[campaign_id].id]=false
-          event=Cigri::Event.new(:class => "job", :code => "RUNNER_GET_JOB_ERROR", 
+          event=Cigri::Event.new(:class => "job", :code => "RUNNER_GET_JOB_UNKNOWN_ERROR", 
                                  :cluster_id => cluster.id, :job_id => job.id, 
                                  :message => message, :campaign_id => job.props[:campaign_id].to_i)
           Cigri::Colombo.new(event).check_jobs
@@ -281,6 +291,30 @@ while true do
           job.update({'state' => 'event'})
           event=Cigri::Event.new(:class => "job", :code => "RUNNER_SUBMIT_TOO_LARGE",
                                  :cluster_id => cluster.id, :job_id => job.id,
+                                 :message => message, :campaign_id => job.props[:campaign_id])
+          Cigri::Colombo.new(event).check
+          Cigri::Colombo.new(event).check_jobs
+          have_to_notify = true
+        end
+        logger.warn(message)
+      rescue Cigri::TokenNotFound => e
+        message = "Could not submit jobs #{jobs.ids.inspect} on #{cluster.name}: Auth token is not found. Please, use the 'gridtoken' command to set up an authentication token for #{cluster.name}."
+        jobs.each do |job|
+          job.update({'state' => 'event'})
+          event=Cigri::Event.new(:class => "job", :code => "RUNNER_SUBMIT_TOKEN_NOT_FOUND", 
+                                 :cluster_id => cluster.id, :job_id => job.id, 
+                                 :message => message, :campaign_id => job.props[:campaign_id])
+          Cigri::Colombo.new(event).check
+          Cigri::Colombo.new(event).check_jobs
+          have_to_notify = true
+        end
+        logger.warn(message)
+      rescue Cigri::ClusterAPIPermissionDenied => e
+        message = "Permission denied while submitting jobs #{jobs.ids.inspect} on #{cluster.name}: check that you have a valid authorization on #{cluster.name}. Error was: #{e}"
+        jobs.each do |job|
+          job.update({'state' => 'event'})
+          event=Cigri::Event.new(:class => "job", :code => "RUNNER_SUBMIT_PERMISSION_DENIED", 
+                                 :cluster_id => cluster.id, :job_id => job.id, 
                                  :message => message, :campaign_id => job.props[:campaign_id])
           Cigri::Colombo.new(event).check
           Cigri::Colombo.new(event).check_jobs

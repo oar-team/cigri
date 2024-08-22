@@ -91,14 +91,18 @@ module Cigri
         if event.props[:class]=="cluster"
           COLOMBOLIBLOGGER.debug("Checking event #{event.props[:code]}")
           case event.props[:code]
-          when "REQUEST_TOO_LARGE","POST_TIMEOUT","TIMEOUT", "CONNECTION_RESET", "SOCKET_ERROR", "CONNECTION_REFUSED", "HOST_UNREACHABLE", "SSL_ERROR", "SUBMIT_JOB", "GET_JOBS", "GET_JOB", "GET_MEDIA","GET_STRESS_FACTOR", "FILL_JOBS_CACHE", "RUNNER_GET_JOB_CHUNK_ERROR"
+          when "REQUEST_TOO_LARGE","POST_TIMEOUT","TIMEOUT", "CONNECTION_RESET", "SOCKET_ERROR", "CONNECTION_REFUSED", "HOST_UNREACHABLE", "SSL_ERROR", "GET_JOBS", "GET_JOB", "GET_MEDIA","GET_STRESS_FACTOR", "FILL_JOBS_CACHE", "RUNNER_GET_JOB_CHUNK_ERROR"
             blacklist_cluster(event.id,event.props[:cluster_id],event.props[:campaign_id])
             event.checked
           when "CLUSTER_MANUALLY_DISABLED"
             blacklist_cluster(event.id,event.props[:cluster_id])
             event.checked
           when "PERMISSION_DENIED", "FORBIDDEN", "JWT_TOKEN_NOT_FOUND"
-            # This is an event that may be specific to a user, so we do not blacklist the cluster
+            # This is an event that may be specific to a user, or just a notify only event, so we do not blacklist the cluster
+            event.checked
+          when "RUNNER_GET_JOB_SERVER_ERROR","SUBMIT_JOB"
+            # This is an event that may be temporary, so closing it automatically to allow for retry
+            event.close
             event.checked
           when "DELETE_JOB"
             if event.props[:message].include?("This job was already killed")
@@ -383,7 +387,7 @@ module Cigri
     # - im: instant message handlers hash
     #
     def notify_aggregated_errors!(im_handlers)
-      codes_of_errors_to_aggregate=["RUNNER_SUBMIT_ERROR","EXIT_ERROR","RUNNER_SUBMIT_TIMEOUT","RUNNER_SUBMIT_TOO_LARGE"]
+      codes_of_errors_to_aggregate=["RUNNER_SUBMIT_ERROR","EXIT_ERROR","RUNNER_SUBMIT_TIMEOUT","RUNNER_SUBMIT_TOO_LARGE","RUNNER_SUBMIT_TOKEN_NOT_FOUND","RUNNER_SUBMIT_PERMISSION_DENIED"]
       codes_of_errors_to_aggregate.each do |code|
         events=@events.records.select{|event| event.props[:code]==code and event.props[:notified] == "f"}
         COLOMBOLIBLOGGER.debug("Notifying #{events.length} #{code} events") if events.length > 0
