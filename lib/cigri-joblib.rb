@@ -345,7 +345,7 @@ module Cigri
           #TODO: cd into the workdir?
           script+=campaign.clusters[cluster.id]["exec_file"]+" "+job.props[:param]
           script+=" > #{stdout_file} 2>#{stderr_file}\n"
-          script+="echo \"RET=\\$?\" >> #{state_file}\n"
+          script+="echo \"RET=$?\" >> #{state_file}\n"
           script+="echo \"END_DATE=`date +%s`\" >> #{state_file}\n"
         end
         submission_string={ "resources" => campaign.clusters[cluster.id]["resources"],
