@@ -559,7 +559,6 @@ module Cigri
       end 
 
       def submit_job(job, user="")
-        CLUSTERLIBLOGGER.debug(job.inspect)
         # Workaround for OAR not taking 1 parameters array jobs
         if job["param_file"] and job["param_file"].lines.count == 1
           job["command"] += " " + job["param_file"]

@@ -100,6 +100,9 @@ module Cigri
       cluster=Cluster.new(:id => cluster_id) if cluster.nil?
       status_file=""
       begin 
+        # TOFIX!!! We always get into the rescue here!
+        # "/~/cigri_batch_state" is not ok! We should get the working directory of the job and prefix
+        # /cigri_batch_state_<id> with it!
         status_file=cluster.get_file("/~/cigri_batch_state_"+id.to_s,@props[:grid_user])
         status_file.each_line do |line|
           tag=line.split(/=/)
@@ -112,9 +115,11 @@ module Cigri
           when /END_DATE/
             output["stop_time"]=tag[1]
             output["state"]="finished"
+            JOBLIBLOGGER.debug("Subjob #{id} terminated.")
           end
         end
       rescue Cigri::ClusterAPINotFound
+        JOBLIBLOGGER.debug("Subjob #{id} state file not found. Probably not started.")
         output["state"]="notstarted"
       rescue
         raise
