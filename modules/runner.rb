@@ -132,12 +132,15 @@ while true do
               remote_job=nil
               stop_time=nil
               if job.props[:tag] == "batch"
-                 subjob_state=job.get_subjob_state(cluster)
+                 subjob_state=job.get_subjob_state(cluster,cluster_job["launching_directory"])
                  remote_job=subjob_state
-                 stop_time=subjob_state["stop_time"]
+                 stop_time=Time.at(subjob_state["stop_time"].to_i)
               else
                  remote_job=cluster_job
                  stop_time=Time.at(cluster_job["stop_time"].to_i)
+                 if cluster_job.has_key?('exit_code')
+                   job.update({'return_code' => cluster_job['exit_code'].to_i})
+                 end
               end
               if (cluster_job["exit_code"].to_i) > 0
                 logger.info("Job #{job.id} has non-null exit-status.")
@@ -162,25 +165,28 @@ while true do
               have_to_notify = true
             when /Running/i , /Finishing/i, /Launching/i
               if job.props[:tag] == "batch"
-                subjob_state=job.get_subjob_state(cluster)
-                logger.debug(subjob_state)
+                logger.debug("Batch subjobs control")
+                subjob_state=job.get_subjob_state(cluster,cluster_job["launching_directory"])
                 case subjob_state["state"]
                   when /notstarted/i
                     job.update({'state' => 'batch_waiting'})
                   when /running/i
-                    job.update({'state' => 'running','start_time' => subjob_state["start_time"]})
+                    start_time=Time.at(cluster_job["start_time"].to_i)
+                    job.update({'state' => 'running','start_time' => to_sql_timestamp(start_time)})
                   when /finished/i
+                    start_time=Time.at(cluster_job["start_time"].to_i)
+                    stop_time=Time.at(cluster_job["stop_time"].to_i)
                     if subjob_state["exit_code"].to_i > 0
                       logger.info("Sub-job #{job.id} has non-null exit-status.")
                       Cigri::Colombo::analyze_remote_job_events(job,subjob_state)
                       events=Cigri::Eventset.new({ :where => "class = 'job' and cluster_id = #{cluster.id} and state='open'"})
                       Cigri::Colombo.new(events).check_jobs
                       have_to_notify = true
-                      job.update({'stop_time' => subjob_state["stop_time"],
+                      job.update({'stop_time' => to_sql_timestamp(stop_time),
                                   'return_code' => subjob_state["exit_code"]})
                     else
-                      job.update({'stop_time' => subjob_state["stop_time"],
-                                  'start_time' => subjob_state["start_time"],
+                      job.update({'stop_time' => to_sql_timestamp(stop_time),
+                                  'start_time' => to_sql_timestamp(start_time),
                                   'state' => 'terminated'})
                     end
                 end

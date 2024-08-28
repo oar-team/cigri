@@ -95,27 +95,27 @@ module Cigri
     # Output:
     #  Mimic a OAR job so that we can use the Colombo::analyze_remote_job_events function
     #  {state=<notstarted|running|finished>,start_time,stop_time,exit_code,stderr_file,launching_directory}
-    def get_subjob_state(cluster=nil)
+    def get_subjob_state(cluster=nil,workdir)
       output={}
       cluster=Cluster.new(:id => cluster_id) if cluster.nil?
       status_file=""
+      output["launching_directory"]=workdir
+      output["stdout_file"]="cigri_batch_stdout_"+id.to_s
+      output["stderr_file"]="cigri_batch_stderr_"+id.to_s
       begin 
-        # TOFIX!!! We always get into the rescue here!
-        # "/~/cigri_batch_state" is not ok! We should get the working directory of the job and prefix
-        # /cigri_batch_state_<id> with it!
-        status_file=cluster.get_file("/~/cigri_batch_state_"+id.to_s,@props[:grid_user])
+        status_file=cluster.get_file("#{workdir}/cigri_batch_state_"+id.to_s,@props[:grid_user])
         status_file.each_line do |line|
           tag=line.split(/=/)
           case tag[0]
-          when /BEGIN_DATE/
-            output["start_time"]=tag[1]
-            output["state"]="running"
-          when /RET/
-            output["exit_code"]=tag[1]
-          when /END_DATE/
-            output["stop_time"]=tag[1]
-            output["state"]="finished"
-            JOBLIBLOGGER.debug("Subjob #{id} terminated.")
+            when /BEGIN_DATE/
+              output["start_time"]=tag[1].strip.to_i
+              output["state"]="running"
+            when /RET/
+              output["exit_code"]=tag[1].strip.to_i
+            when /END_DATE/
+              output["stop_time"]=tag[1].strip.to_i
+              output["state"]="finished"
+              JOBLIBLOGGER.debug("Subjob #{id} terminated.")
           end
         end
       rescue Cigri::ClusterAPINotFound

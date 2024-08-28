@@ -589,7 +589,6 @@ module Cigri
           end
           file.puts   
         end
-        CLUSTERLIBLOGGER.debug(job.inspect)
         secure_run proc{ @api.post("jobs",job, {@description["api_auth_header"] => map_user(user)}) }, "SUBMIT_JOB"
       end
 
