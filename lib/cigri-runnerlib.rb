@@ -89,12 +89,31 @@ module Cigri
 
     # Increase the rate of a tap
     def increase
-      curr_rate=@props[:rate].to_i
-      if curr_rate < RUNNER_TAP_INCREASE_MAX
-        curr_rate=(curr_rate*RUNNER_TAP_INCREASE_FACTOR).to_i
-        curr_rate=RUNNER_TAP_INCREASE_MAX if curr_rate > RUNNER_TAP_INCREASE_MAX
-        RUNNERLIBLOGGER.info("Increasing tap of campaign #{@props[:campaign_id]} on cluster #{@props[:cluster_id]} to #{curr_rate}")
-        update!({:rate => curr_rate})
+      campaign=Campaign.new(:id => @props[:campaign_id])
+      campaign.get_clusters()
+      runner_options=campaign.get_runner_options(@props[:cluster_id])
+      # Temporal grouping case: the tap is used to set the number of subjobs of the batch
+      if runner_options["temporal_grouping"] == true
+        average_job_duration=campaign.average_job_duration()[0].to_i
+        batch_wanted_duration=900
+        if runner_options["temporal_grouping_batch_duration"]
+          batch_wanted_duration=runner_options["temporal_grouping_batch_duration"].to_i
+        end
+        if average_job_duration > 0
+          batch_size=(batch_wanted_duration/average_job_duration).round(half: :up)+1
+        else
+          batch_size=2000
+        end
+        update!({:rate => batch_size})
+      # Normal case  
+      else
+        curr_rate=@props[:rate].to_i
+        if curr_rate < RUNNER_TAP_INCREASE_MAX
+          curr_rate=(curr_rate*RUNNER_TAP_INCREASE_FACTOR).to_i
+          curr_rate=RUNNER_TAP_INCREASE_MAX if curr_rate > RUNNER_TAP_INCREASE_MAX
+          RUNNERLIBLOGGER.info("Increasing tap of campaign #{@props[:campaign_id]} on cluster #{@props[:cluster_id]} to #{curr_rate}")
+          update!({:rate => curr_rate})
+        end
       end
     end
 
