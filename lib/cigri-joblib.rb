@@ -346,13 +346,24 @@ module Cigri
           state_file="cigri_batch_state_"+job.id.to_s
           stdout_file="cigri_batch_stdout_"+job.id.to_s
           stderr_file="cigri_batch_stderr_"+job.id.to_s
-          script+="echo \"BEGIN_DATE=`date +%s`\" >> #{state_file}\n"
-          #TODO: cd into the workdir?
-          script+=campaign.clusters[cluster.id]["exec_file"]+" "+job.props[:param]
-          script+=" > #{stdout_file} 2>#{stderr_file}\n"
-          script+="echo \"RET=$?\" >> #{state_file}\n"
-          script+="echo \"END_DATE=`date +%s`\" >> #{state_file}\n"
+
+          # Seems that there's a difference in needs of escaping with oar2_5 vs oar3...
+          if cluster.description["batch"] == "oar2_5"
+            script+="echo \"BEGIN_DATE=\\`date +%s\\`\" >> #{state_file}\n"
+            script+=campaign.clusters[cluster.id]["exec_file"]+" "+job.props[:param]
+            script+=" > #{stdout_file} 2>#{stderr_file}\n"
+            script+="echo \"RET=\\$?\" >> #{state_file}\n"
+            script+="echo \"END_DATE=\\`date +%s\\`\" >> #{state_file}\n"
+          else
+            script+="echo \"RET=$?\" >> #{state_file}\n"
+            script+="echo \"BEGIN_DATE=`date +%s`\" >> #{state_file}\n"
+            script+=campaign.clusters[cluster.id]["exec_file"]+" "+job.props[:param]
+            script+=" > #{stdout_file} 2>#{stderr_file}\n"
+            script+="echo \"RET=\\$?\" >> #{state_file}\n"
+            script+="echo \"END_DATE=`date +%s`\" >> #{state_file}\n"
+          end
         end
+
         submission_string={ "resources" => campaign.clusters[cluster.id]["resources"],
                             "type" => campaign.clusters[cluster.id]["cluster_job_type"],
                             "command" => script
