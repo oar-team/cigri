@@ -137,7 +137,6 @@ while true do
                  remote_job=cluster_job
               end
               stop_time=Time.at(remote_job["stop_time"].to_i)
-              logger.debug("Stop time 1: #{to_sql_timestamp(stop_time)}")
               job.update({'state' => 'terminated','stop_time' => to_sql_timestamp(stop_time)})
               if remote_job.has_key?('exit_code')
                 job.update({'return_code' => remote_job['exit_code'].to_i})
@@ -154,7 +153,6 @@ while true do
               Cigri::Colombo::analyze_remote_job_events(job,cluster_job)
               events=Cigri::Eventset.new({ :where => "class = 'job' and cluster_id = #{cluster.id} and state='open'"})
               blacklisting=Cigri::Colombo.new(events).check_jobs
-              logger.debug("Stop time 2: #{to_sql_timestamp(stop_time)}")
               job.update({'stop_time' => to_sql_timestamp(Time.at(cluster_job["stop_time"].to_i))})
               # Close the tap if it results in a blacklisting
               if blacklisting
@@ -181,12 +179,10 @@ while true do
                       events=Cigri::Eventset.new({ :where => "class = 'job' and cluster_id = #{cluster.id} and state='open'"})
                       Cigri::Colombo.new(events).check_jobs
                       have_to_notify = true
-                      logger.debug("Stop time 3: #{to_sql_timestamp(stop_time)}")
                       job.update({'stop_time' => to_sql_timestamp(stop_time),
                                   'start_time' => to_sql_timestamp(start_time),
                                   'return_code' => subjob_state["exit_code"]})
                     else
-                      logger.debug("Stop time 4: #{to_sql_timestamp(stop_time)}")
                       job.update({'stop_time' => to_sql_timestamp(stop_time),
                                   'start_time' => to_sql_timestamp(start_time),
                                   'return_code' => subjob_state["exit_code"],
