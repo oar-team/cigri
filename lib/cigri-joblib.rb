@@ -115,7 +115,7 @@ module Cigri
             when /END_DATE/
               output["stop_time"]=tag[1].strip.to_i
               output["state"]="finished"
-              JOBLIBLOGGER.debug("Subjob #{id} terminated.")
+              JOBLIBLOGGER.debug("Subjob #{id} terminated at #{output["stop_time"].to_s} ")
           end
         end
       rescue Cigri::ClusterAPINotFound
@@ -349,14 +349,13 @@ module Cigri
 
           # Seems that there's a difference in needs of escaping with oar2_5 vs oar3...
           if cluster.description["batch"] == "oar2_5"
-            script+="echo \"BEGIN_DATE=\\`date +%s\\`\" >> #{state_file}\n"
+            script+="echo \"BEGIN_DATE=\\`date +%s\\`\" > #{state_file}\n"
             script+=campaign.clusters[cluster.id]["exec_file"]+" "+job.props[:param]
             script+=" > #{stdout_file} 2>#{stderr_file}\n"
             script+="echo \"RET=\\$?\" >> #{state_file}\n"
             script+="echo \"END_DATE=\\`date +%s\\`\" >> #{state_file}\n"
           else
-            script+="echo \"RET=$?\" >> #{state_file}\n"
-            script+="echo \"BEGIN_DATE=`date +%s`\" >> #{state_file}\n"
+            script+="echo \"BEGIN_DATE=`date +%s`\" > #{state_file}\n"
             script+=campaign.clusters[cluster.id]["exec_file"]+" "+job.props[:param]
             script+=" > #{stdout_file} 2>#{stderr_file}\n"
             script+="echo \"RET=\\$?\" >> #{state_file}\n"

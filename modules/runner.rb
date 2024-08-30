@@ -132,30 +132,29 @@ while true do
               remote_job=nil
               stop_time=nil
               if job.props[:tag] == "batch"
-                 subjob_state=job.get_subjob_state(cluster,cluster_job["launching_directory"])
-                 remote_job=subjob_state
-                 stop_time=Time.at(subjob_state["stop_time"].to_i)
+                 remote_job=job.get_subjob_state(cluster,cluster_job["launching_directory"])
               else
                  remote_job=cluster_job
-                 stop_time=Time.at(cluster_job["stop_time"].to_i)
               end
+              stop_time=Time.at(remote_job["stop_time"].to_i)
+              logger.debug("Stop time 1: #{to_sql_timestamp(stop_time)}")
+              job.update({'state' => 'terminated','stop_time' => to_sql_timestamp(stop_time)})
               if remote_job.has_key?('exit_code')
                 job.update({'return_code' => remote_job['exit_code'].to_i})
-              end
-              if (remote_job["exit_code"].to_i) > 0
-                logger.info("Job #{job.id} has non-null exit-status.")
-                Cigri::Colombo::analyze_remote_job_events(job,remote_job)
-                events=Cigri::Eventset.new({ :where => "class = 'job' and cluster_id = #{cluster.id} and state='open'"})
-                Cigri::Colombo.new(events).check_jobs
-                have_to_notify = true
-              else
-                job.update({'state' => 'terminated','stop_time' => to_sql_timestamp(stop_time)})
+                if (remote_job["exit_code"].to_i) > 0
+                  logger.info("Job #{job.id} has non-null exit-status.")
+                  Cigri::Colombo::analyze_remote_job_events(job,remote_job)
+                  events=Cigri::Eventset.new({ :where => "class = 'job' and cluster_id = #{cluster.id} and state='open'"})
+                  Cigri::Colombo.new(events).check_jobs
+                  have_to_notify = true
+                end
               end
             when /Error/i
               logger.info("Job #{job.id} is in Error state.")
               Cigri::Colombo::analyze_remote_job_events(job,cluster_job)
               events=Cigri::Eventset.new({ :where => "class = 'job' and cluster_id = #{cluster.id} and state='open'"})
               blacklisting=Cigri::Colombo.new(events).check_jobs
+              logger.debug("Stop time 2: #{to_sql_timestamp(stop_time)}")
               job.update({'stop_time' => to_sql_timestamp(Time.at(cluster_job["stop_time"].to_i))})
               # Close the tap if it results in a blacklisting
               if blacklisting
@@ -171,20 +170,23 @@ while true do
                   when /notstarted/i
                     job.update({'state' => 'batch_waiting'})
                   when /running/i
-                    start_time=Time.at(cluster_job["start_time"].to_i)
+                    start_time=Time.at(subjob_state["start_time"].to_i)
                     job.update({'state' => 'running','start_time' => to_sql_timestamp(start_time)})
                   when /finished/i
-                    start_time=Time.at(cluster_job["start_time"].to_i)
-                    stop_time=Time.at(cluster_job["stop_time"].to_i)
+                    start_time=Time.at(subjob_state["start_time"].to_i)
+                    stop_time=Time.at(subjob_state["stop_time"].to_i)
                     if subjob_state["exit_code"].to_i > 0
                       logger.info("Sub-job #{job.id} has non-null exit-status.")
                       Cigri::Colombo::analyze_remote_job_events(job,subjob_state)
                       events=Cigri::Eventset.new({ :where => "class = 'job' and cluster_id = #{cluster.id} and state='open'"})
                       Cigri::Colombo.new(events).check_jobs
                       have_to_notify = true
+                      logger.debug("Stop time 3: #{to_sql_timestamp(stop_time)}")
                       job.update({'stop_time' => to_sql_timestamp(stop_time),
+                                  'start_time' => to_sql_timestamp(start_time),
                                   'return_code' => subjob_state["exit_code"]})
                     else
+                      logger.debug("Stop time 4: #{to_sql_timestamp(stop_time)}")
                       job.update({'stop_time' => to_sql_timestamp(stop_time),
                                   'start_time' => to_sql_timestamp(start_time),
                                   'return_code' => subjob_state["exit_code"],
