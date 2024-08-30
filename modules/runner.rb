@@ -70,7 +70,7 @@ while true do
     logger.debug("Campaign #{campaign_id} tap #{tap.props[:state]}, rate #{tap.props[:rate]}")
   end
 
-  start_time = Time::now.to_i
+  runner_start_time = Time::now.to_i
   have_to_notify = false
 
   ##########################################################################
@@ -370,6 +370,6 @@ while true do
   notify_judas if have_to_notify
 
   # Sleep if necessary
-  cycle_duration = Time::now.to_i - start_time
+  cycle_duration = Time::now.to_i - runner_start_time
   sleep MIN_CYCLE_DURATION - cycle_duration if cycle_duration < MIN_CYCLE_DURATION
 end
