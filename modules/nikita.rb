@@ -37,7 +37,7 @@ begin
       state=job.props[:state]
 
       # Kill running or waiting jobs
-      if state == "running" or state == "remote_waiting"
+      if state == "running" or state == "remote_waiting" or state == "batch_waiting"
         $logger.debug("Killing job #{job.id}")
         job_event=Cigri::Event.new({:class => "job", 
                           :job_id => job.id, 
@@ -50,7 +50,7 @@ begin
           job.kill
           return true
         rescue => e
-          $logger.warn("Could not kill job #{job.id}")
+          $logger.warn("Kill function could not kill job #{job.id}")
           $logger.debug("Error while killing #{job.id}: #{e}")
         end
 
