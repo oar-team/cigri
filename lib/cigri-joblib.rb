@@ -77,6 +77,7 @@ module Cigri
           if props[:state] == "running" or props[:state] == "remote_waiting"
             if props[:remote_id]
               cluster.delete_job(props[:remote_id],props[:grid_user])
+              return props[:remote_id]
             else
               JOBLIBLOGGER.warn("Can't kill a job without a remote_id: #{id}!")
             end
@@ -398,7 +399,12 @@ module Cigri
                                  'remote_id' => j['id']
                                },'jobs' )
         JOBLIBLOGGER.debug("Remote id of batch job just submitted on #{cluster.description['name']}: #{j['id']}")
-        return j['id']
+        # The submitted jobs array is used to count the number of jobs
+        submitted_jobs=[]
+        launching_jobs.length.times do
+          submitted_jobs << j['id']
+        end
+        return submitted_jobs.flatten
       end
     end 
 
@@ -456,7 +462,7 @@ module Cigri
               JOBLIBLOGGER.warn("Dimensional grouping not yet supported!")
             end
             if runner_options["temporal_grouping"] 
-              submitted_jobs << submit_batch_job(cluster,jobs,campaign,runner_options)
+              submitted_jobs = submitted_jobs + submit_batch_job(cluster,jobs,campaign,runner_options)
             else
               # Array grouping
               params=jobs.collect {|job| job.props[:param]}

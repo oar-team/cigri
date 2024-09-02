@@ -47,11 +47,12 @@ begin
         job.update({:state => "event"})
         job_event.close
         begin
-          job.kill
-          return true
+          j=job.kill
+          return j
         rescue => e
           $logger.warn("Kill function could not kill job #{job.id}")
           $logger.debug("Error while killing #{job.id}: #{e}")
+          return false
         end
 
       # Remove to_launch jobs

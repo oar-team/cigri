@@ -14,6 +14,7 @@ RUNNER_TAP_INCREASE_FACTOR=CONF.get('RUNNER_TAP_INCREASE_FACTOR',"1.5").to_f
 RUNNER_TAP_INCREASE_MAX=CONF.get('RUNNER_TAP_INCREASE_MAX',"100").to_i
 RUNNER_DEFAULT_INITIAL_NUMBER_OF_JOBS=CONF.get('RUNNER_DEFAULT_INITIAL_NUMBER_OF_JOBS',"2").to_i
 RUNNER_TAP_GRACE_PERIOD=CONF.get('RUNNER_TAP_GRACE_PERIOD',"60").to_i
+RUNNER_MAX_TEMPORAL_GROUPED_JOBS=CONF.get('RUNNER_MAX_TEMPORAL_GROUPED_JOBS',"50").to_i
 
 module Cigri
 
@@ -101,8 +102,11 @@ module Cigri
         end
         if average_job_duration > 0
           batch_size=(batch_wanted_duration/average_job_duration).round(half: :up)+1
+          if batch_size > RUNNER_MAX_TEMPORAL_GROUPED_JOBS
+            batch_size = RUNNER_MAX_TEMPORAL_GROUPED_JOBS
+          end
         else
-          batch_size=2000
+          batch_size=RUNNER_MAX_TEMPORAL_GROUPED_JOBS
         end
         update!({:rate => batch_size})
       # Normal case  

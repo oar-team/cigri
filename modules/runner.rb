@@ -272,6 +272,7 @@ while true do
     end
     if jobs!= false and jobs.length > 0
       # Submit the new jobs
+      runner_start_time = Time::now.to_i # reset start_time to be able to sleep enough later
       begin
         submitted_jobs=jobs.submit2(cluster.id)
       rescue Cigri::ClusterAPIConnectionError => e
@@ -341,12 +342,20 @@ while true do
         end
         logger.warn(message)
       end
-      sleep 3 # wait a little bit as we just submitted some jobs
+
+      # Wait a little bit as we just submitted some jobs
+      cycle_duration = Time::now.to_i - runner_start_time
+      if cycle_duration < MIN_CYCLE_DURATION
+        logger.debug("Sleeping...")
+        sleep MIN_CYCLE_DURATION - cycle_duration 
+      end
+
       # Increase tap of the first campaign that runs well
       # (in case we submitted for several campaigns, but this should
       # not happen with the Jobset::submit2 method)
       submitted_campaigns=[]
       if submitted_jobs and submitted_jobs.length > 0
+        logger.debug("#{submitted_jobs.length} jobs have been submitted")
         jobs.each do |j| 
           if not submitted_campaigns.include?(j.props[:campaign_id].to_i)
             submitted_campaigns << j.props[:campaign_id].to_i
@@ -367,5 +376,8 @@ while true do
 
   # Sleep if necessary
   cycle_duration = Time::now.to_i - runner_start_time
-  sleep MIN_CYCLE_DURATION - cycle_duration if cycle_duration < MIN_CYCLE_DURATION
+  if cycle_duration < MIN_CYCLE_DURATION
+    logger.debug("Sleeping...")
+    sleep MIN_CYCLE_DURATION - cycle_duration 
+  end
 end
