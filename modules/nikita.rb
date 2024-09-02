@@ -58,7 +58,7 @@ begin
       # Remove to_launch jobs
       elsif state == "to_launch"
         job.delete
-        return true
+        return 1
 
       # Do nothing for launching jobs, but warn as we must wait
       elsif state == "launching"
@@ -68,6 +68,8 @@ begin
   end
 
   $logger.debug('Starting')
+
+  jobs_killed={}
 
   # Clean the affinity table every hour
   events=Cigri::Eventset.new({:where => "class='log' and code='NIKITA_CLEAN_AFFINITY' and now() - date_open < interval '1 hour'"})
@@ -96,13 +98,26 @@ begin
     $logger.debug("   Killing jobs of campaign #{event.props[:campaign_id]}")
     jobs=Cigri::Jobset.new({:where => "jobs.campaign_id=#{event.props[:campaign_id]} and jobs.state != 'event' and jobs.state != 'terminated'"})
     jobs.each do |job|
-      r=kill(job,event)
-      if not r
-        $logger.warn("Could not kill job #{job.id}!")
-        Cigri::Event.new(:class => 'notify', :state => 'closed',
-                       :code => "NIKITA_KILL_PROBLEM", :message => "Nikita could not kill job #{job.id}!")
-        notify_judas
-        can_close=false
+      cluster_id=job.props[:cluster_id].to_s
+      if jobs_killed.key?(cluster_id) and job.props.key?(:remote_id)
+        if jobs_killed[cluster_id].include?(job.props[:remote_id].to_i)
+          $logger.debug("Job #{job.id} already killed. Doing nothing.")
+        end
+      else
+        r=kill(job,event)
+        if r
+          if jobs_killed.key?(cluster_id)
+            jobs_killed[cluster_id] << r.to_i
+          else
+            jobs_killed[cluster_id] = [r.to_i]
+          end
+        else
+          $logger.warn("Could not kill job #{job.id}!")
+          Cigri::Event.new(:class => 'notify', :state => 'closed',
+                         :code => "NIKITA_KILL_PROBLEM", :message => "Nikita could not kill job #{job.id}!")
+          notify_judas
+          can_close=false
+        end
       end
     end
     if can_close

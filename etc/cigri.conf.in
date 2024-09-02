@@ -83,6 +83,11 @@ RUNNER_TAP_INCREASE_MAX = "100"
 # So, we don't directly try the next campaign, but wait a bit.
 # The value is a number of seconds.
 RUNNER_TAP_GRACE_PERIOD = "60"
+# Duration in seconds for temporal grouping jobs
+# For example, if the average jobs duration is 1 minute and
+# the value of this variable is 15 minutes, then jobs will be
+# grouped 15 by 15. 
+RUNNER_TEMPORAL_GROUPING_DURATION = "90"
 # Maximum number of subjobs grouped inside a job in the case of
 # temporal_groupping option. Be aware that increasing this value may
 # have a big impact on the cluster's api load as each subjob is checked

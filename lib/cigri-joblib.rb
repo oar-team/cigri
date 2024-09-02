@@ -74,21 +74,25 @@ module Cigri
       if props[:cluster_id]
         cluster=Cluster.new(:id => props[:cluster_id])
         if !cluster.blacklisted?
-          if props[:state] == "running" or props[:state] == "remote_waiting"
+          if props[:state] == "running" or props[:state] == "remote_waiting" or props[:state] == "batch_waiting"
             if props[:remote_id]
               cluster.delete_job(props[:remote_id],props[:grid_user])
               return props[:remote_id]
             else
               JOBLIBLOGGER.warn("Can't kill a job without a remote_id: #{id}!")
+              return 1
             end
           else
             JOBLIBLOGGER.warn("Can't kill a job that is not running or remote_waiting: #{id}!")
+            return 1
           end
         else
           JOBLIBLOGGER.debug("Not killing job on a blacklisted cluster: #{id}")
+          return 1
         end
       else
         JOBLIBLOGGER.warn("Can't kill a job without a cluster_id: #{id}!")
+        return 1
       end  
     end
 
