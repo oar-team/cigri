@@ -1191,9 +1191,13 @@ end
 ##
 def new_batch_id(dbh)
   query = "SELECT batch_id FROM jobs WHERE batch_id IS NOT NULL ORDER BY batch_id desc LIMIT 1"
-  row = dbh.execute(query).fetch(:first)
-  return row[0]+1 if row and not row[0].nil?
-  return 1
+  sth = dbh.execute(query)
+  if sth.has_data?
+    row = sth.fetch(:first)
+    return row[0]+1
+  else
+    return 1
+  end
 end
 
 ##
