@@ -6,7 +6,13 @@ version 3.2
 
 Unreleased
 
-- WIP to run with latest ruby version and adaptations to OAR3
+- Updated to be able to run with latest ruby version (tested with ruby 3.1.2)
+- Adapted to use rdbi in place of obsolete ruby-dbi DB interface
+- Added OAR3 support
+- Added JWT token auth support
+- Finished experimental "temporal grouping" running option
+- Misc fixes and enhancements
+- More functional tests
 
 version 3.1
 -----------
