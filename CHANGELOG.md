@@ -1,8 +1,8 @@
 Cigri Changelog
 ===============
 
-version 3.2
------------
+version 3.2.0
+-------------
 
 Released 2024-09-04
 
