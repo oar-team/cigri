@@ -17,7 +17,7 @@ WWWGROUP=www-data
 CIGRIUSER=cigri
 CIGRIGROUP=cigri
 APIBASE=/cigri-api
-PIDDIR=/var/run/cigri
+PIDDIR=/run/cigri
 USERCMDS=$(patsubst bin/%.rb,%,$(wildcard bin/*.rb))
 CACERT=/etc/cigri/ssl.orig/cigriCA/certs/cigriCA.crt
 CAKEY=/etc/cigri/ssl.orig/cigriCA/private/myca.key
@@ -53,7 +53,7 @@ setup: setup-api
 
 install-cigri: install-cigri-server install-cigri-user
 
-install-cigri-server: check-old install-cigri-libs install-cigri-modules install-cigri-launcher install-cigri-api install-cigri-server-config install-cigri-server-tools
+install-cigri-server: check-old install-cigri-libs install-cigri-modules install-cigri-systemd install-cigri-api install-cigri-server-config install-cigri-server-tools
 
 install-cigri-user: check-old install-cigri-libs install-cigri-user-cmds install-cigri-user-config install-cigri-server-config
 
@@ -98,12 +98,13 @@ install-cigri-user-config:
 		perl -pi -e "s#%%CIGRIDIR%%#$(CIGRIDIR)#g;;\
 		s#%%APIBASE%%#$(APIBASE)#g" $(DESTDIR)$(CIGRICONFDIR)/api-clients.conf; fi
 
-install-cigri-launcher:
+install-cigri-systemd:
 	install -d -m 0755 $(DESTDIR)$(PIDDIR)
 	install -d -m 0755 $(DESTDIR)$(CIGRIDIR)
-	install -m 0755 sbin/cigri_start.in $(DESTDIR)/etc/init.d/cigri
+	install -m 0755 etc/systemd/system/cigri.service.in $(DESTDIR)/etc/systemd/system/cigri.service
 	perl -pi -e "s#%%CIGRIDIR%%#$(CIGRIDIR)#g;;\
-	     s#%%CIGRIUSER%%#$(CIGRIUSER)#g" $(DESTDIR)/etc/init.d/cigri
+	     s#%%CIGRIUSER%%#$(CIGRIUSER)#g;;\
+	     s#%%PIDDIR%%#$(PIDDIR)#g" $(DESTDIR)/etc/systemd/system/cigri.service
 	touch $(DESTDIR)$(LOGDIR)/cigri.log
 	chmod 600 $(DESTDIR)$(LOGDIR)/cigri.log
 	chown $(CIGRIUSER) $(DESTDIR)$(LOGDIR)/cigri.log

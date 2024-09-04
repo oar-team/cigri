@@ -4,10 +4,9 @@ After=postgresql.service
 
 [Service]
 PermissionsStartOnly=true
-ExecStartPre=/usr/bin/install -o cigri -d /var/run/cigri
-ExecStart=/usr/local/share/cigri/modules/almighty.rb
-PIDFile=/run/cigri/almighty.pid
-User=cigri
+ExecStart=%%CIGRIDIR%%/modules/almighty.rb
+PIDFile=%%PIDDIR%%/almighty.pid
+User=%%CIGRIUSER%%
 WorkingDirectory=/var/lib/cigri
 
 [Install]
