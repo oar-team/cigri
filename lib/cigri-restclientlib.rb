@@ -20,13 +20,14 @@ module Cigri
 
   # Restclient interface to (partially) HATEOAS REST API
   class RestSession
-    attr_reader :content_type, :base_uri
+    attr_reader :content_type, :base_uri, :api_limit
 
     # Connect to a restfull API
     def initialize(description,content_type)
       options={}
       auth_type = description["api_auth_type"]
       base_uri = description["api_url"]
+      api_limit = description["api_limit"]
 
       options[:proxy] = nil
 
@@ -75,6 +76,7 @@ module Cigri
       @api = RestClient::Resource.new(base_uri, options)
       @content_type=content_type
       @base_uri=URI.parse(base_uri)
+      @api_limit=api_limit.to_i
     end
   
     # Converts the given uri, to something relative
@@ -84,6 +86,15 @@ module Cigri
       abs_uri=@base_uri.merge(uri).to_s
       target_uri=URI.parse(abs_uri).to_s
       @base_uri.route_to(target_uri).to_s
+    end
+   
+    # Add a parameter to a uri (?<param_string> or &<param_string>)
+    def add_param(uri,param_string)
+      if uri.index('?')
+        return uri+"&"+param_string
+      else
+        return uri+"?"+param_string
+      end
     end
 
     # Parse a rest resource depending on its content_type
@@ -158,13 +169,27 @@ module Cigri
     # Get a collection
     # A collection is an "items" array, and may be paginated
     def get_collection(uri,header={})
-      res=get(uri,header)
+      res=get(add_param(uri,"limit="+@api_limit.to_s),header)
       collection=res["items"]
       next_link=get_link_by_rel(res,"next")
+      # For OAR2 api style, get the "next" links
       while next_link do
         res=get(next_link,header)
         collection.concat(res["items"])
         next_link=get_link_by_rel(res,"next")
+      end
+      # For OAR3 api style, compute if there's a next page to get using limit and offset
+      #  - use the offset, total and limit to check if there's a next page to get
+      total=res["total"].to_i
+      offset=res["offset"].to_i
+      while offset+@api_limit < total
+        new_uri=add_param(uri,"limit="+@api_limit.to_s)
+        new_offset=offset+@api_limit
+        new_uri=add_param(new_uri,"offset="+new_offset.to_s)
+        res=get(new_uri,header)
+        collection.concat(res["items"])
+        total=res["total"].to_i
+        offset=offset=res["offset"].to_i
       end
       collection
     end

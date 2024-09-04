@@ -555,8 +555,22 @@ module Cigri
       end 
 
       def get_resources
-        raise "not yet implemented"      
-      end 
+        # Get the resources from the api
+        resources = @api.get_collection("resources?detailed=true")
+        # Filter the resources depending on cluster properties
+        properties = parse_properties
+        return resources unless properties
+        res = []
+        resources.each do |resource|
+          not_found = 0
+          properties.each_pair do |key,value|
+            not_found = 1 if resource[key] != value
+          end
+          res << resource unless not_found == 1
+        end
+        res
+      end
+ 
 
       def submit_job(job, user="")
         # Workaround for OAR not taking 1 parameters array jobs
