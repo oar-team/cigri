@@ -51,7 +51,8 @@ def db_connect()
       :host => CONF.get('DATABASE_HOST'),
       :database => CONF.get('DATABASE_NAME'),
       :username => CONF.get('DATABASE_USER_NAME'),
-      :password => CONF.get('DATABASE_USER_PASSWORD')
+      :password => CONF.get('DATABASE_USER_PASSWORD'),
+      :sslmod => CONF.get('DATABASE_SSL_MODE')
     )
     $VERBOSE=true
     return dbh unless block_given?

@@ -5,6 +5,7 @@ DATABASE_HOST = "127.0.0.1"
 DATABASE_NAME = "cigri3"
 DATABASE_USER_NAME = "cigri3"
 DATABASE_USER_PASSWORD = "cigri3"
+DATABASE_SSL_MODE = "require"
 
 # Where is CiGri installed
 INSTALL_PATH = "/usr/local/share/cigri/"

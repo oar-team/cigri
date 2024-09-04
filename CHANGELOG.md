@@ -1,6 +1,13 @@
 Cigri Changelog
 ===============
 
+version 3.2.1
+-------------
+
+Unreleased
+
+- Added DATABASE_SSL_MODE config variable ("require" by default)
+
 version 3.2.0
 -------------
 
