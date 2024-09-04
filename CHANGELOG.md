@@ -4,7 +4,7 @@ Cigri Changelog
 version 3.2
 -----------
 
-Unreleased
+Released 2024-09-04
 
 - Updated to be able to run with latest ruby version (tested with ruby 3.1.2)
 - Adapted to use rdbi in place of obsolete ruby-dbi DB interface
