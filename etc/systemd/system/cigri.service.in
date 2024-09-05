@@ -3,7 +3,7 @@ Description=CiGri computing grid server
 After=postgresql.service
 
 [Service]
-PermissionsStartOnly=true
+ExecStartPre=+/usr/bin/install -o cigri -d %%PIDDIR%%
 ExecStart=%%CIGRIDIR%%/modules/almighty.rb
 PIDFile=%%PIDDIR%%/almighty.pid
 User=%%CIGRIUSER%%

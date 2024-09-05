@@ -8,6 +8,7 @@ Unreleased
 
 - Added DATABASE_SSL_MODE config variable ("require" by default)
 - Added pagination for OAR3 API
+- Fixed systemd startup script
 
 version 3.2.0
 -------------

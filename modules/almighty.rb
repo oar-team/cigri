@@ -7,9 +7,6 @@ require 'cigri-colombolib'
 
 $0='cigri: almighty'
 
-File.open("/var/run/cigri/almighty.pid", "w") do |f|
-  f.write $$
-end
 
 sleeptime=10
 child_timeout=300
@@ -22,6 +19,13 @@ begin
   if logfile != "STDOUT" && logfile != "STDERR"
     $stdout.reopen(logfile, "a")
     $stderr.reopen(logfile, "a")
+  end
+
+  pid_file=config.get('PID_FILE',"")
+  if pid_file != ""
+    File.open(pid_file, "w") do |f|
+      f.write $$
+    end
   end
 
   #Childs array
