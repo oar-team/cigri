@@ -137,6 +137,7 @@ module Cigri
                 begin
                   Net::SMTP.start(CONF.get("NOTIFICATIONS_SMTP_SERVER"), CONF.get("NOTIFICATIONS_SMTP_PORT",25)) do |smtp|
                       smtp.send_message formatted_mail(to), from, to
+                      sleep(0.5)
                   end
                 rescue => e
                   NOTIFICATIONLIBLOGGER.error("Could not notify #{@user} with mail: #{e.message}")

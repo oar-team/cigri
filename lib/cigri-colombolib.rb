@@ -389,7 +389,7 @@ module Cigri
     def notify_aggregated_errors!(im_handlers)
       codes_of_errors_to_aggregate=["RUNNER_SUBMIT_ERROR","EXIT_ERROR","RUNNER_SUBMIT_TIMEOUT","RUNNER_SUBMIT_TOO_LARGE","RUNNER_SUBMIT_TOKEN_NOT_FOUND","RUNNER_SUBMIT_PERMISSION_DENIED"]
       codes_of_errors_to_aggregate.each do |code|
-        events=@events.records.select{|event| event.props[:code]==code and event.props[:notified] == "f"}
+        events=@events.records.select{|event| event.props[:code]==code and event.props[:notified] == false}
         COLOMBOLIBLOGGER.debug("Notifying #{events.length} #{code} events") if events.length > 0
         count_events_per_campaign(events).each do |campaign_id,number| 
           message_props={
@@ -425,7 +425,7 @@ module Cigri
     #
     def notify_blacklists!(im_handlers)
       # Campaign blacklists (for users)
-      events=@events.records.select{|event| event.props[:code]=="BLACKLIST" and event.props[:notified] == "f" and event.props[:campaign_id]}
+      events=@events.records.select{|event| event.props[:code]=="BLACKLIST" and event.props[:notified] == false and event.props[:campaign_id]}
       COLOMBOLIBLOGGER.debug("Notifying #{events.length} blacklist events") if events.length > 0
       campaigns=[]
       events.each do |event|
@@ -452,7 +452,7 @@ module Cigri
         event.notified!
       end
       # Cluster blacklists (for admin)
-      events=@events.records.select{|event| event.props[:code]=="BLACKLIST" and event.props[:notified] == "f" and !event.props[:campaign_id]}
+      events=@events.records.select{|event| event.props[:code]=="BLACKLIST" and event.props[:notified] == false and !event.props[:campaign_id]}
       events.each do |event|
         message_props={
                         :subject => "Cluster #{@cluster_names[event.props[:cluster_id].to_i]} blacklisted!",
@@ -478,7 +478,8 @@ module Cigri
     #
     def notify_generic_events!(im_handlers)
       # Only notify events that are not already notified
-      events=@events.records.select{|event| event.props[:notified] == "f"}
+      events=@events.records.select{|event| event.props[:notified] == false}
+      COLOMBOLIBLOGGER.debug("notify_generic_events: #{events.length}")
       max=15
       if events.length > max
         COLOMBOLIBLOGGER.warn("Too many generic events (#{events.length}). Notifying only the #{max} first.")
@@ -559,7 +560,8 @@ module Cigri
     # - im: instant message handlers hash
     #
     def notify_log_events!(im_handlers)
-      events=@events.records.select{|event| event.props[:notified] == "f" and event.props[:class]=="log"}
+      events=@events.records.select{|event| event.props[:notified] == false and event.props[:class]=="log"}
+      COLOMBOLIBLOGGER.debug("notify_log_events: #{events.length}")
       max=30
       if events.length > max
         COLOMBOLIBLOGGER.warn("Too many log events (#{events.length}). Notifying only the #{max} first.")
@@ -592,6 +594,7 @@ module Cigri
         # Classifying severity
         if ["RUNNER_FAILED","ALMIGHTY_TERMINATING","ALMIGHTY_STARTING","JUDAS_FAILED"].include?(event.props[:code])
           message_props[:severity]="high"
+          COLOMBOLIBLOGGER.debug(event.props[:code]+" high level admin notification to send")
         else
           message_props[:severity]="low"
         end
@@ -629,8 +632,8 @@ module Cigri
     # - im: instant message handlers hash
     #
     def notify(im_handlers)
-      COLOMBOLIBLOGGER.debug("Notifying #{@events.length} events") if @events.length > 0
       remove_not_to_be_notified_events!
+      COLOMBOLIBLOGGER.debug("Notifying #{@events.length} events") if @events.length > 0
       notify_aggregated_errors!(im_handlers)
       notify_blacklists!(im_handlers)
       notify_log_events!(im_handlers)
