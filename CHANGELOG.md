@@ -10,6 +10,7 @@ Unreleased
 - Added pagination for OAR3 API
 - Fixed systemd startup script
 - Fixed notifications
+- Fixed OAR_AUTO_RESUBMIT events (resubmit id could be missed) 
 
 version 3.2.0
 -------------
