@@ -1701,7 +1701,12 @@ class Datarecord
         # Default case
         else
           query = "UPDATE #{table} SET #{field} = ? WHERE #{@index} = ?"
-          dbh.execute(query, value, id)
+          begin
+            dbh.execute(query, value, id)
+          rescue Exception => e
+            IOLIBLOGGER.error("Error in query `#{query}` with field `#{value}` for id `#{id}`")
+            raise
+          end
         end
       end
     end
