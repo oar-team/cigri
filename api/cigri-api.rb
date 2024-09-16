@@ -729,19 +729,19 @@ class API < Sinatra::Base
      
       items = []
       tasks.each do |task|
-        if task['queued_cluster'] and not task['state']
-          task['state']="queued" 
-          task['cluster_id']=task['queued_cluster']
+        if task[:queued_cluster] and not task[:state]
+          task[:state]="queued" 
+          task[:cluster_id]=task[:queued_cluster]
         end
         items << {
-          :id => task['id'],
-          :name => task['name'],
-          :parameters => task['param'],
-          :cluster => CLUSTER_NAMES[task['cluster_id']],
-          :cigri_job_id => task['cigri_job_id'],
-          :remote_id => task['remote_id'],
-          :state => task['state'] || :pending,
-          :href => to_url("campaigns/#{id}/jobs/#{task['id']}")
+          :id => task[:id],
+          :name => task[:name],
+          :parameters => task[:param],
+          :cluster => CLUSTER_NAMES[task[:cluster_id]],
+          :cigri_job_id => task[:cigri_job_id],
+          :remote_id => task[:remote_id],
+          :state => task[:state] || :pending,
+          :href => to_url("campaigns/#{id}/jobs/#{task[:id]}")
         }
       end
 

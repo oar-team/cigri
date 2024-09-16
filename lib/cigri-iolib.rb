@@ -843,9 +843,12 @@ def get_campaign_tasks(dbh, id, limit, offset)
            OFFSET ?"
 
   res = []
-  dbh.execute(query, id, limit, offset).as(:Struct).fetch(:all).each do |row|
-    res.append(row.to_h)
+  sth = dbh.execute(query, id, limit, offset)
+  sth.as(:Struct).fetch(:all).each do |row|
+    res << row.to_h
   end
+  sth.finish
+  IOLIBLOGGER.debug(res.inspect)
   return res
 end
 
@@ -1704,7 +1707,7 @@ class Datarecord
           begin
             dbh.execute(query, value, id)
           rescue Exception => e
-            IOLIBLOGGER.error("Error in query `#{query}` with field `#{value}` for id `#{id}`")
+            IOLIBLOGGER.error("Error in query `#{query}` with field `#{value}` for id `#{id}`: #{e}")
             raise
           end
         end
