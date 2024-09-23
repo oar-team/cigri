@@ -4,7 +4,7 @@ Cigri Changelog
 version 3.2.1
 -------------
 
-Unreleased
+Released 2024-09-23
 
 - Added DATABASE_SSL_MODE config variable ("require" by default)
 - Added pagination for OAR3 API
