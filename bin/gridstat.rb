@@ -181,6 +181,7 @@ begin
     elsif cinfos
       puts response.body
     else
+       j = JSON.parse(response.body)
        Cigri::Client.print_job(j)
     end
   elsif jdl

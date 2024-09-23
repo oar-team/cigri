@@ -91,7 +91,7 @@ module Cigri
         if event.props[:class]=="cluster"
           COLOMBOLIBLOGGER.debug("Checking event #{event.props[:code]}")
           case event.props[:code]
-          when "REQUEST_TOO_LARGE","POST_TIMEOUT","TIMEOUT", "CONNECTION_RESET", "SOCKET_ERROR", "CONNECTION_REFUSED", "HOST_UNREACHABLE", "SSL_ERROR", "GET_JOBS", "GET_JOB", "GET_MEDIA","GET_STRESS_FACTOR", "FILL_JOBS_CACHE", "RUNNER_GET_JOB_CHUNK_ERROR"
+          when "REQUEST_TOO_LARGE","POST_TIMEOUT","TIMEOUT", "CONNECTION_RESET", "SOCKET_ERROR", "CONNECTION_REFUSED", "HOST_UNREACHABLE", "SSL_ERROR", "GET_JOBS", "GET_JOB", "GET_MEDIA","GET_STRESS_FACTOR", "FILL_JOBS_CACHE", "RUNNER_GET_JOB_CHUNK_ERROR", "TOO_MANY_RESUBMIT"
             blacklist_cluster(event.id,event.props[:cluster_id],event.props[:campaign_id])
             event.checked
           when "CLUSTER_MANUALLY_DISABLED"

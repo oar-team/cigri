@@ -64,6 +64,24 @@ begin
   end 
 
   ## 
+  # Check for campaigns with too bad resubmit_rate
+  ## 
+  # TODO for each cluster! Because blacklisting is by cluster!
+  #campaigns=Cigri::Campaignset.new
+  #campaigns.get_running
+  #campaigns.each do |campaign|
+  #  if campaign.resubmit_rate > 0.6
+  #    logger.info("campaign #{campaign.id} has a lot of resubmits!")
+  #    if campaign.tasks(100,0).length() > 10
+  #      event=Cigri::Event.new(:class => 'campaign', :state => 'open', :campaign_id => campaign.id,
+   #                      :code => "TOO_MANY_RESUBMIT", :message => "Your campaign #{campaign.id} has too many resubmit jobs. Please, check the duration of your jobs and walltime, then kill and restart your campaign.")
+   #     notify_judas
+   #     Cigri::Colombo.new(event).check_clusters
+   #   end
+   # end
+   #end 
+
+  ## 
   # Autofix clusters
   ## 
   logger.debug("starting autofix")

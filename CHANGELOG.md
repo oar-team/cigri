@@ -12,6 +12,7 @@ Unreleased
 - Fixed notifications
 - Fixed OAR_AUTO_RESUBMIT events (resubmit id could be missed) 
 - Fixed gridstat -f
+- Fixed gridstat -j <id>
 
 version 3.2.0
 -------------

@@ -848,7 +848,6 @@ def get_campaign_tasks(dbh, id, limit, offset)
     res << row.to_h
   end
   sth.finish
-  IOLIBLOGGER.debug(res.inspect)
   return res
 end
 
