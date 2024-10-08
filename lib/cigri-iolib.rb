@@ -1661,9 +1661,12 @@ class Datarecord
     what = "*" if what.nil?
     sth = dbh.execute("SELECT #{what} FROM #{table} WHERE #{@index} = #{id.to_i}")
     if sth.has_data?
-      sth.as(:Struct).fetch(:first).to_h.transform_keys{ |k| k.to_sym }
+      res=sth.as(:Struct).fetch(:first).to_h.transform_keys{ |k| k.to_sym }
+      dbh.disconnect
+      return res
     else      
       IOLIBLOGGER.warn("Datarecord #{@index}=#{id} not found into #{table}")
+      dbh.disconnect
       return nil
     end
   end

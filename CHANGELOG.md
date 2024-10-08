@@ -1,6 +1,13 @@
 Cigri Changelog
 ===============
 
+version 3.2.2
+-------------
+
+Unreleased
+
+- Fixed a PostgreSQL connection issues (too many ressources used due to dirty unclosed connections)
+
 version 3.2.1
 -------------
 
