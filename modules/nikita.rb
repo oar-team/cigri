@@ -83,6 +83,9 @@ begin
                      :message => "Nikita cleaned affinity table")
   end
 
+  # Refresh the Dataset class connexion handler
+  events.disconnect
+
   # Check for campaigns to kill
   $logger.debug('Check for campaigns to kill')
   events=Cigri::Eventset.new({:where => "class='campaign' and code='USER_FRAG' and state='open'"})

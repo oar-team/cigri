@@ -1865,6 +1865,10 @@ class Dataset
     @records.empty?
   end
 
+  def disconnect
+    @@dbh.disconnect
+  end
+
   private
   #Verify the state of the connection and connect if not
   def check_connection!
@@ -1890,4 +1894,5 @@ class Dataset
     end
     @@counter += 1
   end
+
 end
