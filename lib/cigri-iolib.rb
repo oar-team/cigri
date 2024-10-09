@@ -1875,14 +1875,14 @@ class Dataset
     begin
       ping=@@dbh.ping
     rescue
-      IOLIBLOGGER.warn("Connection to database lost!")
+      IOLIBLOGGER.debug("Connection to database is closed")
       ping=nil
     end
     if @@counter > 50 or !ping
       if @@counter > 50
         IOLIBLOGGER.debug("Refreshing database connection")
       else
-        IOLIBLOGGER.warn("Database connection lost, re-connecting")
+        IOLIBLOGGER.warn("Database connection closed, re-connecting")
       end
       begin
         @@dbh.disconnect if @@dbh
