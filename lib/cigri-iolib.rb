@@ -1750,6 +1750,7 @@ class Dataset
   def initialize(table,props={})
     # Get a DB handler
     @@dbh ||= db_connect()
+    check_connection!
     @table=table
     @records=[]
     if props[:where]

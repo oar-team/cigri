@@ -84,7 +84,7 @@ begin
   end
 
   # Refresh the Dataset class connexion handler
-  events.disconnect
+  #events.disconnect
 
   # Check for campaigns to kill
   $logger.debug('Check for campaigns to kill')
