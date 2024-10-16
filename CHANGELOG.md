@@ -7,6 +7,7 @@ version 3.2.2
 Unreleased
 
 - Fixed a PostgreSQL connection issues (too many ressources used due to dirty unclosed connections)
+- Fixed PostgreSQL connection issues into the Updator with forked children
 
 version 3.2.1
 -------------
@@ -17,7 +18,7 @@ Released 2024-09-23
 - Added pagination for OAR3 API
 - Fixed systemd startup script
 - Fixed notifications
-- Fixed OAR_AUTO_RESUBMIT events (resubmit id could be missed) 
+- Fixed OAR_AUTO_RESUBMIT events (resubmit id could be missed)
 - Fixed gridstat -f
 - Fixed gridstat -j <id>
 
