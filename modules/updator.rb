@@ -7,6 +7,7 @@ require 'cigri-joblib'
 require 'cigri-colombolib'
 require 'cigri-clusterlib'
 require 'cigri-iolib'
+require 'cigri-eventlib'
 
 $0='cigri: updator'
 
@@ -123,7 +124,9 @@ begin
         cigri_jobs.get_running
         cigri_jobs.records.map! {|j| j.props[:remote_id].to_i }        
         date=Time.now
-        Cigri::ClusterSet.new.each do |cluster|
+        cigri_clusters=Cigri::ClusterSet.new
+        cigri_clusters.each do |cluster|
+          Cigri::Eventset.new.disconnect # Force new DB handler for each fork
           if not cluster.blacklisted?
             pid=fork
             if pid.nil?
