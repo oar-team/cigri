@@ -8,6 +8,7 @@ Unreleased
 
 - Fixed a PostgreSQL connection issues (too many ressources used due to dirty unclosed connections)
 - Fixed PostgreSQL connection issues into the Updator with forked children
+- Reduced error probability for 'prepared statement "stmt_id" does not exist'
 
 version 3.2.1
 -------------
