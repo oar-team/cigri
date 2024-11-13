@@ -1868,7 +1868,7 @@ class Dataset
 
   def disconnect
     begin
-      ping=@@dbh.ping
+      @@dbh.ping
     rescue
       pass
     else
@@ -1880,7 +1880,7 @@ class Dataset
   #Verify the state of the connection and connect if not
   def check_connection!
     begin
-      ping=@@dbh.ping
+      @@dbh.ping
     rescue
       IOLIBLOGGER.debug("Connection to database is closed, reconnecting...")
       @@dbh = db_connect()

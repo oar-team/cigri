@@ -186,6 +186,7 @@ begin
         job.decrease_affinity
       end
     rescue => e
+      job.update({:state => "event"})
       $logger.warn("Could not kill job #{job.id}")
       $logger.debug("Error while killing #{job.id}: #{e}")
     end
