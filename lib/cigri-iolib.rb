@@ -1867,7 +1867,13 @@ class Dataset
   end
 
   def disconnect
-    @@dbh.disconnect
+    begin
+      ping=@@dbh.ping
+    rescue
+      pass
+    else
+      @@dbh.disconnect
+    end
   end
 
   private
@@ -1876,24 +1882,25 @@ class Dataset
     begin
       ping=@@dbh.ping
     rescue
-      IOLIBLOGGER.debug("Connection to database is closed")
-      ping=nil
-    end
-    if @@counter > 50 or !ping
-      if @@counter > 50
-        IOLIBLOGGER.debug("Refreshing database connection")
-      else
-        IOLIBLOGGER.warn("Database connection closed, re-connecting")
-      end
-      begin
-        @@dbh.disconnect if @@dbh
-      rescue
-        nil
-      end
+      IOLIBLOGGER.debug("Connection to database is closed, reconnecting...")
       @@dbh = db_connect()
-      @@counter = 0
+      #ping=nil
     end
-    @@counter += 1
+    #if @@counter > 50 or !ping
+    #  if @@counter > 50
+    #    IOLIBLOGGER.debug("Refreshing database connection")
+    #  else
+    #    IOLIBLOGGER.warn("Database connection closed, re-connecting")
+    #  end
+    #  begin
+    #    @@dbh.disconnect if @@dbh
+    #  rescue
+    #    nil
+    #  end
+    #  @@dbh = db_connect()
+    #  @@counter = 0
+    #end
+    #@@counter += 1
   end
 
 end
