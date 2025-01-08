@@ -102,13 +102,16 @@ begin
     jobs=Cigri::Jobset.new({:where => "jobs.campaign_id=#{event.props[:campaign_id]} and jobs.state != 'event' and jobs.state != 'terminated'"})
     jobs.each do |job|
       cluster_id=job.props[:cluster_id].to_s
+      already_killed=0
       if jobs_killed.key?(cluster_id) and job.props.key?(:remote_id)
         if jobs_killed[cluster_id].include?(job.props[:remote_id].to_i)
           $logger.debug("Job #{job.id} already killed. Doing nothing.")
+          already_killed=1
         end
-      else
+      end
+      if already_killed == 0
         r=kill(job,event)
-        if r
+        if r > 1
           if jobs_killed.key?(cluster_id)
             jobs_killed[cluster_id] << r.to_i
           else
@@ -117,12 +120,12 @@ begin
         else
           $logger.warn("Could not kill job #{job.id}!")
           Cigri::Event.new(:class => 'notify', :state => 'closed',
-                         :code => "NIKITA_KILL_PROBLEM", :message => "Nikita could not kill job #{job.id}!")
+                       :code => "NIKITA_KILL_PROBLEM", :message => "Nikita could not kill job #{job.id}!")
           notify_judas
           can_close=false
-        end
-      end
-    end
+        end #job could be killed else notify 
+      end #jobs already killed
+    end #jobs.each
     if can_close
       event.close
     end
