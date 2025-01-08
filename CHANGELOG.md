@@ -4,7 +4,7 @@ Cigri Changelog
 version 3.2.2
 -------------
 
-Unreleased
+Released 2025-01-08
 
 - Fixed a PostgreSQL connection issues (too many ressources used due to dirty unclosed connections)
 - Fixed PostgreSQL connection issues into the Updator with forked children
