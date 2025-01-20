@@ -316,7 +316,9 @@ module Cigri
                          :cluster_id => job.props[:cluster_id], 
                          :message => "The job exited with an unknown error. Job events: #{cluster_job["events"].inspect}")
       end
-      job.update({:state => 'event'})
+      if not type == "RESUBMIT_JOB_AUTOMATICALLY"
+        job.update({:state => 'event'})
+      end
       job.decrease_affinity
     end
 

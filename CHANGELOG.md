@@ -6,7 +6,7 @@ version 3.2.3
 
 Unreleased
 
--
+- Fixed OAR_AUTO_RESUBMIT event that loses the resubmitted job
 
 version 3.2.2
 -------------
