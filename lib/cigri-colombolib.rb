@@ -23,7 +23,11 @@ if CONF.exists?('AUTOFIX_DELAY')
 else
   AUTOFIX_DELAY = 30
 end
-
+if CONF.exists?('EVENTS_DELAY')
+  EVENTS_DELAY = CONF.get('EVENTS_DELAY').to_i
+else
+  EVENTS_DELAY = 60
+end
 
 module Cigri
 
@@ -191,7 +195,8 @@ module Cigri
       # Get the type of oar error
       else
         cluster_job["events"].each do |remote_event|
-          type=remote_event["type"] 
+          type=remote_event["type"]
+          event_date=remote_event["date"]
           # Automatic resubmit when the job was killed
           if type == "EXTERMINATE" or type == "WALLTIME" or type == "BESTEFFORT_KILL"
             resubmit=true
@@ -307,16 +312,24 @@ module Cigri
       # Those errors stop immediately the runner from checking jobs!
       # If you just want to prevent new submissions, but not the checking, set a code
       # in a new test in the above lines and add it into Cluster.blacklisted_because_of_exit_errors
-      else 
-        COLOMBOLIBLOGGER.debug("Creating a UNKNOWN_ERROR event for job #{job.id}")
-        Cigri::Event.new(:class => "job",
-                         :code => "UNKNOWN_ERROR",
-                         :job_id => job.id,
-                         :campaign_id => job.props[:campaign_id],
-                         :cluster_id => job.props[:cluster_id], 
-                         :message => "The job exited with an unknown error. Job events: #{cluster_job["events"].inspect}")
+      else
+        # Allow a delay for OAR to record new events
+        if Time.now.to_i - event_date.to_i < EVENTS_DELAY
+          COLOMBOLIBLOGGER.debug("Delaying UNKNOWN_ERROR for job #{job.id} to let OAR a chance to record an event")
+          delayed=True
+        else
+          # Delay expired, record an error 
+          delayed=False
+          COLOMBOLIBLOGGER.debug("Creating a UNKNOWN_ERROR event for job #{job.id}")
+          Cigri::Event.new(:class => "job",
+                           :code => "UNKNOWN_ERROR",
+                           :job_id => job.id,
+                           :campaign_id => job.props[:campaign_id],
+                           :cluster_id => job.props[:cluster_id], 
+                           :message => "The job exited with an unknown error. Job events: #{cluster_job["events"].inspect}")
+        end
       end
-      if not type == "RESUBMIT_JOB_AUTOMATICALLY"
+      if not type == "RESUBMIT_JOB_AUTOMATICALLY" and not delayed
         job.update({:state => 'event'})
       end
       job.decrease_affinity

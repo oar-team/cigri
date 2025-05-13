@@ -17,6 +17,11 @@ REMOTE_WAITING_TIMEOUT = "900"
 # How often to re-check some events before trying to fix
 AUTOFIX_DELAY = "30"
 
+# Delay for allowing OAR to record an event when a job is failed for an 
+# unknown reason (typical case: CPUSET_ERROR at launch of a job, then
+# OAR resubmits with an events that is recorded 30s later)
+EVENTS_DELAY = "60"
+
 # Default resources when jobs do not define otherwise
 DEFAULT_JOB_RESOURCES = "/resource_id=1"
 
