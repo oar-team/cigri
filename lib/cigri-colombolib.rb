@@ -230,6 +230,7 @@ module Cigri
       end
 
       # Treat resubmission
+      delayed=False
       if resubmit
         if type == "Special_exit_status_67"
           code="RESUBMIT_END"
@@ -319,7 +320,6 @@ module Cigri
           delayed=True
         else
           # Delay expired, record an error 
-          delayed=False
           COLOMBOLIBLOGGER.debug("Creating a UNKNOWN_ERROR event for job #{job.id}")
           Cigri::Event.new(:class => "job",
                            :code => "UNKNOWN_ERROR",
