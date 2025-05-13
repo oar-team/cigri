@@ -540,6 +540,25 @@ module Cigri
         secure_run proc{ @api.get_collection("jobs#{params}") },"GET_JOBS"
       end 
 
+      def get_job(job_id, user=nil, details=false)
+        if (job_id.is_a?(Integer))
+          if not @jobs_cache[job_id].nil?
+            return @jobs_cache[job_id]
+          else
+            details_string=""
+            details_string="?details=1" if details
+            if (user.nil?)
+              secure_run proc{ @api.get("jobs/#{job_id}#{details_string}") }, "GET_JOB"
+            else
+              secure_run proc{ @api.get("jobs/#{job_id}#{details_string}",{@description["api_auth_header"] => map_user(user)}) }, "GET_JOB"
+            end
+          end
+        else
+          CLUSTERLIBLOGGER.error("No valid id passed to get_job on #{name}!")
+          nil
+        end
+      end
+
       def fill_jobs_cache(props={})
         if not props[:ids]
           CLUSTERLIBLOGGER.error("You must pass an 'ids' array to fill the jobs cache!")
