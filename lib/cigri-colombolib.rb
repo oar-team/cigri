@@ -230,7 +230,7 @@ module Cigri
       end
 
       # Treat resubmission
-      delayed=False
+      delayed=0
       if resubmit
         if type == "Special_exit_status_67"
           code="RESUBMIT_END"
@@ -317,7 +317,7 @@ module Cigri
         # Allow a delay for OAR to record new events
         if Time.now.to_i - event_date.to_i < EVENTS_DELAY
           COLOMBOLIBLOGGER.debug("Delaying UNKNOWN_ERROR for job #{job.id} to let OAR a chance to record an event")
-          delayed=True
+          delayed=1
         else
           # Delay expired, record an error 
           COLOMBOLIBLOGGER.debug("Creating a UNKNOWN_ERROR event for job #{job.id}")
@@ -329,7 +329,7 @@ module Cigri
                            :message => "The job exited with an unknown error. Job events: #{cluster_job["events"].inspect}")
         end
       end
-      if not type == "RESUBMIT_JOB_AUTOMATICALLY" and not delayed
+      if not type == "RESUBMIT_JOB_AUTOMATICALLY" and delayed == 0
         job.update({:state => 'event'})
       end
       job.decrease_affinity
