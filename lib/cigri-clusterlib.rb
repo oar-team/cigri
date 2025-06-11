@@ -602,10 +602,11 @@ module Cigri
           job["resource"]=[job["resources"]]
           job.delete("resources")
         end
-        # OAR3 takes "type" as an array
+        # OAR3 takes "types" as an array
         if job["type"]
           types=job["type"].split(/,/)
-          job["type"]=types
+          job["types"]=types
+          job.delete("type")
         end
         # OAR3 does not need "$HOME" to be escaped
         if job["command"]
