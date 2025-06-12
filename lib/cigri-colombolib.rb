@@ -194,38 +194,42 @@ module Cigri
         type="Special_exit_status_67"
       # Get the type of oar error
       else
-        cluster_job["events"].each do |remote_event|
-          type=remote_event["type"]
-          event_date=remote_event["date"]
-          # Automatic resubmit when the job was killed
-          if type == "EXTERMINATE" or type == "WALLTIME" or type == "BESTEFFORT_KILL"
-            resubmit=true
-            if type == "WALLTIME"
-              Cigri::Event.new(:class => 'notify', :state => 'closed', :campaign_id => job.props[:campaign_id],
-                       :code => "WALLTIME_WARNING", :message => "Job #{job.id} has been resubmited with modified affinity because of walltime reached")
-              job.decrease_affinity if type == "WALLTIME" # This increase the possibility to try another cluster
+        if cluster_job.has_key?("events")
+          cluster_job["events"].each do |remote_event|
+            type=remote_event["type"]
+            event_date=remote_event["date"]
+            # Automatic resubmit when the job was killed
+            if type == "EXTERMINATE" or type == "WALLTIME" or type == "BESTEFFORT_KILL"
+              resubmit=true
+              if type == "WALLTIME"
+                Cigri::Event.new(:class => 'notify', :state => 'closed', :campaign_id => job.props[:campaign_id],
+                         :code => "WALLTIME_WARNING", :message => "Job #{job.id} has been resubmited with modified affinity because of walltime reached")
+                job.decrease_affinity if type == "WALLTIME" # This increase the possibility to try another cluster
+              end
+              break
+            # Automatic resubmit when the job is FRAGGED
+            elsif type == "FRAG_JOB_REQUEST"
+              resubmit=true
+              break
+            # Catch this types for special treatment
+            elsif type == "WORKING_DIRECTORY" 
+              break
+            elsif type == "RESUBMIT_JOB_AUTOMATICALLY"
+              scan=remote_event["description"].scan(/\(new id = (\d+)\)/)
+              if scan == []
+                scan=remote_event["description"].scan(/(\d+)\)/)
+              end
+              if scan == []
+                 COLOMBOLIBLOGGER.error("Could not get resubmit id of OAR job #{job.id}!")
+                 break  
+              else
+                auto_resubmit_id=scan[0][0]
+              end
+              break
             end
-            break
-          # Automatic resubmit when the job is FRAGGED
-          elsif type == "FRAG_JOB_REQUEST"
-            resubmit=true
-            break
-          # Catch this types for special treatment
-          elsif type == "WORKING_DIRECTORY" 
-            break
-          elsif type == "RESUBMIT_JOB_AUTOMATICALLY"
-            scan=remote_event["description"].scan(/\(new id = (\d+)\)/)
-            if scan == []
-              scan=remote_event["description"].scan(/(\d+)\)/)
-            end
-            if scan == []
-               COLOMBOLIBLOGGER.error("Could not get resubmit id of OAR job #{job.id}!")
-               break  
-            else
-              auto_resubmit_id=scan[0][0]
-            end
-            break
           end
+        else
+          type= "NO_EVENTS"
         end
       end
 
