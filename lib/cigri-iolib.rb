@@ -59,7 +59,11 @@ def db_connect()
     begin
       yield dbh
     ensure
-      dbh.disconnect() if dbh
+      begin
+        dbh.disconnect() if dbh
+      rescue Exception => e
+        IOLIBLOGGER.error("Error while trying to disconnect (but caught!): #{e}\n#{e.backtrace.join("\n")}")
+      end
     end
   rescue DBI::Error => e
     IOLIBLOGGER.error("Failed to connect to database: #{e}\n#{e.backtrace.join("\n")}")
