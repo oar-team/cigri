@@ -607,7 +607,13 @@ class API < Sinatra::Base
       end
       items=[]
       tokens.each do |t|
-        items << t
+        if params.has_key?('cluster_id')
+          if t[:cluster_id].to_i == params['cluster_id'].to_i
+            items << t
+          end
+        else
+          items << t
+        end
       end
       output={ :items => items,
                :links => [{:rel => :self, :href => to_url("tokens/")}] }

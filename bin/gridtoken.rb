@@ -66,7 +66,12 @@ url = "/tokens"
 begin 
   client = Cigri::Client.new 
   if list
-    response = client.get(url+"?pretty=true")
+    if cluster_id
+      url = url + "?cluster_id=#{cluster_id}&pretty=true"
+    else
+      url = url + "?pretty=true"
+    end
+    response = client.get(url)
     parsed_response = JSON.parse(response.body)
     if not parsed_response["items"].empty?
       puts "You have the following tokens:"
