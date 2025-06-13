@@ -90,6 +90,7 @@ install-cigri-user-cmds:
 		echo -e '#!/bin/bash\nCIGRICONFFILE=$(CIGRICONFDIR)/api-clients.conf $(CIGRIDIR)/bin/'$$cmd'.rb "$$@"' > $(DESTDIR)$(BINDIR)/$$cmd ; \
 		chmod 755 $(DESTDIR)$(BINDIR)/$$cmd ; \
 	done
+	install -m 0755 bin/gridtoken-renew.sh $(DESTDIR)$(BINDIR)/gridtoken-renew.sh
 
 install-cigri-user-config:
 	install -d -m 0755 $(DESTDIR)$(CIGRICONFDIR)
