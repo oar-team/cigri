@@ -78,7 +78,7 @@ begin
           string+= "\n    "+key+": "+cluster[key].to_s if key != "links" and not cluster[key].nil?
         end
       else
-        string+= " , "+cluster['ssh_host']+" (stress:"+cluster['stress_factor']
+        string+= " , "+cluster['api_url']+" (stress:"+cluster['stress_factor']
         string+=", BLACKLISTED" if cluster['blacklisted']
         string+=", UNDER_STRESS" if cluster['under_stress']
         string+=")"

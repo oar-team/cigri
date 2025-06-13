@@ -230,6 +230,7 @@ module Cigri
           end
         else
           type= "NO_EVENTS"
+          event_date=cluster_job["stop_time"]
         end
       end
 
