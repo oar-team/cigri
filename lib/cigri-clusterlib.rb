@@ -608,6 +608,11 @@ module Cigri
           job["types"]=types
           job.delete("type")
         end
+        # OAR3 takes "properties" instead of "property"
+        if job["property"] 
+          job["properties"]=job["property"]
+          job.delete("property")
+        end
         # OAR3 does not need "$HOME" to be escaped
         if job["command"]
           job["command"].gsub! '\\$HOME', '$HOME'
