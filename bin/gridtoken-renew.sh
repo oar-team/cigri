@@ -30,7 +30,7 @@ NEW_TOKEN=`curl --no-progress-meter -H 'Accept: application/json'  -H "Authoriza
 if [ "$NEW_TOKEN" != "null" ]
 then
   echo "Setting the new token of cluster $1..."
-  gridtoken -i $1 -t "$NEW_TOKEN"
+  `dirname $0`/gridtoken -i $1 -t "$NEW_TOKEN"
 else
 	echo "ERROR: Could not get a new token (current token expired?)!"
 fi
