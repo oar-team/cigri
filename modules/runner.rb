@@ -126,7 +126,7 @@ while true do
       # Check jobs if the cluster is not blacklisted for this campaign
       elsif not cluster_blacklisted or cluster_blacklisted_because_of_exit_errors[campaign_id]
         begin
-          cluster_job = cluster.get_job(job.props[:remote_id].to_i, job.props[:grid_user])
+          cluster_job = cluster.get_job(job.props[:remote_id].to_i, job.props[:grid_user], true)
           case cluster_job["state"] 
             when /Terminated/i
               remote_job=nil

@@ -10,6 +10,7 @@ Unreleased
 - Added a EVENTS_DELAY for OAR to record an event before Cigri considers an UNKWON_ERROR
 - Fixed besteffort type not working for OAR3
 - New script to help token renewal: gridtoken-renew.sh
+- Fixed REMOTE_WAITING_TIMEOUT that could loose some jobs
 
 version 3.2.2
 -------------

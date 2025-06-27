@@ -229,6 +229,7 @@ module Cigri
             end
           end
         else
+          COLOMBOLIBLOGGER.debug("No events reported by OAR for job #{job.id}")
           type= "NO_EVENTS"
           event_date=cluster_job["stop_time"]
         end
@@ -325,7 +326,7 @@ module Cigri
           delayed=1
         else
           # Delay expired, record an error 
-          COLOMBOLIBLOGGER.debug("Creating a UNKNOWN_ERROR event for job #{job.id}")
+          COLOMBOLIBLOGGER.debug("EVENTS_DELAY expired. Creating a UNKNOWN_ERROR event for job #{job.id}")
           Cigri::Event.new(:class => "job",
                            :code => "UNKNOWN_ERROR",
                            :job_id => job.id,

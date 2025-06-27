@@ -189,7 +189,7 @@ begin
         job.decrease_affinity
       end
     rescue => e
-      job.update({:state => "event"})
+      #job.update({:state => "event"}) # Don't place the job in the event state or the runner will loose it!
       $logger.warn("Could not kill job #{job.id}")
       $logger.debug("Error while killing #{job.id}: #{e}")
     end
