@@ -502,6 +502,9 @@ module Cigri
       cluster  = Cluster.new(:id => cluster_id)
       begin
         cluster_jobs = cluster.get_jobs(:array => array_id)
+        if not cluster_jobs
+          raise
+        end
       rescue
         # TODO: We should create an event here
         # Could not get the submitted jobs id
