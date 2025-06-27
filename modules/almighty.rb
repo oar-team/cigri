@@ -58,7 +58,9 @@ begin
   #Forward SIGUSR1 to Judas (check notifications) 
   trap("USR1") {
     STDERR.puts("Received USR1, forwarding to Judas.")
-    Process.kill("USR1",judas_pid)
+    if judas_pid
+      Process.kill("USR1",judas_pid)
+    end
   }
 
   #Catch STOP
