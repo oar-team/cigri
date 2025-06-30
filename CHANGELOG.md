@@ -12,6 +12,7 @@ Unreleased
 - New script to help token renewal: gridtoken-renew.sh
 - Fixed REMOTE_WAITING_TIMEOUT that could loose some jobs
 - Added an exception handling when job submission fails to no jobs returned
+- Resubmitted jobs when fixing events are resubmitted preferably on another cluster
 
 version 3.2.2
 -------------
