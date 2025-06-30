@@ -426,6 +426,7 @@ class API < Sinatra::Base
         @logger.debug("Closing event #{id}, #{params['resubmit']}")
         if params['resubmit'] && event.props[:job_id]
           job=Cigri::Job.new(:id=>event.props[:job_id])
+          job.decrease_affinity
           job.resubmit
         end
       rescue Cigri::NotFound => e
@@ -449,7 +450,7 @@ class API < Sinatra::Base
         # Get the jobs to resubmit if needed
         if params['resubmit']
           dataset=Dataset.new("jobs,events",{:what => 
-               "jobs.id as id,jobs.param_id as param_id,jobs.campaign_id as campaign_id,jobs.tag as tag,jobs.runner_options as runner_options",
+                                             "jobs.id as id,jobs.param_id as param_id,jobs.campaign_id as campaign_id,jobs.tag as tag,jobs.runner_options as runner_options, jobs.cluster_id as cluster_id",
                                              :where => "events.campaign_id=#{id} and
                                               events.state='open' and 
                                               jobs.id=events.job_id"}) 
@@ -461,7 +462,12 @@ class API < Sinatra::Base
         @logger.debug("Closing all events of #{id}, #{params['resubmit']}")
         close_campaign_events(dbh, request.env[settings.username_variable], id)
         # Resubmit the jobs if needed
-        jobs.each{|job| job.resubmit} if params['resubmit']
+        if params['resubmit']
+           jobs.each do |job| 
+             job.decrease_affinity
+             job.resubmit
+           end
+        end
 
       rescue Cigri::NotFound => e
         halt 404, print({:status => 404, :title => "Error", :message => "Campaign #{id} not found"})
