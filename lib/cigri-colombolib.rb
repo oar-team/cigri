@@ -199,7 +199,7 @@ module Cigri
             type=remote_event["type"]
             event_date=remote_event["date"]
             # Automatic resubmit when the job was killed
-            if type == "EXTERMINATE" or type == "WALLTIME" or type == "BESTEFFORT_KILL"
+            if type == "EXTERMINATE" or type == "WALLTIME" or type == "BESTEFFORT_KILL" or type == "SEND_KILL_JOB" or type == "EXTERMINATE_JOB"
               resubmit=true
               if type == "WALLTIME"
                 Cigri::Event.new(:class => 'notify', :state => 'closed', :campaign_id => job.props[:campaign_id],
