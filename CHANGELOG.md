@@ -4,7 +4,7 @@ Cigri Changelog
 version 3.2.3
 -------------
 
-Unreleased
+Released 2025-07-22
 
 - Fixed OAR_AUTO_RESUBMIT event that loses the resubmitted job
 - Added a EVENTS_DELAY for OAR to record an event before Cigri considers an UNKWON_ERROR
