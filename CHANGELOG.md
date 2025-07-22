@@ -1,6 +1,12 @@
 Cigri Changelog
 ===============
 
+version 3.2.4
+-------------
+
+Unreleased
+
+
 version 3.2.3
 -------------
 
