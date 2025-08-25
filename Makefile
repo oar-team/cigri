@@ -78,9 +78,11 @@ install-cigri-server-tools:
 	install -d -m 0755 $(DESTDIR)$(CIGRIDIR)
 	install -d -m 0755 $(DESTDIR)$(CIGRIDIR)/sbin
 	install -m 0755 sbin/new_cluster.rb $(DESTDIR)$(CIGRIDIR)/sbin/newcluster
+	install -m 0755 sbin/cigri_gc.sh $(DESTDIR)$(CIGRIDIR)/sbin/cigri-gc
 	echo -e '#!/bin/bash\nCIGRICONFFILE=$(CIGRICONFDIR)/cigri.conf CIGRIDIR=$(CIGRIDIR) $(CIGRIDIR)/sbin/grid_test_cluster.rb "$$@"' > $(DESTDIR)$(SBINDIR)/grid_test_cluster ; \
         chmod 755 $(DESTDIR)$(SBINDIR)/grid_test_cluster ; \
 	install -m 0755 sbin/grid_test_cluster.rb $(DESTDIR)$(CIGRIDIR)/sbin/grid_test_cluster.rb
+	install -m 0755 sbin/cigri_gc.sh $(DESTDIR)$(SBINDIR)/cigri-gc
 
 install-cigri-user-cmds:
 	install -d -m 0755 $(DESTDIR)$(CIGRIDIR)
