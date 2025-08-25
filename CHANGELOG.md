@@ -6,6 +6,7 @@ version 3.2.4
 
 Unreleased
 
+- Garbage collector that can be used daily (cigri_gc.sh)
 
 version 3.2.3
 -------------
