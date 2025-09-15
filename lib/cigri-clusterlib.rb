@@ -616,6 +616,8 @@ module Cigri
         # OAR3 does not need "$HOME" to be escaped
         if job["command"]
           job["command"].gsub! '\\$HOME', '$HOME'
+          job["command"].gsub! '\\$CIGRI_CAMPAIGN_ID', '$CIGRI_CAMPAIGN_ID'
+          job["command"].gsub! '\\$OAR_JOB_ID', '$OAR_JOB_ID'
         end
         #
         if LOG_JOBS
