@@ -34,9 +34,9 @@ CiGri v3 is written in Ruby by CIMENT, the MESCAL team (from the LIG laboratory)
 - Per cluster/campaign limit of the number of jobs
 - Heavy trace system (database)
 - Tasks/clusters affinity
+- JWT auth mode for OAR3
 
 TODO:
-- JWT auth mode for OAR3
 - Scratches cleaner job
 - Don't re-submit jobs killed by WALLTIME more than N times (with N a campaign parameter)
 - Prologue/epilogue needs to be prioritized over other cigri jobs
