@@ -442,7 +442,7 @@ module Cigri
             tagged_job=myjobs.select {|job| job.props[:tag] == tag}
             if tagged_job.length > 0
               submitted_jobs << submit_single_job(cluster,tagged_job[0],campaign,{
-                               "resources" => "resource_id=1",
+                               "resources" => CONF.get("DEFAULT_JOB_RESOURCES","/core=1"),
                                "type" => campaign.clusters[cluster.id]["cluster_job_type"],
                                "name" => "cigri.#{campaign_id}",
                                "command" => campaign.clusters[cluster_id][tag] },tag )
