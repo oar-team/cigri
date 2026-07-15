@@ -238,6 +238,10 @@ module Cigri
         event=Cigri::Event.new(:state => 'closed', :class => "cluster", :cluster_id => @id, :code => "CLUSTER_API_SERVER_ERROR", :message => e.to_s)
         Cigri::Colombo.new(event).check
         raise
+      rescue Cigri::ClusterAPIServiceUnavailable => e
+        event=Cigri::Event.new(:state => 'closed', :class => "cluster", :cluster_id => @id, :code => "CLUSTER_API_SERVICE_UNAVAILABLE", :message => e.to_s)
+        Cigri::Colombo.new(event).check
+        raise
       rescue Cigri::ClusterAPIBadRequest => e
         event=Cigri::Event.new(:state => 'closed', :class => "cluster", :cluster_id => @id, :code => "CLUSTER_API_BAD_REQUEST_ERROR", :message => e.to_s)
         Cigri::Colombo.new(event).check

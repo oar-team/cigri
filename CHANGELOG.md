@@ -8,6 +8,7 @@ Unreleased
 
 - Garbage collector that can be used daily (cigri_gc.sh)
 - Fixed unneeded escaping for oar3 (CIGRI_CAMPAIGN_ID)
+- 503 error is no more fatal
 
 version 3.2.3
 -------------

@@ -146,6 +146,8 @@ module Cigri
           raise Cigri::ClusterAPIForbidden, "#{e.http_code} error in GET for #{uri}:\n #{e.response.body}"
         elsif  e.http_code == 500
           raise Cigri::ClusterAPIServerError, "#{e.http_code} error in GET for #{uri}:\n #{e.response.body}"
+        elsif  e.http_code == 503
+          raise Cigri::ClusterAPIServiceUnavailable, "#{e.http_code} error in GET for #{uri}:\n #{e.response.body}"
         elsif  e.http_code == 404
           raise Cigri::ClusterAPINotFound, "#{e.http_code} error in GET for #{uri}:\n #{e.response.body}"
         elsif not e.http_code
@@ -214,6 +216,8 @@ module Cigri
           raise Cigri::ClusterAPITooLarge, "#{e.http_code} error in POST for #{uri}:\n #{e.response.body}"
         elsif  e.http_code == 500
           raise Cigri::ClusterAPIServerError, "#{e.http_code} error in POST for #{uri}:\n #{e.response.body}"
+        elsif  e.http_code == 503
+          raise Cigri::ClusterAPIServiceUnavailable, "#{e.http_code} error in POST for #{uri}:\n #{e.response.body}"
         elsif e.response.nil?
           raise e, "Error in POST for #{uri}: empty response"
         else
@@ -249,6 +253,8 @@ module Cigri
           raise Cigri::ClusterAPINotFound, "#{e.http_code} error in DELETE for #{uri}:\n #{body}"
         elsif  e.http_code == 500
           raise Cigri::ClusterAPIServerError, "#{e.http_code} error in DELETE for #{uri}:\n #{body}"
+        elsif  e.http_code == 503
+          raise Cigri::ClusterAPIServiceUnavailable, "#{e.http_code} error in DELETE for #{uri}:\n #{body}"
         else
           raise Cigri::Error, "#{e.http_code} error in DELETE for #{uri}:\n #{body}"
         end
