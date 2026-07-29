@@ -56,6 +56,10 @@ module Cigri
   # Raised when a POST request is too large
   ##
   class ClusterAPITooLarge < Error; end
+  ##
+  # Raised for a 503 api rest-server error
+  ##
+  class ClusterAPIServiceUnavailable < Error; end
  
     
 end
